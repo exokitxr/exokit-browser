@@ -43,12 +43,15 @@ Studio uses the [Exokit Engine](https://github.com/exokitxr/exokit), which is wr
 
 :eyeglasses: **Exokit Engine currently targets the following platforms**:
 * OpenVR Desktop VR (Steam compatible)
+* HTC Vive
+* Valve Index *
 * Oculus Desktop (Oculus Rift, Oculus Rift S)
 * Oculus Mobile (Oculus Quest, Oculus Go, GearVR)
 * Magic Leap
 * iOS ARKit *
 * Android ARCore *
 * Google VR (Daydream / Cardboard / Mirage Solo) *
+* Hololens / Hololens 2 *
 * any XR device, start a [pull request](https://github.com/exokitxr/exokit/compare) to the Exokit Engine with a native binding if it isn't listed here! *
 
 \* not supported yet
