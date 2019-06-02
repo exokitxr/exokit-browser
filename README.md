@@ -1,5 +1,5 @@
 <h1 align="center">Exokit Studio</h1>
-<p align="center"><b>The ultimate WebXR interface, powered by the <a href="https://github.com/exokitxr/exokit">Exokit Engine</a>.</b></p>
+<p align="center"><b>An interface for the <a href="https://github.com/exokitxr/exokit">Exokit Engine</a>.</b></p>
 
 <p align="center">
   <a href="https://github.com/exokitxr/studio/releases"><img src="https://img.shields.io/github/downloads/exokitxr/studio/total.svg"></a>
@@ -39,7 +39,7 @@
 
 Exokit Studio **enables developers to build XR experiences with ease** by having a seamless interface to the Exokit Engine. Studio prefers using GUIs instead of command lines with difficult to remember arguments to use the functionality you want.
 
-Studio is uses the [Exokit Engine](https://github.com/exokitxr/exokit), which is written on top of Node and emulates a web browser, providing native hooks for WebGL, WebGL2, WebVR, WebXR, WebAudio, and other APIs used in immersive experiences.
+Studio uses the [Exokit Engine](https://github.com/exokitxr/exokit), which is written on top of Node and emulates a web browser, providing native hooks for WebGL, WebGL2, WebVR, WebXR, WebAudio, and other APIs used in immersive experiences.
 
 :eyeglasses: **Exokit Engine currently targets the following platforms**:
 * OpenVR Desktop VR (Steam compatible)
