@@ -3208,7 +3208,6 @@ const _startFakeVrDisplay = async (width, height) => {
   }
   fakeXrDisplay.position.set(0, 1.6, 0);
   fakeXrDisplay.pushUpdate();
-  fakeXrDisplay.hidden = true; // XXX can be an actual hidden check
 
   if (navigator.xr) {
     const session = await navigator.xr.requestSession({
