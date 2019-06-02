@@ -1,5 +1,4 @@
 <h1 align="center">Exokit Studio</h1>
-<p align="center"><a href="https://exokit.org" target="_blank"><img width="300" height="300" alt="Exokit" src="assets/icon.png"/></a></p>
 <p align="center"><b>The ultimate WebXR interface, powered by the <a href="https://github.com/exokitxr/exokit">Exokit Engine</a>.</b></p>
 
 <p align="center">
