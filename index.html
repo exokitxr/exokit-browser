@@ -911,7 +911,7 @@ const {
   iframe.height = window.innerHeight;
   iframe.devicePixelRatio = window.devicePixelRatio;
   iframe.d = 2;
-  iframe.src = 'launcher/build/index.html';
+  iframe.src = 'ui/build/index.html';
   iframe.onload = () => {
     iframe.contentWindow.onmessage = m => {
       switch (m.data.method) {
