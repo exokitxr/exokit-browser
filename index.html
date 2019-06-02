@@ -3279,7 +3279,7 @@ const _endFakeVrDisplay = async () => {
 _startFakeVrDisplay()
   .then(() => {
     const tabUrl = (() => {
-      const {t = 'examples/tutorial.html'} = query;
+      const {t = 'tutorial.html'} = query;
       if (!/^[a-z]+:\/\//.test(t)) {
         return `../${t}`;
       } else {
