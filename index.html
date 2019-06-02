@@ -883,7 +883,7 @@ scene.add(directionalLight);
 
 const _pushDomUpdate = () => {
   if (uiIframe.contentWindow) {
-    document.body.parentNode.requestExport()
+    browser.requestDomExport(document.body.parentNode)
       .then(root => {
         uiIframe.contentWindow.postMessage({
           method: 'dom',
@@ -976,7 +976,7 @@ const {
           break;
         }
         case 'edit': {
-          window.document.body.parentNode.applyEdit(m.data.keypath, m.data.edit)
+          browser.applyDomEdit(document.body.parentNode, m.data.keypath, m.data.edit)
             .then(() => {
               _pushDomUpdate();
             })
