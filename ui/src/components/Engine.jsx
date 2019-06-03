@@ -284,6 +284,10 @@ class Engine extends React.Component {
                   </div>
                 </div>
                 <div className={this.menuItemPopupItemsClassNames('examples')}>
+                  <div className="menu-item-popup-item" onClick={() => this.addTemplate('webXrSample')}>
+                    <i class="fas fa-globe-europe"/>
+                    <div className="label">WebXR Sample</div>
+                  </div>
                   <div className="menu-item-popup-item" onClick={() => this.addTemplate('kitchenSink')}>
                     <i class="far fa-meteor"/>
                     <div className="label">Kitchen sink</div>
