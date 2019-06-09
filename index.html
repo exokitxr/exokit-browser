@@ -903,9 +903,16 @@ const composeFsh = `#version 300 es
   out vec4 fragColor;
   void main() {
     vec4 uiSample = texture2D(uiTex, vec2(vUv.x, 1.0-vUv.y));
-    if (vUv.x >= viewport.x && vUv.y >= viewport.y && vUv.x < (viewport.x + viewport.z) && vUv.y < (viewport.y + viewport.w)) {
+    vec4 viewportOffset = vec4(viewport.x, 1.0-viewport.y-viewport.w, viewport.x + viewport.z, 1.0-viewport.y);
+    if (vUv.x >= viewportOffset.x && vUv.y >= viewportOffset.y && vUv.x < viewportOffset.z && vUv.y < viewportOffset.w) {
       if (uiSample.r == 0.0 && uiSample.g == 1.0 && uiSample.b == 0.0 && uiSample.a == 1.0) {
-        vec4 viewportSample = texture2D(viewportTex, vUv);
+        vec4 viewportSample = texture2D(
+          viewportTex,
+          vec2(
+            (vUv.x - viewportOffset.x) / (viewportOffset.z - viewportOffset.x),
+            (vUv.y - viewportOffset.y) / (viewportOffset.w - viewportOffset.y)
+          )
+        );
         fragColor = viewportSample;
       } else {
         fragColor = uiSample;
@@ -3286,7 +3293,7 @@ function animateComposeContext(time, frame) {
 
   gl.uniform4f(gl.viewportLocation, viewport.x, viewport.y, viewport.z, viewport.w);
 
-  // gl.viewport(0, 0, composeCanvas.width, composeCanvas.height);
+  gl.viewport(0, 0, composeCanvas.width, composeCanvas.height);
   gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
 
   /* {
