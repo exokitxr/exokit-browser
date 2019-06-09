@@ -3295,39 +3295,6 @@ function animateComposeContext(time, frame) {
 
   gl.viewport(0, 0, composeCanvas.width, composeCanvas.height);
   gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
-
-  /* {
-    composeContext.bindFramebuffer(composeContext.READ_FRAMEBUFFER, composeContext.readFbo);
-    composeContext.framebufferTexture2D(composeContext.READ_FRAMEBUFFER, composeContext.COLOR_ATTACHMENT0, composeContext.TEXTURE_2D, uiIframe.texture, 0);
-
-    composeContext.bindFramebuffer(composeContext.DRAW_FRAMEBUFFER, 0);
-    // glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, composeContext.worldTex, 0);
-
-    composeContext.blitFramebuffer(
-      0, 0,
-      uiIframe.width, uiIframe.height,
-      0, composeCanvas.height,
-      composeCanvas.width, 0,
-      composeContext.COLOR_BUFFER_BIT,
-      composeContext.LINEAR
-    );
-  }
-  if (!menuOpen) {
-    composeContext.bindFramebuffer(composeContext.READ_FRAMEBUFFER, composeContext.readFbo);
-    composeContext.framebufferTexture2D(composeContext.READ_FRAMEBUFFER, composeContext.COLOR_ATTACHMENT0, composeContext.TEXTURE_2D, fakeXrDisplay.texture, 0);
-
-    // composeContext.bindFramebuffer(composeContext.DRAW_FRAMEBUFFER, 0);
-    // glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, composeContext.worldTex, 0);
-
-    composeContext.blitFramebuffer(
-      0, 0,
-      fakeXrDisplay.width, fakeXrDisplay.height,
-      viewport.x*composeCanvas.width, (1-viewport.y-viewport.w)*composeCanvas.height,
-      (viewport.x+viewport.z)*composeCanvas.width, (1-viewport.y)*composeCanvas.height,
-      composeContext.COLOR_BUFFER_BIT,
-      composeContext.LINEAR
-    );
-  } */
 }
 function animate(time, frame) {
   animateXrScene(time, frame);
