@@ -5,10 +5,11 @@
   font-family: monospace;
   font-size: 11px;
   white-space: pre-wrap;
-  overflow-y: auto;
+  overflow-x: none;
+  overflow-y: scroll;
 }
 .Console.open {
-  height: 100px;
+  height: 30%;
 }
 
 .Console .console-output {
