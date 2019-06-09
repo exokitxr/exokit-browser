@@ -2390,6 +2390,11 @@ function animateXrScene(time, frame) {
           controllerMesh.quaternion.fromArray(gamepad.pose.orientation);
           controllerMesh.updateMatrixWorld(true);
           controllerMesh.visible = true;
+          if(orbitControls){
+            controllerMesh.rayMesh.visible = false;
+          } else {
+            controllerMesh.rayMesh.visible = true;
+          }
         }
       }
     }
