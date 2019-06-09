@@ -886,6 +886,36 @@ scene.add(directionalLight);
 
 // iframe
 
+const composeVsh = `#version 300 es
+  in vec2 position;
+  in vec2 uv;
+  out vec2 vUv;
+  void main() {
+    gl_Position = vec4(position.xy, 0., 1.);
+    vUv = uv;
+  }
+`;
+const composeFsh = `#version 300 es
+  uniform vec4 viewport;
+  uniform sampler2D uiTex;
+  uniform sampler2D viewportTex;
+  in vec2 vUv;
+  out vec4 fragColor;
+  void main() {
+    vec4 uiSample = texture2D(uiTex, vec2(vUv.x, 1.0-vUv.y));
+    if (vUv.x >= viewport.x && vUv.y >= viewport.y && vUv.x < (viewport.x + viewport.z) && vUv.y < (viewport.y + viewport.w)) {
+      if (uiSample.r == 0.0 && uiSample.g == 1.0 && uiSample.b == 0.0 && uiSample.a == 1.0) {
+        vec4 viewportSample = texture2D(viewportTex, vUv);
+        fragColor = viewportSample;
+      } else {
+        fragColor = uiSample;
+      }
+    } else {
+      fragColor = uiSample;
+    }
+  }
+`;
+
 const _pushDomUpdate = () => {
   if (uiIframe.contentWindow) {
     browser.requestDomExport(document.body.parentNode)
@@ -899,16 +929,111 @@ const _pushDomUpdate = () => {
 };
 const {
   canvas: composeCanvas,
-  ctx: composeContext,
+  gl: composeContext,
   iframe: uiIframe,
 } = (() => {
   const canvas = document.createElement('canvas');
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-  const ctx = canvas.getContext('webgl', {
+  const gl = canvas.getContext('webgl', {
     desynchronized: true,
   });
-  ctx.readFbo = ctx.createFramebuffer();
+
+  const vao = gl.createVertexArray();
+  gl.bindVertexArray(vao);
+
+  // vertex shader
+  const composeVertex = gl.createShader(gl.VERTEX_SHADER);
+  gl.shaderSource(composeVertex, composeVsh);
+  gl.compileShader(composeVertex);
+  let success = gl.getShaderParameter(composeVertex, gl.COMPILE_STATUS);
+  if (!success) {
+    console.log('compose vertex shader compilation failed:\n' + gl.getShaderInfoLog(composeVertex) + '\n' + gl.getShaderSource(composeVertex).split('\n').map((l, i) => `${i+1}: ${l}`).join('\n'));
+    // return;
+  };
+
+  // fragment shader
+  const composeFragment = gl.createShader(gl.FRAGMENT_SHADER);
+  gl.shaderSource(composeFragment, composeFsh);
+  gl.compileShader(composeFragment);
+  success = gl.getShaderParameter(composeFragment, gl.COMPILE_STATUS);
+  if (!success) {
+    const infoLog = gl.getShaderInfoLog(composeFragment);
+    console.log('compose fragment shader compilation failed:\n' + gl.getShaderInfoLog(composeFragment) + '\n' + gl.getShaderSource(composeFragment).split('\n').map((l, i) => `${i+1}: ${l}`).join('\n'));
+    // return;
+  };
+
+  // shader program
+  gl.composeProgram = gl.createProgram();
+  gl.attachShader(gl.composeProgram, composeVertex);
+  gl.attachShader(gl.composeProgram, composeFragment);
+  gl.linkProgram(gl.composeProgram);
+  success = gl.getProgramParameter(gl.composeProgram, gl.LINK_STATUS);
+  if (!success) {
+    const infoLog = gl.getProgramInfoLog(gl.composeProgram);
+    console.log('compose program linking failed:', infoLog);
+    // return;
+  }
+
+  gl.positionLocation = gl.getAttribLocation(gl.composeProgram, "position");
+  if (gl.positionLocation == -1) {
+    console.log('compose program failed to get attrib location for "position"');
+    // return;
+  }
+  gl.uvLocation = gl.getAttribLocation(gl.composeProgram, "uv");
+  if (gl.uvLocation === -1) {
+    console.log('compose program failed to get attrib location for "uv"');
+    // return;
+  }
+  gl.viewportLocation = gl.getUniformLocation(gl.composeProgram, "viewport");
+  if (gl.viewportLocation === -1) {
+    console.log('compose program failed to get attrib location for "viewport"');
+    // return;
+  }
+  gl.uiTexLocation = gl.getUniformLocation(gl.composeProgram, "uiTex");
+  if (gl.uiTexLocation === -1) {
+    console.log('compose program failed to get attrib location for "uiTex"');
+    // return;
+  }
+  gl.viewportTexLocation = gl.getUniformLocation(gl.composeProgram, "viewportTex");
+  if (gl.viewportTexLocation === -1) {
+    console.log('compose program failed to get attrib location for "viewportTex"');
+    // return;
+  }
+
+  // delete the shaders as they're linked into our program now and no longer necessary
+  gl.deleteShader(composeVertex);
+  gl.deleteShader(composeFragment);
+
+  const positionBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  const positions = Float32Array.from([
+    -1.0, 1.0,
+    1.0, 1.0,
+    -1.0, -1.0,
+    1.0, -1.0,
+  ]);
+  gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(gl.positionLocation);
+  gl.vertexAttribPointer(gl.positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+  const uvBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
+  const uvs = Float32Array.from([
+    0.0, 1.0,
+    1.0, 1.0,
+    0.0, 0.0,
+    1.0, 0.0,
+  ]);
+  gl.bufferData(gl.ARRAY_BUFFER, uvs, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(gl.uvLocation);
+  gl.vertexAttribPointer(gl.uvLocation, 2, gl.FLOAT, false, 0, 0);
+
+  const indexBuffer = gl.createBuffer();
+  const indices = Uint16Array.from([0, 2, 1, 2, 3, 1]);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+
   document.body.appendChild(canvas);
 
   const iframe = document.createElement('iframe');
@@ -1049,7 +1174,7 @@ const {
 
   return {
     canvas,
-    ctx,
+    gl,
     iframe,
   };
 })();
@@ -3145,7 +3270,26 @@ function animateXrScene(time, frame) {
   lastTime = now;
 }
 function animateComposeContext(time, frame) {
-  {
+  const gl = composeContext;
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, 0);
+
+  gl.useProgram(gl.composeProgram);
+
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, uiIframe.texture);
+  gl.uniform1i(gl.uiTexLocation, 0);
+
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, fakeXrDisplay.texture);
+  gl.uniform1i(gl.viewportTexLocation, 1);
+
+  gl.uniform4f(gl.viewportLocation, viewport.x, viewport.y, viewport.z, viewport.w);
+
+  // gl.viewport(0, 0, composeCanvas.width, composeCanvas.height);
+  gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
+
+  /* {
     composeContext.bindFramebuffer(composeContext.READ_FRAMEBUFFER, composeContext.readFbo);
     composeContext.framebufferTexture2D(composeContext.READ_FRAMEBUFFER, composeContext.COLOR_ATTACHMENT0, composeContext.TEXTURE_2D, uiIframe.texture, 0);
 
@@ -3176,7 +3320,7 @@ function animateComposeContext(time, frame) {
       composeContext.COLOR_BUFFER_BIT,
       composeContext.LINEAR
     );
-  }
+  } */
 }
 function animate(time, frame) {
   animateXrScene(time, frame);
