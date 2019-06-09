@@ -1217,6 +1217,9 @@ const _bindEventTarget = target => {
     };
   };
   if (target === 'ui') {
+    for (let i = 0; i < 2; i++) {
+      controllerMeshes[i].rayMesh.visible = false;
+    }
     _bindEvents({
       mousedown(e) {
         if (!orbitControls) {
@@ -1380,6 +1383,9 @@ const _bindEventTarget = target => {
       },
     });
   } else if (target === 'xr') {
+    for (let i = 0; i < 2; i++) {
+      controllerMeshes[i].rayMesh.visible = true;
+    }
     _bindEvents({
       /* click(e) {
         renderer.domElement.requestPointerLock();
