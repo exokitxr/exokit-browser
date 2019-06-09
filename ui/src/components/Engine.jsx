@@ -343,15 +343,7 @@ class Engine extends React.Component {
           <div className="engine-split">
             <div className="engine-left">
               <div className="engine-render" id="engine-render" onClick={() => this.onEngineRenderClick()} />
-              <Resizable
-                minWidth="200px"
-                // minHeight="100px"
-                // maxHeight="300px"
-                onResize={(e, direction, ref, d) => {
-                  _postViewportMessage();
-                }}>
-                <Console open={this.state.consoleOpen} postViewportMessage={this.postViewportMessage} />
-              </Resizable>
+              <Console open={this.state.consoleOpen} postViewportMessage={this.postViewportMessage} />
             </div>
             <Resizable
               minWidth="200px"
