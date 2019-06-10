@@ -89,6 +89,8 @@
   padding-left: 10px;
   display: table-cell;
   vertical-align: middle;
+  position: absolute;
+  z-index: 1;
 }
 .Dom > .dom-detail > .dom-detail-name {
   font-family: monospace;
