@@ -345,8 +345,7 @@ class Engine extends React.Component {
               <div className="engine-render" id="engine-render" onClick={() => this.onEngineRenderClick()} />
               <Resizable
                 minWidth="200px"
-                // minHeight="100px"
-                // maxHeight="300px"
+                minHeight={this.state.consoleOpen ? 150 : 0}
                 onResize={(e, direction, ref, d) => {
                   _postViewportMessage();
                 }}>
