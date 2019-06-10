@@ -344,7 +344,6 @@ class Engine extends React.Component {
             <div className="engine-left">
               <div className="engine-render" id="engine-render" onClick={() => this.onEngineRenderClick()} />
               <Resizable
-                ref={c => { this.resizable = c; }}
                 minWidth="200px"
                 minHeight={this.state.consoleOpen ? 150 : 0}
                 onResize={(e, direction, ref, d) => {
