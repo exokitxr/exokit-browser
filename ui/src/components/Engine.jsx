@@ -217,6 +217,11 @@ class Engine extends React.Component {
       this.setState({
         consoleOpen: !this.state.consoleOpen,
       });
+      if(this.state.consoleOpen){
+        this.resizable.updateSize({ height: 0, maxHeight: 0 });
+      } else {
+        this.resizable.updateSize({ height: 150, minHeight: 150 });
+      }
     }
 
     blur() {
@@ -344,6 +349,7 @@ class Engine extends React.Component {
             <div className="engine-left">
               <div className="engine-render" id="engine-render" onClick={() => this.onEngineRenderClick()} />
               <Resizable
+                ref={c => { this.resizable = c; }}
                 minWidth="200px"
                 onResize={(e, direction, ref, d) => {
                   _postViewportMessage();
