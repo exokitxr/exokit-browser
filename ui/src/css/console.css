@@ -7,6 +7,10 @@
   white-space: pre-wrap;
   overflow-x: none;
   overflow-y: scroll;
+  display: flex;
+  align-items: flex-end;
+  flex-direction:column;
+  justify-content:space-between;
 }
 .Console.open {
   height: 30%;
