@@ -1347,10 +1347,7 @@ const _bindEventTarget = target => {
             _removeTransformControls();
           }
         }
-
-        if (!orbitControls) {
-          uiIframe.sendMouseMove(e.clientX, e.clientY);
-        }
+        uiIframe.sendMouseMove(e.clientX, e.clientY);
       },
       mouseup(e) {
         if (!orbitControls) {
