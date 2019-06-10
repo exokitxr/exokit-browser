@@ -28,6 +28,7 @@ class Engine extends React.Component {
         urlFocus: false,
         addTab: 'template',
         url: 'https://aframe.io/a-painter/',
+        minHeight: 0,
       };
     }
 
@@ -218,9 +219,15 @@ class Engine extends React.Component {
         consoleOpen: !this.state.consoleOpen,
       });
       if(this.state.consoleOpen){
-        this.resizable.updateSize({ height: 0, maxHeight: 0 });
+        this.resizable.updateSize({ height: 0 });
+        this.setState({
+          minHeight: 0,
+        });
       } else {
-        this.resizable.updateSize({ height: 150, minHeight: 150 });
+        this.resizable.updateSize({ height: 150 });
+        this.setState({
+          minHeight: 150,
+        });
       }
     }
 
@@ -351,6 +358,7 @@ class Engine extends React.Component {
               <Resizable
                 ref={c => { this.resizable = c; }}
                 minWidth="200px"
+                minHeight={this.state.minHeight}
                 onResize={(e, direction, ref, d) => {
                   _postViewportMessage();
                 }}>
