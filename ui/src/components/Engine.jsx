@@ -36,6 +36,7 @@ class Engine extends React.Component {
     componentDidMount() {
       _postViewportMessage();
       window.addEventListener('resize', _postViewportMessage);
+      window.addEventListener('move', _postViewportMessage);
 
       /* window.addEventListener('keydown', e => {
         console.log('iframe keydown ' + e.keyCode);
