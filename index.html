@@ -913,10 +913,6 @@ uiIframe.onload = () => {
         const {devicePixelRatio} = window;
 
         const sceneCanvas = renderer.domElement;
-        // sceneCanvas.setPosition(position[0], position[1]);
-        // sceneCanvas.left = position[0];
-        // sceneCanvas.top = position[1];
-        // viewport.fromArray(vp);
         sceneCanvas.setPosition(viewport[0], viewport[1]);
         sceneCanvas.setSize(viewport[2], viewport[3]);
 
