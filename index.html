@@ -1167,9 +1167,6 @@ const _bindEventTarget = target => {
     };
 
     _bindEvents({
-      mousedown(e) {
-        uiIframe.sendMouseDown(e.clientX, e.clientY, e.button);
-      },
       mousemove(e) {
         const localCamera = camera;
         localCamera.matrixWorldInverse.fromArray(fakeXrDisplay.viewMatrix);
@@ -1221,33 +1218,16 @@ const _bindEventTarget = target => {
           _removeTransformControls();
         }
       },
-      mouseup(e) {
-        if (!orbitControls) {
-          uiIframe.sendMouseUp(e.clientX, e.clientY, e.button);
-        }
-      },
-      wheel(e) {
-        if (!orbitControls) {
-          uiIframe.sendMouseWheel(e.clientX, e.clientY, e.deltaX, -e.deltaY);
-        }
-      },
       keydown(e) {
         if (e.keyCode === 37 && e.altKey) { // Alt-Left
           uiIframe.back();
         } else if (e.keyCode === 39 && e.altKey) { // Alt-Right
           uiIframe.forward();
-        } else {
-          uiIframe.sendKeyDown(e.keyCode,{shiftKey:e.shiftKey,ctrlKey:e.ctrlKey,altKey:e.altKey});
         }
-      },
-      keyup(e) {
-        uiIframe.sendKeyUp(e.keyCode,{shiftKey:e.shiftKey,ctrlKey:e.ctrlKey,altKey:e.altKey});
       },
       keypress(e) {
         if (e.keyCode === 114 && e.ctrlKey) { // Ctrl-R
           uiIframe.reload();
-        } else {
-          uiIframe.sendKeyPress(e.keyCode,{shiftKey:e.shiftKey,ctrlKey:e.ctrlKey,altKey:e.altKey});
         }
       },
     });
