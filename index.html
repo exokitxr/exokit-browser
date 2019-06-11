@@ -918,6 +918,56 @@ uiIframe.onload = () => {
 
         break;
       }
+      case 'viewportMouseDown': {
+        const {x, y, button} = m.data;
+        window.dispatchEvent(new MouseEvent('mousedown', {
+          clientX: x,
+          clientY: y,
+          button,
+        }));
+
+        break;
+      }
+      case 'viewportMouseUp': {
+        const {x, y, button} = m.data;
+        window.dispatchEvent(new MouseEvent('mouseup', {
+          clientX: x,
+          clientY: y,
+          button,
+        }));
+
+        break;
+      }
+      case 'viewportClick': {
+        const {x, y, button} = m.data;
+        window.dispatchEvent(new MouseEvent('click', {
+          clientX: x,
+          clientY: y,
+          button,
+        }));
+
+        break;
+      }
+      case 'viewportMouseMove': {
+        const {x, y} = m.data;
+        window.dispatchEvent(new MouseEvent('mousemove', {
+          clientX: x,
+          clientY: y,
+        }));
+
+        break;
+      }
+      case 'viewportMouseWheel': {
+        const {x, y, deltaX, deltaY} = m.data;
+        window.dispatchEvent(new MouseEvent('mousewheel', {
+          clientX: x,
+          clientY: y,
+          deltaX,
+          deltaY,
+        }));
+
+        break;
+      }
       case 'click': {
         const {target} = m.data;
         if (target === 'fakeXr') {
