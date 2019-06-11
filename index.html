@@ -1258,6 +1258,9 @@ const _bindEventTarget = target => {
       _removeOrbitControls();
     })();
   } else if (target === 'xr') {
+    for (let i = 0; i < 2; i++) {
+      controllerMeshes[i].rayMesh.visible = true;
+    }
     _bindEvents({
       /* click(e) {
         renderer.domElement.requestPointerLock();

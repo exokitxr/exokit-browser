@@ -290,10 +290,6 @@ class Engine extends React.Component {
                     <i class="fas fa-globe-europe"/>
                     <div className="label">WebXR Sample</div>
                   </div>
-                  <div className="menu-item-popup-item" onClick={() => this.addTemplate('kitchenSink')}>
-                    <i class="far fa-meteor"/>
-                    <div className="label">Kitchen sink</div>
-                  </div>
                   <div className="menu-item-popup-item" onClick={() => this.addTemplate('exobot')}>
                     <i class="fal fa-robot"/>
                     <div className="label">Exobot</div>
@@ -347,8 +343,7 @@ class Engine extends React.Component {
               <EngineRender onFocus={() => this.onEngineRenderFocus()}/>
               <Resizable
                 minWidth="200px"
-                // minHeight="100px"
-                // maxHeight="300px"
+                minHeight={this.state.consoleOpen ? 150 : 0}
                 onResize={(e, direction, ref, d) => {
                   _postViewportMessage();
                 }}>
