@@ -911,11 +911,23 @@ uiIframe.onload = () => {
     switch (m.data.method) {
       case 'viewport': {
         const {viewport} = m.data;
-        const {devicePixelRatio} = window;
+
+        // console.log('got viewport', viewport);
+
+        /* const sceneCanvas = renderer.domElement;
+        sceneCanvas.setPosition(viewport[0], viewport[1]);
+        sceneCanvas.setSize(viewport[2], viewport[3]); */
+
+        break;
+      }
+      case 'resize': {
+        const {x, y, width, height} = m.data;
+
+        // console.log('got resize', {x, y, width, height});
 
         const sceneCanvas = renderer.domElement;
-        sceneCanvas.setPosition(viewport[0], viewport[1]);
-        sceneCanvas.setSize(viewport[2], viewport[3]);
+        sceneCanvas.setPosition(x, y);
+        sceneCanvas.setSize(width, height);
 
         break;
       }
