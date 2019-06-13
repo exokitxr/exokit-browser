@@ -370,7 +370,7 @@ class Engine extends React.Component {
 class EngineRender extends React.Component {
   onMouseDown(e) {
     const engineRender = document.getElementById('engine-render');
-    const bcr = engineRender.getBoundingClinetRect();
+    const bcr = engineRender.getBoundingClientRect();
     window.postMessage({
       method: 'viewportMouseDown',
       x: e.clientX - bcr.x,
@@ -380,7 +380,7 @@ class EngineRender extends React.Component {
   }
   onMouseUp(e) {
     const engineRender = document.getElementById('engine-render');
-    const bcr = engineRender.getBoundingClinetRect();
+    const bcr = engineRender.getBoundingClientRect();
     window.postMessage({
       method: 'viewportMouseUp',
       x: e.clientX - bcr.x,
@@ -390,7 +390,7 @@ class EngineRender extends React.Component {
   }
   onClick(e) {
     const engineRender = document.getElementById('engine-render');
-    const bcr = engineRender.getBoundingClinetRect();
+    const bcr = engineRender.getBoundingClientRect();
     window.postMessage({
       method: 'viewportMouseClick',
       x: e.clientX - bcr.x,
@@ -400,7 +400,7 @@ class EngineRender extends React.Component {
   }
   onMouseMove(e) {
     const engineRender = document.getElementById('engine-render');
-    const bcr = engineRender.getBoundingClinetRect();
+    const bcr = engineRender.getBoundingClientRect();
     window.postMessage({
       method: 'viewportMouseMove',
       x: e.clientX - bcr.x,
@@ -409,7 +409,7 @@ class EngineRender extends React.Component {
   }
   onMouseWheel(e) {
     const engineRender = document.getElementById('engine-render');
-    const bcr = engineRender.getBoundingClinetRect();
+    const bcr = engineRender.getBoundingClientRect();
     window.postMessage({
       method: 'viewportMouseWheel',
       x: e.clientX - bcr.x,
