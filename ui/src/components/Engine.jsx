@@ -392,7 +392,7 @@ class EngineRender extends React.Component {
     const engineRender = document.getElementById('engine-render');
     const bcr = engineRender.getBoundingClientRect();
     window.postMessage({
-      method: 'viewportMouseClick',
+      method: 'viewportClick',
       x: e.clientX - bcr.x,
       y: e.clientY - bcr.y,
       button: e.button,
