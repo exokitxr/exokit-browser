@@ -1237,7 +1237,7 @@ const _bindEventTarget = target => {
     unbindEvents = (unbindEvents => function() {
       unbindEvents.apply(this, arguments);
       _removeOrbitControls();
-    })();
+    })(unbindEvents);
   } else if (target === 'xr') {
     for (let i = 0; i < 2; i++) {
       controllerMeshes[i].rayMesh.visible = true;
