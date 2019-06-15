@@ -983,6 +983,7 @@ uiIframe.onload = () => {
         const {target} = m.data;
         if (target === 'fakeXr') {
           renderer.domElement.requestPointerLock();
+          renderer.domElement.setFocus();
           _bindEventTarget('xr');
         } else if (target === 'xr') {
           console.log('xr click');
