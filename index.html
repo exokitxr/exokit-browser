@@ -1100,6 +1100,14 @@ uiIframe.onconsole = (message, source, line) => {
   console.log(source + ':' + line + ': ' + message);
 };
 document.body.appendChild(uiIframe);
+window.addEventListener('move', e => {
+  const {x, y} = e.detail;
+  uiIframe.setPosition(x, y);
+});
+window.addEventListener('resize', e => {
+  uiIframe.width = window.innerWidth;
+  uiIframe.height = window.innerHeight;
+});
 
 // events
 
