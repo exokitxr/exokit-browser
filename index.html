@@ -1114,6 +1114,12 @@ window.addEventListener('focus', e => {
 window.addEventListener('blur', e => {
   uiIframe.setAlwaysOnTop(false);
 });
+window.addEventListener('restore', e => {
+  uiIframe.show();
+});
+window.addEventListener('minimize', e => {
+  uiIframe.hide();
+});
 
 // events
 
