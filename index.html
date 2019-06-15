@@ -1108,6 +1108,12 @@ window.addEventListener('resize', e => {
   uiIframe.width = window.innerWidth;
   uiIframe.height = window.innerHeight;
 });
+window.addEventListener('focus', e => {
+  uiIframe.setAlwaysOnTop(true);
+});
+window.addEventListener('blur', e => {
+  uiIframe.setAlwaysOnTop(false);
+});
 
 // events
 
