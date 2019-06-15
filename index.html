@@ -919,13 +919,10 @@ uiIframe.onload = () => {
   uiIframe.contentWindow.onmessage = m => {
     switch (m.data.method) {
       case 'viewport': {
-        const {viewport} = m.data;
+        const {viewport: vp} = m.data;
 
-        console.log('got viewport', viewport);
-
-        /* const sceneCanvas = renderer.domElement;
-        sceneCanvas.setPosition(viewport[0], viewport[1]);
-        sceneCanvas.setSize(viewport[2], viewport[3]); */
+        // console.log('got viewport', vp);
+        // viewport.fromArray(vp);
 
         break;
       }
@@ -1195,10 +1192,13 @@ const _bindEventTarget = target => {
         localCamera.projectionMatrixInverse.getInverse(localCamera.projectionMatrix);
 
         localCamera.matrixWorld.decompose(localCamera.position, localCamera.quaternion, localCamera.scale);
+        const rect = document.body.getBoundingClientRect();
         localRaycaster.setFromCamera(
           localVector2D.set(
-            ((e.clientX / renderer.domElement.width) % 0.5 * 2) * 2 - 1,
-            (-e.clientY / renderer.domElement.height) * 2 + 1
+            ((e.clientX / rect.width) % 0.5 * 2) * 2 - 1,
+            (-e.clientY / rect.height) * 2 + 1
+            /* ((e.clientX / rect.width * viewport.z - viewport.x) % 0.5 * 2) * 2 - 1,
+            (-e.clientY / rect.height * viewport.w - viewport.y) * 2 + 1 */
           ),
           localCamera
         );
