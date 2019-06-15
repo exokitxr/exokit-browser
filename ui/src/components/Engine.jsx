@@ -8,9 +8,9 @@ const _postViewportMessage = () => {
   const engineRender = document.getElementById('engine-render');
   const bcr = engineRender.getBoundingClientRect();
   // const position = [window.screenX + bcr.x, window.screenY + bcr.y];
-  // const viewport = [bcr.x/window.innerWidth, bcr.y/window.innerHeight, bcr.width/window.innerWidth, bcr.height/window.innerHeight];
+  const viewport = [bcr.x/window.innerWidth, bcr.y/window.innerHeight, bcr.width/window.innerWidth, bcr.height/window.innerHeight];
   // const viewport = [window.screenX + bcr.x, window.screenY + bcr.y, bcr.width, bcr.height];
-  const viewport = [bcr.x, bcr.y, bcr.width, bcr.height];
+  // const viewport = [bcr.x, bcr.y, bcr.width, bcr.height];
   window.postMessage({
     method: 'viewport',
     viewport,
