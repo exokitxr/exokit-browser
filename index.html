@@ -929,7 +929,7 @@ uiIframe.onload = () => {
 
         break;
       }
-      case 'viewportMouseDown': {
+      /* case 'viewportMouseDown': {
         const {x, y, button} = m.data;
         window.dispatchEvent(new MouseEvent('mousedown', {
           clientX: x,
@@ -978,7 +978,7 @@ uiIframe.onload = () => {
         }));
 
         break;
-      }
+      } */
       case 'click': {
         const {target} = m.data;
         if (target === 'fakeXr') {
