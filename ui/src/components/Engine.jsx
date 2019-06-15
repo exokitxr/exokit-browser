@@ -358,7 +358,7 @@ class Engine extends React.Component {
   }
 
 class EngineRender extends React.Component {
-  onMouseDown(e) {
+  /* onMouseDown(e) {
     const engineRender = document.getElementById('engine-render');
     const bcr = engineRender.getBoundingClientRect();
     window.postMessage({
@@ -407,11 +407,12 @@ class EngineRender extends React.Component {
       deltaX: e.deltaX,
       deltaY: e.deltaY,
     });
-  }
+  } */
 
   render() {
+    /*<div className="engine-render" id="engine-render" onClick={e => this.onClick(e)} onMouseDown={e => this.onMouseDown(e)} onMouseUp={e => this.onMouseUp(e)} onMouseMove={e => this.onMouseMove(e)} onMouseWheel={e => this.onMouseWheel(e)} />*/
     return (
-      <div className="engine-render" id="engine-render" onClick={e => this.onClick(e)} onMouseDown={e => this.onMouseDown(e)} onMouseUp={e => this.onMouseUp(e)} onMouseMove={e => this.onMouseMove(e)} onMouseWheel={e => this.onMouseWheel(e)} />
+      <div className="engine-render" id="engine-render" />
     );
   }
 }
