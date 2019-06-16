@@ -34,16 +34,6 @@ class Engine extends React.Component {
     componentDidMount() {
       _postViewportMessage();
       window.addEventListener('resize', _postViewportMessage);
-
-      /* window.addEventListener('keydown', e => {
-        console.log('iframe keydown ' + e.keyCode);
-      });
-      window.addEventListener('keyup', e => {
-        console.log('iframe keyup ' + e.keyCode);
-      });
-      window.addEventListener('keypress', e => {
-        console.log('iframe keypress ' + e.keyCode);
-      }); */
     }
 
     postMessage(action){
@@ -137,7 +127,7 @@ class Engine extends React.Component {
       e.stopPropagation();
     }
 
-    onEngineRenderClick() {
+    onEngineRenderFocus() {
       this.blur();
     }
 
@@ -338,7 +328,7 @@ class Engine extends React.Component {
           <Settings settings={this.state.settings === 'settings'} open={!!this.state.settings} close={() => this.openSettings(null)}/>
           <div className="engine-split">
             <div className="engine-left">
-              <div className="engine-render" id="engine-render" onClick={() => this.onEngineRenderClick()} />
+              <EngineRender onFocus={() => this.onEngineRenderFocus()}/>
               <Resizable
                 minWidth="200px"
                 minHeight={this.state.consoleOpen ? 150 : 0}
@@ -363,6 +353,66 @@ class Engine extends React.Component {
       );
     }
   }
+
+class EngineRender extends React.Component {
+  /* onMouseDown(e) {
+    const engineRender = document.getElementById('engine-render');
+    const bcr = engineRender.getBoundingClientRect();
+    window.postMessage({
+      method: 'viewportMouseDown',
+      x: e.clientX - bcr.x,
+      y: e.clientY - bcr.y,
+      button: e.button,
+    });
+  }
+  onMouseUp(e) {
+    const engineRender = document.getElementById('engine-render');
+    const bcr = engineRender.getBoundingClientRect();
+    window.postMessage({
+      method: 'viewportMouseUp',
+      x: e.clientX - bcr.x,
+      y: e.clientY - bcr.y,
+      button: e.button,
+    });
+  }
+  onClick(e) {
+    const engineRender = document.getElementById('engine-render');
+    const bcr = engineRender.getBoundingClientRect();
+    window.postMessage({
+      method: 'viewportClick',
+      x: e.clientX - bcr.x,
+      y: e.clientY - bcr.y,
+      button: e.button,
+    });
+  }
+  onMouseMove(e) {
+    const engineRender = document.getElementById('engine-render');
+    const bcr = engineRender.getBoundingClientRect();
+    window.postMessage({
+      method: 'viewportMouseMove',
+      x: e.clientX - bcr.x,
+      y: e.clientY - bcr.y,
+    });
+  }
+  onMouseWheel(e) {
+    const engineRender = document.getElementById('engine-render');
+    const bcr = engineRender.getBoundingClientRect();
+    window.postMessage({
+      method: 'viewportMouseWheel',
+      x: e.clientX - bcr.x,
+      y: e.clientY - bcr.y,
+      deltaX: e.deltaX,
+      deltaY: e.deltaY,
+    });
+  } */
+
+  render() {
+    /*<div className="engine-render" id="engine-render" onClick={e => this.onClick(e)} onMouseDown={e => this.onMouseDown(e)} onMouseUp={e => this.onMouseUp(e)} onMouseMove={e => this.onMouseMove(e)} onMouseWheel={e => this.onMouseWheel(e)} />*/
+    return (
+      <div className="engine-render" id="engine-render" />
+    );
+  }
+}
 
 class Settings extends React.Component {
   constructor(props) {

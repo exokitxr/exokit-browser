@@ -1,7 +1,8 @@
 
 body {
   margin: 0;
-  background: #232526;  /* fallback for old browsers */
+  /* background: #232526;*/  /* fallback for old browsers */
+  background: transparent;
 }
 .nav-pills .nav-link.active{
   background-color: #B600DB;

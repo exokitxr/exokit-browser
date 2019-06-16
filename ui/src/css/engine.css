@@ -160,7 +160,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  /* background-color: rgba(0, 0, 0, 0.5); */
+  background-color: rgba(0, 0, 0, 0.5);
 }
 #Engine .settings > .settings-foreground {
   position: relative;
@@ -202,5 +202,6 @@
 }
 #Engine .engine-render {
   flex: 1;
-  background-color: #0F0;
+  background-color: rgba(0.0, 0.0, 0.0, 0.0);
+  user-select: none;
 }
