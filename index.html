@@ -1108,14 +1108,19 @@ window.addEventListener('resize', e => {
   uiIframe.width = window.innerWidth;
   uiIframe.height = window.innerHeight;
 });
-window.addEventListener('focus', e => {
+const _bringUiToTop = () => {
   uiIframe.setAlwaysOnTop(true);
-});
-window.addEventListener('blur', e => {
   uiIframe.setAlwaysOnTop(false);
+};
+window.addEventListener('focus', e => {
+  _bringUiToTop();
+});
+window.addEventListener('maximize', e => {
+  _bringUiToTop();
 });
 window.addEventListener('restore', e => {
   uiIframe.show();
+  _bringUiToTop();
 });
 window.addEventListener('minimize', e => {
   uiIframe.hide();
