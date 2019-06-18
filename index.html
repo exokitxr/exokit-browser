@@ -1125,6 +1125,15 @@ window.addEventListener('restore', e => {
 window.addEventListener('minimize', e => {
   uiIframe.hide();
 });
+window.document.addEventListener('pointerlockchange', e => {
+  if (window.document.pointerLockElement) {
+    for (let i = 0; i < 1000; i += 100) {
+      setTimeout(() => {
+        _bringUiToTop();
+      }, i);
+    }
+  }
+});
 
 // events
 
