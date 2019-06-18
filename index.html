@@ -980,14 +980,15 @@ uiIframe.onload = () => {
         const {target} = m.data;
         if (target === 'fakeXr') {
           renderer.domElement.requestPointerLock();
-          for (let i = 0; i < 1000; i += 100) {
-            if (i > 0) {
-              setTimeout(() => {
-                renderer.domElement.setFocus();
-              }, i);
-            } else {
-              renderer.domElement.setFocus();
-            }
+          const _setFocus = () => {
+            renderer.domElement.setFocus();
+            _bringUiToTop();
+          };
+          _setFocus();
+          for (let i = 0; i < 100; i += 5) {
+            setTimeout(() => {
+              _setFocus();
+            }, i);
           }
 
           _bindEventTarget('xr');
@@ -1124,15 +1125,6 @@ window.addEventListener('restore', e => {
 });
 window.addEventListener('minimize', e => {
   uiIframe.hide();
-});
-window.document.addEventListener('pointerlockchange', e => {
-  if (window.document.pointerLockElement) {
-    for (let i = 0; i < 1000; i += 100) {
-      setTimeout(() => {
-        _bringUiToTop();
-      }, i);
-    }
-  }
 });
 
 // events
