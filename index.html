@@ -907,7 +907,7 @@ uiIframe.d = 2;
 uiIframe.inline = false;
 uiIframe.src = 'ui/build/index.html';
 uiIframe.onload = () => {
-  uiIframe.contentWindow.addEventListener('resize', e => {
+  /* uiIframe.contentWindow.addEventListener('resize', e => {
     const {x, y, width, height} = e;
 
     // console.log('got resize', {x, y, width, height});
@@ -915,7 +915,7 @@ uiIframe.onload = () => {
     const sceneCanvas = renderer.domElement;
     sceneCanvas.setPosition(x, y);
     sceneCanvas.setSize(width, height);
-  });
+  }); */
   uiIframe.contentWindow.onmessage = m => {
     switch (m.data.method) {
       case 'viewport': {
