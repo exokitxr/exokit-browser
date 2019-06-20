@@ -325,7 +325,6 @@ class Engine extends React.Component {
               </div>
             </div>
           </div>
-          <Settings settings={this.state.settings === 'settings'} open={!!this.state.settings} close={() => this.openSettings(null)}/>
           <div className="engine-split">
             <div className="engine-left">
               <EngineRender onFocus={() => this.onEngineRenderFocus()}/>
@@ -349,6 +348,7 @@ class Engine extends React.Component {
             </div>
             </Resizable>
           </div>
+          <Settings settings={this.state.settings === 'settings'} open={!!this.state.settings} close={() => this.openSettings(null)}/>
         </div>
       );
     }
