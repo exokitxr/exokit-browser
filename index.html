@@ -3486,7 +3486,7 @@ function animate(time, frame) {
     const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
 
     c.matrixWorld.decompose(trayMesh.position, trayMesh.quaternion, trayMesh.scale);
-    trayMesh.position.add(localVector.set(0, -0.5, -1).applyQuaternion(trayMesh.quaternion));
+    trayMesh.position.add(localVector.set(0, -0.5, -1 + 0.2/2).applyQuaternion(trayMesh.quaternion));
     trayMesh.updateMatrixWorld();
   };
   _updateTray();
