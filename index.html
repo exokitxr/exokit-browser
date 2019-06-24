@@ -3310,9 +3310,9 @@ function animate(time, frame) {
     c.matrixWorld.decompose(targetMesh.material.uniforms.worldPos.value, localQuaternion, localVector2);
     targetMesh.material.uniforms.worldPos.value
       .add(localVector2.set(0, 0, -3).applyQuaternion(localQuaternion));
-    targetMesh.material.uniforms.worldPos.value.x = Math.floor(targetMesh.material.uniforms.worldPos.value.x);
-    targetMesh.material.uniforms.worldPos.value.y = Math.floor(targetMesh.material.uniforms.worldPos.value.y);
-    targetMesh.material.uniforms.worldPos.value.z = Math.floor(targetMesh.material.uniforms.worldPos.value.z);
+    targetMesh.material.uniforms.worldPos.value.x = Math.floor(targetMesh.material.uniforms.worldPos.value.x + 0.5);
+    targetMesh.material.uniforms.worldPos.value.y = Math.floor(targetMesh.material.uniforms.worldPos.value.y + 0.5);
+    targetMesh.material.uniforms.worldPos.value.z = Math.floor(targetMesh.material.uniforms.worldPos.value.z + 0.5);
 
     renderer.render(scene, c);
   };
