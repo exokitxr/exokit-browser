@@ -12,7 +12,7 @@
     <script src="xrmp.js"></script>
     <script src="xrmp-three.js"></script>
     <script>
-let display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewport = new THREE.Vector4(0, 0, 1, 1), menuOpen = false, orbitControls, transformControls, rooms = [], pendingRooms = [null, null], roomLinks = [];
+let display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewport = new THREE.Vector4(0, 0, 1, 1), menuOpen = false, orbitControls, transformControls, rooms = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [];
 
 const links = [
   {
@@ -1656,6 +1656,7 @@ const menuMesh = (() => {
     map: texture,
   });
   const mesh = new THREE.Mesh(geometry, material);
+  mesh.visible = false;
   return mesh;
 })();
 scene.add(menuMesh);
@@ -1689,7 +1690,6 @@ const trayMesh = (() => {
 scene.add(trayMesh);
 
 const _makeRoomMesh = (sx, sy, sz, dx, dy, dz, color) => {
-  // const s = 16;
   const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
   /* const uvs = geometry.attributes.uv.array;
   const baseUvs = Float32Array.from(uvs);
@@ -1874,6 +1874,90 @@ const _makeRoomLinkMesh = (index, roomMesh) => {
 const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, roomMesh);
 scene.add(roomLinkMesh);
 roomLinks.push(roomLinkMesh);
+
+const _makeRoomDiagramMesh = (index, wx, wy, wz, color) => {
+  const geometry = new THREE.BoxBufferGeometry(0.1*wx, 0.1*wy, 0.1*wz, wx, wy, wz)
+    .applyMatrix(localMatrix.makeTranslation(0.1*wx/2, 0.1*wy/2, 0.1*wz/2));
+  /* const uvs = geometry.attributes.uv.array;
+  const baseUvs = Float32Array.from(uvs);
+  const _updateUvs = () => {
+    for (let i = 0; i < uvs.length; i += 2) {
+      uvs[i] = baseUvs[i] * s;
+      uvs[i+1] = baseUvs[i+1] * s;
+    }
+    geometry.attributes.uv.needsUpdate = true;
+  };
+  _updateUvs(); */
+  const roomVsh = `
+    varying vec3 vWorldPos;
+    varying vec3 vNormal;
+    void main() {
+      vWorldPos = position;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+      vNormal = normal;
+    }
+  `;
+  const roomFsh = `
+    // uniform sampler2D uTex;
+    uniform vec3 uColor;
+    uniform float uHighlight;
+    varying vec3 vWorldPos;
+    varying vec3 vNormal;
+    void main() {
+      // vec2 uv = fract(vUv);
+      vec2 uv;
+      if (vNormal.x != 0.0) {
+        uv = fract(vWorldPos.yz/0.1);
+      } else if (vNormal.y != 0.0) {
+        uv = fract(vWorldPos.xz/0.1);
+      } else /* if (vNormal.z != 0.0) */ {
+        uv = fract(vWorldPos.xy/0.1);
+      }
+      if ((uv.x <= 0.01 || uv.x >= 0.99) || (uv.y <= 0.01 || uv.y >= 0.99)) {
+        gl_FragColor = vec4(uColor, 0.5);
+      } else if (abs(uv.x - uv.y) <= 0.01) {
+        gl_FragColor = vec4(0.2, 0.2, 0.2, 0.5);
+      } else {
+        gl_FragColor = vec4(0.1, 0.1, 0.1, 0.5);
+      }
+
+      // gl_FragColor.rgb += uHighlight;
+    }
+  `;
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      uColor: {
+        type: 'c',
+        value: new THREE.Color(color),
+      },
+      /* uHighlight: {
+        type: 'f',
+        value: 0,
+      }, */
+    },
+    vertexShader: roomVsh,
+    fragmentShader: roomFsh,
+    side: THREE.DoubleSide,
+    transparent: true,
+  });
+  const mesh = new THREE.Object3D();
+  const innerMesh = new THREE.Mesh(geometry, material); 
+  innerMesh.position.set(-0.1*wx/2, -0.1*wy/2, -0.1*wz/2);
+  innerMesh.frustumCulled = false;
+  mesh.add(innerMesh);
+  mesh.update = () => {
+    mesh.position
+      .copy(trayMesh.position)
+      .add(localVector.set(-0.4 + index * 0.1, 0.1, 0).applyQuaternion(trayMesh.quaternion));
+    mesh.rotation.y += 0.01;
+    mesh.updateMatrixWorld();
+  };
+  mesh.update();
+  return mesh;
+};
+const roomDiagramMesh = _makeRoomDiagramMesh(roomDiagrams.length, 1, 2, 1, 0xffee58);
+scene.add(roomDiagramMesh);
+roomDiagrams.push(roomDiagramMesh);
 
 const targetMesh = (() => {
   const targetGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
@@ -3449,6 +3533,9 @@ function animate(time, frame) {
         const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, room);
         roomLinks.push(roomLinkMesh);
         scene.add(roomLinkMesh);
+        const roomDiagramMesh = _makeRoomDiagramMesh(roomDiagrams.length, 2, 2, 1, 0xffee58);
+        roomDiagrams.push(roomDiagramMesh);
+        scene.add(roomDiagramMesh);
         // console.log('start room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
       } else if (lastPressed && !pressed) {
         const room = pendingRooms[i];
@@ -3509,6 +3596,9 @@ function animate(time, frame) {
     targetMesh.material.uniforms.worldPos.value.z = Math.floor(targetMesh.material.uniforms.worldPos.value.z + 0.5);
     for (let i = 0; i < roomLinks.length; i++) {
       roomLinks[i].update();
+    }
+    for (let i = 0; i < roomDiagrams.length; i++) {
+      roomDiagrams[i].update();
     }
 
     renderer.render(scene, c);
