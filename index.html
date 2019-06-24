@@ -1770,6 +1770,23 @@ const _makeRoomMesh = (sx, sy, sz, dx, dy, dz, color) => {
   };
   mesh.update();
   mesh.getRange = () => [sx, sy, sz, dx, dy, dz];
+  mesh.classify = () => {
+    const wx = Math.abs(dx - sx) + 1;
+    const wy = Math.abs(dy - sy) + 1;
+    const wz = Math.abs(dz - sz) + 1;
+    if (wx === 1 && wy === 1 && wz === 1) {
+      return 'point';
+    } else if (wx === 1 && wy === 2 && wz === 1) {
+      return 'portal';
+    } else {
+      const sortedDimensions = [wx, wy, wz].sort((a, b) => a - b);
+      if (sortedDimensions[0] === 1 && sortedDimensions[1] > 1 && sortedDimensions[2] > 1) {
+        return 'plane';
+      } else {
+        return 'volume';
+      }
+    }
+  };
   mesh.setEnd = (newDx, newDy, newDz) => {
     dx = newDx;
     dy = newDy;
@@ -3542,7 +3559,7 @@ function animate(time, frame) {
         // room.setColor(0xef5350);
         room.setColor(0x5c6bc0);
         pendingRooms[i] = null;
-        // console.log('end room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
+        console.log('end room', room.classify(), targetMesh.material.uniforms.worldPos.value.toArray().join(','));
       } else {
         const room = pendingRooms[i];
         if (room) {
