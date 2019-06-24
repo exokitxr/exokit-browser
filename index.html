@@ -12,7 +12,7 @@
     <script src="xrmp.js"></script>
     <script src="xrmp-three.js"></script>
     <script>
-let display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewport = new THREE.Vector4(0, 0, 1, 1), menuOpen = false, orbitControls, transformControls;
+let display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewport = new THREE.Vector4(0, 0, 1, 1), menuOpen = false, orbitControls, transformControls, pendingRooms = [null, null];
 
 const links = [
   {
@@ -1576,9 +1576,9 @@ const gridMesh = (() => {
     frontGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0)),
   ]);
   const boxGeometries = [];
-  for (let x = -8; x < 8; x++) {
-    for (let y = 0; y < 8; y++) {
-      for (let z = -8; z < 8; z++) {
+  for (let x = -8; x <= 8; x++) {
+    for (let y = 0; y <= 4; y++) {
+      for (let z = -8; z <= 8; z++) {
         boxGeometries.push(boxGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z)));
       }
     }
@@ -1638,20 +1638,26 @@ const gridMesh = (() => {
 })();
 scene.add(gridMesh);
 
-const roomMesh = (() => {
-  const s = 16;
-  const geometry = new THREE.BoxBufferGeometry(s, s/2, s).applyMatrix(new THREE.Matrix4().makeTranslation(0.5, s/4, 0.5));
-  const uvs = geometry.attributes.uv.array;
-  for (let i = 0; i < uvs.length; i += 2) {
-    uvs[i+0] *= s;
-    uvs[i+1] *= s;
-  }
+const _makeRoomMesh = (sx, sy, sz, dx, dy, dz, color) => {
+  // const s = 16;
+  const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
+  /* const uvs = geometry.attributes.uv.array;
+  const baseUvs = Float32Array.from(uvs);
+  const _updateUvs = () => {
+    for (let i = 0; i < uvs.length; i += 2) {
+      uvs[i] = baseUvs[i] * s;
+      uvs[i+1] = baseUvs[i+1] * s;
+    }
+    geometry.attributes.uv.needsUpdate = true;
+  };
+  _updateUvs(); */
   const roomVsh = `
-    // varying vec3 vWorldPos;
-    varying vec2 vUv;
+    varying vec3 vWorldPos;
+    varying vec3 vNormal;
     void main() {
+      vWorldPos = (modelMatrix * vec4(position, 1.)).xyz;
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
-      vUv = uv;
+      vNormal = normal;
       // vWorldPos = abs(position);
     }
   `;
@@ -1659,9 +1665,17 @@ const roomMesh = (() => {
     // uniform sampler2D uTex;
     uniform vec3 uColor;
     varying vec3 vWorldPos;
-    varying vec2 vUv;
+    varying vec3 vNormal;
     void main() {
-      vec2 uv = fract(vUv);
+      // vec2 uv = fract(vUv);
+      vec2 uv;
+      if (vNormal.x != 0.0) {
+        uv = fract(vWorldPos.yz + vec2(0.0, 0.5));
+      } else if (vNormal.y != 0.0) {
+        uv = fract(vWorldPos.xz + 0.5);
+      } else /* if (vNormal.z != 0.0) */ {
+        uv = fract(vWorldPos.xy + vec2(0.5, 0.0));
+      }
       /* float diff = uv.x;
       diff = min(diff, abs(uv.x - 1.0));
       diff = min(diff, uv.y);
@@ -1682,7 +1696,7 @@ const roomMesh = (() => {
     uniforms: {
       uColor: {
         type: 'c',
-        value: new THREE.Color(0xffee58),
+        value: new THREE.Color(color),
       },
     },
     vertexShader: roomVsh,
@@ -1692,8 +1706,23 @@ const roomMesh = (() => {
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
+  mesh.update = () => {
+    mesh.position.set((sx + dx)/2, (sy + dy)/2 + 0.5, (sz + dz)/2);
+    mesh.scale.set(Math.abs(dx - sx) + 1, Math.abs(dy - sy) + 1, Math.abs(dz - sz) + 1);
+    mesh.updateMatrixWorld();
+  };
+  mesh.update();
+  mesh.setEnd = (newDx, newDy, newDz) => {
+    dx = newDx;
+    dy = newDy;
+    dz = newDz;
+
+    mesh.update();
+  };
   return mesh;
-})();
+};
+const roomMesh = _makeRoomMesh(-8, 0, -8, 8, 4, 8, 0xffee58);
+// const roomMesh = _makeRoomMesh(0, 0, 0, 1, 0, 0, 0xffee58);
 scene.add(roomMesh);
 
 const targetMesh = (() => {
@@ -3205,8 +3234,8 @@ function animate(time, frame) {
 
           rig.menuMesh.listMesh.updateWheel(dx*4, dy*4);
         }
-        lastPresseds[i] = pressed;
-        lastPadToucheds[i] = padTouched;
+        /* lastPresseds[i] = pressed; // XXX
+        lastPadToucheds[i] = padTouched; */
 
         if (padPressed && moves[i]) {
           if (padPressed) {
@@ -3301,6 +3330,37 @@ function animate(time, frame) {
     }
   };
   _updateOrbitControls();
+
+  const _updateGridControls = () => {
+    const gamepads = navigator.getGamepads();
+    for (let i = 0; i < gamepads.length; i++) {
+      const gamepad = gamepads[i];
+      const pressed = gamepad.buttons[1].pressed;
+      const lastPressed = lastPresseds[i];
+
+      if (pressed && !lastPressed) {
+        const location = targetMesh.material.uniforms.worldPos.value;
+        const room = _makeRoomMesh(location.x, location.y, location.z, location.x, location.y, location.z, 0x9ccc65);
+        scene.add(room);
+        pendingRooms[i] = room;
+        // console.log('start room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
+      } else if (lastPressed && !pressed) {
+        const room = pendingRooms[i];
+        scene.remove(room);
+        pendingRooms[i] = null;
+        // console.log('end room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
+      } else {
+        const room = pendingRooms[i];
+        if (room) {
+          const location = targetMesh.material.uniforms.worldPos.value;
+          room.setEnd(location.x, location.y, location.z);
+          // console.log('update room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
+        }
+      }
+      lastPresseds[i] = pressed;
+    }
+  };
+  _updateGridControls();
 
   const _render = () => {
     const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
