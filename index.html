@@ -1994,6 +1994,34 @@ const roomDiagramMesh = _makeRoomDiagramMesh(roomDiagrams.length, 'volume', 0xff
 scene.add(roomDiagramMesh);
 roomDiagrams.push(roomDiagramMesh);
 
+const _addVolume = roomMesh => {
+  const iframe = document.createElement('iframe');
+  const [sx, sy, sz, dx, dy, dz] = roomMesh.getRange();
+  const position = [(sx+dx)/2, (sy+dy)/2, (sz+dz)/2];
+  if (position[1] > 0) {
+    position[1] += 0.5;
+  }
+  iframe.position = position;
+  iframe.orientation = [0, 0, 0, 1];
+  iframe.scale = [1, 1, 1];
+  const type = roomMesh.classify();
+  if (type === 'point') {
+    iframe.d = 3;
+    iframe.src = 'tutorial.html';
+  } else if (type === 'portal') {
+    iframe.d = 3;
+    iframe.src = 'tutorial.html';
+  } else if (type === 'plane') {
+    iframe.d = 2;
+    iframe.src = 'https://google.com';
+  } else /* if (type === 'volume') */ {
+    iframe.d = 3;
+    iframe.src = 'tutorial.html';
+  }
+  document.body.appendChild(iframe);
+  layers.push(iframe);
+};
+
 const targetMesh = (() => {
   const targetGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
     new THREE.BoxBufferGeometry(0.03, 0.2, 0.03)
@@ -3576,6 +3604,7 @@ function animate(time, frame) {
         const roomDiagramMesh = _makeRoomDiagramMesh(roomDiagrams.length, room.classify(), 0xffee58);
         roomDiagrams.push(roomDiagramMesh);
         scene.add(roomDiagramMesh);
+        _addVolume(room);
         // console.log('end room', room.classify(), targetMesh.material.uniforms.worldPos.value.toArray().join(','));
       } else {
         const room = pendingRooms[i];
