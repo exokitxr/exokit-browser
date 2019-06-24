@@ -1668,6 +1668,8 @@ const _initMenu = () => {
     properties.__webglTexture = iframe.texture;
     properties.__webglInit = true;
   };
+  iframe.width = 1280;
+  iframe.height = 1280;
   iframe.d = 2;
   iframe.src = 'http://google.com';
   document.body.appendChild(iframe);
@@ -3475,7 +3477,7 @@ function animate(time, frame) {
     const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
 
     c.matrixWorld.decompose(menuMesh.position, menuMesh.quaternion, menuMesh.scale);
-    menuMesh.position.add(localVector.set(0, 0, -1.5).applyQuaternion(menuMesh.quaternion));
+    menuMesh.position.add(localVector.set(0, 0, -1).applyQuaternion(menuMesh.quaternion));
     menuMesh.updateMatrixWorld();
   };
   _updateMenu();
