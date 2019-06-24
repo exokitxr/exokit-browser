@@ -2598,6 +2598,19 @@ boxMeshes.forEach(boxMesh => {
   scene.add(boxMesh);
 });
 
+const trayMesh = (() => {
+  const geometry = new THREE.PlaneBufferGeometry(1, 0.2)
+    .applyMatrix(localMatrix.makeRotationFromQuaternion(localQuaternion.setFromAxisAngle(localVector.set(1, 0, 0), -Math.PI/2)));
+  const material = new THREE.MeshBasicMaterial({
+    color: 0x333333,
+    side: THREE.DoubleSide,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  return mesh;
+})();
+scene.add(trayMesh);
+
 const moves = [null, null];
 const keys = {
   up: false,
@@ -3390,6 +3403,15 @@ function animate(time, frame) {
     }
   };
   _updateGridControls();
+
+  const _updateTray = () => {
+    const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
+
+    c.matrixWorld.decompose(trayMesh.position, trayMesh.quaternion, trayMesh.scale);
+    trayMesh.position.add(localVector.set(0, -0.5, -1).applyQuaternion(trayMesh.quaternion));
+    trayMesh.updateMatrixWorld();
+  };
+  _updateTray();
 
   const _render = () => {
     const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
