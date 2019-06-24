@@ -1769,6 +1769,7 @@ const _makeRoomMesh = (sx, sy, sz, dx, dy, dz, color) => {
     mesh.updateMatrixWorld();
   };
   mesh.update();
+  mesh.getRange = () => [sx, sy, sz, dx, dy, dz];
   mesh.setEnd = (newDx, newDy, newDz) => {
     dx = newDx;
     dy = newDy;
@@ -1851,8 +1852,9 @@ const _makeRoomLinkMesh = (index, roomMesh) => {
   mesh.update = () => {
     localVector
       .copy(trayMesh.position)
-      .add(localVector2.set(-0.4 + index, 0.1, 0).applyQuaternion(trayMesh.quaternion));
-    localVector2.copy(roomMesh.position);
+      .add(localVector2.set(-0.4 + index * 0.1, 0.1, 0).applyQuaternion(trayMesh.quaternion));
+    const [sx, sy, sz, dx, dy, dz] = roomMesh.getRange();
+    localVector2.set((sx+dx)/2, (sy+dy)/2, (sz+dz)/2);
 
     mesh.position
       .copy(localVector)
@@ -1869,7 +1871,7 @@ const _makeRoomLinkMesh = (index, roomMesh) => {
   mesh.update();
   return mesh;
 };
-const roomLinkMesh = _makeRoomLinkMesh(0, roomMesh);
+const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, roomMesh);
 scene.add(roomLinkMesh);
 roomLinks.push(roomLinkMesh);
 
@@ -3444,6 +3446,9 @@ function animate(time, frame) {
         scene.add(room);
         rooms.push(room);
         pendingRooms[i] = room;
+        const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, room);
+        roomLinks.push(roomLinkMesh);
+        scene.add(roomLinkMesh);
         // console.log('start room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
       } else if (lastPressed && !pressed) {
         const room = pendingRooms[i];
