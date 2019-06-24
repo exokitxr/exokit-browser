@@ -3553,6 +3553,18 @@ function animate(time, frame) {
       }
       lastPresseds[i] = pressed;
 
+      const bumper = gamepad.buttons[2].pressed;
+      const lastBumper = lastButtons[i].bumper;
+
+      if (bumper && !lastBumper) {
+        const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
+
+        c.matrixWorld.decompose(trayMesh.position, trayMesh.quaternion, trayMesh.scale);
+        trayMesh.position.add(localVector.set(0, -0.5, -1 + 0.2/2).applyQuaternion(trayMesh.quaternion));
+        trayMesh.updateMatrixWorld();
+      }
+      lastButtons[i].bumper = bumper;
+
       const cubeLocation = localVector.set(Math.floor(location.x), Math.floor(location.y), Math.floor(location.z));
       for (let i = 0; i < rooms.length; i++) {
         const room = rooms[i];
@@ -3574,14 +3586,14 @@ function animate(time, frame) {
   };
   _updateMenu();
 
-  const _updateTray = () => {
+  /* const _updateTray = () => {
     const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
 
     c.matrixWorld.decompose(trayMesh.position, trayMesh.quaternion, trayMesh.scale);
     trayMesh.position.add(localVector.set(0, -0.5, -1 + 0.2/2).applyQuaternion(trayMesh.quaternion));
     trayMesh.updateMatrixWorld();
   };
-  _updateTray();
+  _updateTray(); */
 
   const _render = () => {
     const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
