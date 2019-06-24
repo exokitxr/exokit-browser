@@ -1639,6 +1639,40 @@ const gridMesh = (() => {
 })();
 scene.add(gridMesh);
 
+const menuMesh = (() => {
+  const geometry = new THREE.PlaneBufferGeometry(1, 1);
+  const texture = new THREE.Texture(
+    null,
+    THREE.UVMapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.LinearFilter,
+    THREE.LinearFilter,
+    THREE.RGBAFormat,
+    THREE.UnsignedByteType,
+    16
+  );
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  return mesh;
+})();
+scene.add(menuMesh);
+const _initMenu = () => {
+  const iframe = document.createElement('iframe');
+  iframe.onload = () => {
+    console.log('got onload', iframe.texture, typeof menuMesh.material.map);
+
+    const properties = renderer.properties.get(menuMesh.material.map);
+    properties.__webglTexture = iframe.texture;
+    properties.__webglInit = true;
+  };
+  iframe.d = 2;
+  iframe.src = 'http://google.com';
+  document.body.appendChild(iframe);
+};
+
 const trayMesh = (() => {
   const geometry = new THREE.PlaneBufferGeometry(1, 0.2)
     .applyMatrix(localMatrix.makeRotationFromQuaternion(localQuaternion.setFromAxisAngle(localVector.set(1, 0, 0), -Math.PI/2)));
@@ -2790,7 +2824,7 @@ function animate(time, frame) {
   };
   _updateControllerMeshes();
 
-  const _updateIntersections = () => {
+  /* const _updateIntersections = () => {
     for (let i = 0; i < 2; i++) {
       const controllerMesh = controllerMeshes[i];
       controllerMesh.update();
@@ -2844,10 +2878,6 @@ function animate(time, frame) {
             intersectionCbs.push(() => {
               controllerMesh.rayMesh.scale.z = distance;
               controllerMesh.updateMatrixWorld();
-
-              /* controllerMesh.dotMesh.position.z = -distance;
-              controllerMesh.updateMatrixWorld();
-              controllerMesh.dotMesh.visible = true; */
 
               for (let j = 0; j < keyMap.length; j++) {
                 const [key, kx1, ky1, kx2, ky2] = keyMap[j];
@@ -2920,10 +2950,6 @@ function animate(time, frame) {
                   controllerMesh.rayMesh.scale.z = distance;
                   controllerMesh.updateMatrixWorld();
 
-                  /* controllerMesh.dotMesh.position.z = -distance;
-                  controllerMesh.updateMatrixWorld();
-                  controllerMesh.dotMesh.visible = true; */
-
                   const gamepads = navigator.getGamepads();
                   const gamepad = gamepads[i];
                   if (gamepad.buttons[1].pressed) {
@@ -2955,10 +2981,6 @@ function animate(time, frame) {
                 intersectionCbs.push(() => {
                   controllerMesh.rayMesh.scale.z = distance;
                   controllerMesh.updateMatrixWorld();
-
-                  /* controllerMesh.dotMesh.position.z = -distance;
-                  controllerMesh.updateMatrixWorld();
-                  controllerMesh.dotMesh.visible = true; */
 
                   const gamepads = navigator.getGamepads();
                   const gamepad = gamepads[i];
@@ -2995,10 +3017,6 @@ function animate(time, frame) {
               intersectionCbs.push(() => {
                 controllerMesh.rayMesh.scale.z = distance;
                 controllerMesh.updateMatrixWorld();
-
-                /* controllerMesh.dotMesh.position.z = -distance;
-                controllerMesh.updateMatrixWorld();
-                controllerMesh.dotMesh.visible = true; */
 
                 const gamepads = navigator.getGamepads();
                 const gamepad = gamepads[i];
@@ -3080,10 +3098,6 @@ function animate(time, frame) {
                         controllerMesh.rayMesh.scale.z = distance;
                         controllerMesh.updateMatrixWorld();
 
-                        /* controllerMesh.dotMesh.position.z = -distance;
-                        controllerMesh.updateMatrixWorld();
-                        controllerMesh.dotMesh.visible = true; */
-
                         const gamepads = navigator.getGamepads();
                         const gamepad = gamepads[i];
                         const pressed = gamepad.buttons[1].pressed;
@@ -3107,10 +3121,6 @@ function animate(time, frame) {
                       intersectionCbs.push(() => {
                         controllerMesh.rayMesh.scale.z = distance;
                         controllerMesh.updateMatrixWorld();
-
-                        /* controllerMesh.dotMesh.position.z = -distance;
-                        controllerMesh.updateMatrixWorld();
-                        controllerMesh.dotMesh.visible = true; */
 
                         const gamepads = navigator.getGamepads();
                         const gamepad = gamepads[i];
@@ -3139,10 +3149,6 @@ function animate(time, frame) {
                       intersectionCbs.push(() => {
                         controllerMesh.rayMesh.scale.z = distance;
                         controllerMesh.updateMatrixWorld();
-
-                        /* controllerMesh.dotMesh.position.z = -distance;
-                        controllerMesh.updateMatrixWorld();
-                        controllerMesh.dotMesh.visible = true; */
 
                         const gamepads = navigator.getGamepads();
                         const gamepad = gamepads[i];
@@ -3173,10 +3179,6 @@ function animate(time, frame) {
                         controllerMesh.rayMesh.scale.z = distance;
                         controllerMesh.updateMatrixWorld();
 
-                        /* controllerMesh.dotMesh.position.z = -distance;
-                        controllerMesh.updateMatrixWorld();
-                        controllerMesh.dotMesh.visible = true; */
-
                         const gamepads = navigator.getGamepads();
                         const gamepad = gamepads[i];
                         const pressed = gamepad.buttons[1].pressed;
@@ -3203,10 +3205,6 @@ function animate(time, frame) {
                     intersectionCbs.push(() => {
                       controllerMesh.rayMesh.scale.z = distance;
                       controllerMesh.updateMatrixWorld();
-
-                      /* controllerMesh.dotMesh.position.z = -distance;
-                      controllerMesh.updateMatrixWorld();
-                      controllerMesh.dotMesh.visible = true; */
 
                       const gamepads = navigator.getGamepads();
                       const gamepad = gamepads[i];
@@ -3242,10 +3240,6 @@ function animate(time, frame) {
                         controllerMesh.rayMesh.scale.z = distance;
                         controllerMesh.updateMatrixWorld();
 
-                        /* controllerMesh.dotMesh.position.z = -distance;
-                        controllerMesh.updateMatrixWorld();
-                        controllerMesh.dotMesh.visible = true; */
-
                         const gamepads = navigator.getGamepads();
                         const gamepad = gamepads[i];
                         const pressed = gamepad.buttons[1].pressed;
@@ -3271,10 +3265,6 @@ function animate(time, frame) {
                         controllerMesh.rayMesh.scale.z = distance;
                         controllerMesh.updateMatrixWorld();
 
-                        /* controllerMesh.dotMesh.position.z = -distance;
-                        controllerMesh.updateMatrixWorld();
-                        controllerMesh.dotMesh.visible = true; */
-
                         const gamepads = navigator.getGamepads();
                         const gamepad = gamepads[i];
                         const pressed = gamepad.buttons[1].pressed;
@@ -3294,10 +3284,6 @@ function animate(time, frame) {
               intersectionCbs.push(() => {
                 controllerMesh.rayMesh.scale.z = distance;
                 controllerMesh.updateMatrixWorld();
-
-                /* controllerMesh.dotMesh.position.z = -distance;
-                controllerMesh.updateMatrixWorld();
-                controllerMesh.dotMesh.visible = true; */
 
                 const gamepads = navigator.getGamepads();
                 const gamepad = gamepads[i];
@@ -3346,8 +3332,8 @@ function animate(time, frame) {
 
           rig.menuMesh.listMesh.updateWheel(dx*4, dy*4);
         }
-        /* lastPresseds[i] = pressed; // XXX
-        lastPadToucheds[i] = padTouched; */
+        lastPresseds[i] = pressed; // XXX
+        // lastPadToucheds[i] = padTouched;
 
         if (padPressed && moves[i]) {
           if (padPressed) {
@@ -3429,7 +3415,7 @@ function animate(time, frame) {
       }
     }
   };
-  _updateButtons();
+  _updateButtons(); */
 
   const _updateOrbitControls = () => {
     if (orbitControls) {
@@ -3484,6 +3470,15 @@ function animate(time, frame) {
     }
   };
   _updateGridControls();
+
+  const _updateMenu = () => {
+    const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
+
+    c.matrixWorld.decompose(menuMesh.position, menuMesh.quaternion, menuMesh.scale);
+    menuMesh.position.add(localVector.set(0, 0, -1.5).applyQuaternion(menuMesh.quaternion));
+    menuMesh.updateMatrixWorld();
+  };
+  _updateMenu();
 
   const _updateTray = () => {
     const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
@@ -3716,6 +3711,8 @@ _startFakeVrDisplay()
     focusedTab = rig.menuMesh.urlMesh;
     rig.menuMesh.urlMesh.updateText();
     rig.menuMesh.listMesh.updateList();
+
+    _initMenu();
 
     console.log('loaded fake display');
   })
