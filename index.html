@@ -1719,10 +1719,12 @@ const _makeRoomMesh = (sx, sy, sz, dx, dy, dz, color) => {
 
     mesh.update();
   };
+  mesh.setColor = c => {
+    mesh.material.uniforms.uColor.value.setHex(c);
+  };
   return mesh;
 };
 const roomMesh = _makeRoomMesh(-8, 0, -8, 8, 4, 8, 0xffee58);
-// const roomMesh = _makeRoomMesh(0, 0, 0, 1, 0, 0, 0xffee58);
 scene.add(roomMesh);
 
 const targetMesh = (() => {
@@ -3346,7 +3348,8 @@ function animate(time, frame) {
         // console.log('start room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
       } else if (lastPressed && !pressed) {
         const room = pendingRooms[i];
-        scene.remove(room);
+        // room.setColor(0xef5350);
+        room.setColor(0x5c6bc0);
         pendingRooms[i] = null;
         // console.log('end room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
       } else {
