@@ -1892,7 +1892,25 @@ const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, roomMesh);
 scene.add(roomLinkMesh);
 roomLinks.push(roomLinkMesh);
 
-const _makeRoomDiagramMesh = (index, wx, wy, wz, color) => {
+const _makeRoomDiagramMesh = (index, type, color) => {
+  let wx, wy, wz;
+  if (type === 'point') {
+    wx = 1;
+    wy = 1;
+    wz = 1;
+  } else if (type === 'portal') {
+    wx = 1;
+    wy = 2;
+    wz = 1;
+  } else if (type === 'plane') {
+    wx = 2;
+    wy = 2;
+    wz = 1;
+  } else /* if (type === 'volume') */ {
+    wx = 2;
+    wy = 2;
+    wz = 2;
+  }
   const geometry = new THREE.BoxBufferGeometry(0.1*wx, 0.1*wy, 0.1*wz, wx, wy, wz)
     .applyMatrix(localMatrix.makeTranslation(0.1*wx/2, 0.1*wy/2, 0.1*wz/2));
   /* const uvs = geometry.attributes.uv.array;
@@ -1972,7 +1990,7 @@ const _makeRoomDiagramMesh = (index, wx, wy, wz, color) => {
   mesh.update();
   return mesh;
 };
-const roomDiagramMesh = _makeRoomDiagramMesh(roomDiagrams.length, 1, 2, 1, 0xffee58);
+const roomDiagramMesh = _makeRoomDiagramMesh(roomDiagrams.length, 'volume', 0xffee58);
 scene.add(roomDiagramMesh);
 roomDiagrams.push(roomDiagramMesh);
 
@@ -3547,19 +3565,18 @@ function animate(time, frame) {
         scene.add(room);
         rooms.push(room);
         pendingRooms[i] = room;
-        const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, room);
-        roomLinks.push(roomLinkMesh);
-        scene.add(roomLinkMesh);
-        const roomDiagramMesh = _makeRoomDiagramMesh(roomDiagrams.length, 2, 2, 1, 0xffee58);
-        roomDiagrams.push(roomDiagramMesh);
-        scene.add(roomDiagramMesh);
         // console.log('start room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
       } else if (lastPressed && !pressed) {
         const room = pendingRooms[i];
-        // room.setColor(0xef5350);
         room.setColor(0x5c6bc0);
         pendingRooms[i] = null;
-        console.log('end room', room.classify(), targetMesh.material.uniforms.worldPos.value.toArray().join(','));
+        const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, room);
+        roomLinks.push(roomLinkMesh);
+        scene.add(roomLinkMesh);
+        const roomDiagramMesh = _makeRoomDiagramMesh(roomDiagrams.length, room.classify(), 0xffee58);
+        roomDiagrams.push(roomDiagramMesh);
+        scene.add(roomDiagramMesh);
+        // console.log('end room', room.classify(), targetMesh.material.uniforms.worldPos.value.toArray().join(','));
       } else {
         const room = pendingRooms[i];
         if (room) {
