@@ -12,7 +12,7 @@
     <script src="xrmp.js"></script>
     <script src="xrmp-three.js"></script>
     <script>
-let display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewport = new THREE.Vector4(0, 0, 1, 1), menuOpen = false, orbitControls, transformControls, pendingRooms = [null, null];
+let display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewport = new THREE.Vector4(0, 0, 1, 1), menuOpen = false, orbitControls, transformControls, rooms = [], pendingRooms = [null, null];
 
 const links = [
   {
@@ -1664,6 +1664,7 @@ const _makeRoomMesh = (sx, sy, sz, dx, dy, dz, color) => {
   const roomFsh = `
     // uniform sampler2D uTex;
     uniform vec3 uColor;
+    uniform float uHighlight;
     varying vec3 vWorldPos;
     varying vec3 vNormal;
     void main() {
@@ -1690,6 +1691,8 @@ const _makeRoomMesh = (sx, sy, sz, dx, dy, dz, color) => {
       } else {
         gl_FragColor = vec4(0.1, 0.1, 0.1, 0.5);
       }
+
+      gl_FragColor.rgb += uHighlight;
     }
   `;
   const material = new THREE.ShaderMaterial({
@@ -1697,6 +1700,10 @@ const _makeRoomMesh = (sx, sy, sz, dx, dy, dz, color) => {
       uColor: {
         type: 'c',
         value: new THREE.Color(color),
+      },
+      uHighlight: {
+        type: 'f',
+        value: 0,
       },
     },
     vertexShader: roomVsh,
@@ -1721,6 +1728,15 @@ const _makeRoomMesh = (sx, sy, sz, dx, dy, dz, color) => {
   };
   mesh.setColor = c => {
     mesh.material.uniforms.uColor.value.setHex(c);
+  };
+  mesh.setHighlight = highlight => {
+    mesh.material.uniforms.uHighlight.value = highlight ? 0.3 : 0;
+  };
+  mesh.contains = position => {
+    const box = new THREE.Box3();
+    box.expandByPoint(new THREE.Vector3(sx, sy, sz));
+    box.expandByPoint(new THREE.Vector3(dx, dy, dz));
+    return box.containsPoint(position);
   };
   return mesh;
 };
@@ -3339,11 +3355,12 @@ function animate(time, frame) {
       const gamepad = gamepads[i];
       const pressed = gamepad.buttons[1].pressed;
       const lastPressed = lastPresseds[i];
+      const location = targetMesh.material.uniforms.worldPos.value;
 
       if (pressed && !lastPressed) {
-        const location = targetMesh.material.uniforms.worldPos.value;
         const room = _makeRoomMesh(location.x, location.y, location.z, location.x, location.y, location.z, 0x9ccc65);
         scene.add(room);
+        rooms.push(room);
         pendingRooms[i] = room;
         // console.log('start room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
       } else if (lastPressed && !pressed) {
@@ -3361,6 +3378,15 @@ function animate(time, frame) {
         }
       }
       lastPresseds[i] = pressed;
+
+      const cubeLocation = localVector.set(Math.floor(location.x), Math.floor(location.y), Math.floor(location.z));
+      for (let i = 0; i < rooms.length; i++) {
+        const room = rooms[i];
+        const isPending = pendingRooms.some(pendingRoom => pendingRoom === room);
+        if (!isPending) {
+          room.setHighlight(room.contains(cubeLocation));
+        }
+      }
     }
   };
   _updateGridControls();
