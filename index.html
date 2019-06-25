@@ -1649,7 +1649,7 @@ const gridMesh = (() => {
 scene.add(gridMesh);
 
 const menuMesh = (() => {
-  const geometry = new THREE.PlaneBufferGeometry(1, 1);
+  const geometry = new THREE.PlaneBufferGeometry(2, 1);
   const texture = new THREE.Texture(
     null,
     THREE.UVMapping,
@@ -1665,28 +1665,25 @@ const menuMesh = (() => {
     map: texture,
   });
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.visible = false;
   return mesh;
 })();
 scene.add(menuMesh);
 const _initMenu = () => {
   const iframe = document.createElement('iframe');
   iframe.onload = () => {
-    console.log('got onload', iframe.texture, typeof menuMesh.material.map);
-
     const properties = renderer.properties.get(menuMesh.material.map);
     properties.__webglTexture = iframe.texture;
     properties.__webglInit = true;
   };
-  iframe.width = 1280;
-  iframe.height = 1280;
+  iframe.width = 2048;
+  iframe.height = 1024;
   iframe.d = 2;
-  iframe.src = 'http://google.com';
+  iframe.src = 'menu/build/index.html';
   document.body.appendChild(iframe);
 };
 
 const trayMesh = (() => {
-  const geometry = new THREE.PlaneBufferGeometry(1, 0.2)
+  const geometry = new THREE.PlaneBufferGeometry(2, 0.3)
     .applyMatrix(localMatrix.makeRotationFromQuaternion(localQuaternion.setFromAxisAngle(localVector.set(1, 0, 0), -Math.PI/2)));
   const material = new THREE.MeshBasicMaterial({
     color: 0x333333,
@@ -1878,7 +1875,7 @@ const _makeRoomLinkMesh = (index, roomMesh) => {
   mesh.update = () => {
     localVector
       .copy(trayMesh.position)
-      .add(localVector2.set(-0.4 + index * 0.1, 0.1, 0).applyQuaternion(trayMesh.quaternion));
+      .add(localVector2.set(-0.8 + index * 0.4, 0.1, 0).applyQuaternion(trayMesh.quaternion));
     const [sx, sy, sz, dx, dy, dz] = roomMesh.getRange();
     localVector2.set((sx+dx)/2 + 0.5, (sy+dy)/2 + 0.5, (sz+dz)/2 + 0.5);
 
@@ -1992,7 +1989,7 @@ const _makeRoomDiagramMesh = (index, type, color) => {
   mesh.update = () => {
     mesh.position
       .copy(trayMesh.position)
-      .add(localVector.set(-0.4 + index * 0.1, 0.1, 0).applyQuaternion(trayMesh.quaternion));
+      .add(localVector.set(-0.8 + index * 0.4, 0.1, 0).applyQuaternion(trayMesh.quaternion));
     mesh.rotation.y += 0.01;
     mesh.updateMatrixWorld();
   };
@@ -4204,6 +4201,10 @@ function animate(time, frame) {
       if (bumper && !lastBumper) {
         const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
 
+        c.matrixWorld.decompose(menuMesh.position, menuMesh.quaternion, menuMesh.scale);
+        menuMesh.position.add(localVector.set(0, 0, -1).applyQuaternion(menuMesh.quaternion));
+        menuMesh.updateMatrixWorld();
+
         c.matrixWorld.decompose(trayMesh.position, trayMesh.quaternion, trayMesh.scale);
         trayMesh.position.add(localVector.set(0, -0.5, -1 + 0.2/2).applyQuaternion(trayMesh.quaternion));
         trayMesh.updateMatrixWorld();
@@ -4222,7 +4223,7 @@ function animate(time, frame) {
   };
   _updateGridControls();
 
-  const _updateMenu = () => {
+  /* const _updateMenu = () => {
     const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
 
     c.matrixWorld.decompose(menuMesh.position, menuMesh.quaternion, menuMesh.scale);
@@ -4231,7 +4232,7 @@ function animate(time, frame) {
   };
   _updateMenu();
 
-  /* const _updateTray = () => {
+  const _updateTray = () => {
     const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
 
     c.matrixWorld.decompose(trayMesh.position, trayMesh.quaternion, trayMesh.scale);
