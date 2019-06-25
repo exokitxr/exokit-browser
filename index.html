@@ -1534,7 +1534,7 @@ for (let i = 0; i < controllerMeshes.length; i++) {
   controllerMesh.add(rayMesh);
   controllerMesh.rayMesh = rayMesh;
 
-  /* const dotMesh = (() => {
+  const dotMesh = (() => {
     const geometry = new THREE.SphereBufferGeometry(0.01, 5, 5);
     const material = new THREE.MeshBasicMaterial({
       color: 0xe91e63,
@@ -1546,7 +1546,7 @@ for (let i = 0; i < controllerMeshes.length; i++) {
     return mesh;
   })();
   controllerMesh.add(dotMesh);
-  controllerMesh.dotMesh = dotMesh; */
+  controllerMesh.dotMesh = dotMesh;
 
   controllerMesh.ray = new THREE.Ray();
   controllerMesh.update = () => {
@@ -1665,6 +1665,32 @@ const menuMesh = (() => {
     map: texture,
   });
   const mesh = new THREE.Mesh(geometry, material);
+  mesh.plane = new THREE.Plane();
+  mesh.leftLine = new THREE.Line3();
+  mesh.topLine = new THREE.Line3();
+  mesh.update = () => {
+    const menuWorldWidth = 2;
+    const menuWorldHeight = 1;
+    mesh.leftLine.start
+      .set(-menuWorldWidth/2, menuWorldHeight/2, 0)
+      .applyMatrix4(mesh.matrixWorld);
+    mesh.leftLine.end
+      .set(-menuWorldWidth/2, -menuWorldHeight/2, 0)
+      .applyMatrix4(mesh.matrixWorld);
+
+    mesh.topLine.start
+      .set(-menuWorldWidth/2, menuWorldHeight/2, 0)
+      .applyMatrix4(mesh.matrixWorld);
+    mesh.topLine.end
+      .set(menuWorldWidth/2, menuWorldHeight / 2, 0)
+      .applyMatrix4(mesh.matrixWorld);
+
+    mesh.plane.setFromCoplanarPoints(
+      mesh.leftLine.start,
+      mesh.leftLine.end,
+      mesh.topLine.end
+    );
+  };
   return mesh;
 })();
 scene.add(menuMesh);
@@ -2027,10 +2053,7 @@ const _addVolume = roomMesh => {
     iframe.orientation = [0, 0, 0, 1];
     iframe.scale = [1, 1, 1];
 
-    const position = new THREE.Vector3((sx+dx)/2, (sy+dy)/2, (sz+dz)/2);
-    if (position.y > 0) {
-      position.y += 0.5;
-    }
+    const position = new THREE.Vector3((sx+dx)/2, (sy+dy)/2 + 0.5, (sz+dz)/2);
     const quaternion = new THREE.Quaternion();
     const scale = new THREE.Vector3(1, 2, 1);
     // const color = 0x4caf50;
@@ -2097,10 +2120,6 @@ const _addVolume = roomMesh => {
     iframe.scale = [1, 1, 1];
 
     const position = new THREE.Vector3((sx+dx)/2, (sy+dy)/2 + 0.5, (sz+dz)/2);
-    /* const position = new THREE.Vector3((sx+dx)/2, (sy+dy)/2, (sz+dz)/2);
-    if (position.y > 0) {
-      position.y += 0.5;
-    } */
     const quaternion = new THREE.Quaternion();
     const scale = new THREE.Vector3(Math.abs(sx - dx) + 1, Math.abs(sy - dy) + 1, Math.abs(sz - dz) + 1);
     const volumeMesh = _makeVolumeMesh(position, quaternion, scale, iframe);
@@ -4235,6 +4254,7 @@ function animate(time, frame) {
         c.matrixWorld.decompose(menuMesh.position, menuMesh.quaternion, menuMesh.scale);
         menuMesh.position.add(localVector.set(0, 0, -1).applyQuaternion(menuMesh.quaternion));
         menuMesh.updateMatrixWorld();
+        menuMesh.update();
 
         c.matrixWorld.decompose(trayMesh.position, trayMesh.quaternion, trayMesh.scale);
         trayMesh.position.add(localVector.set(0, -0.5, -1 + 0.2/2).applyQuaternion(trayMesh.quaternion));
@@ -4253,24 +4273,6 @@ function animate(time, frame) {
     }
   };
   _updateGridControls();
-
-  /* const _updateMenu = () => {
-    const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-
-    c.matrixWorld.decompose(menuMesh.position, menuMesh.quaternion, menuMesh.scale);
-    menuMesh.position.add(localVector.set(0, 0, -1).applyQuaternion(menuMesh.quaternion));
-    menuMesh.updateMatrixWorld();
-  };
-  _updateMenu();
-
-  const _updateTray = () => {
-    const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-
-    c.matrixWorld.decompose(trayMesh.position, trayMesh.quaternion, trayMesh.scale);
-    trayMesh.position.add(localVector.set(0, -0.5, -1 + 0.2/2).applyQuaternion(trayMesh.quaternion));
-    trayMesh.updateMatrixWorld();
-  };
-  _updateTray(); */
 
   for (let i = 0; i < volumeMeshes.length; i++) {
     const volumeMesh = volumeMeshes[i];
@@ -4380,6 +4382,47 @@ function animate(time, frame) {
       portalMesh.material.uniforms.uViewport.value.set(w, h);
     }
   }
+
+  const _updateMenu = () => {
+    for (let i = 0; i < 2; i++) {
+      const controllerMesh = controllerMeshes[i];
+      controllerMesh.update();
+      const intersectionPoint = controllerMesh.ray.intersectPlane(menuMesh.plane, localVector);
+
+      if (intersectionPoint) {
+        const leftIntersectionPoint = menuMesh.leftLine.closestPointToPoint(intersectionPoint, true, localVector2);
+
+        const topIntersectionPoint = menuMesh.topLine.closestPointToPoint(intersectionPoint, true, localVector3);
+
+        const xFactor = topIntersectionPoint.distanceTo(menuMesh.topLine.start) / 2;
+        const yFactor = leftIntersectionPoint.distanceTo(menuMesh.leftLine.start);
+        const distance = controllerMesh.ray.origin.distanceTo(intersectionPoint);
+
+        if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
+          const x = xFactor * 2;
+          const y = yFactor * 1;
+
+          controllerMesh.dotMesh.position.z = -distance;
+          controllerMesh.dotMesh.updateMatrixWorld();
+          controllerMesh.dotMesh.visible = true;
+
+          controllerMesh.rayMesh.scale.z = distance;
+          controllerMesh.rayMesh.updateMatrixWorld();
+        } else {
+          controllerMesh.dotMesh.visible = false;
+
+          controllerMesh.rayMesh.scale.z = 1;
+          controllerMesh.rayMesh.updateMatrixWorld();
+        }
+      } else {
+        controllerMesh.dotMesh.visible = false;
+
+        controllerMesh.rayMesh.scale.z = 1;
+        controllerMesh.rayMesh.updateMatrixWorld();
+      }
+    }
+  };
+  _updateMenu();
 
   const _render = () => {
     const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
