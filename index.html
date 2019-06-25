@@ -2007,27 +2007,18 @@ const _addVolume = roomMesh => {
   const iframe = document.createElement('iframe');
   document.body.appendChild(iframe);
 
-  const _setPosition = () => {
-    const [sx, sy, sz, dx, dy, dz] = roomMesh.getRange();
-    const position = [(sx+dx)/2, (sy+dy)/2, (sz+dz)/2];
-    if (position[1] > 0) {
-      position[1] += 0.5;
-    }
-    iframe.position = position;
-    iframe.orientation = [0, 0, 0, 1];
-    iframe.scale = [1, 1, 1];
-  };
-  const _setLayer = () => {
-    _setPosition();
-    layers.push(iframe);
-  };
-
   const type = roomMesh.classify();
   if (type === 'point') {
     iframe.d = 3;
     iframe.src = 'tutorial.html';
 
-    _setLayer();
+    const [sx, sy, sz, dx, dy, dz] = roomMesh.getRange();
+    const position = [(sx+dx)/2, (sy+dy)/2, (sz+dz)/2];
+    iframe.position = position;
+    iframe.orientation = [0, 0, 0, 1];
+    iframe.scale = [1, 1, 1];
+
+    layers.push(iframe);
   } else if (type === 'portal') {
     iframe.d = 3;
     iframe.src = 'tutorial.html';
@@ -2055,7 +2046,16 @@ const _addVolume = roomMesh => {
     iframe.d = 2;
     iframe.src = 'https://google.com';
 
-    _setLayer();
+    const [sx, sy, sz, dx, dy, dz] = roomMesh.getRange();
+    const position = [(sx+dx)/2, (sy+dy)/2, (sz+dz)/2];
+    if (position[1] > 0) {
+      position[1] += 0.5;
+    }
+    iframe.position = position;
+    iframe.orientation = [0, 0, 0, 1];
+    iframe.scale = [1, 1, 1];
+
+    layers.push(iframe);
   } else /* if (type === 'volume') */ {
     iframe.d = 3;
     // iframe.src = 'https://rawcdn.githack.com/exokitxr/webxr-samples/a8e2c94eba0ee5c9215f20d13057b6c25675d9b0/xr-presentation.html';
