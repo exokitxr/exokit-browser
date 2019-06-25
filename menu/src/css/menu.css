@@ -1,0 +1,89 @@
+* {
+  box-sizing: border-box;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  font-family: 'Open Sans', sans-serif;
+}
+input[type=text] {
+  font-family: 'B612 Mono', monospace;
+}
+
+.navbar {
+  display: flex;
+  padding: 1vw;
+  padding-bottom: 0;
+}
+.navbar .nav {
+  display: flex;
+  height: 10vh;
+  padding: 1vw;
+  justify-content: center;
+  align-items: center;
+  font-size: 1vw;
+  font-weight: 600;
+}
+.navbar .nav i {
+  display: flex;
+  width: 2.5vw;
+  height: 2.5vw;
+  margin-right: 0.5vw;
+  padding: 0.8vw;
+  justify-content: center;
+  align-items: center;
+  border: .1vw solid;
+  border-radius: 100vw;
+  color: #333;
+}
+.navbar .nav .label {
+}
+
+.body {
+  display: flex;
+  padding: 2vw;
+  align-items: center;
+  flex: 1;
+  flex-direction: column;
+}
+.body .url {
+  width: 100%;
+  margin-bottom: 2vw;
+  padding: 2vw;
+  background-color: #F8F8F8;
+  border: 0.1vw solid #EEE;
+  border-radius: 100vw;
+  font-size: 1.5vw;
+  outline: none;
+}
+.body .url:focus {
+  border-color: #42a5f5;
+  box-shadow: 0 0 1vw #42a5f5;
+}
+.body .results {
+  width: 100%;
+}
+.body .results .result {
+  padding: 0.5vw;
+}
+.body .results .result.highlight {
+  background-color: #EEE;
+}
+
+.dock {
+  display: flex;
+}
+.dock .icon {
+  display: flex;
+  width: 20vw;
+  height: 20vh;
+}
+.dock .icon.highlight {
+  background-color: #5c6bc0;
+  color: #FFF;
+}
+.dock .icon .label {
+  padding: 1vw;
+}
