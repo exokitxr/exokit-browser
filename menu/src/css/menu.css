@@ -23,7 +23,7 @@ input[type=text] {
   padding: 1vw;
   justify-content: center;
   align-items: center;
-  font-size: 1vw;
+  font-size: 1.5vw;
   font-weight: 600;
 }
 .navbar .nav i {
@@ -31,7 +31,7 @@ input[type=text] {
   width: 2.5vw;
   height: 2.5vw;
   margin-right: 0.5vw;
-  padding: 0.8vw;
+  padding: 1vw;
   justify-content: center;
   align-items: center;
   border: .1vw solid;
@@ -78,7 +78,8 @@ input[type=text] {
 .dock .icon {
   display: flex;
   width: 20vw;
-  height: 20vh;
+  height: 30vh;
+  background-color: #EEE;
 }
 .dock .icon.highlight {
   background-color: #5c6bc0;
