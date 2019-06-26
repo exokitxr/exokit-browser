@@ -4203,6 +4203,8 @@ function animate(time, frame) {
         const button = 1;
         menuIframe.sendMouseUp(menuCoord.x, menuCoord.y, button);
         menuIframe.sendClick(menuCoord.x, menuCoord.y, button);
+      } else {
+        menuIframe.sendMouseMove(menuCoord.x, menuCoord.y);
       }
     } else {
       if (pressed && !lastPressed) {
