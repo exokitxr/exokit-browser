@@ -56,13 +56,36 @@ class Menu extends React.Component {
           </div>
         </div>
         <div className="dock">
-          <div className="icon highlight">
-            <div className="label">tutorial.html</div>
-            <i></i>
+          <div className="arrow">
+            <i className="fal fa-chevron-left"></i>
           </div>
-          <div className="icon">
-            <div className="label">iframe.html</div>
-            <i></i>
+          <div className="tab highlight">
+            <div className="content">
+              <div className="header">
+                <div className="label">tutorial.html</div>
+                <div className="button">
+                  <i className="fal fa-times"></i>
+                </div>
+              </div>
+              <i></i>
+            </div>
+          </div>
+          <div className="tab">
+            <div className="content">
+              <div className="header">
+                <div className="label">iframe.html</div>
+                <div className="button">
+                  <i className="fal fa-times"></i>
+                </div>
+              </div>
+              <i></i>
+            </div>
+          </div>
+          <div className="tab"/>
+          <div className="tab"/>
+          <div className="tab"/>
+          <div className="arrow">
+            <i className="fal fa-chevron-right"></i>
           </div>
         </div>
       </div>

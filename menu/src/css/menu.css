@@ -14,8 +14,7 @@ input[type=text] {
 
 .navbar {
   display: flex;
-  padding: 1vw;
-  padding-bottom: 0;
+  padding: 2vw;
 }
 .navbar .nav {
   display: flex;
@@ -43,7 +42,7 @@ input[type=text] {
 
 .body {
   display: flex;
-  padding: 2vw;
+  padding: 0 3vw;
   align-items: center;
   flex: 1;
   flex-direction: column;
@@ -75,16 +74,46 @@ input[type=text] {
 .dock {
   display: flex;
 }
-.dock .icon {
+.dock .arrow {
   display: flex;
-  width: 20vw;
-  height: 30vh;
-  background-color: #EEE;
+  width: 3vw;
+  justify-content: center;
+  align-items: center;
 }
-.dock .icon.highlight {
+.dock .tab {
+  display: flex;
+  height: 30vh;
+  padding-right: 1vw;
+  flex: 1;
+  flex-direction: column;
+}
+.dock .tab .content {
+  display: flex;
+  background-color: #EEE;
+  flex: 1;
+  flex-direction: column;
+}
+.dock .tab.highlight .content {
   background-color: #5c6bc0;
   color: #FFF;
 }
-.dock .icon .label {
-  padding: 1vw;
+.dock .tab .content .header {
+  display: flex;
+  height: 2vw;
+}
+.dock .tab .content .header .label {
+  display: flex;
+  padding: 0 1vw;
+  background-color: rgba(0, 0, 0, 0.1);
+  flex: 1;
+  align-items: center;
+}
+.dock .tab .content .header .button {
+  display: flex;
+  width: 2vw;
+  height: 2vw;
+  background-color: #ef5350;
+  color: #FFF;
+  justify-content: center;
+  align-items: center;
 }
