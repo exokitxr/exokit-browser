@@ -2049,10 +2049,6 @@ const _addVolume = roomMesh => {
     // _setPosition();
 
     const [sx, sy, sz, dx, dy, dz] = roomMesh.getRange();
-    iframe.position = [(sx+dx)/2, (sy+dy)/2 - 0.5, (sz+dz)/2];
-    iframe.orientation = [0, 0, 0, 1];
-    iframe.scale = [1, 1, 1];
-
     const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
     c.matrixWorld.decompose(localVector, localQuaternion, localVector2);
     localVector.set(0, 0, -1).applyQuaternion(localQuaternion);
@@ -2074,8 +2070,11 @@ const _addVolume = roomMesh => {
     const position = new THREE.Vector3((sx+dx)/2, (sy+dy)/2 + 0.5, (sz+dz)/2);
     const quaternion = new THREE.Quaternion().setFromUnitVectors(localVector.set(0, 0, 1), normal);
     const scale = new THREE.Vector3(1, 2, 1);
-    // const color = 0x4caf50;
     const color = 0x333333;
+
+    iframe.position = [position.x, position.y - 1, position.z];
+    iframe.orientation = quaternion.toArray();
+    iframe.scale = [1, 1, 1];
 
     const portalMesh = _makePortalMesh(position, quaternion, scale, iframe, color);
     scene.add(portalMesh);
@@ -2464,7 +2463,7 @@ const _makePortalMesh = (position, quaternion, scale, iframe, color) => {
   mesh.box = new THREE.Box3().setFromCenterAndSize(mesh.position, mesh.scale);
   const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(
     new THREE.Vector3(0, 0, -1).applyQuaternion(quaternion),
-    position.clone().add(new THREE.Vector3(0, 0, scale.z/2).applyQuaternion(quaternion))
+    position.clone().multiplyScalar(-1).add(new THREE.Vector3(0, 0, -scale.z/2).applyQuaternion(quaternion))
   );
   mesh.material.uniforms.uPlane.value.set(plane.normal.x, plane.normal.y, plane.normal.z, plane.constant);
   mesh.numRenders = 0;
