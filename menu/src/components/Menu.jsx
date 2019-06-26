@@ -1,11 +1,49 @@
 import React from 'react';
 import '../css/menu.css';
 
+const tabs = [
+  'iframe.html',
+  'examples.html',
+  'world.html',
+].map((label, index) => ({
+  label,
+  index,
+}));
+
+class Tab extends React.Component {
+  classNames() {
+    const classNames = ['tab'];
+    if (this.props.selected) {
+      classNames.push('highlight');
+    }
+    return classNames.join(' ');
+  }
+
+  render() {
+    return (
+      <div className={this.classNames()} onClick={this.props.onClick}>
+        <div className="content">
+          <div className="header">
+            <div className="label">{this.props.label}</div>
+            <div className="button" onClick={this.props.onClose}>
+              <i className="fal fa-times"></i>
+            </div>
+          </div>
+          <i></i>
+        </div>
+      </div>
+    );
+  }
+}
+
 class Menu extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = {};
+    this.state = {
+      selectedTabIndex: -1,
+      pageIndex: 0,
+    };
   }
 
   /* classNames() {
@@ -13,7 +51,39 @@ class Menu extends React.Component {
     return classNames.join(' ');
   } */
 
+  selectTab(tab) {
+    const tabIndex = tab.index;
+    this.setState({
+      selectedTabIndex: tabIndex,
+    });
+  }
+
+  closeTab(tab) {
+    const tabIndex = tab.index;
+    tabs.splice(tabIndex, 1);
+    for (let i = 0; i < tabs.length; i++) {
+      tabs[i].index = i;
+    }
+
+    if (this.state.selectedTabIndex === tabIndex) {
+      this.setState({
+        selectedTabIndex: -1,
+      });
+    }
+  }
+
+  movePage(offset) {
+    this.setState({
+      pageIndex: Math.max(this.state.pageIndex + offset, 0),
+    });
+  }
+
   render() {
+    const localTabs = tabs.slice(this.state.pageIndex*5, (this.state.pageIndex+1)*5);
+    while (localTabs.length < 5) {
+      localTabs.push(null);
+    }
+
     const results = [
       {
         label: 'tutorial.html',
@@ -24,7 +94,6 @@ class Menu extends React.Component {
         highlight: false,
       },
     ];
-
     const _getResultClassNames = result => {
       const classNames = ['result'];
       if (result.highlight) {
@@ -59,35 +128,11 @@ class Menu extends React.Component {
           <div className="button">Go</div>
         </div>
         <div className="dock">
-          <div className="arrow">
+          <div className="arrow" onClick={() => this.movePage(-1)}>
             <i className="fal fa-chevron-left"></i>
           </div>
-          <div className="tab highlight">
-            <div className="content">
-              <div className="header">
-                <div className="label">tutorial.html</div>
-                <div className="button">
-                  <i className="fal fa-times"></i>
-                </div>
-              </div>
-              <i></i>
-            </div>
-          </div>
-          <div className="tab">
-            <div className="content">
-              <div className="header">
-                <div className="label">iframe.html</div>
-                <div className="button">
-                  <i className="fal fa-times"></i>
-                </div>
-              </div>
-              <i></i>
-            </div>
-          </div>
-          <div className="tab"/>
-          <div className="tab"/>
-          <div className="tab"/>
-          <div className="arrow">
+          {localTabs.map(tab => tab ? <Tab label={tab.label} selected={this.state.selectedTabIndex === tab.index} onClick={() => this.selectTab(tab)} onClose={() => this.closeTab(tab)}/> : <div className="tab"/>)}
+          <div className="arrow" onClick={() => this.movePage(1)}>
             <i className="fal fa-chevron-right"></i>
           </div>
         </div>

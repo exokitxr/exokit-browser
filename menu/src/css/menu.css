@@ -95,10 +95,17 @@ input[type=text] {
   justify-content: center;
   align-items: center;
 }
+.dock .arrow:hover {
+  background-color: #DDD;
+}
+.dock .arrow:active {
+  background-color: #000;
+  color: #FFF;
+}
 .dock .tab {
   display: flex;
   height: 30vh;
-  padding-right: 1vw;
+  margin-right: 1vw;
   flex: 1;
   flex-direction: column;
 }
@@ -107,6 +114,9 @@ input[type=text] {
   background-color: #EEE;
   flex: 1;
   flex-direction: column;
+}
+.dock .tab:hover .content {
+  background-color: #DDD;
 }
 .dock .tab.highlight .content {
   background-color: #5c6bc0;
