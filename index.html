@@ -1792,6 +1792,7 @@ const _makeRoomMesh = (sx, sy, sz, dx, dy, dz, color) => {
     fragmentShader: roomFsh,
     side: THREE.DoubleSide,
     transparent: true,
+    depthWrite: false,
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
