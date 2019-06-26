@@ -2053,8 +2053,26 @@ const _addVolume = roomMesh => {
     iframe.orientation = [0, 0, 0, 1];
     iframe.scale = [1, 1, 1];
 
+    const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
+    c.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+    localVector.set(0, 0, -1).applyQuaternion(localQuaternion);
+    const normal = new THREE.Vector3();
+    if (Math.abs(localVector.x) >= Math.abs(localVector.z)) {
+      if (localVector.x >= 0) {
+        normal.set(-1, 0, 0);
+      } else {
+        normal.set(1, 0, 0);
+      }
+    } else {
+      if (localVector.z >= 0) {
+        normal.set(0, 0, -1);
+      } else {
+        normal.set(0, 0, 1);
+      }
+    }
+
     const position = new THREE.Vector3((sx+dx)/2, (sy+dy)/2 + 0.5, (sz+dz)/2);
-    const quaternion = new THREE.Quaternion();
+    const quaternion = new THREE.Quaternion().setFromUnitVectors(localVector.set(0, 0, 1), normal);
     const scale = new THREE.Vector3(1, 2, 1);
     // const color = 0x4caf50;
     const color = 0x333333;
