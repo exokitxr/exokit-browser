@@ -2646,21 +2646,6 @@ const _makeVolumeMesh = (position, quaternion, scale, iframe) => {
   return mesh;
 };
 
-// XXX
-/* portalMesh = _makePortalMesh(new THREE.Vector3(0, 1, -0.5), new THREE.Quaternion(), new THREE.Vector3(3, 3, 1), webxrSampleIframe, 0xff7043);
-portalMesh.visible = true;
-scene.add(portalMesh);
-portalMesh2 = _makePortalMesh(new THREE.Vector3(0, 1, 0.5), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1)), new THREE.Vector3(3, 3, 1), tutorialIframe, 0x42a5f5);
-portalMesh2.visible = false;
-scene.add(portalMesh2);
-
-const rainIframe = document.createElement('iframe');
-rainIframe.position = [-1, 0.5, 1];
-rainIframe.src = 'rain.html';
-const volumeMesh = _makeVolumeMesh(new THREE.Vector3(-1, 0.5, 1), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1), rainIframe);
-scene.add(volumeMesh);
-volumeMeshes.push(volumeMesh); */
-
 // rig
 
 let focusedTab = null;
