@@ -2454,16 +2454,6 @@ const _makePortalMesh = (position, quaternion, scale, iframe, color) => {
     material.uniforms.mwi.value = viewMatrices[mesh.numRenders];
     material.uniforms.pmi.value = projectionMatrices[mesh.numRenders];
 
-    /* material.uniforms.pmi.value
-      .fromArray(GlobalContext.xrState.leftProjectionMatrix)
-      // .multiply(localMatrix.fromArray(iframe.xrOffset.matrix))
-      .getInverse(material.uniforms.pmi.value);
-
-    material.uniforms.mwi.value
-      .fromArray(GlobalContext.xrState.leftViewMatrix)
-      // .multiply(localMatrix.fromArray(iframe.xrOffset.matrix))
-      .getInverse(material.uniforms.mwi.value); */
-
     mesh.numRenders = (mesh.numRenders + 1) % 2;
   };
   const image = new Image();
