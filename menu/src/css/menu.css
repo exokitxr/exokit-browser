@@ -43,11 +43,16 @@ input[type=text] {
 .body {
   display: flex;
   padding: 0 3vw;
+  flex: 1;
+}
+.body .content {
+  display: flex;
+  padding-right: 3vw;
   align-items: center;
   flex: 1;
   flex-direction: column;
 }
-.body .url {
+.body .content .url {
   width: 100%;
   margin-bottom: 2vw;
   padding: 2vw;
@@ -57,18 +62,28 @@ input[type=text] {
   font-size: 1.5vw;
   outline: none;
 }
-.body .url:focus {
+.body .content .url:focus {
   border-color: #42a5f5;
   box-shadow: 0 0 1vw #42a5f5;
 }
-.body .results {
+.body .content .results {
   width: 100%;
 }
-.body .results .result {
+.body .content .results .result {
   padding: 0.5vw;
 }
-.body .results .result.highlight {
+.body .content .results .result.highlight {
   background-color: #EEE;
+}
+.body > .button {
+  display: flex;
+  width: 10vw;
+  height: 6.5vw;
+  font-size: 2vw;
+  color: #FFF;
+  background-color: #66bb6a;
+  justify-content: center;
+  align-items: center;
 }
 
 .dock {

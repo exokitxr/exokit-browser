@@ -50,10 +50,13 @@ class Menu extends React.Component {
           </nav>
         </div>
         <div className="body">
-          <input type="text" className="url" value="https://google.com/"/>
-          <div className="results">
-            {results.map(result => <div className={_getResultClassNames(result)}>{result.label}</div>)}
+          <div className="content">
+            <input type="text" className="url" value="https://google.com/"/>
+            <div className="results">
+              {results.map(result => <div className={_getResultClassNames(result)}>{result.label}</div>)}
+            </div>
           </div>
+          <div className="button">Go</div>
         </div>
         <div className="dock">
           <div className="arrow">
