@@ -103,29 +103,31 @@ class Menu extends React.Component {
     };
 
     return (
-      <div className="menu">
-        <div className="navbar">
-          <nav className="nav">
-            <i className="fal fa-plus"></i>
-            <div className="label">New</div>
-          </nav>
-          <nav className="nav">
-            <i className="far fa-file-code"></i>
-            <div className="label">Open</div>
-          </nav>
-          <nav className="nav">
-            <i className="far fa-save"></i>
-            <div className="label">Save</div>
-          </nav>
-        </div>
+      <div id="menu">
         <div className="body">
           <div className="content">
-            <input type="text" className="url" value="https://google.com/"/>
+            <div className="bar">
+              <input type="text" className="url" value="https://google.com/"/>
+              <div className="button">Go</div>
+            </div>
             <div className="results">
               {results.map(result => <div className={_getResultClassNames(result)}>{result.label}</div>)}
             </div>
           </div>
-          <div className="button">Go</div>
+          <div className="menu">
+            <nav className="nav">
+              <i className="fal fa-plus"></i>
+              <div className="label">New</div>
+            </nav>
+            <nav className="nav">
+              <i className="far fa-file-code"></i>
+              <div className="label">Open</div>
+            </nav>
+            <nav className="nav">
+              <i className="far fa-save"></i>
+              <div className="label">Save</div>
+            </nav>
+          </div>
         </div>
         <div className="dock">
           <div className="arrow" onClick={() => this.movePage(-1)}>

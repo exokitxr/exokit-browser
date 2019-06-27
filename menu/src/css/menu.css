@@ -2,7 +2,7 @@
   box-sizing: border-box;
 }
 
-.menu {
+#menu {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -12,11 +12,55 @@ input[type=text] {
   font-family: 'B612 Mono', monospace;
 }
 
-.navbar {
+.body {
+  display: flex;
+  flex: 1;
+}
+.body .content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+.body .content .bar {
+  display: flex;
+  margin-bottom: 2vw;
+}
+.body .content .bar .url {
+  width: 100%;
+  padding: 2vw;
+  background-color: #EEE;
+  border: 0;
+  font-size: 1.5vw;
+  outline: none;
+}
+/* .body .content .bar .url:focus {
+  border-color: #42a5f5;
+  box-shadow: 0 0 1vw #42a5f5;
+} */
+.body .content .bar .button {
+  display: flex;
+  width: 10vw;
+  font-size: 2vw;
+  color: #FFF;
+  background-color: #66bb6a;
+  justify-content: center;
+  align-items: center;
+}
+.body .content .results {
+  width: 100%;
+}
+.body .content .results .result {
+  padding: 0.5vw;
+}
+.body .content .results .result.highlight {
+  background-color: #EEE;
+}
+
+.menu {
   display: flex;
   padding: 2vw;
 }
-.navbar .nav {
+.menu .nav {
   display: flex;
   height: 10vh;
   padding: 1vw;
@@ -25,7 +69,7 @@ input[type=text] {
   font-size: 1.5vw;
   font-weight: 600;
 }
-.navbar .nav i {
+.menu .nav i {
   display: flex;
   width: 2.5vw;
   height: 2.5vw;
@@ -37,53 +81,7 @@ input[type=text] {
   border-radius: 100vw;
   color: #333;
 }
-.navbar .nav .label {
-}
-
-.body {
-  display: flex;
-  padding: 0 3vw;
-  flex: 1;
-}
-.body .content {
-  display: flex;
-  padding-right: 3vw;
-  align-items: center;
-  flex: 1;
-  flex-direction: column;
-}
-.body .content .url {
-  width: 100%;
-  margin-bottom: 2vw;
-  padding: 2vw;
-  background-color: #F8F8F8;
-  border: 0.1vw solid #EEE;
-  border-radius: 100vw;
-  font-size: 1.5vw;
-  outline: none;
-}
-.body .content .url:focus {
-  border-color: #42a5f5;
-  box-shadow: 0 0 1vw #42a5f5;
-}
-.body .content .results {
-  width: 100%;
-}
-.body .content .results .result {
-  padding: 0.5vw;
-}
-.body .content .results .result.highlight {
-  background-color: #EEE;
-}
-.body > .button {
-  display: flex;
-  width: 10vw;
-  height: 6.5vw;
-  font-size: 2vw;
-  color: #FFF;
-  background-color: #66bb6a;
-  justify-content: center;
-  align-items: center;
+.menu .nav .label {
 }
 
 .dock {
