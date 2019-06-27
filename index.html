@@ -1706,6 +1706,49 @@ const _initMenu = () => {
   menuIframe.height = 1024;
   menuIframe.d = 2;
   menuIframe.src = 'menu/build/index.html';
+  menuIframe.contentWindow.onmessage = m => {
+    console.log('menu iframe parent got message', m.data);
+    switch (m.data.method) {
+      case 'openTab': {
+        const {url} = m.data;
+
+        const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
+        c.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+
+        const room = _makeRoomMesh(localVector.x, localVector.y, localVector.z, localVector.x, localVector.y, localVector.z, 0x9ccc65);
+        scene.add(room);
+        rooms.push(room);
+
+        const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, room);
+        scene.add(roomLinkMesh);
+        roomLinks.push(roomLinkMesh);
+
+        const roomDiagramMesh = _makeRoomDiagramMesh(roomDiagrams.length, room.classify(), 'tutorial.html', 0xffee58);
+        scene.add(roomDiagramMesh);
+        roomDiagrams.push(roomDiagramMesh);
+
+        _addVolume(room);
+
+        menuIframe.contentWindow.postMessage({
+          method: 'tabs',
+          tabs: roomDiagrams.map(roomDiagram => roomDiagram.label),
+        });
+
+        break;
+      }
+      case 'closeTab': {
+        const {index} = m.data;
+        scene.remove(rooms.splice(index, 0)[0]);
+        scene.remove(roomLinks.splice(index, 0)[0]);
+        scene.remove(roomDiagrams.splice(index, 0)[0]);
+        break;
+      }
+    }
+  };
+  menuIframe.contentWindow.postMessage({
+    method: 'tabs',
+    tabs: roomDiagrams.map(roomDiagram => roomDiagram.label),
+  });
   document.body.appendChild(menuIframe);
 };
 
@@ -1832,7 +1875,7 @@ const _makeRoomMesh = (sx, sy, sz, dx, dy, dz, color) => {
     mesh.material.uniforms.uColor.value.setHex(c);
   };
   mesh.setHighlight = highlight => {
-    mesh.material.uniforms.uHighlight.value = highlight ? 0.3 : 0;
+    mesh.material.uniforms.uHighlight.value = highlight ? 0.2 : 0;
   };
   mesh.contains = position => {
     const box = new THREE.Box3();
@@ -1844,7 +1887,7 @@ const _makeRoomMesh = (sx, sy, sz, dx, dy, dz, color) => {
 };
 const roomMesh = _makeRoomMesh(-8, 0, -8, 8, 4, 8, 0xffee58);
 scene.add(roomMesh);
-// rooms.push(roomMesh);
+rooms.push(roomMesh);
 
 const _makeRoomLinkMesh = (index, roomMesh) => {
   const geometry = new THREE.BoxBufferGeometry(0.005, 0.005, 1);
@@ -1926,7 +1969,7 @@ const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, roomMesh);
 scene.add(roomLinkMesh);
 roomLinks.push(roomLinkMesh);
 
-const _makeRoomDiagramMesh = (index, type, color) => {
+const _makeRoomDiagramMesh = (index, type, label, color) => {
   let wx, wy, wz;
   if (type === 'point') {
     wx = 1;
@@ -2009,11 +2052,9 @@ const _makeRoomDiagramMesh = (index, type, color) => {
     side: THREE.DoubleSide,
     transparent: true,
   });
+
   const mesh = new THREE.Object3D();
-  const innerMesh = new THREE.Mesh(geometry, material); 
-  innerMesh.position.set(-0.1*wx/2, -0.1*wy/2, -0.1*wz/2);
-  innerMesh.frustumCulled = false;
-  mesh.add(innerMesh);
+  mesh.label = label;
   mesh.update = () => {
     mesh.position
       .copy(trayMesh.position)
@@ -2022,9 +2063,15 @@ const _makeRoomDiagramMesh = (index, type, color) => {
     mesh.updateMatrixWorld();
   };
   mesh.update();
+
+  const innerMesh = new THREE.Mesh(geometry, material);
+  innerMesh.position.set(-0.1*wx/2, -0.1*wy/2, -0.1*wz/2);
+  innerMesh.frustumCulled = false;
+  mesh.add(innerMesh);
+
   return mesh;
 };
-const roomDiagramMesh = _makeRoomDiagramMesh(roomDiagrams.length, 'volume', 0xffee58);
+const roomDiagramMesh = _makeRoomDiagramMesh(roomDiagrams.length, 'volume', 'tutorial.html', 0xffee58);
 scene.add(roomDiagramMesh);
 roomDiagrams.push(roomDiagramMesh);
 
@@ -4219,13 +4266,18 @@ function animate(time, frame) {
         room.setColor(0x5c6bc0);
         pendingRooms[i] = null;
         const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, room);
-        roomLinks.push(roomLinkMesh);
         scene.add(roomLinkMesh);
-        const roomDiagramMesh = _makeRoomDiagramMesh(roomDiagrams.length, room.classify(), 0xffee58);
-        roomDiagrams.push(roomDiagramMesh);
+        roomLinks.push(roomLinkMesh);
+        const roomDiagramMesh = _makeRoomDiagramMesh(roomDiagrams.length, room.classify(), 'tutorial.html', 0xffee58);
         scene.add(roomDiagramMesh);
+        roomDiagrams.push(roomDiagramMesh);
         _addVolume(room);
         // console.log('end room', room.classify(), targetMesh.material.uniforms.worldPos.value.toArray().join(','));
+
+        menuIframe.contentWindow.postMessage({
+          method: 'tabs',
+          tabs: roomDiagrams.map(roomDiagram => roomDiagram.label),
+        });
       } else {
         const room = pendingRooms[i];
         if (room) {
@@ -4263,6 +4315,7 @@ function animate(time, frame) {
       }
       lastButtons[i].bumper = bumper;
 
+      const location = targetMesh.material.uniforms.worldPos.value;
       const cubeLocation = localVector.set(Math.floor(location.x), Math.floor(location.y), Math.floor(location.z));
       for (let i = 0; i < rooms.length; i++) {
         const room = rooms[i];

@@ -44,16 +44,24 @@ class Menu extends React.Component {
 
     this.state = {
       url: 'https://google.com/',
-      tabs: [
-        'iframe.html',
-        'examples.html',
-        'world.html',
-      ].map((label, index) => ({
-        label,
-        index,
-      })),
+      tabs: [],
       selectedTabIndex: -1,
       pageIndex: 0,
+    };
+
+    window.onmessage = m => {
+      switch (m.data.method) {
+        case 'tabs': {
+          const {tabs} = m.data;
+          this.setState({
+            tabs: tabs.map((label, index) => ({
+              label,
+              index,
+            })),
+          });
+          break;
+        }
+      }
     };
   }
 
@@ -84,26 +92,36 @@ class Menu extends React.Component {
 
   openTab(url) {
     if (url) {
-      this.setState({
+      window.postMessage({
+        method: 'openTab',
+        url,
+      });
+
+      /* this.setState({
         tabs: this.state.tabs.concat({
           label: url,
           index: this.state.tabs.length,
         }),
-      });
+      }); */
     }
   }
 
   closeTab(tab) {
-    const tabIndex = tab.index;
+    const {index} = tab;
+    window.postMessage({
+      method: 'closeTab',
+      index,
+    });
+    /* const tabIndex = tab.index;
     const tabs = this.state.tabs.slice(0, tabIndex).concat(this.state.tabs.slice(tabIndex + 1));
     for (let i = 0; i < tabs.length; i++) {
       tabs[i].index = i;
     }
     this.setState({
       tabs,
-    });
+    }); */
 
-    if (this.state.selectedTabIndex === tabIndex) {
+    if (this.state.selectedTabIndex === index) {
       this.setState({
         selectedTabIndex: -1,
       });
@@ -111,9 +129,8 @@ class Menu extends React.Component {
   }
 
   selectTab(tab) {
-    const tabIndex = tab.index;
     this.setState({
-      selectedTabIndex: tabIndex,
+      selectedTabIndex: tab.index,
     });
   }
 
