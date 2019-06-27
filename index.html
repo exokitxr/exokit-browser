@@ -13,7 +13,7 @@
     <script src="xrmp.js"></script>
     <script src="xrmp-three.js"></script>
     <script>
-let display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewport = new THREE.Vector4(0, 0, 1, 1), menuOpen = false, menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], orbitControls, transformControls, rooms = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], volumeMeshes = [], portalMeshes = [];
+let display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewport = new THREE.Vector4(0, 0, 1, 1), menuOpen = false, menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], orbitControls, transformControls, rooms = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], volumeMeshes = [], portalMeshes = [], menuAnimation = null;
 const viewMatrices = [
   new THREE.Matrix4(),
   new THREE.Matrix4(),
@@ -4294,6 +4294,17 @@ function animate(time, frame) {
       }
     }
   };
+  const _makeMenuAnimation = spec => {
+    const startTime = Date.now();
+    const endTime = startTime + 150;
+    const curve = cubicBezier(0, 1, 0, 1);
+    return {
+      spec,
+      getValue() {
+        return Math.min(Math.max(curve((Date.now() - startTime) / (endTime - startTime)), 0), 1);
+      },
+    };
+  };
   const _updateGridControls = () => {
     const gamepads = navigator.getGamepads();
     for (let i = 0; i < gamepads.length; i++) {
@@ -4309,17 +4320,49 @@ function animate(time, frame) {
 
       if (bumper && !lastBumper) {
         const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
+        c.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+        localVector.add(localVector2.set(0, 0, -1).applyQuaternion(localQuaternion));
 
-        c.matrixWorld.decompose(menuMesh.position, menuMesh.quaternion, menuMesh.scale);
-        menuMesh.position.add(localVector.set(0, 0, -1).applyQuaternion(menuMesh.quaternion));
+        menuAnimation = _makeMenuAnimation({
+          start: {
+            position: menuMesh.position.clone(),
+            quaternion: menuMesh.quaternion.clone(),
+            scale: new THREE.Vector3(1, 1, 1),
+          },
+          end: {
+            position: localVector.clone(),
+            quaternion: localQuaternion.clone(),
+            scale: new THREE.Vector3(1, 1, 1),
+          },
+        });
+      }
+      lastButtons[i].bumper = bumper;
+
+      if (menuAnimation) {
+        const {spec: {start, end}} = menuAnimation;
+        const f = menuAnimation.getValue();
+
+        menuMesh.quaternion.copy(start.quaternion).slerp(end.quaternion, f);
+        menuMesh.position.copy(start.position).lerp(end.position, f);
+        menuMesh.scale.copy(start.scale).lerp(end.scale, f);
         menuMesh.updateMatrixWorld();
         menuMesh.update();
 
-        c.matrixWorld.decompose(trayMesh.position, trayMesh.quaternion, trayMesh.scale);
-        trayMesh.position.add(localVector.set(0, -0.5, -1 + 0.2/2).applyQuaternion(trayMesh.quaternion));
+        trayMesh.quaternion.copy(start.quaternion).slerp(end.quaternion, f);
+        trayMesh.position.copy(start.position)
+          .add(localVector.set(0, -0.5, 0.2/2).applyQuaternion(start.quaternion))
+          .lerp(
+            localVector.copy(end.position)
+              .add(localVector2.set(0, -0.5, 0.2/2).applyQuaternion(end.quaternion)),
+            f
+          );
+        trayMesh.scale.copy(start.scale).lerp(end.scale, f);
         trayMesh.updateMatrixWorld();
+
+        if (f >= 1) {
+          menuAnimation = null;
+        }
       }
-      lastButtons[i].bumper = bumper;
 
       const location = targetMesh.material.uniforms.worldPos.value;
       const cubeLocation = localVector.set(Math.floor(location.x), Math.floor(location.y), Math.floor(location.z));
