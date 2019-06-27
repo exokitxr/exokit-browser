@@ -897,248 +897,6 @@ const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
 directionalLight.position.set(1, 1, 1);
 scene.add(directionalLight);
 
-// iframe
-
-const _pushDomUpdate = () => {
-  if (uiIframe.contentWindow) {
-    browser.requestDomExport(document.body.parentNode)
-      .then(root => {
-        uiIframe.contentWindow.postMessage({
-          method: 'dom',
-          root,
-        });
-      });
-  }
-};
-
-const uiIframe = document.createElement('iframe');
-uiIframe.width = window.innerWidth;
-uiIframe.height = window.innerHeight;
-uiIframe.devicePixelRatio = window.devicePixelRatio;
-uiIframe.d = 2;
-uiIframe.inline = false;
-uiIframe.src = 'ui/build/index.html';
-uiIframe.onload = () => {
-  /* uiIframe.contentWindow.addEventListener('resize', e => {
-    const {x, y, width, height} = e;
-
-    // console.log('got resize', {x, y, width, height});
-
-    const sceneCanvas = renderer.domElement;
-    sceneCanvas.setPosition(x, y);
-    sceneCanvas.setSize(width, height);
-  }); */
-  uiIframe.contentWindow.onmessage = m => {
-    switch (m.data.method) {
-      case 'viewport': {
-        const {viewport: vp} = m.data;
-
-        // console.log('got viewport', vp);
-        // viewport.fromArray(vp);
-
-        break;
-      }
-      /* case 'viewportMouseDown': {
-        const {x, y, button} = m.data;
-        window.dispatchEvent(new MouseEvent('mousedown', {
-          clientX: x,
-          clientY: y,
-          button,
-        }));
-
-        break;
-      }
-      case 'viewportMouseUp': {
-        const {x, y, button} = m.data;
-        window.dispatchEvent(new MouseEvent('mouseup', {
-          clientX: x,
-          clientY: y,
-          button,
-        }));
-
-        break;
-      }
-      case 'viewportClick': {
-        const {x, y, button} = m.data;
-        window.dispatchEvent(new MouseEvent('click', {
-          clientX: x,
-          clientY: y,
-          button,
-        }));
-
-        break;
-      }
-      case 'viewportMouseMove': {
-        const {x, y} = m.data;
-        window.dispatchEvent(new MouseEvent('mousemove', {
-          clientX: x,
-          clientY: y,
-        }));
-
-        break;
-      }
-      case 'viewportMouseWheel': {
-        const {x, y, deltaX, deltaY} = m.data;
-        window.dispatchEvent(new MouseEvent('mousewheel', {
-          clientX: x,
-          clientY: y,
-          deltaX,
-          deltaY,
-        }));
-
-        break;
-      } */
-      case 'click': {
-        const {target} = m.data;
-        if (target === 'fakeXr') {
-          renderer.domElement.requestPointerLock();
-          const _setFocus = () => {
-            renderer.domElement.setFocus();
-            _bringUiToTop();
-          };
-          _setFocus();
-          for (let i = 0; i < 100; i += 5) {
-            setTimeout(() => {
-              _setFocus();
-            }, i);
-          }
-
-          _bindEventTarget('xr');
-        } else if (target === 'xr') {
-          console.log('xr click');
-        } else if (target === 'transform') {
-          console.log('transform click');
-        }
-        break;
-      }
-      case 'menu': {
-        menuOpen = m.data.open;
-        /* if (m.data.open) {
-          composeScene.remove(composeScreenQuad); // XXX can elide the render entirely
-        } else {
-          composeScene.add(composeScreenQuad);
-        } */
-        break;
-      }
-      case 'open': {
-        const {url, d} = m.data;
-        const {position, quaternion, scale} = _getFrontOfCamera();
-        _openUrl(url, position, quaternion, scale, d);
-
-        break;
-      }
-      case 'add': {
-        const {template} = m.data;
-        const url = links.find(link => link.id === template).url;
-        const {position, quaternion, scale} = _getFrontOfCamera();
-        _openUrl(url, position, quaternion, scale, 3);
-
-        break;
-      }
-      case 'eval': {
-        let err, result;
-        try {
-          result = eval(m.data.jsString);
-        } catch(e) {
-          err = e;
-        }
-        if (!err) {
-          uiIframe.contentWindow.postMessage({
-            method: 'terminal',
-            output: browser.inspect(result),
-          });
-        } else {
-          uiIframe.contentWindow.postMessage({
-            method: 'terminal',
-            output: err.stack,
-          });
-        }
-        break;
-      }
-      case 'edit': {
-        browser.applyDomEdit(document.body.parentNode, m.data.keypath, m.data.edit)
-          .then(() => {
-            _pushDomUpdate();
-          })
-          .catch(err => {
-            console.warn(err.stack);
-          });
-        break;
-      }
-      case 'setting': {
-        const {key, value} = m.data;
-        window.browser.setSetting(key, value);
-        break;
-      }
-      case 'fakeVrMetrics': {
-        const {width, height} = m.data;
-        _endFakeVrDisplay()
-          .then(() => _startFakeVrDisplay(width, height))
-          .catch(err => {
-            console.warn(err.stack);
-          });
-        break;
-      }
-      default: {
-        console.warn(`got unknown ui iframe message: ${m.data.method}`);
-        break;
-      }
-    }
-    /* switch (m.data.action){
-      case 'launch':
-        launch(m.data.flags, m.data.url);
-        break;
-      case 'update':
-        update();
-        break;
-    } */
-  };
-
-  /* uiIframe.runJs(`
-    // document.body.style.background = '#000080';
-    // console.log('run js log ' + typeof window.postMessage + ' ' + window.postMessage.toString());
-
-    window.onmessage = m => {
-      console.log('child got message: ' + JSON.stringify(m.data));
-    };
-
-    window.postMessage({lol: 'zol'});
-  `); */
-
-  _bindEventTarget('ui');
-
-  _pushDomUpdate();
-};
-uiIframe.onconsole = (message, source, line) => {
-  console.log(source + ':' + line + ': ' + message);
-};
-document.body.appendChild(uiIframe);
-window.addEventListener('move', e => {
-  const {x, y} = e.detail;
-  uiIframe.setPosition(x, y);
-});
-window.addEventListener('resize', e => {
-  uiIframe.width = window.innerWidth;
-  uiIframe.height = window.innerHeight;
-});
-const _bringUiToTop = () => {
-  uiIframe.setAlwaysOnTop(true);
-  uiIframe.setAlwaysOnTop(false);
-};
-window.addEventListener('focus', e => {
-  _bringUiToTop();
-});
-window.addEventListener('maximize', e => {
-  _bringUiToTop();
-});
-window.addEventListener('restore', e => {
-  uiIframe.show();
-  _bringUiToTop();
-});
-window.addEventListener('minimize', e => {
-  uiIframe.hide();
-});
-
 // events
 
 let unbindEvents = null;
@@ -1272,15 +1030,22 @@ const _bindEventTarget = target => {
         }
       },
       keydown(e) {
-        if (e.keyCode === 37 && e.altKey) { // Alt-Left
-          uiIframe.back();
-        } else if (e.keyCode === 39 && e.altKey) { // Alt-Right
-          uiIframe.forward();
+        if (!window.document.pointerLockElement) {
+          switch (e.which) {
+            case 27: { // esc
+              renderer.domElement.requestPointerLock();
+              break;
+            }
+          }
         }
       },
       keypress(e) {
-        if (e.keyCode === 114 && e.ctrlKey) { // Ctrl-R
-          uiIframe.reload();
+        // XXX
+      },
+    }, {
+      pointerlockchange(e) {
+        if (window.document.pointerLockElement) {
+          _bindEventTarget('xr');
         }
       },
     });
@@ -1890,10 +1655,6 @@ const _makeRoomMesh = (sx, sy, sz, dx, dy, dz, color) => {
   };
   return mesh;
 };
-const roomMesh = _makeRoomMesh(-8, 0, -8, 8, 4, 8, 0xffee58);
-scene.add(roomMesh);
-rooms.push(roomMesh);
-
 const _makeRoomLinkMesh = (index, roomMesh) => {
   const geometry = new THREE.BoxBufferGeometry(0.005, 0.005, 1);
   const positions = geometry.attributes.position.array;
@@ -1970,10 +1731,6 @@ const _makeRoomLinkMesh = (index, roomMesh) => {
   mesh.update();
   return mesh;
 };
-const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, roomMesh);
-scene.add(roomLinkMesh);
-roomLinks.push(roomLinkMesh);
-
 const _makeRoomDiagramMesh = (index, type, label, color) => {
   let wx, wy, wz;
   if (type === 'point') {
@@ -2076,10 +1833,6 @@ const _makeRoomDiagramMesh = (index, type, label, color) => {
 
   return mesh;
 };
-const roomDiagramMesh = _makeRoomDiagramMesh(roomDiagrams.length, 'volume', 'tutorial.html', 0xffee58);
-scene.add(roomDiagramMesh);
-roomDiagrams.push(roomDiagramMesh);
-
 const _addVolume = roomMesh => {
   const iframe = document.createElement('iframe');
   document.body.appendChild(iframe);
@@ -4704,7 +4457,7 @@ const _endFakeVrDisplay = async () => {
 };
 _startFakeVrDisplay()
   .then(() => {
-    const tabUrl = (() => {
+    /* const tabUrl = (() => {
       const {t = 'tutorial.html'} = query;
       if (!/^[a-z]+:\/\//.test(t)) {
         return `../${t}`;
@@ -4716,9 +4469,30 @@ _startFakeVrDisplay()
 
     focusedTab = rig.menuMesh.urlMesh;
     rig.menuMesh.urlMesh.updateText();
-    rig.menuMesh.listMesh.updateList();
+    rig.menuMesh.listMesh.updateList(); */
 
+    _bindEventTarget('ui');
     _initMenu();
+
+    // const roomMesh = _makeRoomMesh(-8, 0, -8, 8, 4, 8, 0xffee58);
+    const roomMesh = _makeRoomMesh(0, 0, 0, 0, 0, 0, 0xffee58);
+    scene.add(roomMesh);
+    rooms.push(roomMesh);
+
+    const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, roomMesh);
+    scene.add(roomLinkMesh);
+    roomLinks.push(roomLinkMesh);
+
+    const roomDiagramMesh = _makeRoomDiagramMesh(roomDiagrams.length, 'volume', 'tutorial.html', 0xffee58);
+    scene.add(roomDiagramMesh);
+    roomDiagrams.push(roomDiagramMesh);
+
+    _addVolume(roomMesh);
+
+    menuIframe.contentWindow.postMessage({
+      method: 'tabs',
+      tabs: roomDiagrams.map(roomDiagram => roomDiagram.label),
+    });
 
     console.log('loaded fake display');
   })
