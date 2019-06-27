@@ -1707,7 +1707,6 @@ const _initMenu = () => {
   menuIframe.d = 2;
   menuIframe.src = 'menu/build/index.html';
   menuIframe.contentWindow.onmessage = m => {
-    console.log('menu iframe parent got message', m.data);
     switch (m.data.method) {
       case 'openTab': {
         const {url} = m.data;
