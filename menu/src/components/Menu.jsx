@@ -1,14 +1,16 @@
 import React from 'react';
 import '../css/menu.css';
 
-const tabs = [
-  'iframe.html',
-  'examples.html',
-  'world.html',
-].map((label, index) => ({
-  label,
-  index,
-}));
+const results = [
+  {
+    label: 'tutorial.html',
+    highlight: true,
+  },
+ {
+    label: 'example.html',
+    highlight: false,
+  },
+];
 
 class Tab extends React.Component {
   classNames() {
@@ -41,6 +43,15 @@ class Menu extends React.Component {
     super(props);
 
     this.state = {
+      url: 'https://google.com/',
+      tabs: [
+        'iframe.html',
+        'examples.html',
+        'world.html',
+      ].map((label, index) => ({
+        label,
+        index,
+      })),
       selectedTabIndex: -1,
       pageIndex: 0,
     };
@@ -51,25 +62,59 @@ class Menu extends React.Component {
     return classNames.join(' ');
   } */
 
-  selectTab(tab) {
-    const tabIndex = tab.index;
+  onUrlKeyDown(e) {
+    if (e.which === 13) {
+      this.onUrlGo();
+
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }
+
+  onUrlGo() {
+    this.openTab(this.state.url);
     this.setState({
-      selectedTabIndex: tabIndex,
+      url: '',
     });
+  }
+
+  onResultClick(result) {
+    this.openTab(result.label);
+  }
+
+  openTab(url) {
+    if (url) {
+      this.setState({
+        tabs: this.state.tabs.concat({
+          label: url,
+          index: this.state.tabs.length,
+        }),
+      });
+    }
   }
 
   closeTab(tab) {
     const tabIndex = tab.index;
-    tabs.splice(tabIndex, 1);
+    const tabs = this.state.tabs.slice(0, tabIndex).concat(this.state.tabs.slice(tabIndex + 1));
     for (let i = 0; i < tabs.length; i++) {
       tabs[i].index = i;
     }
+    this.setState({
+      tabs,
+    });
 
     if (this.state.selectedTabIndex === tabIndex) {
       this.setState({
         selectedTabIndex: -1,
       });
     }
+  }
+
+  selectTab(tab) {
+    const tabIndex = tab.index;
+    this.setState({
+      selectedTabIndex: tabIndex,
+    });
   }
 
   movePage(offset) {
@@ -79,21 +124,11 @@ class Menu extends React.Component {
   }
 
   render() {
-    const localTabs = tabs.slice(this.state.pageIndex*5, (this.state.pageIndex+1)*5);
+    const localTabs = this.state.tabs.slice(this.state.pageIndex*5, (this.state.pageIndex+1)*5);
     while (localTabs.length < 5) {
       localTabs.push(null);
     }
 
-    const results = [
-      {
-        label: 'tutorial.html',
-        highlight: true,
-      },
-     {
-        label: 'example.html',
-        highlight: false,
-      },
-    ];
     const _getResultClassNames = result => {
       const classNames = ['result'];
       if (result.highlight) {
@@ -107,11 +142,11 @@ class Menu extends React.Component {
         <div className="body">
           <div className="content">
             <div className="bar">
-              <input type="text" className="url" value="https://google.com/"/>
-              <div className="button">Go</div>
+              <input type="text" className="url" value={this.state.url} onChange={e => {this.setState({url: e.target.value})}} onKeyDown={e => {this.onUrlKeyDown(e)}} />
+              <div className="button" onClick={() => {this.onUrlGo(this.state.url)}}>Go</div>
             </div>
             <div className="results">
-              {results.map(result => <div className={_getResultClassNames(result)}>{result.label}</div>)}
+              {results.map(result => <div className={_getResultClassNames(result)} onClick={() => {this.onResultClick(result)}}>{result.label}</div>)}
             </div>
           </div>
           <div className="menu">
