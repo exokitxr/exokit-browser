@@ -1711,10 +1711,9 @@ const _initMenu = () => {
       case 'openTab': {
         const {url} = m.data;
 
-        const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-        c.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+        const location = targetMesh.material.uniforms.worldPos.value;
 
-        const room = _makeRoomMesh(localVector.x, localVector.y, localVector.z, localVector.x, localVector.y, localVector.z, 0x9ccc65);
+        const room = _makeRoomMesh(location.x, location.y, location.z, location.x, location.y, location.z, 0x9ccc65);
         scene.add(room);
         rooms.push(room);
 
