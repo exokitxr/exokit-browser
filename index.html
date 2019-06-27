@@ -1737,9 +1737,15 @@ const _initMenu = () => {
       }
       case 'closeTab': {
         const {index} = m.data;
-        scene.remove(rooms.splice(index, 0)[0]);
-        scene.remove(roomLinks.splice(index, 0)[0]);
-        scene.remove(roomDiagrams.splice(index, 0)[0]);
+        scene.remove(rooms.splice(index, 1)[0]);
+        scene.remove(roomLinks.splice(index, 1)[0]);
+        scene.remove(roomDiagrams.splice(index, 1)[0]);
+
+        menuIframe.contentWindow.postMessage({
+          method: 'tabs',
+          tabs: roomDiagrams.map(roomDiagram => roomDiagram.label),
+        });
+
         break;
       }
     }
