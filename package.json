@@ -1,22 +1,25 @@
 {
-  "name": "exokit-studio",
+  "name": "exoland",
   "version": "0.0.1",
-  "description": "Exokit Studio",
+  "description": "Exoland",
   "main": "index.js",
-  "directories": {
-    "example": "examples"
+  "dependencies": {
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "react-scripts": "3.0.0"
   },
   "scripts": {
+    "build": "cd menu && react-scripts build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/exokitxr/studio.git"
+    "url": "git+https://github.com/exokitxr/exoland.git"
   },
   "author": "Avaer Kazmer <a@modules.io>",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/exokitxr/studio/issues"
+    "url": "https://github.com/exokitxr/exoland/issues"
   },
-  "homepage": "https://github.com/exokitxr/studio#readme"
+  "homepage": "https://github.com/exokitxr/exoland#readme"
 }
