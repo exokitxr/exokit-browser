@@ -876,7 +876,7 @@ const _updateRigLists = () => {
 // main
 
 const scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0x7e57c2, 1, 100);
+scene.fog = new THREE.Fog(new THREE.Color(0x7e57c2).offsetHSL(0, 0, -0.5), 1, 100);
 // scene.background = new THREE.Color(0x7E57C2);
 scene.matrixAutoUpdate = false;
 
@@ -892,6 +892,306 @@ scene.matrixAutoUpdate = false;
   return mesh;
 })();
 scene.add(cubeMesh); */
+
+const sphereMesh = (() => {
+  const geometry = new THREE.SphereBufferGeometry(500, 300, 300)
+    .applyMatrix(new THREE.Matrix4().makeScale(-1, -1, -1));
+  const material = new THREE.MeshBasicMaterial({
+    color: 0x000000,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  return mesh;
+})();
+scene.add(sphereMesh);
+
+/* const skyShader = {
+
+	uniforms: {
+
+		luminance: { value: 1 },
+		turbidity: { value: 2 },
+		rayleigh: { value: 1 },
+		mieCoefficient: { value: 0.005 },
+		mieDirectionalG: { value: 0.8 },
+		sunPosition: { value: new THREE.Vector3() }
+
+	},
+
+	vertexShader: [
+
+		"uniform vec3 sunPosition;",
+		"uniform float rayleigh;",
+		"uniform float turbidity;",
+		"uniform float mieCoefficient;",
+
+		"varying vec3 vWorldPosition;",
+		"varying vec3 vSunDirection;",
+		"varying float vSunfade;",
+		"varying vec3 vBetaR;",
+		"varying vec3 vBetaM;",
+		"varying float vSunE;",
+
+		"const vec3 up = vec3(0.0, 1.0, 0.0);",
+
+		// constants for atmospheric scattering
+		"const float e = 2.71828182845904523536028747135266249775724709369995957;",
+		"const float pi = 3.141592653589793238462643383279502884197169;",
+
+		// mie stuff
+		// K coefficient for the primaries
+		"const float v = 4.0;",
+		"const vec3 K = vec3(0.686, 0.678, 0.666);",
+
+		// see http://blenderartists.org/forum/showthread.php?321110-Shaders-and-Skybox-madness
+		// A simplied version of the total Reayleigh scattering to works on browsers that use ANGLE
+		"const vec3 simplifiedRayleigh = 0.0005 / vec3(94, 40, 18);",
+
+		// wavelength of used primaries, according to preetham
+		"const vec3 lambda = vec3(680E-9, 550E-9, 450E-9);",
+
+		// earth shadow hack
+		"const float cutoffAngle = pi/1.95;",
+		"const float steepness = 1.5;",
+		"const float EE = 1000.0;",
+
+		"float sunIntensity(float zenithAngleCos)",
+		"{",
+			"zenithAngleCos = clamp(zenithAngleCos, -1.0, 1.0);",
+			"return EE * max(0.0, 1.0 - pow(e, -((cutoffAngle - acos(zenithAngleCos))/steepness)));",
+		"}",
+
+		"vec3 totalMie(vec3 lambda, float T)",
+		"{",
+			"float c = (0.2 * T ) * 10E-18;",
+			"return 0.434 * c * pi * pow((2.0 * pi) / lambda, vec3(v - 2.0)) * K;",
+		"}",
+
+		"void main() {",
+
+			"vec4 worldPosition = modelMatrix * vec4( position, 1.0 );",
+			"vWorldPosition = worldPosition.xyz;",
+
+			"gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );",
+
+			"vSunDirection = normalize(sunPosition);",
+
+			"vSunE = sunIntensity(dot(vSunDirection, up));",
+
+			"vSunfade = 1.0-clamp(1.0-exp((sunPosition.y/450000.0)),0.0,1.0);",
+
+			"float rayleighCoefficient = rayleigh - (1.0 * (1.0-vSunfade));",
+
+			// extinction (absorbtion + out scattering)
+			// rayleigh coefficients
+			"vBetaR = simplifiedRayleigh * rayleighCoefficient;",
+
+			// mie coefficients
+			"vBetaM = totalMie(lambda, turbidity) * mieCoefficient;",
+
+		"}",
+
+	].join( "\n" ),
+
+	fragmentShader: [
+
+		"varying vec3 vWorldPosition;",
+		"varying vec3 vSunDirection;",
+		"varying float vSunfade;",
+		"varying vec3 vBetaR;",
+		"varying vec3 vBetaM;",
+		"varying float vSunE;",
+
+		"uniform float luminance;",
+		"uniform float mieDirectionalG;",
+
+		"const vec3 cameraPos = vec3(0., 0., 0.);",
+
+		// constants for atmospheric scattering
+		"const float pi = 3.141592653589793238462643383279502884197169;",
+
+		"const float n = 1.0003;", // refractive index of air
+		"const float N = 2.545E25;", // number of molecules per unit volume for air at
+									// 288.15K and 1013mb (sea level -45 celsius)
+
+		// optical length at zenith for molecules
+		"const float rayleighZenithLength = 8.4E3;",
+		"const float mieZenithLength = 1.25E3;",
+		"const vec3 up = vec3(0.0, 1.0, 0.0);",
+
+		// "const float sunAngularDiameterCos = 0.999956676946448443553574619906976478926848692873900859324;",
+		// 66 arc seconds -> degrees, and the cosine of that
+		"const float sunAngularDiameterCos = cos(0.0277778);",
+		// 100 arc seconds -> degrees, and the cosine of that
+
+		"float powClamp(float f, float e)",
+		"{",
+			"return pow(max(f, 0.0), e);",
+		"}",
+		"vec3 powClamp(vec3 f, vec3 e)",
+		"{",
+			"return pow(max(f, 0.0), e);",
+		"}",
+
+		"float rayleighPhase(float cosTheta)",
+		"{",
+			"return (3.0 / (16.0*pi)) * (1.0 + pow(cosTheta, 2.0));",
+		"}",
+
+		"float hgPhase(float cosTheta, float g)",
+		"{",
+			"return (1.0 / (4.0*pi)) * ((1.0 - pow(g, 2.0)) / powClamp(1.0 - 2.0*g*cosTheta + pow(g, 2.0), 1.5));",
+		"}",
+
+		// Filmic ToneMapping http://filmicgames.com/archives/75
+		"const float A = 0.15;",
+		"const float B = 0.50;",
+		"const float C = 0.10;",
+		"const float D = 0.20;",
+		"const float E = 0.02;",
+		"const float F = 0.30;",
+
+		"const float whiteScale = 1.0748724675633854;", // 1.0 / Uncharted2Tonemap(1000.0)
+
+		"vec3 Uncharted2Tonemap(vec3 x)",
+		"{",
+		   "return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;",
+		"}",
+
+`float mod289(float x){return x - floor(x * (1.0 / 289.0)) * 289.0;}
+vec4 mod289(vec4 x){return x - floor(x * (1.0 / 289.0)) * 289.0;}
+vec4 perm(vec4 x){return mod289(((x * 34.0) + 1.0) * x);}
+
+float noise(vec3 p){
+    vec3 a = floor(p);
+    vec3 d = p - a;
+    d = d * d * (3.0 - 2.0 * d);
+
+    vec4 b = a.xxyy + vec4(0.0, 1.0, 0.0, 1.0);
+    vec4 k1 = perm(b.xyxy);
+    vec4 k2 = perm(k1.xyxy + b.zzww);
+
+    vec4 c = k2 + a.zzzz;
+    vec4 k3 = perm(c);
+    vec4 k4 = perm(c + 1.0);
+
+    vec4 o1 = fract(k3 * (1.0 / 41.0));
+    vec4 o2 = fract(k4 * (1.0 / 41.0));
+
+    vec4 o3 = o2 * d.z + o1 * (1.0 - d.z);
+    vec2 o4 = o3.yw * d.x + o3.xz * (1.0 - d.x);
+
+    return o4.y * d.y + o4.x * (1.0 - d.y);
+}`,
+
+
+		"void main() ",
+		"{",
+			// optical length
+			// cutoff angle at 90 to avoid singularity in next formula.
+			"float zenithAngle = acos(max(0.0, dot(up, normalize(vWorldPosition - cameraPos))));",
+			"float sR = rayleighZenithLength / (cos(zenithAngle) + 0.15 * powClamp(93.885 - ((zenithAngle * 180.0) / pi), -1.253));",
+			"float sM = mieZenithLength / (cos(zenithAngle) + 0.15 * powClamp(93.885 - ((zenithAngle * 180.0) / pi), -1.253));",
+
+			// combined extinction factor
+			"vec3 Fex = exp(-(vBetaR * sR + vBetaM * sM));",
+
+			// in scattering
+			"float cosTheta = dot(normalize(vWorldPosition - cameraPos), vSunDirection);",
+
+			"float rPhase = rayleighPhase(cosTheta*0.5+0.5);",
+			"vec3 betaRTheta = vBetaR * rPhase;",
+
+			"float mPhase = hgPhase(cosTheta, mieDirectionalG);",
+			"vec3 betaMTheta = vBetaM * mPhase;",
+
+			"vec3 Lin = powClamp(vSunE * ((betaRTheta + betaMTheta) / (vBetaR + vBetaM)) * (1.0 - Fex),vec3(1.5));",
+			"Lin *= mix(vec3(1.0),pow(vSunE * ((betaRTheta + betaMTheta) / (vBetaR + vBetaM)) * Fex,vec3(1.0/2.0)),clamp(pow(1.0-dot(up, vSunDirection),5.0),0.0,1.0));",
+
+			//nightsky
+			"vec3 direction = normalize(vWorldPosition - cameraPos);",
+			"float theta = acos(direction.y); // elevation --> y-axis, [-pi/2, pi/2]",
+			"float phi = atan(direction.z, direction.x); // azimuth --> x-axis [-pi/2, pi/2]",
+			"vec2 uv = vec2(phi, theta) / vec2(2.0*pi, pi) + vec2(0.5, 0.0);",
+			"vec3 L0 = vec3(0.1) * Fex;",
+
+			// composition + solar disc
+			"float sundisk = smoothstep(sunAngularDiameterCos,sunAngularDiameterCos+0.00002,cosTheta);",
+			"L0 += (vSunE * 19000.0 * Fex)*sundisk;",
+
+			"float cosTheta2 = dot(normalize(vWorldPosition - cameraPos), vec3(-vSunDirection.x, -vSunDirection.y, vSunDirection.z));",
+			"float moonDisk = smoothstep(sunAngularDiameterCos,sunAngularDiameterCos+0.00002,cosTheta2);",
+			"L0 += vec3(50.0)*moonDisk;",
+
+			"vec3 starsColor = vec3(0.0);",
+      `if (noise(floor(vWorldPosition / 0.1) * 0.1) < 0.0001) {`,
+      `  starsColor += (0.15 / 0.04) * max(1.0 - (vSunE / 300.0), 0.0);`,
+      `}`,
+			"vec3 texColor = (Lin + L0 + starsColor) * 0.04 + (vec3(0.0, 0.0003, 0.00075) * 10.0);",
+
+			"vec3 curr = Uncharted2Tonemap((log2(2.0/pow(luminance,4.0)))*texColor);",
+			"vec3 color = curr*whiteScale;",
+
+			// "vec3 retColor = powClamp(color,vec3(1.0/(1.2+(1.2*vSunfade))));",
+
+			"gl_FragColor.rgb = L0;",
+
+			"gl_FragColor.a = 1.0;",
+		"}",
+
+	].join( "\n" )
+
+};
+
+function THREESky() {
+	var skyUniforms = THREE.UniformsUtils.clone(skyShader.uniforms);
+
+  skyUniforms.turbidity.value = 10;
+  skyUniforms.rayleigh.value = 2;
+  skyUniforms.luminance.value = 1;
+  skyUniforms.mieCoefficient.value = 0.005;
+  skyUniforms.mieDirectionalG.value = 0.8;
+
+  // sky.inclination = 0;
+  // sky.azimuth = 0;
+
+	var skyMat = new THREE.ShaderMaterial( {
+		fragmentShader: skyShader.fragmentShader,
+		vertexShader: skyShader.vertexShader,
+		uniforms: skyUniforms,
+		side: THREE.DoubleSide,
+	} );
+
+	var skyGeo = new THREE.SphereBufferGeometry( 500, 5, 3 );
+	var skyMesh = new THREE.Mesh( skyGeo, skyMat );
+
+  const sunDistance = 5000;
+  const cutoffAngle = Math.PI/1.95;
+  const steepness = 1.5;
+  const computeSunIntensity = zenithAngleCos => {
+    zenithAngleCos = Math.min(Math.max(zenithAngleCos, -1), 1);
+    return Math.max(0, 1 - Math.pow(Math.E, -((cutoffAngle - Math.acos(zenithAngleCos))/steepness)));
+  };
+  const maxSunIntensity = computeSunIntensity(1);
+  // let lastLightmapUpdateTime = 0;
+  const _update = () => {
+    const now = Date.now();
+    const speed = 100;
+    skyMesh.azimuth = (0.05 + (((now + 200000) / 1000) * speed / 100000)) % 1;
+    const theta = Math.PI * (skyMesh.inclination - 0.5);
+    const phi = 2 * Math.PI * (skyMesh.azimuth - 0.5);
+
+    const x = sunDistance * Math.cos(phi);
+    const y = sunDistance * Math.sin(phi) * Math.sin(theta);
+    const z = sunDistance * Math.sin(phi) * Math.cos(theta);
+
+    skyMesh.material.uniforms.sunPosition.value.set(x, y, z);
+  };
+  _update();
+
+  return skyMesh;
+}
+const sphereMesh = THREESky();
+scene.add(sphereMesh); */
 
 const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.y = 1.6;
@@ -934,6 +1234,7 @@ scene.add(directionalLight2);
         // child.material = child.material.slice(0, 1);
         child.position.y += -79;
         for (let j = 2; j < child.material.length; j++) {
+          // child.material.flatShading = true;
           // child.material[j].color.offsetHSL(0, 100, 0);
           /* child.material[j].color.r += 0.1;
           child.material[j].color.g += 0.1;
@@ -943,20 +1244,23 @@ scene.add(directionalLight2);
       }
     }
     scene.add(buildings[4].clone());
-    for (let i = 0; i < 100; i++) {
+    const numBuildings = 200;
+    const buildingRange = 500;
+    for (let i = 0; i < numBuildings; i++) {
       const building = buildings[Math.floor(buildings.length * Math.random())].clone();
-      building.position.x = (-0.5 + Math.random()) * 300;
-      building.position.z = (-0.5 + Math.random()) * 300;
+      building.position.x = (-0.5 + Math.random()) * buildingRange;
+      building.position.z = (-0.5 + Math.random()) * buildingRange;
       building.frustumCulled = false;
       scene.add(building);
     }
     const floorMesh = (() => {
       const size = 1;
-      const geometry = new THREE.PlaneBufferGeometry(300, 300)
+      const geometry = new THREE.PlaneBufferGeometry(buildingRange, buildingRange)
         .applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2))
         .applyMatrix(new THREE.Matrix4().makeTranslation(0, heightOffset, 0));
-      const material = buildings[0].material[0];
-      console.log('got material', material);
+      const material = new THREE.MeshBasicMaterial({
+        color: 0x101010,
+      });
       const mesh = new THREE.Mesh(geometry, material);
       mesh.frustumCulled = false;
       return mesh;
@@ -1012,7 +1316,7 @@ const _bindEventTarget = target => {
       orbitControls.dispose();
       orbitControls = null;
     };
-    const _addTransformControls = (camera, iframe) => {
+    /* const _addTransformControls = (camera, iframe) => {
       transformControls = new THREE.TransformControls(camera, document.body, viewport);
       transformControls.iframe = iframe;
 
@@ -1040,10 +1344,10 @@ const _bindEventTarget = target => {
       scene.remove(transformControls);
       transformControls.dispose();
       transformControls = null;
-    };
+    }; */
 
     _bindEvents({
-      mousemove(e) {
+      /* mousemove(e) {
         const localCamera = camera;
         localCamera.matrixWorldInverse.fromArray(fakeXrDisplay.viewMatrix);
         localCamera.matrixWorld.getInverse(localCamera.matrixWorldInverse);
@@ -1091,7 +1395,7 @@ const _bindEventTarget = target => {
         } else if (!shouldTransform && transformControls) {
           _removeTransformControls();
         }
-      },
+      }, */
       keydown(e) {
         if (!window.document.pointerLockElement) {
           switch (e.which) {
