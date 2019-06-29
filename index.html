@@ -3,12 +3,17 @@
   <head>
     <style>
 body {
+  width: 100vw;
+  height: 100vh;
   margin: 0;
+  overflow: hidden;
 }
 #canvas {
-  position: absolute;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
+}
+iframe {
+  display: none;
 }
     </style>
   </head>
@@ -884,6 +889,7 @@ scene.matrixAutoUpdate = false;
     color: 0xab47bc,
   });
   const mesh = new THREE.Mesh(geometry, material);
+  mesh.position.z = -5;
   mesh.rotation.order = 'YXZ';
   mesh.frustumCulled = false;
   return mesh;
@@ -897,7 +903,6 @@ camera.position.y = 1.6;
 const renderer = new THREE.WebGLRenderer({
   antialias: true,
 });
-// renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.domElement.id = 'canvas';
 document.body.appendChild(renderer.domElement);
 
@@ -1001,8 +1006,6 @@ const _bindEventTarget = target => {
           localVector2D.set(
             ((e.clientX / rect.width) % 0.5 * 2) * 2 - 1,
             (-e.clientY / rect.height) * 2 + 1
-            /* ((e.clientX / rect.width * viewport.z - viewport.x) % 0.5 * 2) * 2 - 1,
-            (-e.clientY / rect.height * viewport.w - viewport.y) * 2 + 1 */
           ),
           localCamera
         );
@@ -1011,9 +1014,6 @@ const _bindEventTarget = target => {
           localVector.copy(localRaycaster.ray.origin)
             .add(localVector2.copy(localRaycaster.ray.direction).multiplyScalar(100))
         );
-        /* cubeMesh.position.copy(localRaycaster.ray.origin)
-          .add(localVector2.copy(localRaycaster.ray.direction).multiplyScalar(5));
-        cubeMesh.updateMatrixWorld(); */
         const distanceSpecs = layers.map(layer => {
           if (layer.tagName === 'IFRAME') {
             line.closestPointToPoint(localVector.fromArray(_parseVector(layer.position)), true, localVector2);
@@ -1533,7 +1533,6 @@ const _initMenu = () => {
   menuIframe.height = 1024;
   menuIframe.d = 2;
   menuIframe.src = 'menu/build/index.html';
-  menuIframe.style.display = 'none';
   document.body.appendChild(menuIframe);
 };
 
@@ -3958,8 +3957,8 @@ function animate(time, frame) {
     if (orbitControls) {
       orbitControls.update();
 
+      // console.log('got pos', orbitControls.object.position.toArray().join(',')); // XXX
       fakeXrDisplay.position.copy(orbitControls.object.position);
-      // console.log('got pos', orbitControls.object.position.toArray().join(','));
       fakeXrDisplay.quaternion.copy(orbitControls.object.quaternion);
       fakeXrDisplay.pushUpdate();
     }
@@ -4463,10 +4462,14 @@ const _startFakeVrDisplay = async (width, height) => {
     fakeXrDisplay = {
       position: camera.position,
       quaternion: camera.quaternion,
-      viewMatrix: camera.matrixWorld,
-      projectionMatrix: camera.projectionMatrix,
-      pushUpdate() {},
+      viewMatrix: camera.matrixWorld.toArray(),
+      projectionMatrix: camera.projectionMatrix.toArray(),
+      pushUpdate() {
+        camera.updateMatrixWorld();
+      },
     };
+
+    renderer.setSize(window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio, false);
 
     navigator.getGamepads = (getGamepads => function() {
       return Array.from(getGamepads.apply(this, arguments)).filter(gamepad => gamepad !== null);
