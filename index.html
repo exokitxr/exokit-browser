@@ -456,7 +456,7 @@ const _makeBoxMesh = () => {
   return mesh;
 };
 
-const _parseVector = s => s.split(' ').map(s => parseFloat(s));
+const _parseVector = s => Array.isArray(s) ? s : s.split(' ').map(s => parseFloat(s));
 
 const _mod = (v, d) => {
   const n = v % d;
@@ -1480,58 +1480,60 @@ const _initMenu = () => {
     const properties = renderer.properties.get(menuMesh.material.map);
     properties.__webglTexture = menuIframe.texture;
     properties.__webglInit = true;
+
+    menuIframe.contentWindow.onmessage = m => {
+      switch (m.data.method) {
+        case 'openTab': {
+          const {url} = m.data;
+
+          const location = targetMesh.material.uniforms.worldPos.value;
+
+          const room = _makeRoomMesh(location.x, location.y, location.z, location.x, location.y, location.z, 0x9ccc65);
+          scene.add(room);
+          rooms.push(room);
+
+          const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, room);
+          scene.add(roomLinkMesh);
+          roomLinks.push(roomLinkMesh);
+
+          const roomDiagramMesh = _makeRoomDiagramMesh(roomDiagrams.length, room.classify(), 'tutorial.html', 0xffee58);
+          scene.add(roomDiagramMesh);
+          roomDiagrams.push(roomDiagramMesh);
+
+          _addVolume(room);
+
+          menuIframe.contentWindow.postMessage({
+            method: 'tabs',
+            tabs: roomDiagrams.map(roomDiagram => roomDiagram.label),
+          });
+
+          break;
+        }
+        case 'closeTab': {
+          const {index} = m.data;
+          scene.remove(rooms.splice(index, 1)[0]);
+          scene.remove(roomLinks.splice(index, 1)[0]);
+          scene.remove(roomDiagrams.splice(index, 1)[0]);
+
+          menuIframe.contentWindow.postMessage({
+            method: 'tabs',
+            tabs: roomDiagrams.map(roomDiagram => roomDiagram.label),
+          });
+
+          break;
+        }
+      }
+    };
+    menuIframe.contentWindow.postMessage({
+      method: 'tabs',
+      tabs: roomDiagrams.map(roomDiagram => roomDiagram.label),
+    });
   };
   menuIframe.width = 2048;
   menuIframe.height = 1024;
   menuIframe.d = 2;
   menuIframe.src = 'menu/build/index.html';
-  menuIframe.contentWindow.onmessage = m => {
-    switch (m.data.method) {
-      case 'openTab': {
-        const {url} = m.data;
-
-        const location = targetMesh.material.uniforms.worldPos.value;
-
-        const room = _makeRoomMesh(location.x, location.y, location.z, location.x, location.y, location.z, 0x9ccc65);
-        scene.add(room);
-        rooms.push(room);
-
-        const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, room);
-        scene.add(roomLinkMesh);
-        roomLinks.push(roomLinkMesh);
-
-        const roomDiagramMesh = _makeRoomDiagramMesh(roomDiagrams.length, room.classify(), 'tutorial.html', 0xffee58);
-        scene.add(roomDiagramMesh);
-        roomDiagrams.push(roomDiagramMesh);
-
-        _addVolume(room);
-
-        menuIframe.contentWindow.postMessage({
-          method: 'tabs',
-          tabs: roomDiagrams.map(roomDiagram => roomDiagram.label),
-        });
-
-        break;
-      }
-      case 'closeTab': {
-        const {index} = m.data;
-        scene.remove(rooms.splice(index, 1)[0]);
-        scene.remove(roomLinks.splice(index, 1)[0]);
-        scene.remove(roomDiagrams.splice(index, 1)[0]);
-
-        menuIframe.contentWindow.postMessage({
-          method: 'tabs',
-          tabs: roomDiagrams.map(roomDiagram => roomDiagram.label),
-        });
-
-        break;
-      }
-    }
-  };
-  menuIframe.contentWindow.postMessage({
-    method: 'tabs',
-    tabs: roomDiagrams.map(roomDiagram => roomDiagram.label),
-  });
+  menuIframe.style.display = 'none';
   document.body.appendChild(menuIframe);
 };
 
@@ -4388,73 +4390,82 @@ const _emitLayersExitPresent = () => {
   }
 };
 const _startFakeVrDisplay = async (width, height) => {
-  fakeXrDisplay = new FakeXRDisplay();
-  if (isFinite(width)) {
-    fakeXrDisplay.width = width;
-  }
-  if (isFinite(height)) {
-    fakeXrDisplay.height = height;
-  }
-  fakeXrDisplay.position.set(0, 1.6, 0);
-  fakeXrDisplay.pushUpdate();
+  if (typeof FakeXRDisplay !== 'undefined') {
+    fakeXrDisplay = new FakeXRDisplay();
+    if (isFinite(width)) {
+      fakeXrDisplay.width = width;
+    }
+    if (isFinite(height)) {
+      fakeXrDisplay.height = height;
+    }
+    fakeXrDisplay.position.set(0, 1.6, 0);
+    fakeXrDisplay.pushUpdate();
 
-  if (navigator.xr) {
-    const session = await navigator.xr.requestSession({
-      exclusive: true,
-    });
-    fakeXrDisplay.session = session;
-
-    const _end = () => {
-      renderer.vr.enabled = false;
-      renderer.vr.setSession(null);
-      renderer.vr.setAnimationLoop(null);
-
-      _emitLayersExitPresent();
-
-      session.removeEventListener('end', _end);
-    };
-    session.addEventListener('end', _end);
-
-    await new Promise((accept, reject) => {
-      session.requestAnimationFrame((timestamp, frame) => {
-        session.layers = layers;
-
-        renderer.vr.enabled = true;
-        renderer.vr.setSession(session, {
-          frameOfReferenceType: 'stage',
-        });
-        renderer.vr.setAnimationLoop(animate);
-
-        const {width, height} = session.baseLayer.getViewport(frame.getViewerPose().views[0]);
-        cameraViewport[0] = width;
-        cameraViewport[1] = height;
-
-        _emitLayersVrDisplayActivate();
-
-        accept();
+    if (navigator.xr) {
+      const session = await navigator.xr.requestSession({
+        exclusive: true,
       });
-    });
+      fakeXrDisplay.session = session;
+
+      const _end = () => {
+        renderer.vr.enabled = false;
+        renderer.vr.setSession(null);
+        renderer.vr.setAnimationLoop(null);
+
+        _emitLayersExitPresent();
+
+        session.removeEventListener('end', _end);
+      };
+      session.addEventListener('end', _end);
+
+      await new Promise((accept, reject) => {
+        session.requestAnimationFrame((timestamp, frame) => {
+          session.layers = layers;
+
+          renderer.vr.enabled = true;
+          renderer.vr.setSession(session, {
+            frameOfReferenceType: 'stage',
+          });
+          renderer.vr.setAnimationLoop(animate);
+
+          const {width, height} = session.baseLayer.getViewport(frame.getViewerPose().views[0]);
+          cameraViewport[0] = width;
+          cameraViewport[1] = height;
+
+          _emitLayersVrDisplayActivate();
+
+          accept();
+        });
+      });
+    } else {
+      const displays = await navigator.getVRDisplays();
+      const display = displays[0];
+      await display.requestPresent([{
+        source: renderer.domElement,
+      }]);
+
+      fakeXrDisplay.display = display;
+
+      const _vrdisplaypresentchange = () => {
+        _emitLayersExitPresent();
+
+        display.removeEventListener('vrdisplaypresentchange', _vrdisplaypresentchange);
+      };
+      display.addEventListener('vrdisplaypresentchange', _vrdisplaypresentchange);
+
+      display.layers = layers;
+
+      renderer.vr.enabled = true;
+      renderer.vr.setDevice(display);
+      renderer.vr.setAnimationLoop(animate);
+    }
   } else {
-    const displays = await navigator.getVRDisplays();
-    const display = displays[0];
-    await display.requestPresent([{
-      source: renderer.domElement,
-    }]);
-
-    fakeXrDisplay.display = display;
-
-    const _vrdisplaypresentchange = () => {
-      _emitLayersExitPresent();
-
-      display.removeEventListener('vrdisplaypresentchange', _vrdisplaypresentchange);
+    fakeXrDisplay = {
+      position: new THREE.Vector3(),
+      quaternion: new THREE.Quaternion(),
+      viewMatrix: camera.matrixWorld,
+      projectionMatrix: camera.projectionMatrix,
     };
-    display.addEventListener('vrdisplaypresentchange', _vrdisplaypresentchange);
-
-    display.layers = layers;
-
-    renderer.vr.enabled = true;
-    renderer.vr.setDevice(display);
-    renderer.vr.setAnimationLoop(animate);
   }
 };
 const _endFakeVrDisplay = async () => {
