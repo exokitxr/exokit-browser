@@ -4461,11 +4461,18 @@ const _startFakeVrDisplay = async (width, height) => {
     }
   } else {
     fakeXrDisplay = {
-      position: new THREE.Vector3(),
-      quaternion: new THREE.Quaternion(),
+      position: camera.position,
+      quaternion: camera.quaternion,
       viewMatrix: camera.matrixWorld,
       projectionMatrix: camera.projectionMatrix,
+      pushUpdate() {},
     };
+
+    navigator.getGamepads = (getGamepads => function() {
+      return Array.from(getGamepads.apply(this, arguments)).filter(gamepad => gamepad !== null);
+    })(navigator.getGamepads);
+
+    renderer.setAnimationLoop(animate);
   }
 };
 const _endFakeVrDisplay = async () => {
