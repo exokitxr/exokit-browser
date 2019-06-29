@@ -675,8 +675,6 @@ const _openUrl = (u, position = new THREE.Vector3(), orientation = new THREE.Qua
     })();
     if (contentDocument) {
       _drawOk();
-
-      // scene.background = null;
     } else {
       _drawFail();
 
@@ -692,9 +690,6 @@ const _openUrl = (u, position = new THREE.Vector3(), orientation = new THREE.Qua
   };
   iframe.d = d;
   iframe.src = u;
-  /* iframe.addEventListener('destroy', () => {
-    // scene.background = _makeBackground();
-  }); */
 
   const tab = _addTab(iframe, position, orientation, scale, d, local, id);
 };
