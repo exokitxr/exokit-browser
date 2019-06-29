@@ -1,12 +1,12 @@
-<h1 align="center">Exokit Studio</h1>
+<h1 align="center">Exoland</h1>
 <p align="center"><b>An interface for the <a href="https://github.com/exokitxr/exokit">Exokit Engine</a>.</b></p>
 
 <p align="center">
-  <a href="https://github.com/exokitxr/studio/releases"><img src="https://img.shields.io/github/downloads/exokitxr/studio/total.svg"></a>
-  <a href="https://www.npmjs.com/package/exokit-studio"><img src="https://img.shields.io/npm/v/exokit-studio.svg"></a>
-  <a href="https://github.com/exokitxr/studio/issues"><img src="https://img.shields.io/github/issues/exokitxr/studio.svg"></a>
-  <a href="https://github.com/exokitxr/studio"><img src="https://img.shields.io/github/forks/exokitxr/studio.svg"></a>
-  <a href="https://github.com/exokitxr/studio"><img src="https://img.shields.io/github/stars/exokitxr/studio.svg"></a>
+  <a href="https://github.com/exokitxr/exoland/releases"><img src="https://img.shields.io/github/downloads/exokitxr/exoland/total.svg"></a>
+  <a href="https://www.npmjs.com/package/exokit-exoland"><img src="https://img.shields.io/npm/v/exokit-exoland.svg"></a>
+  <a href="https://github.com/exokitxr/exoland/issues"><img src="https://img.shields.io/github/issues/exokitxr/exoland.svg"></a>
+  <a href="https://github.com/exokitxr/exoland"><img src="https://img.shields.io/github/forks/exokitxr/exoland.svg"></a>
+  <a href="https://github.com/exokitxr/exoland"><img src="https://img.shields.io/github/stars/exokitxr/exoland.svg"></a>
   <a href="https://twitter.com/exokitxr"><img src="https://img.shields.io/twitter/follow/exokitxr.svg?style=social"></a>
 </p>
 
@@ -37,9 +37,9 @@
 
 ## Overview
 
-Exokit Studio **enables developers to build XR experiences with ease** by having a seamless interface to the Exokit Engine. Studio prefers using GUIs instead of command lines with difficult to remember arguments to use the functionality you want.
+Exoland **enables developers to build XR experiences with ease** by having a seamless interface to the Exokit Engine. Exoland prefers using GUIs instead of command lines with difficult to remember arguments to use the functionality you want.
 
-Studio uses the [Exokit Engine](https://github.com/exokitxr/exokit), which is written on top of Node and emulates a web browser, providing native hooks for WebGL, WebGL2, WebVR, WebXR, WebAudio, and other APIs used in immersive experiences.
+Exoland uses the [Exokit Engine](https://github.com/exokitxr/exokit), which is written on top of Node and emulates a web browser, providing native hooks for WebGL, WebGL2, WebVR, WebXR, WebAudio, and other APIs used in immersive experiences.
 
 :eyeglasses: **Exokit Engine currently targets the following platforms**:
 * OpenVR Desktop VR (Steam compatible)
@@ -73,13 +73,13 @@ Studio uses the [Exokit Engine](https://github.com/exokitxr/exokit), which is wr
 ## Quickstart
 
 ### Desktop
-<h4><a href="https://get.exokit.org">Download and install Studio for current OS</a></h4>
+<h4><a href="https://get.exokit.org">Download and install Exoland for current OS</a></h4>
 
 ### Local Development
 
 ```sh
-git clone https://github.com/exokitxr/studio.git
-cd studio
+git clone https://github.com/exokitxr/exoland.git
+cd exoland
 npm install
 npm build
 ```
