@@ -1,5 +1,17 @@
 <!doctype html>
 <html>
+  <head>
+    <style>
+body {
+  margin: 0;
+}
+#canvas {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+    </style>
+  </head>
   <body>
     <script src="three.js"></script>
     <script src="OrbitControls.js"></script>
@@ -886,6 +898,7 @@ const renderer = new THREE.WebGLRenderer({
   antialias: true,
 });
 // renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.domElement.id = 'canvas';
 document.body.appendChild(renderer.domElement);
 
 const layers = [renderer.domElement];
