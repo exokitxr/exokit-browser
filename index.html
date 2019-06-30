@@ -1448,7 +1448,7 @@ const _bindEventTarget = target => {
           _removeTransformControls();
         }
       }, */
-      keydown(e) {
+      /* keydown(e) {
         if (!window.document.pointerLockElement) {
           switch (e.which) {
             case 27: { // esc
@@ -1456,6 +1456,11 @@ const _bindEventTarget = target => {
               break;
             }
           }
+        }
+      }, */
+      dblclick(e) {
+        if (!window.document.pointerLockElement) {
+          renderer.domElement.requestPointerLock();
         }
       },
       keypress(e) {
