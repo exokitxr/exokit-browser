@@ -919,14 +919,10 @@ fetch('DejaVu-sdf.json').then(res => res.json()).then(font => {
   // the options sepcified in constructor will
   // be used as defaults
   geometry.update('Lorem ipsum\nDolor sit amet.')
-  
-  // geometry
-    // .applyMatrix(new THREE.Matrix4().makeTranslation(-center.x, -center.y, -center.z))
-    // .applyMatrix(new THREE.Matrix4().makeScale(scaleFactor, scaleFactor, scaleFactor))
 
   // the resulting layout has metrics and bounds
-  // console.log(geometry.layout.height)
-  // console.log(geometry.layout.descender)
+  console.log(geometry.layout.height)
+  console.log(geometry.layout.descender)
     
   // the texture atlas containing our glyphs
   var textureLoader = new THREE.TextureLoader();
@@ -948,11 +944,10 @@ fetch('DejaVu-sdf.json').then(res => res.json()).then(font => {
       side: THREE.DoubleSide,
     }))
 
-    geometry.computeBoundingBox();
     const scaleFactor = 0.001;
 
     var mesh = new THREE.Mesh(geometry, material)
-    mesh.position.set(0, -geometry.boundingBox.getSize(new THREE.Vector3()).y * scaleFactor, 0);
+    mesh.position.set(0, -geometry.layout.height * scaleFactor, 0);
     mesh.scale.set(scaleFactor, -scaleFactor, -scaleFactor);
     mesh.position.x -= 0.5;
     mesh.position.y += 1;
