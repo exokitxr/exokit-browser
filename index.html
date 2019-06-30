@@ -23,6 +23,7 @@ iframe, audio {
     <script src="TransformControls.js"></script>
     <script src="BufferGeometryUtils.js"></script>
     <script src="GLTFLoader.js"></script>
+    <script src="bmfont.js"></script>
     <script src="keycode.js"></script>
     <script src="svg-boundings.js"></script>
     <script src="cubicBezier.js"></script>
@@ -903,6 +904,62 @@ const sphereMesh = (() => {
   return mesh;
 })();
 scene.add(sphereMesh);
+
+// fetch('font.json').then(res => res.json()).then(font => {
+fetch('DejaVu-sdf.json').then(res => res.json()).then(font => {
+  // create a geometry of packed bitmap glyphs, 
+  // word wrapped to 300px and right-aligned
+  var geometry = createTextGeometry({
+    width: 300,
+    // align: 'right',
+    font: font,
+  });
+
+  // change text and other options as desired
+  // the options sepcified in constructor will
+  // be used as defaults
+  geometry.update('Lorem ipsum\nDolor sit amet.')
+  
+  // geometry
+    // .applyMatrix(new THREE.Matrix4().makeTranslation(-center.x, -center.y, -center.z))
+    // .applyMatrix(new THREE.Matrix4().makeScale(scaleFactor, scaleFactor, scaleFactor))
+
+  // the resulting layout has metrics and bounds
+  // console.log(geometry.layout.height)
+  // console.log(geometry.layout.descender)
+    
+  // the texture atlas containing our glyphs
+  var textureLoader = new THREE.TextureLoader();
+  textureLoader.load('DejaVu-sdf.png', function (texture) {
+    // we can use a simple ThreeJS material
+    /* var material = new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      color: 0xaaffff
+    }) */
+
+    // var material = new THREE.RawShaderMaterial(createMSDFShader({
+    var material = new THREE.RawShaderMaterial(createSDFShader({
+      map: texture,
+      transparent: true,
+      color: 0xffffff,
+      // color: palette[Math.floor(Math.random() * palette.length)]
+      // negate: false,
+      side: THREE.DoubleSide,
+    }))
+
+    geometry.computeBoundingBox();
+    const scaleFactor = 0.001;
+
+    var mesh = new THREE.Mesh(geometry, material)
+    mesh.position.set(0, -geometry.boundingBox.getSize(new THREE.Vector3()).y * scaleFactor, 0);
+    mesh.scale.set(scaleFactor, -scaleFactor, -scaleFactor);
+    mesh.position.x -= 0.5;
+    mesh.position.y += 1;
+    mesh.frustumCulled = false;
+    scene.add(mesh);
+  })
+})
 
 /* const skyShader = {
 
