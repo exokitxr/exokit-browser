@@ -1490,13 +1490,17 @@ const _bindEventTarget = target => {
       mousedown(e) {
         if (window.document.pointerLockElement) {
           const gamepads = navigator.getGamepads();
-          gamepads[1].buttons[1].pressed = true;
+          if (gamepads[1]) {
+            gamepads[1].buttons[1].pressed = true;
+          }
         }
       },
       mouseup(e) {
         if (window.document.pointerLockElement) {
           const gamepads = navigator.getGamepads();
-          gamepads[1].buttons[1].pressed = false;
+          if (gamepads[1]) {
+            gamepads[1].buttons[1].pressed = false;
+          }
         }
       },
       mousemove(e) {
@@ -1560,7 +1564,9 @@ const _bindEventTarget = target => {
             }
             case 69: { // E
               const gamepads = navigator.getGamepads();
-              gamepads[1].buttons[2].pressed = true;
+              if (gamepads[1]) {
+                gamepads[1].buttons[2].pressed = true;
+              }
               break;
             }
             case 32: { // space
@@ -1607,7 +1613,9 @@ const _bindEventTarget = target => {
             }
             case 69: { // E
               const gamepads = navigator.getGamepads();
-              gamepads[1].buttons[2].pressed = false;
+              if (gamepads[1]) {
+                gamepads[1].buttons[2].pressed = false;
+              }
               break;
             }
             case 32: { // space
