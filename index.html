@@ -1357,7 +1357,12 @@ const toolMesh = (() => {
     transparent: true,
   });
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.frsutumCulled = false;
+  mesh.frustumCulled = false;
+  const toolMesh = _makeTextMesh('Browser');
+  toolMesh.position.x += -0.13;
+  toolMesh.position.y += -0.01;
+  toolMesh.position.z += 0.001;
+  mesh.add(toolMesh);
   return mesh;
 })();
 scene.add(toolMesh);
