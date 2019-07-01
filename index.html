@@ -1358,6 +1358,30 @@ const toolMesh = (() => {
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
+  mesh.setTool = tool => {
+    switch (tool) {
+      case 1: {
+        toolMesh.geometry.update('Point');
+        break;
+      }
+      case 2: {
+        toolMesh.geometry.update('Browser');
+        break;
+      }
+      case 3: {
+        toolMesh.geometry.update('Portal');
+        break;
+      }
+      case 4: {
+        toolMesh.geometry.update('Volume');
+        break;
+      }
+      default: {
+        toolMesh.geometry.update('');
+        break;
+      }
+    }
+  };
   const toolMesh = _makeTextMesh('Browser');
   toolMesh.position.x += -0.13;
   toolMesh.position.y += -0.01;
@@ -1366,10 +1390,7 @@ const toolMesh = (() => {
   return mesh;
 })();
 scene.add(toolMesh);
-const _setTool = tool => {
-  console.log('set tool', tool);
-};
-_setTool(1);
+toolMesh.setTool(1);
 
 // events
 
@@ -1632,7 +1653,7 @@ const _bindEventTarget = target => {
             case 51: // 3
             case 52: // 4
             {
-              _setTool(e.which - 48);
+              toolMesh.setTool(e.which - 48);
               break;
             }
           }
