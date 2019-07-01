@@ -3756,7 +3756,7 @@ function animate(time, frame) {
   }
 
   const _updateControllerMeshes = () => {
-    if (renderer.vr.enabled) {
+    // if (renderer.vr.enabled) {
       for (let i = 0; i < controllerMeshes.length; i++) {
         controllerMeshes[i].visible = false;
       }
@@ -3773,7 +3773,7 @@ function animate(time, frame) {
           controllerMesh.visible = true;
         }
       }
-    }
+    // }
   };
   _updateControllerMeshes();
 
@@ -4883,14 +4883,33 @@ const _startFakeVrDisplay = async (width, height) => {
       projectionMatrix: camera.projectionMatrix.toArray(),
       pushUpdate() {
         camera.updateMatrixWorld();
+
+        localVector
+          .copy(camera.position)
+          .add(localVector2.set(0.5, -0.3, -0.5).applyQuaternion(camera.quaternion))
+          .toArray(gamepad.pose.position);
+        localQuaternion
+          .copy(camera.quaternion)
+          .toArray(gamepad.pose.orientation);
       },
     };
 
     renderer.setSize(window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio, false);
 
-    navigator.getGamepads = (getGamepads => function() {
-      return Array.from(getGamepads.apply(this, arguments)).filter(gamepad => gamepad !== null);
-    })(navigator.getGamepads);
+    const gamepad = {
+      pose: {
+        position: [0, 0, 0],
+        orientation: [0, 0, 0, 1],
+      },
+      buttons: [
+        {},
+        {},
+        {},
+        {},
+      ],
+      connected: true,
+    };
+    navigator.getGamepads = () => [gamepad];
 
     renderer.setAnimationLoop(animate);
   }
