@@ -4636,10 +4636,8 @@ function animate(time, frame) {
       } else {
         const browser = pendingRooms[i];
         if (browser) {
-          // const location = targetMesh.material.uniforms.worldPos.value;
           const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-          const p = c.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion));
-          browser.setEnd(p.x, p.y, p.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w);
+          browser.setEnd(c.position.x, c.position.y, c.position.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w);
           // console.log('update room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
         }
       }
