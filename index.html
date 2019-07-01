@@ -1353,35 +1353,41 @@ const toolMesh = (() => {
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
+  mesh.tool = -1;
   mesh.setTool = tool => {
     switch (tool) {
       case 1: {
-        toolMesh.geometry.update('Point');
+        mesh.tool = tool;
+        textMesh.geometry.update('Point');
         break;
       }
       case 2: {
-        toolMesh.geometry.update('Browser');
+        mesh.tool = tool;
+        textMesh.geometry.update('Browser');
         break;
       }
       case 3: {
-        toolMesh.geometry.update('Portal');
+        mesh.tool = tool;
+        textMesh.geometry.update('Portal');
         break;
       }
       case 4: {
-        toolMesh.geometry.update('Volume');
+        mesh.tool = tool;
+        textMesh.geometry.update('Volume');
         break;
       }
       default: {
-        toolMesh.geometry.update('');
+        mesh.tool = -1;
+        textMesh.geometry.update('');
         break;
       }
     }
   };
-  const toolMesh = _makeTextMesh('Browser');
-  toolMesh.position.x += -0.13;
-  toolMesh.position.y += -0.01;
-  toolMesh.position.z += 0.001;
-  mesh.add(toolMesh);
+  const textMesh = _makeTextMesh('Browser');
+  textMesh.position.x += -0.13;
+  textMesh.position.y += -0.01;
+  textMesh.position.z += 0.001;
+  mesh.add(textMesh);
   return mesh;
 })();
 scene.add(toolMesh);
