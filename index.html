@@ -4562,7 +4562,7 @@ function animate(time, frame) {
   };
   _updateOrbitControls();
 
-  const _updateMenu = () => {
+  /* const _updateMenu = () => {
     for (let i = 0; i < 2; i++) {
       const controllerMesh = controllerMeshes[i];
       controllerMesh.update();
@@ -4608,7 +4608,63 @@ function animate(time, frame) {
       }
     }
   };
-  _updateMenu();
+  _updateMenu(); */
+
+  const _updateLabels = () => {
+    for (let i = 0; i < 2; i++) {
+      const controllerMesh = controllerMeshes[i];
+      controllerMesh.update();
+
+      let found = false;
+      for (let j = 0; j < roomLabels.legnth; j++) {
+        const labelMesh = roomLabels[i];
+
+        const intersectionPoint = controllerMesh.ray.intersectPlane(labelMesh.plane, localVector);
+
+        if (intersectionPoint) {
+          const leftIntersectionPoint = labelMesh.leftLine.closestPointToPoint(intersectionPoint, true, localVector2);
+
+          const topIntersectionPoint = labelMesh.topLine.closestPointToPoint(intersectionPoint, true, localVector3);
+
+          const xFactor = topIntersectionPoint.distanceTo(labelMesh.topLine.start);
+          const yFactor = leftIntersectionPoint.distanceTo(labelMesh.leftLine.start) / 0.1;
+          const distance = controllerMesh.ray.origin.distanceTo(intersectionPoint);
+
+          if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
+            const x = xFactor * menuIframe.width;
+            const y = yFactor * menuIframe.height;
+            intersectionSpecs[i] = {
+              type: 'label',
+              data: {
+                labelMesh,
+                x,
+                y,
+              },
+            };
+
+            controllerMesh.dotMesh.position.z = -distance;
+            controllerMesh.dotMesh.updateMatrixWorld();
+            controllerMesh.dotMesh.visible = true;
+
+            controllerMesh.rayMesh.scale.z = distance;
+            controllerMesh.rayMesh.updateMatrixWorld();
+
+            found = true;
+            break;
+          }
+        }
+      }
+      if (!found) {
+        controllerMesh.dotMesh.visible = false;
+
+        controllerMesh.rayMesh.scale.z = 1;
+        controllerMesh.rayMesh.updateMatrixWorld();
+
+        intersectionSpecs[i] = null;
+      }
+    }
+  };
+  _updateLabels();
 
   const _handleTrigger = (gamepad, i, pressed, lastPressed) => {
     const start = pressed && !lastPressed;
