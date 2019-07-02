@@ -2259,7 +2259,32 @@ const _makeLabelMesh = s => {
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
-  mesh.tool = '';
+  mesh.plane = new THREE.Plane();
+  mesh.leftLine = new THREE.Line3();
+  mesh.topLine = new THREE.Line3();
+  mesh.update = () => {
+    const menuWorldWidth = 1;
+    const menuWorldHeight = 0.1;
+    mesh.leftLine.start
+      .set(-menuWorldWidth/2, menuWorldHeight/2, 0)
+      .applyMatrix4(mesh.matrixWorld);
+    mesh.leftLine.end
+      .set(-menuWorldWidth/2, -menuWorldHeight/2, 0)
+      .applyMatrix4(mesh.matrixWorld);
+
+    mesh.topLine.start
+      .set(-menuWorldWidth/2, menuWorldHeight/2, 0)
+      .applyMatrix4(mesh.matrixWorld);
+    mesh.topLine.end
+      .set(menuWorldWidth/2, menuWorldHeight / 2, 0)
+      .applyMatrix4(mesh.matrixWorld);
+
+    mesh.plane.setFromCoplanarPoints(
+      mesh.leftLine.start,
+      mesh.leftLine.end,
+      mesh.topLine.end
+    );
+  };
   const textMesh = _makeTextMesh(s);
   textMesh.position.x += -0.45;
   textMesh.position.y += -0.03;
@@ -4688,6 +4713,7 @@ function animate(time, frame) {
         labelMesh.position.y += 0.1;
         labelMesh.rotation.setFromQuaternion(browser.quaternion, 'YXZ');
         labelMesh.rotation.x = 0;
+        labelMesh.update();
         scene.add(labelMesh);
         roomLabels.push(labelMesh);
       } else {
