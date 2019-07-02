@@ -4642,11 +4642,10 @@ function animate(time, frame) {
       controllerMesh.update();
 
       let found = false;
-      for (let j = 0; j < roomLabels.legnth; j++) {
-        const labelMesh = roomLabels[i];
+      for (let j = 0; j < roomLabels.length; j++) {
+        const labelMesh = roomLabels[j];
 
         const intersectionPoint = controllerMesh.ray.intersectPlane(labelMesh.plane, localVector);
-
         if (intersectionPoint) {
           const leftIntersectionPoint = labelMesh.leftLine.closestPointToPoint(intersectionPoint, true, localVector2);
 
