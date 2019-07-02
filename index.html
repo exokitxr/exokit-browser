@@ -1278,7 +1278,6 @@ scene.add(directionalLight2);
   loader.load('buildings.glb', function (o) {
     const heightOffset = -79;
 
-    console.log(o.scene);
     const buildings = [];
     for (let i = 2; i < o.scene.children.length; i++) {
       const child = o.scene.children[i];
