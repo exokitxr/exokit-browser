@@ -1245,6 +1245,21 @@ function THREESky() {
 const sphereMesh = THREESky();
 scene.add(sphereMesh); */
 
+const _makeCaretMesh = () => {
+  const geometry = new THREE.PlaneBufferGeometry(0.005, 0.1)
+    .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0, 0));
+  const material = new THREE.MeshBasicMaterial({
+    color: 0xFFFFFF,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.position.z += 0.001;
+  mesh.frustumCulled = false;
+  mesh.setValue = value => {
+    mesh.position.x = Math.min(Math.max(value, 0), 1);
+  };
+  return mesh;
+};
+
 const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.y = 1.6;
 // camera.position.z = 1;
@@ -2441,6 +2456,7 @@ const _makeLabelMesh = s => {
       mesh.topLine.end
     );
   };
+
   const textMesh = _makeTextMesh(s);
   textMesh.position.x += -0.5;
   // textMesh.position.x += -0.45;
@@ -2448,6 +2464,11 @@ const _makeLabelMesh = s => {
   textMesh.position.z += 0.001;
   mesh.add(textMesh);
   mesh.textMesh = textMesh;
+
+  const caretMesh = _makeCaretMesh();
+  mesh.add(caretMesh);
+  mesh.caretMesh = caretMesh;
+
   return mesh;
 };
 const _makeRoomLinkMesh = (index, roomMesh) => {
@@ -4726,7 +4747,8 @@ function animate(time, frame) {
       const controllerMesh = controllerMeshes[i];
       controllerMesh.update();
 
-      let found = false;
+      let found = false
+            ;
       for (let j = 0; j < roomLabels.length; j++) {
         const labelMesh = roomLabels[j];
 
@@ -4741,13 +4763,17 @@ function animate(time, frame) {
           const distance = controllerMesh.ray.origin.distanceTo(intersectionPoint);
 
           if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
-            const x = xFactor * labelMesh.width / labelMesh.textMesh.scale.x;
-            const y = yFactor * labelMesh.height;
+            const xScale = labelMesh.width / labelMesh.textMesh.scale.x;
+            const x = xFactor * xScale;
+            const yScale = labelMesh.height;
+            const y = yFactor * yScale;
             intersectionSpecs[i] = {
               type: 'label',
               labelMesh,
               x,
               y,
+              xScale,
+              yScale,
             };
             // console.log('set intersection', i);
 
@@ -4790,10 +4816,11 @@ function animate(time, frame) {
           glyphs.push({x: lastGlyph.x + lastGlyph.data.width});
         }
         const distanceSpecs = glyphs
-          .map((c, i) => ({i, distance: Math.abs(intersectionSpec.x - c.x)}))
+          .map((c, i) => ({i, x: c.x, distance: Math.abs(intersectionSpec.x - c.x)}))
           .sort((a, b) => a.distance - b.distance);
-        const index = distanceSpecs.length > 0 ? distanceSpecs[0].i : 0;
-        console.log('caret', index); // XXX
+        const distanceSpec = distanceSpecs.length > 0 ? distanceSpecs[0] : {i: 0, x: 0};
+        labelMesh.caretMesh.setValue(distanceSpec.x / intersectionSpec.xScale);
+        console.log('caret', distanceSpec.i, distanceSpec.x / intersectionSpec.xScale, distanceSpec.x, intersectionSpec.xScale); // XXX
       }
     } else {
       if (toolMesh.tool === 'browser') {
