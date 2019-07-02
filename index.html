@@ -1259,6 +1259,7 @@ const _makeCaretMesh = labelMesh => {
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.position.z += 0.001;
+  mesh.visible = false;
   mesh.frustumCulled = false;
   mesh.getValue = () => value;
   mesh.setValue = newValue => {
@@ -4778,6 +4779,13 @@ function animate(time, frame) {
     const start = pressed && !lastPressed;
     const end = lastPressed && !pressed;
 
+    if (gamepad.buttons[1].pressed) {
+      for (let i = 0; i < roomLabels.length; i++) {
+        roomLabels[i].caretMesh.visible = false;
+      }
+      keyboardFocus = null;
+    }
+
     const intersectionSpec = intersectionSpecs[i];
     if (intersectionSpec) {
       if (gamepad.buttons[1].pressed) {
@@ -4788,69 +4796,74 @@ function animate(time, frame) {
           .sort((a, b) => a.distance - b.distance);
         const distanceSpec = distanceSpecs.length > 0 ? distanceSpecs[0] : {i: 0, x: 0};
         labelMesh.caretMesh.setValue(distanceSpec.i);
+        labelMesh.caretMesh.visible = true;
         keyboardFocus = labelMesh;
       }
     } else {
-      if (toolMesh.tool === 'browser') {
-        if (start) {
-          const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-          const p = c.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion));
-          const browser = _makeBrowserMesh(p.x, p.y, p.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w, 0x9ccc65);
-          scene.add(browser);
-          // rooms.push(browser);
-          pendingRooms[i] = browser;
-        } else if (end) {
-          const browser = pendingRooms[i];
-          if (browser) {
-            pendingRooms[i] = null;
-            const labelMesh = _makeLabelMesh('https://google.com');
-            labelMesh.position.copy(browser.position);
-            labelMesh.position.y += 0.1;
-            labelMesh.rotation.setFromQuaternion(browser.quaternion, 'YXZ');
-            labelMesh.rotation.x = 0;
-            labelMesh.updateMatrixWorld();
-            labelMesh.update();
-            scene.add(labelMesh);
-            roomLabels.push(labelMesh);
-          }
-        } else {
-          const browser = pendingRooms[i];
-          if (browser) {
+      if (window.document.pointerLockElement) {
+        if (toolMesh.tool === 'browser') {
+          if (start) {
             const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-            browser.setEnd(c.position.x, c.position.y, c.position.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w);
-            // console.log('update room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
+            const p = c.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion));
+            const browser = _makeBrowserMesh(p.x, p.y, p.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w, 0x9ccc65);
+            scene.add(browser);
+            // rooms.push(browser);
+            pendingRooms[i] = browser;
+          } else if (end) {
+            const browser = pendingRooms[i];
+            if (browser) {
+              pendingRooms[i] = null;
+              const labelMesh = _makeLabelMesh('https://google.com');
+              labelMesh.position.copy(browser.position);
+              labelMesh.position.y += 0.1;
+              labelMesh.rotation.setFromQuaternion(browser.quaternion, 'YXZ');
+              labelMesh.rotation.x = 0;
+              labelMesh.updateMatrixWorld();
+              labelMesh.update();
+              scene.add(labelMesh);
+              roomLabels.push(labelMesh);
+            }
+          } else {
+            const browser = pendingRooms[i];
+            if (browser) {
+              const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
+              browser.setEnd(c.position.x, c.position.y, c.position.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w);
+              // console.log('update room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
+            }
           }
-        }
-      } else {
-        if (start) {
-          const location = targetMesh.material.uniforms.worldPos.value;
-          const room = _makeRoomMesh(location.x, location.y, location.z, location.x, location.y, location.z, 0x9ccc65);
-          scene.add(room);
-          rooms.push(room);
-          pendingRooms[i] = room;
-        } else if (end) {
-          const room = pendingRooms[i];
-          room.setColor(0x5c6bc0);
-          pendingRooms[i] = null;
-          const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, room);
-          scene.add(roomLinkMesh);
-          roomLinks.push(roomLinkMesh);
-          const roomDiagramMesh = _makeRoomDiagramMesh(roomDiagrams.length, room.classify(), 'tutorial.html', 0xffee58);
-          scene.add(roomDiagramMesh);
-          roomDiagrams.push(roomDiagramMesh);
-          _addVolume(room);
-          // console.log('end room', room.classify(), targetMesh.material.uniforms.worldPos.value.toArray().join(','));
-
-          menuIframe.contentWindow.postMessage({
-            method: 'tabs',
-            tabs: roomDiagrams.map(roomDiagram => roomDiagram.label),
-          });
         } else {
-          const room = pendingRooms[i];
-          if (room) {
+          if (start) {
             const location = targetMesh.material.uniforms.worldPos.value;
-            room.setEnd(location.x, location.y, location.z);
-            // console.log('update room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
+            const room = _makeRoomMesh(location.x, location.y, location.z, location.x, location.y, location.z, 0x9ccc65);
+            scene.add(room);
+            rooms.push(room);
+            pendingRooms[i] = room;
+          } else if (end) {
+            const room = pendingRooms[i];
+            if (room) {
+              room.setColor(0x5c6bc0);
+              pendingRooms[i] = null;
+              const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, room);
+              scene.add(roomLinkMesh);
+              roomLinks.push(roomLinkMesh);
+              const roomDiagramMesh = _makeRoomDiagramMesh(roomDiagrams.length, room.classify(), 'tutorial.html', 0xffee58);
+              scene.add(roomDiagramMesh);
+              roomDiagrams.push(roomDiagramMesh);
+              _addVolume(room);
+              // console.log('end room', room.classify(), targetMesh.material.uniforms.worldPos.value.toArray().join(','));
+
+              menuIframe.contentWindow.postMessage({
+                method: 'tabs',
+                tabs: roomDiagrams.map(roomDiagram => roomDiagram.label),
+              });
+            }
+          } else {
+            const room = pendingRooms[i];
+            if (room) {
+              const location = targetMesh.material.uniforms.worldPos.value;
+              room.setEnd(location.x, location.y, location.z);
+              // console.log('update room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
+            }
           }
         }
       }
