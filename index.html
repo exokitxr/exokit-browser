@@ -33,7 +33,7 @@ iframe, audio {
     <script src="xrmp-three.js"></script>
     <script>
 (async () => {
-let display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewport = new THREE.Vector4(0, 0, 1, 1), menuOpen = false, menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], orbitControls, transformControls, rooms = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], volumeMeshes = [], portalMeshes = [], menuAnimation = null;
+let display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewport = new THREE.Vector4(0, 0, 1, 1), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls, transformControls, rooms = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], volumeMeshes = [], portalMeshes = [], menuAnimation = null;
 const viewMatrices = [
   new THREE.Matrix4(),
   new THREE.Matrix4(),
@@ -2256,6 +2256,8 @@ const _makeLabelMesh = s => {
     depthWrite: false,
   });
   const mesh = new THREE.Mesh(geometry, material);
+  mesh.width = 1;
+  mesh.height = 0.1;
   mesh.frustumCulled = false;
   mesh.plane = new THREE.Plane();
   mesh.leftLine = new THREE.Line3();
@@ -2284,10 +2286,12 @@ const _makeLabelMesh = s => {
     );
   };
   const textMesh = _makeTextMesh(s);
-  textMesh.position.x += -0.45;
+  textMesh.position.x += -0.5;
+  // textMesh.position.x += -0.45;
   textMesh.position.y += 0.02;
   textMesh.position.z += 0.001;
   mesh.add(textMesh);
+  mesh.textMesh = textMesh;
   return mesh;
 };
 const _makeRoomLinkMesh = (index, roomMesh) => {
@@ -4654,16 +4658,15 @@ function animate(time, frame) {
           const distance = controllerMesh.ray.origin.distanceTo(intersectionPoint);
 
           if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
-            const x = xFactor * menuIframe.width;
-            const y = yFactor * menuIframe.height;
+            const x = xFactor * labelMesh.width / labelMesh.textMesh.scale.x;
+            const y = yFactor * labelMesh.height;
             intersectionSpecs[i] = {
               type: 'label',
-              data: {
-                labelMesh,
-                x,
-                y,
-              },
+              labelMesh,
+              x,
+              y,
             };
+            // console.log('set intersection', i);
 
             controllerMesh.dotMesh.position.z = -distance;
             controllerMesh.dotMesh.updateMatrixWorld();
@@ -4684,6 +4687,7 @@ function animate(time, frame) {
         controllerMesh.rayMesh.updateMatrixWorld();
 
         intersectionSpecs[i] = null;
+        // console.log('unset intersection', i);
       }
     }
   };
@@ -4693,47 +4697,51 @@ function animate(time, frame) {
     const start = pressed && !lastPressed;
     const end = lastPressed && !pressed;
 
-    if (toolMesh.tool === 'browser') {
-      if (start) {
-        // const location = targetMesh.material.uniforms.worldPos.value;
-        const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-        const p = c.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion));
-        const browser = _makeBrowserMesh(p.x, p.y, p.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w, 0x9ccc65);
-        scene.add(browser);
-        // rooms.push(browser);
-        pendingRooms[i] = browser;
-      } else if (end) {
-        const browser = pendingRooms[i];
-        pendingRooms[i] = null;
-        const labelMesh = _makeLabelMesh('https://google.com');
-        labelMesh.position.copy(browser.position);
-        labelMesh.position.y += 0.1;
-        labelMesh.rotation.setFromQuaternion(browser.quaternion, 'YXZ');
-        labelMesh.rotation.x = 0;
-        labelMesh.updateMatrixWorld();
-        labelMesh.update();
-        scene.add(labelMesh);
-        roomLabels.push(labelMesh);
-      } else {
-        const browser = pendingRooms[i];
-        if (browser) {
-          const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-          browser.setEnd(c.position.x, c.position.y, c.position.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w);
-          // console.log('update room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
+    const intersectionSpec = intersectionSpecs[i];
+    if (intersectionSpec) {
+      if (gamepad.buttons[1].pressed) {
+        const {labelMesh} = intersectionSpec;
+        const glyphs = labelMesh.textMesh.geometry.layout.glyphs.slice();
+        if (glyphs.length > 0) {
+          const lastGlyph = glyphs[glyphs.length - 1];
+          glyphs.push({x: lastGlyph.x + lastGlyph.data.width});
         }
+        const distanceSpecs = glyphs
+          .map((c, i) => ({i, distance: Math.abs(intersectionSpec.x - c.x)}))
+          .sort((a, b) => a.distance - b.distance);
+        const index = distanceSpecs.length > 0 ? distanceSpecs[0].i : 0;
+        console.log('caret', index); // XXX
       }
     } else {
-      const menuCoord = menuCoords[i];
-      if (menuCoord.x !== -1) {
+      if (toolMesh.tool === 'browser') {
         if (start) {
-          const button = 0;
-          menuIframe.sendMouseDown(menuCoord.x, menuCoord.y, button);
+          const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
+          const p = c.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion));
+          const browser = _makeBrowserMesh(p.x, p.y, p.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w, 0x9ccc65);
+          scene.add(browser);
+          // rooms.push(browser);
+          pendingRooms[i] = browser;
         } else if (end) {
-          const button = 0;
-          menuIframe.sendMouseUp(menuCoord.x, menuCoord.y, button);
-          menuIframe.sendClick(menuCoord.x, menuCoord.y, button);
+          const browser = pendingRooms[i];
+          if (browser) {
+            pendingRooms[i] = null;
+            const labelMesh = _makeLabelMesh('https://google.com');
+            labelMesh.position.copy(browser.position);
+            labelMesh.position.y += 0.1;
+            labelMesh.rotation.setFromQuaternion(browser.quaternion, 'YXZ');
+            labelMesh.rotation.x = 0;
+            labelMesh.updateMatrixWorld();
+            labelMesh.update();
+            scene.add(labelMesh);
+            roomLabels.push(labelMesh);
+          }
         } else {
-          menuIframe.sendMouseMove(menuCoord.x, menuCoord.y);
+          const browser = pendingRooms[i];
+          if (browser) {
+            const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
+            browser.setEnd(c.position.x, c.position.y, c.position.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w);
+            // console.log('update room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
+          }
         }
       } else {
         if (start) {
@@ -4786,12 +4794,12 @@ function animate(time, frame) {
     for (let i = 0; i < gamepads.length; i++) {
       const gamepad = gamepads[i];
 
-      if (gamepad.hand === 'right') {
+      // if (gamepad.hand === 'right') {
         const pressed = gamepad.buttons[1].pressed;
         const lastPressed = lastPresseds[i];
         _handleTrigger(gamepad, i, pressed, lastPressed);
         lastPresseds[i] = pressed;
-      }
+      // }
 
       const bumper = gamepad.buttons[2].pressed;
       const lastBumper = lastButtons[i].bumper;
@@ -5189,7 +5197,7 @@ const _startFakeVrDisplay = async (width, height) => {
     renderer.setSize(window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio, false);
 
     const gamepad = {
-      hand: 'right',
+      hand: 'left',
       pose: {
         position: [0, 0, 0],
         orientation: [0, 0, 0, 1],

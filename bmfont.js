@@ -502,7 +502,8 @@ TextLayout.prototype.update = function(opt) {
           position: [tx, y],
           data: glyph,
           index: i,
-          line: lineIndex
+          line: lineIndex,
+          x
         })  
 
         //move pen forward
