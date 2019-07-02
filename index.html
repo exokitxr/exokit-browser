@@ -4713,6 +4713,7 @@ function animate(time, frame) {
         labelMesh.position.y += 0.1;
         labelMesh.rotation.setFromQuaternion(browser.quaternion, 'YXZ');
         labelMesh.rotation.x = 0;
+        labelMesh.updateMatrixWorld();
         labelMesh.update();
         scene.add(labelMesh);
         roomLabels.push(labelMesh);
