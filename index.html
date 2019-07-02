@@ -1253,6 +1253,7 @@ const renderer = new THREE.WebGLRenderer({
   antialias: true,
 });
 renderer.domElement.id = 'canvas';
+renderer.sortObjects = false;
 document.body.appendChild(renderer.domElement);
 
 const layers = [renderer.domElement];
