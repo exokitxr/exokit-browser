@@ -2232,8 +2232,7 @@ const _makeBrowserMesh = (sx, sy, sz, ox, oy, oz, ow, color) => {
   return mesh;
 };
 const _makeLabelMesh = s => {
-  const geometry = new THREE.PlaneBufferGeometry(1, 0.1)
-    .applyMatrix(new THREE.Matrix4().makeTranslation(0, -0.1/2, 0));
+  const geometry = new THREE.PlaneBufferGeometry(1, 0.1);
   const labelVsh = `
     varying vec2 vUv;
     void main() {
@@ -2287,7 +2286,7 @@ const _makeLabelMesh = s => {
   };
   const textMesh = _makeTextMesh(s);
   textMesh.position.x += -0.45;
-  textMesh.position.y += -0.03;
+  textMesh.position.y += 0.02;
   textMesh.position.z += 0.001;
   mesh.add(textMesh);
   return mesh;
