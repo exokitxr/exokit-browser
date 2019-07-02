@@ -5296,10 +5296,14 @@ const _startFakeVrDisplay = async (width, height) => {
     navigator.getGamepads = () => [gamepad];
 
     window.addEventListener('mousedown', e => {
-      gamepad.buttons[1].pressed = true;
+      if (window.document.pointerLockElement) {
+        gamepad.buttons[1].pressed = true;
+      }
     });
     window.addEventListener('mouseup', e => {
-      gamepad.buttons[1].pressed = false;
+      if (window.document.pointerLockElement) {
+        gamepad.buttons[1].pressed = false;
+      }
     });
 
     renderer.setAnimationLoop(animate);
