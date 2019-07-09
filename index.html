@@ -33,7 +33,7 @@ iframe, audio {
     <script src="xrmp-three.js"></script>
     <script>
 (async () => {
-let display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewport = new THREE.Vector4(0, 0, 1, 1), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls, transformControls, rooms = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], volumeMeshes = [], portalMeshes = [], menuAnimation = null, keyboardFocus = null;
+let display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewport = new THREE.Vector4(0, 0, 1, 1), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls, transformControls, rooms = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], contentMeshes = [], portalMeshes = [], menuAnimation = null, keyboardFocus = null;
 const viewMatrices = [
   new THREE.Matrix4(),
   new THREE.Matrix4(),
@@ -2396,9 +2396,9 @@ const _addVolume = roomMesh => {
     const position = new THREE.Vector3((sx+dx)/2, (sy+dy)/2 + 0.5, (sz+dz)/2);
     const quaternion = new THREE.Quaternion();
     const scale = new THREE.Vector3(Math.abs(sx - dx) + 1, Math.abs(sy - dy) + 1, Math.abs(sz - dz) + 1);
-    const volumeMesh = _makeVolumeMesh(position, quaternion, scale, iframe);
-    scene.add(volumeMesh);
-    volumeMeshes.push(volumeMesh);
+    const contentMesh = _makeContentMesh(position, quaternion, scale, iframe);
+    scene.add(contentMesh);
+    contentMeshes.push(contentMesh);
   }
 };
 
@@ -2695,7 +2695,7 @@ const volumeGeometry = (() => {
   geometry.addAttribute('position', new THREE.BufferAttribute(g.attributes.position.array, 3));
   return geometry;
 })();
-const _makeVolumeMesh = (position, quaternion, scale, iframe) => {
+const _makeContentMesh = (position, quaternion, scale, iframe) => {
   const geometry = volumeGeometry;
   const material = new THREE.ShaderMaterial({
     uniforms: {
@@ -4556,13 +4556,13 @@ function animate(time, frame) {
   };
   _updateGridControls();
 
-  for (let i = 0; i < volumeMeshes.length; i++) {
-    const volumeMesh = volumeMeshes[i];
-    const {iframe: volumeIframe} = volumeMesh;
+  for (let i = 0; i < contentMeshes.length; i++) {
+    const contentMesh = contentMeshes[i];
+    const {iframe: volumeIframe} = contentMesh;
 
     if (volumeIframe.contentWindow && volumeIframe.contentWindow.framebuffer) {
       const {tex, width, height} = volumeIframe.contentWindow.framebuffer;
-      if (!volumeMesh.material.uniforms.uTex.value) {
+      if (!contentMesh.material.uniforms.uTex.value) {
         {
           const texture = new THREE.Texture(
             null,
@@ -4581,7 +4581,7 @@ function animate(time, frame) {
           };
           properties.__webglInit = true;
 
-          volumeMesh.material.uniforms.uTex.value = texture;
+          contentMesh.material.uniforms.uTex.value = texture;
         }
         {
           const texture = new THREE.Texture(
@@ -4601,13 +4601,13 @@ function animate(time, frame) {
           };
           properties.__webglInit = true;
 
-          volumeMesh.material.uniforms.uDepthTex.value = texture;
+          contentMesh.material.uniforms.uDepthTex.value = texture;
         }
       }
 
       const w = cameraViewport[0] * 2;
       const h = cameraViewport[1];
-      volumeMesh.material.uniforms.uViewport.value.set(w, h);
+      contentMesh.material.uniforms.uViewport.value.set(w, h);
     }
   }
   for (let i = 0; i < portalMeshes.length; i++) {
