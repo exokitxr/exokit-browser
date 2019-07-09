@@ -1917,6 +1917,45 @@ const _makeRoomMesh = (sx, sy, sz, dx, dy, dz, color) => {
   };
   return mesh;
 };
+const _makePointMesh = (sx, sy, sz, ox, oy, oz, ow) => {
+  const geometry = new THREE.BoxBufferGeometry(0.05, 0.05, 0.05);
+  const pointVsh = `
+    varying vec2 vUv;
+    void main() {
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+      vUv = uv;
+    }
+  `;
+  const pointFsh = `
+    varying vec2 vUv;
+    vec3 color = vec3(${new THREE.Color(0xb71c1c).toArray().map(n => n.toFixed(8)).join(',')});
+    void main() {
+      if ((vUv.x <= 0.01 || vUv.x >= 0.99) || (vUv.y <= 0.01 || vUv.y >= 0.99)) {
+        gl_FragColor = vec4(color, 0.5);
+      /* } else if (abs(uv.x - uv.y) <= 0.01) {
+        gl_FragColor = vec4(0.2, 0.2, 0.2, 0.5); */
+      } else {
+        gl_FragColor = vec4(0.1, 0.1, 0.1, 0.3);
+      }
+    }
+  `;
+  const material = new THREE.ShaderMaterial({
+    vertexShader: pointVsh,
+    fragmentShader: pointFsh,
+    side: THREE.DoubleSide,
+    transparent: true,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.position.set(sx, sy, sz);
+  mesh.quaternion.set(ox, oy, oz, ow);
+  mesh.frustumCulled = false;
+  mesh.setEnd = (sx, sy, sz, ox, oy, oz, ow) => {
+    mesh.position.set(sx, sy, sz);
+    mesh.quaternion.set(ox, oy, oz, ow);
+  };
+  mesh.getCenter = () => mesh.position.toArray();
+  return mesh;
+};
 const _makeBrowserMesh = (sx, sy, sz, ox, oy, oz, ow, color) => {
   let dx = sx;
   let dy = sy;
@@ -4340,33 +4379,34 @@ function animate(time, frame) {
           if (start) {
             const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
             const p = c.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion));
-            const browser = _makeBrowserMesh(p.x, p.y, p.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w, 0x9ccc65);
-            scene.add(browser);
+            const point = _makePointMesh(p.x, p.y, p.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w);
+            scene.add(point);
             // rooms.push(browser);
-            pendingRooms[i] = browser;
+            pendingRooms[i] = point;
           } else if (end) {
-            const browser = pendingRooms[i];
-            if (browser) {
+            const point = pendingRooms[i];
+            if (point) {
               pendingRooms[i] = null;
               const labelMesh = _makeLabelMesh('https://google.com');
-              labelMesh.position.copy(browser.position);
+              labelMesh.position.copy(point.position);
               labelMesh.position.y += 0.1;
-              labelMesh.rotation.setFromQuaternion(browser.quaternion, 'YXZ');
+              labelMesh.rotation.setFromQuaternion(point.quaternion, 'YXZ');
               labelMesh.rotation.x = 0;
               labelMesh.updateMatrixWorld();
               labelMesh.update();
               scene.add(labelMesh);
               roomLabels.push(labelMesh);
 
-              const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, browser);
+              const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, point);
               scene.add(roomLinkMesh);
               roomLinks.push(roomLinkMesh);
             }
           } else {
-            const browser = pendingRooms[i];
-            if (browser) {
+            const point = pendingRooms[i];
+            if (point) {
               const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-              browser.setEnd(c.position.x, c.position.y, c.position.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w);
+              const p = c.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion));
+              point.setEnd(p.x, p.y, p.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w);
               // console.log('update room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
             }
           }
