@@ -1957,11 +1957,13 @@ const _makeLabelMesh = s => {
   `;
   const labelFsh = `
     varying vec2 vUv;
+    vec4 color = vec4(${new THREE.Color(0x1976d2).toArray().map(n => n.toFixed(8)).join(',')}, 1.0);
     void main() {
       if ((vUv.x < 0.01 || vUv.x > 0.99) || ((vUv.y < 0.05 || vUv.y > 0.95) && (vUv.x < 0.02 || vUv.x > 0.98))) {
-        gl_FragColor = vec4(vec3(0.11055276381909548, 0.27638190954773867, 0.4103852596314908) * 2.0, 1.0);
+        // gl_FragColor = vec4(vec3(0.11055276381909548, 0.27638190954773867, 0.4103852596314908) * 2.0, 1.0);
+        gl_FragColor = color;
       } else {
-        gl_FragColor = vec4(0.0, 0.0, 0.0, 0.3);
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 0.5);
       }
     }
   `;
