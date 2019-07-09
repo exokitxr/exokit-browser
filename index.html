@@ -897,6 +897,44 @@ scene.matrixAutoUpdate = false;
 })();
 scene.add(cubeMesh); */
 
+const floorMesh = (() => {
+  const geometry = new THREE.PlaneBufferGeometry(1000, 1000)
+    .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 1))));
+  const floorVsh = `
+    varying vec3 vPosition;
+    varying float depth;
+    void main() {
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+      vPosition = position;
+      depth = gl_Position.z / 200.0;
+    }
+  `;
+  const floorFsh = `
+    varying vec3 vPosition;
+    varying float depth;
+    void main() {
+      float c = 0.8 + depth;
+      float a;
+      vec3 f = fract(vPosition + 0.5);
+      if (f.x <= 0.01 || f.x >= 0.99 || f.z <= 0.01 || f.z >= 0.99) {
+        a = 0.0;
+      } else {
+        a = 1.0;
+      }
+      gl_FragColor = vec4(vec3(c), a);
+    }
+  `;
+  const material = new THREE.ShaderMaterial({
+    vertexShader: floorVsh,
+    fragmentShader: floorFsh,
+    transparent: true,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  return mesh;
+})();
+scene.add(floorMesh);
+
 const fontSpec = await Promise.all([
   fetch('DejaVu-sdf.json').then(res => res.json()),
   new Promise((accept, reject ) => {
