@@ -1840,6 +1840,7 @@ const _makeRoomMesh = (sx, sy, sz, dx, dy, dz, color) => {
   };
   mesh.update();
   mesh.getRange = () => [sx, sy, sz, dx, dy, dz];
+  mesh.getCenter = () => [(sx+dx)/2 + 0.5, (sy+dy)/2 + 0.5, (sz+dz)/2 + 0.5];
   mesh.classify = () => {
     const wx = Math.abs(dx - sx) + 1;
     const wy = Math.abs(dy - sy) + 1;
@@ -1915,6 +1916,7 @@ const _makeBrowserMesh = (sx, sy, sz, ox, oy, oz, ow, color) => {
   const startPoint = new THREE.Vector3(sx, sy, sz);
   const quaternion = new THREE.Quaternion(ox, oy, oz, ow);
   const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 0, 1).applyQuaternion(quaternion), startPoint);
+  mesh.getCenter = () => mesh.position.toArray();
   mesh.update = () => {
     const endPoint = new THREE.Vector3(dx, dy, dz);
     const upLine = new THREE.Line3(startPoint, startPoint.clone().add(new THREE.Vector3(0, 1, 0).applyQuaternion(quaternion)));
@@ -2084,8 +2086,8 @@ const _makeRoomLinkMesh = (index, roomMesh) => {
     localVector
       .copy(trayMesh.position)
       .add(localVector2.set(-0.8 + index * 0.4, 0.1, 0).applyQuaternion(trayMesh.quaternion));
-    const [sx, sy, sz, dx, dy, dz] = roomMesh.getRange();
-    localVector2.set((sx+dx)/2 + 0.5, (sy+dy)/2 + 0.5, (sz+dz)/2 + 0.5);
+    const [cx, cy, cz] = roomMesh.getCenter();
+    localVector2.set(cx, cy, cz);
 
     mesh.position
       .copy(localVector)
@@ -4317,6 +4319,10 @@ function animate(time, frame) {
               labelMesh.update();
               scene.add(labelMesh);
               roomLabels.push(labelMesh);
+
+              const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, browser);
+              scene.add(roomLinkMesh);
+              roomLinks.push(roomLinkMesh);
             }
           } else {
             const browser = pendingRooms[i];
