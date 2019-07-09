@@ -1893,11 +1893,13 @@ const _makeBrowserMesh = (sx, sy, sz, ox, oy, oz, ow, color) => {
   `;
   const browserFsh = `
     varying vec2 vUv;
+    vec4 color = vec4(${new THREE.Color(0xb71c1c).toArray().map(n => n.toFixed(8)).join(',')}, 0.5);
     void main() {
       if ((vUv.x < 0.01 || vUv.x > 0.99) || (vUv.y < 0.01 || vUv.y > 0.99)) {
-        gl_FragColor = vec4(1.0, 0.792156862745098, 0.1568627450980392, 1.0);
+        // gl_FragColor = vec4(1.0, 0.792156862745098, 0.1568627450980392, 1.0);
+        gl_FragColor = color;
       } else {
-        gl_FragColor = vec4(1.0, 1.0, 1.0, 0.2);
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 0.1);
       }
     }
   `;
