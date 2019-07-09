@@ -969,7 +969,7 @@ const _makeCaretMesh = labelMesh => {
     if (glyphs.length > 0) {
       const xScale = labelMesh.width / labelMesh.textMesh.scale.x;
       if (value < glyphs.length) {
-        console.log('do load', glyphs[value].x / xScale, glyphs[value].x, xScale);
+        // console.log('do load', glyphs[value].x / xScale, glyphs[value].x, xScale);
         mesh.position.x = glyphs[value].x / xScale;
       } else {
         mesh.position.x = glyphs[glyphs.length - 1].x / xScale;
