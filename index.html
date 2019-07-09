@@ -1054,7 +1054,7 @@ const pointerMesh = (() => {
   const targetFsh = `
     uniform float uTime;
     void main() {
-      gl_FragColor = vec4(vec3(max(1.0 - pow(uTime, 0.5), 0.1)), 1.0);
+      gl_FragColor = vec4(vec3(min(pow(uTime, 0.5), 0.9)), 1.0);
     }
   `;
   const material = new THREE.ShaderMaterial({
