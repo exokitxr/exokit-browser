@@ -4211,54 +4211,6 @@ function animate(time, frame) {
   };
   _updateOrbitControls();
 
-  /* const _updateMenu = () => {
-    for (let i = 0; i < 2; i++) {
-      const controllerMesh = controllerMeshes[i];
-      controllerMesh.update();
-      const menuCoord = menuCoords[i];
-
-      const intersectionPoint = controllerMesh.ray.intersectPlane(menuMesh.plane, localVector);
-
-      if (intersectionPoint) {
-        const leftIntersectionPoint = menuMesh.leftLine.closestPointToPoint(intersectionPoint, true, localVector2);
-
-        const topIntersectionPoint = menuMesh.topLine.closestPointToPoint(intersectionPoint, true, localVector3);
-
-        const xFactor = topIntersectionPoint.distanceTo(menuMesh.topLine.start) / 2;
-        const yFactor = leftIntersectionPoint.distanceTo(menuMesh.leftLine.start);
-        const distance = controllerMesh.ray.origin.distanceTo(intersectionPoint);
-
-        if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
-          const x = xFactor * menuIframe.width;
-          const y = yFactor * menuIframe.height;
-          menuCoord.set(x, y);
-
-          controllerMesh.dotMesh.position.z = -distance;
-          controllerMesh.dotMesh.updateMatrixWorld();
-          controllerMesh.dotMesh.visible = true;
-
-          controllerMesh.rayMesh.scale.z = distance;
-          controllerMesh.rayMesh.updateMatrixWorld();
-        } else {
-          controllerMesh.dotMesh.visible = false;
-
-          controllerMesh.rayMesh.scale.z = 1;
-          controllerMesh.rayMesh.updateMatrixWorld();
-
-          menuCoord.set(-1, -1);
-        }
-      } else {
-        controllerMesh.dotMesh.visible = false;
-
-        controllerMesh.rayMesh.scale.z = 1;
-        controllerMesh.rayMesh.updateMatrixWorld();
-
-        menuCoord.set(-1, -1);
-      }
-    }
-  };
-  _updateMenu(); */
-
   const _updateLabels = () => {
     for (let i = 0; i < 2; i++) {
       const controllerMesh = controllerMeshes[i];
