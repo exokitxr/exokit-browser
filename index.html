@@ -1112,7 +1112,7 @@ const pointerMesh = (() => {
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
-  mesh.visible = false;
+  // mesh.visible = false;
   return mesh;
 })();
 scene.add(pointerMesh);
@@ -1224,29 +1224,29 @@ const toolMesh = (() => {
       case 1: {
         mesh.tool = 'point';
         textMesh.geometry.update('Point');
-        pointerMesh.visible = true;
-        targetMesh.visible = false;
+        // pointerMesh.visible = true;
+        // targetMesh.visible = false;
         break;
       }
       case 2: {
         mesh.tool = 'browser';
         textMesh.geometry.update('Browser');
-        pointerMesh.visible = true;
-        targetMesh.visible = false;
+        // pointerMesh.visible = true;
+        // targetMesh.visible = false;
         break;
       }
       case 3: {
         mesh.tool = 'portal';
         textMesh.geometry.update('Portal');
-        pointerMesh.visible = true;
-        targetMesh.visible = false;
+        // pointerMesh.visible = true;
+        // targetMesh.visible = false;
         break;
       }
       case 4: {
         mesh.tool = 'volume';
         textMesh.geometry.update('Volume');
-        pointerMesh.visible = false;
-        targetMesh.visible = true;
+        // pointerMesh.visible = false;
+        // targetMesh.visible = true;
         break;
       }
       default: {
