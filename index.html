@@ -1005,58 +1005,6 @@ const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 4);
 directionalLight2.position.set(-1, 1, -1);
 scene.add(directionalLight2);
 
-{
-  const loader = new THREE.GLTFLoader(); // .setPath( 'models/' );
-  const material = new THREE.MeshPhongMaterial({
-    color: 0x808080,
-    vertexColors: THREE.VertexColors,
-  });
-  loader.load('buildings.glb', function (o) {
-    const heightOffset = -79;
-
-    const buildings = [];
-    for (let i = 2; i < o.scene.children.length; i++) {
-      const child = o.scene.children[i];
-      if (child.isMesh) {
-        // child.material = material;
-        // child.material = child.material.slice(0, 1);
-        child.position.y += -79;
-        for (let j = 2; j < child.material.length; j++) {
-          // child.material.flatShading = true;
-          // child.material[j].color.offsetHSL(0, 100, 0);
-          /* child.material[j].color.r += 0.1;
-          child.material[j].color.g += 0.1;
-          child.material[j].color.b += 0.1; */
-        }
-        buildings.push(child);
-      }
-    }
-    scene.add(buildings[4].clone());
-    const numBuildings = 200;
-    const buildingRange = 500;
-    for (let i = 0; i < numBuildings; i++) {
-      const building = buildings[Math.floor(buildings.length * Math.random())].clone();
-      building.position.x = (-0.5 + Math.random()) * buildingRange;
-      building.position.z = (-0.5 + Math.random()) * buildingRange;
-      building.frustumCulled = false;
-      scene.add(building);
-    }
-    const floorMesh = (() => {
-      const size = 1;
-      const geometry = new THREE.PlaneBufferGeometry(buildingRange, buildingRange)
-        .applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2))
-        .applyMatrix(new THREE.Matrix4().makeTranslation(0, heightOffset, 0));
-      const material = new THREE.MeshBasicMaterial({
-        color: 0x101010,
-      });
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.frustumCulled = false;
-      return mesh;
-    })();
-    scene.add(floorMesh);
-  });
-}
-
 const pointerMesh = (() => {
   const targetGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
     new THREE.BoxBufferGeometry(0.03, 0.2, 0.03)
