@@ -1466,8 +1466,8 @@ const _bindEventTarget = target => {
             }
             case 69: { // E
               const gamepads = navigator.getGamepads();
-              if (gamepads[1]) {
-                gamepads[1].buttons[2].pressed = true;
+              if (gamepads[0]) {
+                gamepads[0].buttons[2].pressed = true;
               }
               break;
             }
@@ -1511,8 +1511,8 @@ const _bindEventTarget = target => {
             }
             case 69: { // E
               const gamepads = navigator.getGamepads();
-              if (gamepads[1]) {
-                gamepads[1].buttons[2].pressed = false;
+              if (gamepads[0]) {
+                gamepads[0].buttons[2].pressed = false;
               }
               break;
             }
