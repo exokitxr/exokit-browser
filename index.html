@@ -4352,11 +4352,6 @@ function animate(time, frame) {
               roomDiagrams.push(roomDiagramMesh);
               _addVolume(room);
               // console.log('end room', room.classify(), targetMesh.material.uniforms.worldPos.value.toArray().join(','));
-
-              menuIframe.contentWindow.postMessage({
-                method: 'tabs',
-                tabs: roomDiagrams.map(roomDiagram => roomDiagram.label),
-              });
             }
           } else {
             const room = pendingRooms[i];
@@ -4403,8 +4398,8 @@ function animate(time, frame) {
 
         menuAnimation = _makeMenuAnimation({
           start: {
-            position: menuMesh.position.clone(),
-            quaternion: menuMesh.quaternion.clone(),
+            position: trayMesh.position.clone(),
+            quaternion: trayMesh.quaternion.clone(),
             scale: new THREE.Vector3(1, 1, 1),
           },
           end: {
@@ -4419,12 +4414,6 @@ function animate(time, frame) {
       if (menuAnimation) {
         const {spec: {start, end}} = menuAnimation;
         const f = menuAnimation.getValue();
-
-        menuMesh.quaternion.copy(start.quaternion).slerp(end.quaternion, f);
-        menuMesh.position.copy(start.position).lerp(end.position, f);
-        menuMesh.scale.copy(start.scale).lerp(end.scale, f);
-        menuMesh.updateMatrixWorld();
-        menuMesh.update();
 
         trayMesh.quaternion.copy(start.quaternion).slerp(end.quaternion, f);
         trayMesh.position.copy(start.position)
@@ -4819,6 +4808,10 @@ const _startFakeVrDisplay = async (width, height) => {
         gamepad.buttons[1].pressed = false;
       }
     });
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
 
     renderer.setAnimationLoop(animate);
   }
@@ -4851,7 +4844,6 @@ _startFakeVrDisplay()
     rig.menuMesh.listMesh.updateList(); */
 
     _bindEventTarget('ui');
-    _initMenu();
 
     // const roomMesh = _makeRoomMesh(-8, 0, -8, 8, 4, 8, 0xffee58);
     const roomMesh = _makeRoomMesh(0, 0, 0, 0, 0, 0, 0xffee58);
@@ -4867,11 +4859,6 @@ _startFakeVrDisplay()
     roomDiagrams.push(roomDiagramMesh);
 
     _addVolume(roomMesh);
-
-    menuIframe.contentWindow.postMessage({
-      method: 'tabs',
-      tabs: roomDiagrams.map(roomDiagram => roomDiagram.label),
-    });
 
     console.log('loaded fake display');
   })
