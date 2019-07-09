@@ -2025,6 +2025,116 @@ const _makeBrowserMesh = (sx, sy, sz, ox, oy, oz, ow, color) => {
   };
   return mesh;
 };
+const _makeVolumeMesh = (sx, sy, sz, dx, dy, dz, color) => {
+  const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
+  const roomVsh = `
+    varying vec3 vPosition;
+    varying vec3 vNormal;
+    varying vec2 vUv;
+    void main() {
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+      vPosition = position + 0.5;
+      vNormal = normal;
+      vUv = uv;
+    }
+  `;
+  const roomFsh = `
+    varying vec3 vPosition;
+    varying vec3 vNormal;
+    varying vec2 vUv;
+    // uniform sampler2D uTex;
+    uniform vec3 uColor;
+    uniform float uHighlight;
+    uniform vec3 uScale;
+    vec4 onColor() {
+      return vec4(uColor, 0.5);
+    }
+    vec4 offColor() {
+      if (abs(vUv.x - vUv.y) <= 0.01) {
+        return vec4(0.2, 0.2, 0.2, 0.1);
+      } else {
+        return vec4(0.1, 0.1, 0.1, 0.1);
+      }
+    }
+    void main() {
+      vec3 s = vPosition;
+      if (vNormal.x != 0.0) {
+        if (s.y <= 0.01 || s.y >= 0.99 || s.z <= 0.01 || s.z >= 0.99) {
+          gl_FragColor = onColor();
+        } else {
+          gl_FragColor = offColor();
+        }
+      } else if (vNormal.y != 0.0) {
+        if (s.x <= 0.01 || s.x >= 0.99 || s.z <= 0.01 || s.z >= 0.99) {
+          gl_FragColor = onColor();
+        } else {
+          gl_FragColor = offColor();
+        }
+      } else /* if (vNormal.z != 0.0) */ {
+        if (s.x <= 0.01 || s.x >= 0.99 || s.y <= 0.01 || s.y >= 0.99) {
+          gl_FragColor = onColor();
+        } else {
+          gl_FragColor = offColor();
+        }
+      }
+
+      gl_FragColor.rgb += uHighlight;
+    }
+  `;
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      uColor: {
+        type: 'c',
+        value: new THREE.Color(color),
+      },
+      uHighlight: {
+        type: 'f',
+        value: 0,
+      },
+      uScale: {
+        type: 'v3',
+        value: new THREE.Vector3(),
+      },
+    },
+    vertexShader: roomVsh,
+    fragmentShader: roomFsh,
+    side: THREE.DoubleSide,
+    transparent: true,
+    depthWrite: false,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  mesh.material.uniforms.uScale.value = mesh.scale;
+  mesh.update = () => {
+    mesh.position.set((sx + dx)/2, (sy + dy)/2, (sz + dz)/2);
+    mesh.scale.set(Math.abs(dx - sx), Math.abs(dy - sy), Math.abs(dz - sz));
+    mesh.updateMatrixWorld();
+  };
+  mesh.update();
+  mesh.getRange = () => [sx, sy, sz, dx, dy, dz];
+  mesh.getCenter = () => [(sx+dx)/2, (sy+dy)/2, (sz+dz)/2];
+  mesh.classify = () => 'volume';
+  mesh.setEnd = (newDx, newDy, newDz) => {
+    dx = newDx;
+    dy = newDy;
+    dz = newDz;
+
+    mesh.update();
+  };
+  /* mesh.setColor = c => {
+    mesh.material.uniforms.uColor.value.setHex(c);
+  }; */
+  mesh.setHighlight = highlight => {
+    mesh.material.uniforms.uHighlight.value = highlight ? 0.2 : 0;
+  };
+  mesh.contains = position => {
+    const box = new THREE.Box3();
+    box.expandByPoint(new THREE.Vector3(sx, sy, sz));
+    box.expandByPoint(new THREE.Vector3(dx, dy, dz));
+    return box.containsPoint(position);
+  };
+  return mesh;
+};
 const _makeLabelMesh = s => {
   const geometry = new THREE.PlaneBufferGeometry(1, 0.1);
   const labelVsh = `
@@ -4446,15 +4556,16 @@ function animate(time, frame) {
           }
         } else {
           if (start) {
-            const location = targetMesh.material.uniforms.worldPos.value;
-            const room = _makeRoomMesh(location.x, location.y, location.z, location.x, location.y, location.z, 0x9ccc65);
+            const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
+            const p = c.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion));
+            const room = _makeVolumeMesh(p.x, p.y, p.z, p.x, p.y, p.z, 0x4caf50);
             scene.add(room);
             rooms.push(room);
             pendingRooms[i] = room;
           } else if (end) {
             const room = pendingRooms[i];
             if (room) {
-              room.setColor(0x5c6bc0);
+              // room.setColor(0x5c6bc0);
               pendingRooms[i] = null;
               const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, room);
               scene.add(roomLinkMesh);
@@ -4468,8 +4579,9 @@ function animate(time, frame) {
           } else {
             const room = pendingRooms[i];
             if (room) {
-              const location = targetMesh.material.uniforms.worldPos.value;
-              room.setEnd(location.x, location.y, location.z);
+              const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
+              const p = c.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion));
+              room.setEnd(p.x, p.y, p.z);
               // console.log('update room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
             }
           }
