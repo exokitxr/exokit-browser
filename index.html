@@ -897,17 +897,6 @@ scene.matrixAutoUpdate = false;
 })();
 scene.add(cubeMesh); */
 
-const sphereMesh = (() => {
-  const geometry = new THREE.SphereBufferGeometry(500, 300, 300)
-    .applyMatrix(new THREE.Matrix4().makeScale(-1, -1, -1));
-  const material = new THREE.MeshBasicMaterial({
-    color: 0x000000,
-  });
-  const mesh = new THREE.Mesh(geometry, material);
-  return mesh;
-})();
-scene.add(sphereMesh);
-
 const fontSpec = await Promise.all([
   fetch('DejaVu-sdf.json').then(res => res.json()),
   new Promise((accept, reject ) => {
