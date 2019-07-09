@@ -4336,7 +4336,41 @@ function animate(time, frame) {
       }
     } else {
       if (window.document.pointerLockElement) {
-        if (toolMesh.tool === 'browser') {
+        if (toolMesh.tool === 'point') {
+          if (start) {
+            const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
+            const p = c.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion));
+            const browser = _makeBrowserMesh(p.x, p.y, p.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w, 0x9ccc65);
+            scene.add(browser);
+            // rooms.push(browser);
+            pendingRooms[i] = browser;
+          } else if (end) {
+            const browser = pendingRooms[i];
+            if (browser) {
+              pendingRooms[i] = null;
+              const labelMesh = _makeLabelMesh('https://google.com');
+              labelMesh.position.copy(browser.position);
+              labelMesh.position.y += 0.1;
+              labelMesh.rotation.setFromQuaternion(browser.quaternion, 'YXZ');
+              labelMesh.rotation.x = 0;
+              labelMesh.updateMatrixWorld();
+              labelMesh.update();
+              scene.add(labelMesh);
+              roomLabels.push(labelMesh);
+
+              const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, browser);
+              scene.add(roomLinkMesh);
+              roomLinks.push(roomLinkMesh);
+            }
+          } else {
+            const browser = pendingRooms[i];
+            if (browser) {
+              const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
+              browser.setEnd(c.position.x, c.position.y, c.position.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w);
+              // console.log('update room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
+            }
+          }
+        } else if (toolMesh.tool === 'browser' || toolMesh.tool === 'portal') {
           if (start) {
             const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
             const p = c.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion));
