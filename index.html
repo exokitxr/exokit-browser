@@ -4408,7 +4408,13 @@ function animate(time, frame) {
       // console.log('got pos', orbitControls.object.position.toArray().join(',')); // XXX
       fakeXrDisplay.position.copy(orbitControls.object.position);
       fakeXrDisplay.quaternion.copy(orbitControls.object.quaternion);
-      fakeXrDisplay.pushUpdate();
+
+      if (window.document.pointerLockElement) {
+        fakeXrDisplay.pushUpdate();
+      } else {
+        fakeXrDisplay.pushHmdUpdate();
+        fakeXrDisplay.pushGamepadsUpdate(mouse.position, mouse.orientation);
+      }
     }
   };
   _updateOrbitControls();
@@ -5038,12 +5044,16 @@ const _startFakeVrDisplay = async (width, height) => {
     window.addEventListener('mousedown', e => {
       if (window.document.pointerLockElement) {
         gamepad.buttons[1].pressed = true;
+      } else if (intersectionSpecs[1]) {
+        gamepad.buttons[1].pressed = true;
+
+        e.preventDefault();
       }
     });
     window.addEventListener('mouseup', e => {
-      if (window.document.pointerLockElement) {
+      // if (window.document.pointerLockElement) {
         gamepad.buttons[1].pressed = false;
-      }
+      // }
     });
     window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
