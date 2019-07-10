@@ -43,6 +43,10 @@ const projectionMatrices = [
   new THREE.Matrix4(),
 ];
 const cameraViewport = [0, 0];
+const mouse = {
+  position: new THREE.Vector3(),
+  quaternion: new THREE.Quaternion(),
+};
 
 const links = [
   {
@@ -1464,6 +1468,15 @@ const _bindEventTarget = target => {
 
             fakeXrDisplay.pushUpdate();
           // }
+        } else {
+          localVector.set(
+            (event.clientX / window.innerWidth) * 2 - 1,
+            -(event.clientY / window.innerHeight) * 2 + 1
+          );
+          localRaycaster.setFromCamera(localVector, camera);
+
+          mouse.position.copy(localRaycaster.ray.origin);
+          mouse.quaternion.setFromUnitVectors(localVector.set(0, 0, -1), localRaycaster.ray.direction);
         }
       },
       wheel(e) {
