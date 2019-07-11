@@ -5106,7 +5106,7 @@ const _startFakeVrDisplay = async (width, height) => {
     window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio, false);
     });
 
     renderer.setAnimationLoop(animate);
