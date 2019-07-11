@@ -33,7 +33,7 @@ iframe, audio {
     <script src="xrmp-three.js"></script>
     <script>
 (async () => {
-let display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewport = new THREE.Vector4(0, 0, 1, 1), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls = null, transformControls, rooms = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], contentMeshes = [], portalMeshes = [], menuAnimation = null, keyboardFocus = null;
+let display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewport = new THREE.Vector4(0, 0, 1, 1), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls = null, transformControls, rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], contentMeshes = [], portalMeshes = [], menuAnimation = null, keyboardFocus = null;
 const viewMatrices = [
   new THREE.Matrix4(),
   new THREE.Matrix4(),
@@ -197,7 +197,9 @@ const localQuaternion2 = new THREE.Quaternion();
 const localEuler = new THREE.Euler(0, 0, 0, 'YXZ');
 const localEuler2 = new THREE.Euler(0, 0, 0, 'YXZ');
 const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
 const localLine = new THREE.Line3();
+const localBox = new THREE.Box3();
 const localRay = new THREE.Ray();
 const localRaycaster = new THREE.Raycaster();
 const localPlane = new THREE.Plane();
@@ -1971,6 +1973,30 @@ const _makePointMesh = (sx, sy, sz, ox, oy, oz, ow) => {
     mesh.quaternion.set(ox, oy, oz, ow);
   };
   mesh.getCenter = () => mesh.position.toArray();
+  mesh.intersect = ray => {
+    localMatrix.compose(
+      ray.origin,
+      localQuaternion.setFromUnitVectors(localVector.set(0, 0, -1), ray.direction),
+      localVector2.set(1, 1, 1)
+    ).premultiply(
+      localMatrix2
+        .copy(mesh.matrixWorld)
+        .getInverse(localMatrix2)
+    ).decompose(localRay.origin, localQuaternion, localVector);
+    localRay.direction.set(0, 0, -1).applyQuaternion(localQuaternion);
+    localBox.setFromCenterAndSize(localVector.set(0, 0, 0), localVector2.set(0.1, 0.1, 0.1));
+
+    const intersectionPoint = localRay.intersectBox(localBox);
+    if (intersectionPoint) {
+      const distance = localRay.origin.distanceTo(intersectionPoint);
+      return {
+        type: 'point',
+        distance,
+      };
+    } else {
+      return null;
+    }
+  };
 
   return mesh;
 };
@@ -4455,34 +4481,38 @@ function animate(time, frame) {
 
   const _updateIntersections = () => {
     for (let i = 0; i < 2; i++) {
-      const controllerMesh = controllerMeshes[i];
-      controllerMesh.update();
+      if (!pendingRooms[i]) {
+        const controllerMesh = controllerMeshes[i];
+        controllerMesh.update();
 
-      let found = false;
-      for (let j = 0; j < roomLabels.length; j++) {
-        const labelMesh = roomLabels[j];
-        const intersectionSpec = labelMesh.intersect(controllerMesh.ray);
-        if (intersectionSpec) {
-          intersectionSpecs[i] = intersectionSpec;
+        const candidates = roomLabels.concat(pointMeshes);
 
-          controllerMesh.dotMesh.position.z = -intersectionSpec.distance;
-          controllerMesh.dotMesh.updateMatrixWorld();
-          controllerMesh.dotMesh.visible = true;
+        let found = false;
+        for (let j = 0; j < candidates.length; j++) {
+          const candidate = candidates[j];
+          const intersectionSpec = candidate.intersect(controllerMesh.ray);
+          if (intersectionSpec) {
+            intersectionSpecs[i] = intersectionSpec;
 
-          controllerMesh.rayMesh.scale.z = intersectionSpec.distance;
+            controllerMesh.dotMesh.position.z = -intersectionSpec.distance;
+            controllerMesh.dotMesh.updateMatrixWorld();
+            controllerMesh.dotMesh.visible = true;
+
+            controllerMesh.rayMesh.scale.z = intersectionSpec.distance;
+            controllerMesh.rayMesh.updateMatrixWorld();
+
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          controllerMesh.dotMesh.visible = false;
+
+          controllerMesh.rayMesh.scale.z = 1;
           controllerMesh.rayMesh.updateMatrixWorld();
 
-          found = true;
-          break;
+          intersectionSpecs[i] = null;
         }
-      }
-      if (!found) {
-        controllerMesh.dotMesh.visible = false;
-
-        controllerMesh.rayMesh.scale.z = 1;
-        controllerMesh.rayMesh.updateMatrixWorld();
-
-        intersectionSpecs[i] = null;
       }
     }
   };
@@ -4522,7 +4552,7 @@ function animate(time, frame) {
             const p = c.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion));
             const point = _makePointMesh(p.x, p.y, p.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w);
             scene.add(point);
-            // rooms.push(browser);
+            pointMeshes.push(point);
             pendingRooms[i] = point;
           } else if (end) {
             const point = pendingRooms[i];
