@@ -1123,7 +1123,7 @@ const pointerMesh = (() => {
 })();
 scene.add(pointerMesh);
 
-const targetMesh = (() => {
+/* const targetMesh = (() => {
   const targetGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
     new THREE.BoxBufferGeometry(0.03, 0.2, 0.03)
       .applyMatrix(new THREE.Matrix4().makeTranslation(0, -0.1, 0)),
@@ -1195,7 +1195,7 @@ const targetMesh = (() => {
   mesh.visible = false;
   return mesh;
 })();
-scene.add(targetMesh);
+scene.add(targetMesh); */
 
 const toolMesh = (() => {
   const geometry = new THREE.PlaneBufferGeometry(0.4, 0.1)
