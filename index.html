@@ -2021,7 +2021,7 @@ const _makePointMesh = (sx, sy, sz, ox, oy, oz, ow) => {
     mesh.quaternion.set(ox, oy, oz, ow);
   };
   mesh.getCenter = () => mesh.position.toArray();
-  mesh.intersect = ray => {
+  /* mesh.intersect = ray => {
     localMatrix.compose(
       ray.origin,
       localQuaternion.setFromUnitVectors(localVector.set(0, 0, -1), ray.direction),
@@ -2044,7 +2044,7 @@ const _makePointMesh = (sx, sy, sz, ox, oy, oz, ow) => {
     } else {
       return null;
     }
-  };
+  }; */
 
   return mesh;
 };
@@ -4533,7 +4533,7 @@ function animate(time, frame) {
         const controllerMesh = controllerMeshes[i];
         controllerMesh.update();
 
-        const candidates = roomLabels.concat(pointMeshes);
+        const candidates = roomLabels//.concat(pointMeshes);
 
         let found = false;
         for (let j = 0; j < candidates.length; j++) {
