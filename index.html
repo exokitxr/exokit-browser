@@ -1951,6 +1951,7 @@ const trayMesh = (() => {
   });
   const mesh = new THREE.Mesh(geometry, material);
 
+  let selectedIconIndex = 1;
   const _makeIconMesh = (img, index) => {
     const geometry = new THREE.PlaneBufferGeometry(0.2, 0.2);
     const texture = new THREE.Texture(img);
@@ -1986,7 +1987,7 @@ const trayMesh = (() => {
         },
         uColor: {
           type: 'c',
-          value: index === 1 ? new THREE.Color(0x9ccc65) : new THREE.Color(0),
+          value: new THREE.Color(0),
         },
         uTime: {
           type: 'f',
@@ -2001,8 +2002,12 @@ const trayMesh = (() => {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.frustumCulled = false;
     mesh.update = () => {
-      if (index === 1) {
+      if (index === selectedIconIndex) {
+        mesh.material.uniforms.uColor.value = new THREE.Color(0x9ccc65);
         mesh.material.uniforms.uTime.value = (Date.now() % 1000) / 1000;
+      } else {
+        mesh.material.uniforms.uColor.value = new THREE.Color(0);
+        mesh.material.uniforms.uTime.value = 0;
       }
     };
     mesh.intersect = ray => {
@@ -2024,6 +2029,7 @@ const trayMesh = (() => {
         return {
           type: 'icon',
           distance,
+          index,
         };
       } else {
         return null;
@@ -2152,6 +2158,9 @@ const trayMesh = (() => {
   })();
   mesh.add(keyboardMesh);
 
+  mesh.selectIcon = index => {
+    selectedIconIndex = index;
+  };
   mesh.update = () => {
     labelMesh.update();
     for (let i = 0; i < iconMeshes.length; i++) {
@@ -4779,8 +4788,9 @@ function animate(time, frame) {
     const intersectionSpec = intersectionSpecs[i];
     if (intersectionSpec) {
       if (gamepad.buttons[1].pressed) {
-        const {type, mesh} = intersectionSpec;
+        const {type} = intersectionSpec;
         if (type === 'label') {
+          const {mesh} = intersectionSpec;
           const glyphs = mesh.getGlyphs();
           const distanceSpecs = glyphs
             .map((c, i) => ({i, x: c.x, distance: Math.abs(intersectionSpec.x - c.x)}))
@@ -4789,6 +4799,9 @@ function animate(time, frame) {
           mesh.caretMesh.setValue(distanceSpec.i);
           mesh.caretMesh.visible = true;
           keyboardFocus = mesh;
+        } else if (type === 'icon') {
+          const {index} = intersectionSpec;
+          trayMesh.selectIcon(index);
         }
       }
     } else {
