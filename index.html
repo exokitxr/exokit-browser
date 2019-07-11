@@ -951,6 +951,7 @@ const [
   chevronLeftImg,
   chevronRightImg,
   timesCircleImg,
+  keyboardImg,
 ] = await Promise.all([
   'layers.png',
   'plus.png',
@@ -961,6 +962,7 @@ const [
   'chevron-left.png',
   'chevron-right.png',
   'times-circle.png',
+  'keyboard.png',
 ].map(src => new Promise((accept, reject) => {
   const img = new Image();
   img.onload = () => {
@@ -1914,6 +1916,106 @@ const trayMesh = (() => {
     mesh.add(iconMesh);
     return iconMesh;
   });
+
+  const keyboardMesh = (() => {
+    const object = new THREE.Object3D();
+
+    const planeMesh = (() => {
+      const geometry = new THREE.PlaneBufferGeometry(1, keyboardHeight / keyboardWidth);
+      const texture = new THREE.Texture(
+        keyboardImg,
+        THREE.UVMapping,
+        THREE.ClampToEdgeWrapping,
+        THREE.ClampToEdgeWrapping,
+        THREE.NearestFilter,
+        THREE.NearestFilter,
+        THREE.RGBAFormat,
+        THREE.UnsignedByteType,
+        1
+      );
+      texture.needsUpdate = true;
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        side: THREE.DoubleSide,
+        transparent: true,
+        alphaTest: 0.9,
+      });
+
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.frustumCulled = false;
+      mesh.position.y = -0.1;
+      mesh.position.z = 0.3;
+      mesh.quaternion.setFromUnitVectors(
+        new THREE.Vector3(0, 0, 1),
+        new THREE.Vector3(0, 1, 1).normalize()
+      );
+      mesh.updateMatrixWorld();
+
+      const keyMeshes = [];
+      for (let i = 0; i < 2; i++) {
+        const keyMesh = (() => {
+          const geometry = new THREE.PlaneBufferGeometry(1, 1);
+          const texture = new THREE.Texture(
+            null,
+            THREE.UVMapping,
+            THREE.ClampToEdgeWrapping,
+            THREE.ClampToEdgeWrapping,
+            THREE.NearestFilter,
+            THREE.NearestFilter,
+            THREE.RGBAFormat,
+            THREE.UnsignedByteType,
+            1
+          );
+          const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            side: THREE.DoubleSide,
+            transparent: true,
+            alphaTest: 0.5,
+          });
+          const mesh = new THREE.Mesh(geometry, material);
+          mesh.frustumCulled = false;
+          return mesh;
+        })();
+        mesh.add(keyMesh);
+
+        keyMeshes.push(keyMesh);
+      }
+      mesh.keyMeshes = keyMeshes;
+
+      return mesh;
+    })();
+    object.add(planeMesh);
+    object.planeMesh = planeMesh;
+
+    object.plane = new THREE.Plane();
+    object.leftLine = new THREE.Line3();
+    object.topLine = new THREE.Line3();
+    object.update = () => {
+      object.leftLine.start
+        .set(-1/2, keyboardHeight / keyboardWidth / 2, 0)
+        .applyMatrix4(planeMesh.matrixWorld);
+      object.leftLine.end
+        .set(-1/2, -keyboardHeight / keyboardWidth / 2, 0)
+        .applyMatrix4(planeMesh.matrixWorld);
+
+      object.topLine.start
+        .set(-1/2, keyboardHeight / keyboardWidth / 2, 0)
+        .applyMatrix4(planeMesh.matrixWorld);
+      object.topLine.end
+        .set(1/2, keyboardHeight / keyboardWidth / 2, 0)
+        .applyMatrix4(planeMesh.matrixWorld);
+
+      object.plane.setFromCoplanarPoints(
+        object.leftLine.start,
+        object.leftLine.end,
+        object.topLine.end
+      );
+    };
+
+    return object;
+  })();
+  mesh.add(keyboardMesh);
+
   mesh.update = () => {
     for (let i = 0; i < iconMeshes.length; i++) {
       iconMeshes[i].update();
