@@ -1027,7 +1027,7 @@ scene.add(textMesh);
 
 const _makeCaretMesh = labelMesh => {
   const geometry = new THREE.PlaneBufferGeometry(0.005, 0.1)
-    .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0, 0));
+    .applyMatrix(new THREE.Matrix4().makeTranslation(-labelMesh.width/2, 0, 0));
   const material = new THREE.MeshBasicMaterial({
     color: 0xFFFFFF,
     side: THREE.DoubleSide,
@@ -1042,12 +1042,10 @@ const _makeCaretMesh = labelMesh => {
 
     const {glyphs} = textMesh.geometry.layout;
     if (glyphs.length > 0) {
-      const xScale = labelMesh.width / labelMesh.textMesh.scale.x;
       if (value < glyphs.length) {
-        // console.log('do load', glyphs[value].x / xScale, glyphs[value].x, xScale);
-        mesh.position.x = glyphs[value].x / xScale;
+        mesh.position.x = glyphs[value].x * labelMesh.textMesh.scale.x;
       } else {
-        mesh.position.x = glyphs[glyphs.length - 1].x / xScale;
+        mesh.position.x = glyphs[glyphs.length - 1].x * labelMesh.textMesh.scale.x;
       }
     } else {
       mesh.position.x = 0;
@@ -1863,8 +1861,8 @@ const _makeLabelMesh = s => {
     depthWrite: false,
   });
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.width = 1;
-  mesh.height = 0.2;
+  mesh.width = width;
+  mesh.height = height;
   mesh.frustumCulled = false;
   mesh.getGlyphs = () => {
     const glyphs = textMesh.geometry.layout.glyphs.slice();
@@ -1878,8 +1876,8 @@ const _makeLabelMesh = s => {
   mesh.leftLine = new THREE.Line3();
   mesh.topLine = new THREE.Line3();
   mesh.update = () => {
-    const menuWorldWidth = 1;
-    const menuWorldHeight = 0.1;
+    const menuWorldWidth = width;
+    const menuWorldHeight = height;
     mesh.leftLine.start
       .set(-menuWorldWidth/2, menuWorldHeight/2, 0)
       .applyMatrix4(mesh.matrixWorld);
@@ -1904,11 +1902,10 @@ const _makeLabelMesh = s => {
     const intersectionPoint = ray.intersectPlane(mesh.plane, localVector);
     if (intersectionPoint) {
       const leftIntersectionPoint = mesh.leftLine.closestPointToPoint(intersectionPoint, true, localVector2);
-
       const topIntersectionPoint = mesh.topLine.closestPointToPoint(intersectionPoint, true, localVector3);
 
-      const xFactor = topIntersectionPoint.distanceTo(mesh.topLine.start);
-      const yFactor = leftIntersectionPoint.distanceTo(mesh.leftLine.start) / 0.1;
+      const xFactor = topIntersectionPoint.distanceTo(mesh.topLine.start) / mesh.width;
+      const yFactor = leftIntersectionPoint.distanceTo(mesh.leftLine.start) / mesh.height;
       const distance = ray.origin.distanceTo(intersectionPoint);
 
       if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
@@ -2006,6 +2003,30 @@ const trayMesh = (() => {
     mesh.update = () => {
       if (index === 1) {
         mesh.material.uniforms.uTime.value = (Date.now() % 1000) / 1000;
+      }
+    };
+    mesh.intersect = ray => {
+      localMatrix.compose(
+        ray.origin,
+        localQuaternion.setFromUnitVectors(localVector.set(0, 0, -1), ray.direction),
+        localVector2.set(1, 1, 1)
+      ).premultiply(
+        localMatrix2
+          .copy(mesh.matrixWorld)
+          .getInverse(localMatrix2)
+      ).decompose(localRay.origin, localQuaternion, localVector);
+      localRay.direction.set(0, 0, -1).applyQuaternion(localQuaternion);
+      localBox.setFromCenterAndSize(localVector.set(0, 0, 0), localVector2.set(0.2, 0.2, 0.2));
+
+      const intersectionPoint = localRay.intersectBox(localBox, localVector);
+      if (intersectionPoint) {
+        const distance = localRay.origin.distanceTo(intersectionPoint);
+        return {
+          type: 'icon',
+          distance,
+        };
+      } else {
+        return null;
       }
     };
     return mesh;
@@ -2132,10 +2153,12 @@ const trayMesh = (() => {
   mesh.add(keyboardMesh);
 
   mesh.update = () => {
+    labelMesh.update();
     for (let i = 0; i < iconMeshes.length; i++) {
       iconMeshes[i].update();
     }
   };
+  mesh.intersectionCandidates = [labelMesh].concat(iconMeshes);
 
   mesh.frustumCulled = false;
   return mesh;
@@ -2313,7 +2336,7 @@ const _makePointMesh = (sx, sy, sz, ox, oy, oz, ow) => {
     localRay.direction.set(0, 0, -1).applyQuaternion(localQuaternion);
     localBox.setFromCenterAndSize(localVector.set(0, 0, 0), localVector2.set(0.1, 0.1, 0.1));
 
-    const intersectionPoint = localRay.intersectBox(localBox);
+    const intersectionPoint = localRay.intersectBox(localBox, localVector);
     if (intersectionPoint) {
       const distance = localRay.origin.distanceTo(intersectionPoint);
       return {
@@ -4708,7 +4731,8 @@ function animate(time, frame) {
         const controllerMesh = controllerMeshes[i];
         controllerMesh.update();
 
-        const candidates = roomLabels//.concat(pointMeshes);
+        // const candidates = roomLabels//.concat(pointMeshes);
+        const candidates = trayMesh.intersectionCandidates;
 
         let found = false;
         for (let j = 0; j < candidates.length; j++) {
