@@ -33,7 +33,7 @@ iframe, audio {
     <script src="xrmp-three.js"></script>
     <script>
 (async () => {
-let display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewport = new THREE.Vector4(0, 0, 1, 1), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls, transformControls, rooms = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], contentMeshes = [], portalMeshes = [], menuAnimation = null, keyboardFocus = null;
+let display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewport = new THREE.Vector4(0, 0, 1, 1), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls = null, transformControls, rooms = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], contentMeshes = [], portalMeshes = [], menuAnimation = null, keyboardFocus = null;
 const viewMatrices = [
   new THREE.Matrix4(),
   new THREE.Matrix4(),
@@ -1272,6 +1272,23 @@ toolMesh.setTool(1);
 
 // events
 
+const _addOrbitControls = () => {
+  const orbitCamera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+  orbitControls = new THREE.OrbitControls(orbitCamera);
+  orbitCamera.position.copy(fakeXrDisplay.position);
+  orbitCamera.quaternion.copy(fakeXrDisplay.quaternion);
+  scene.add(orbitCamera);
+  orbitCamera.updateMatrixWorld();
+  orbitControls.target.copy(orbitCamera.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(orbitCamera.quaternion));
+  orbitControls.screenSpacePanning = true;
+  orbitControls.update();
+};
+const _removeOrbitControls = () => {
+  scene.remove(orbitControls.object);
+  orbitControls.dispose();
+  orbitControls = null;
+};
+
 let unbindEvents = null;
 const _bindEventTarget = target => {
   if (unbindEvents) {
@@ -1301,22 +1318,6 @@ const _bindEventTarget = target => {
     };
   };
   if (target === 'ui') {
-    const _addOrbitControls = () => {
-      const orbitCamera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
-      orbitControls = new THREE.OrbitControls(orbitCamera);
-      orbitCamera.position.copy(fakeXrDisplay.position);
-      orbitCamera.quaternion.copy(fakeXrDisplay.quaternion);
-      scene.add(orbitCamera);
-      orbitCamera.updateMatrixWorld();
-      orbitControls.target.copy(orbitCamera.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(orbitCamera.quaternion));
-      orbitControls.screenSpacePanning = true;
-      orbitControls.update();
-    };
-    const _removeOrbitControls = () => {
-      scene.remove(orbitControls.object);
-      orbitControls.dispose();
-      orbitControls = null;
-    };
     /* const _addTransformControls = (camera, iframe) => {
       transformControls = new THREE.TransformControls(camera, document.body, viewport);
       transformControls.iframe = iframe;
@@ -5049,16 +5050,20 @@ const _startFakeVrDisplay = async (width, height) => {
     window.addEventListener('mousedown', e => {
       if (window.document.pointerLockElement) {
         gamepad.buttons[1].pressed = true;
-      } else if (intersectionSpecs[1]) {
+      } else if (intersectionSpecs[0]) {
         gamepad.buttons[1].pressed = true;
 
-        e.preventDefault();
+        if (orbitControls) {
+          _removeOrbitControls();
+        }
       }
     });
     window.addEventListener('mouseup', e => {
-      // if (window.document.pointerLockElement) {
-        gamepad.buttons[1].pressed = false;
-      // }
+      gamepad.buttons[1].pressed = false;
+
+      if (!window.document.pointerLockElement) {
+        _addOrbitControls();
+      }
     });
     window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
