@@ -5017,21 +5017,16 @@ const _startFakeVrDisplay = async (width, height) => {
         camera.updateMatrixWorld();
       },
       pushGamepadsUpdate(position = this.position, quaternion = this.quaternion) {
-        localVector
-          .copy(position)
-          .add(localVector2.set(0.5, -0.3, -0.5).applyQuaternion(quaternion))
-          .toArray(gamepad.pose.position);
-        localQuaternion
-          .copy(quaternion)
-          .toArray(gamepad.pose.orientation);
+        position.toArray(gamepad.pose.position);
+        quaternion.toArray(gamepad.pose.orientation);
       },
       pushUpdate() {
         this.pushHmdUpdate();
-        this.pushGamepadsUpdate();
-      },
-      pushUpdate() {
-        this.pushHmdUpdate();
-        this.pushGamepadsUpdate();
+        this.pushGamepadsUpdate(
+          localVector
+            .copy(this.position)
+            .add(localVector2.set(0.5, -0.3, -0.5).applyQuaternion(this.quaternion))
+        );
       },
     };
 
