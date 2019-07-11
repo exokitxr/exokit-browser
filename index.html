@@ -1167,9 +1167,6 @@ const appIconMeshes = [
   iconMesh.updateMatrixWorld();
   return iconMesh;
 });
-window.appIconMeshes = appIconMeshes;
-window.diceImg = diceImg;
-document.body.appendChild(diceImg);
 for (let i = 0; i < appIconMeshes.length; i++) {
   scene.add(appIconMeshes[i]);
 }
