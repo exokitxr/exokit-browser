@@ -4413,7 +4413,7 @@ function animate(time, frame) {
         fakeXrDisplay.pushUpdate();
       } else {
         fakeXrDisplay.pushHmdUpdate();
-        fakeXrDisplay.pushGamepadsUpdate(mouse.position, mouse.orientation);
+        fakeXrDisplay.pushGamepadsUpdate(mouse.position, mouse.quaternion);
       }
     }
   };
