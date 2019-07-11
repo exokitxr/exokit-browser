@@ -4827,46 +4827,44 @@ function animate(time, frame) {
   _render();
 
   const _updateMovement = () => {
-    if (fakeXrDisplay) {
-      // if (window.document.pointerLockElement) {
-        // let moving = false;
-        const speed = 0.004;
-        const velocity = localVector.set(0, 0, 0);
-        if (keys.up) {
-          velocity.z -= speed * timeDiff;
-          // moving = true;
-        }
-        if (keys.down) {
-          velocity.z += speed * timeDiff;
-          // moving = true;
-        }
-        if (keys.left) {
-          velocity.x -= speed * timeDiff;
-          // moving = true;
-        }
-        if (keys.right) {
-          velocity.x += speed * timeDiff;
-          // moving = true;
-        }
-        if (keys.space) {
-          velocity.y += speed * timeDiff;
-          // moving = true;
-        }
-        if (keys.ctrl) {
-          velocity.y -= speed * timeDiff;
-          // moving = true;
-        }
+    if (fakeXrDisplay && window.document.pointerLockElement) {
+      // let moving = false;
+      const speed = 0.004;
+      const velocity = localVector.set(0, 0, 0);
+      if (keys.up) {
+        velocity.z -= speed * timeDiff;
+        // moving = true;
+      }
+      if (keys.down) {
+        velocity.z += speed * timeDiff;
+        // moving = true;
+      }
+      if (keys.left) {
+        velocity.x -= speed * timeDiff;
+        // moving = true;
+      }
+      if (keys.right) {
+        velocity.x += speed * timeDiff;
+        // moving = true;
+      }
+      if (keys.space) {
+        velocity.y += speed * timeDiff;
+        // moving = true;
+      }
+      if (keys.ctrl) {
+        velocity.y -= speed * timeDiff;
+        // moving = true;
+      }
 
-        // if (moving) {
-          // velocity.multiplyScalar(Math.pow(moving ? 0.98 : 0.91, timePassed / 5));
-          localEuler.setFromQuaternion(fakeXrDisplay.quaternion, localEuler.order);
-          localEuler.x = 0;
-          fakeXrDisplay.position.add(
-            localVector.copy(velocity)
-              .applyEuler(localEuler)
-          );
-          fakeXrDisplay.pushUpdate();
-        // }
+      // if (moving) {
+        // velocity.multiplyScalar(Math.pow(moving ? 0.98 : 0.91, timePassed / 5));
+        localEuler.setFromQuaternion(fakeXrDisplay.quaternion, localEuler.order);
+        localEuler.x = 0;
+        fakeXrDisplay.position.add(
+          localVector.copy(velocity)
+            .applyEuler(localEuler)
+        );
+        fakeXrDisplay.pushUpdate();
       // }
     }
   };
