@@ -1149,7 +1149,7 @@ const _makeIconMesh = img => {
   texture.needsUpdate = true;
   const material = new THREE.MeshBasicMaterial({
     map: texture,
-    // color: 0xFF0000,
+    side: THREE.DoubleSide,
     transparent: true,
   });
   const mesh = new THREE.Mesh(geometry, material);
