@@ -1971,6 +1971,7 @@ const _makePointMesh = (sx, sy, sz, ox, oy, oz, ow) => {
     mesh.quaternion.set(ox, oy, oz, ow);
   };
   mesh.getCenter = () => mesh.position.toArray();
+
   return mesh;
 };
 const _makeBrowserMesh = (sx, sy, sz, ox, oy, oz, ow, color) => {
@@ -2216,6 +2217,35 @@ const _makeLabelMesh = s => {
       mesh.leftLine.end,
       mesh.topLine.end
     );
+  };
+  mesh.intersect = ray => {
+    const intersectionPoint = ray.intersectPlane(mesh.plane, localVector);
+    if (intersectionPoint) {
+      const leftIntersectionPoint = mesh.leftLine.closestPointToPoint(intersectionPoint, true, localVector2);
+
+      const topIntersectionPoint = mesh.topLine.closestPointToPoint(intersectionPoint, true, localVector3);
+
+      const xFactor = topIntersectionPoint.distanceTo(mesh.topLine.start);
+      const yFactor = leftIntersectionPoint.distanceTo(mesh.leftLine.start) / 0.1;
+      const distance = ray.origin.distanceTo(intersectionPoint);
+
+      if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
+        const xScale = mesh.width / mesh.textMesh.scale.x;
+        const x = xFactor * xScale;
+        const yScale = mesh.height;
+        const y = yFactor * yScale;
+        return {
+          type: 'label',
+          mesh,
+          distance,
+          x,
+          y,
+          xScale,
+          yScale,
+        };
+      }
+    }
+    return null;
   };
 
   const textMesh = _makeTextMesh(s);
@@ -4423,7 +4453,7 @@ function animate(time, frame) {
   };
   _updateOrbitControls();
 
-  const _updateLabels = () => {
+  const _updateIntersections = () => {
     for (let i = 0; i < 2; i++) {
       const controllerMesh = controllerMeshes[i];
       controllerMesh.update();
@@ -4431,42 +4461,19 @@ function animate(time, frame) {
       let found = false;
       for (let j = 0; j < roomLabels.length; j++) {
         const labelMesh = roomLabels[j];
+        const intersectionSpec = labelMesh.intersect(controllerMesh.ray);
+        if (intersectionSpec) {
+          intersectionSpecs[i] = intersectionSpec;
 
-        const intersectionPoint = controllerMesh.ray.intersectPlane(labelMesh.plane, localVector);
-        if (intersectionPoint) {
-          const leftIntersectionPoint = labelMesh.leftLine.closestPointToPoint(intersectionPoint, true, localVector2);
+          controllerMesh.dotMesh.position.z = -intersectionSpec.distance;
+          controllerMesh.dotMesh.updateMatrixWorld();
+          controllerMesh.dotMesh.visible = true;
 
-          const topIntersectionPoint = labelMesh.topLine.closestPointToPoint(intersectionPoint, true, localVector3);
+          controllerMesh.rayMesh.scale.z = intersectionSpec.distance;
+          controllerMesh.rayMesh.updateMatrixWorld();
 
-          const xFactor = topIntersectionPoint.distanceTo(labelMesh.topLine.start);
-          const yFactor = leftIntersectionPoint.distanceTo(labelMesh.leftLine.start) / 0.1;
-          const distance = controllerMesh.ray.origin.distanceTo(intersectionPoint);
-
-          if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
-            const xScale = labelMesh.width / labelMesh.textMesh.scale.x;
-            const x = xFactor * xScale;
-            const yScale = labelMesh.height;
-            const y = yFactor * yScale;
-            intersectionSpecs[i] = {
-              type: 'label',
-              labelMesh,
-              x,
-              y,
-              xScale,
-              yScale,
-            };
-            // console.log('set intersection', i);
-
-            controllerMesh.dotMesh.position.z = -distance;
-            controllerMesh.dotMesh.updateMatrixWorld();
-            controllerMesh.dotMesh.visible = true;
-
-            controllerMesh.rayMesh.scale.z = distance;
-            controllerMesh.rayMesh.updateMatrixWorld();
-
-            found = true;
-            break;
-          }
+          found = true;
+          break;
         }
       }
       if (!found) {
@@ -4476,11 +4483,10 @@ function animate(time, frame) {
         controllerMesh.rayMesh.updateMatrixWorld();
 
         intersectionSpecs[i] = null;
-        // console.log('unset intersection', i);
       }
     }
   };
-  _updateLabels();
+  _updateIntersections();
 
   const _handleTrigger = (gamepad, i, pressed, lastPressed) => {
     const start = pressed && !lastPressed;
@@ -4496,15 +4502,17 @@ function animate(time, frame) {
     const intersectionSpec = intersectionSpecs[i];
     if (intersectionSpec) {
       if (gamepad.buttons[1].pressed) {
-        const {labelMesh} = intersectionSpec;
-        const glyphs = labelMesh.getGlyphs();
-        const distanceSpecs = glyphs
-          .map((c, i) => ({i, x: c.x, distance: Math.abs(intersectionSpec.x - c.x)}))
-          .sort((a, b) => a.distance - b.distance);
-        const distanceSpec = distanceSpecs.length > 0 ? distanceSpecs[0] : {i: 0, x: 0};
-        labelMesh.caretMesh.setValue(distanceSpec.i);
-        labelMesh.caretMesh.visible = true;
-        keyboardFocus = labelMesh;
+        const {type, mesh} = intersectionSpec;
+        if (type === 'label') {
+          const glyphs = mesh.getGlyphs();
+          const distanceSpecs = glyphs
+            .map((c, i) => ({i, x: c.x, distance: Math.abs(intersectionSpec.x - c.x)}))
+            .sort((a, b) => a.distance - b.distance);
+          const distanceSpec = distanceSpecs.length > 0 ? distanceSpecs[0] : {i: 0, x: 0};
+          mesh.caretMesh.setValue(distanceSpec.i);
+          mesh.caretMesh.visible = true;
+          keyboardFocus = mesh;
+        }
       }
     } else {
       if (window.document.pointerLockElement) {
