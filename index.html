@@ -951,6 +951,7 @@ const [
   chevronLeftImg,
   chevronRightImg,
   timesCircleImg,
+  faviconImg,
   keyboardImg,
 ] = await Promise.all([
   'layers.png',
@@ -962,6 +963,7 @@ const [
   'chevron-left.png',
   'chevron-right.png',
   'times-circle.png',
+  'https://cors-anywhere.herokuapp.com/https://google.com/favicon.ico',
   'keyboard.png',
 ].map(src => new Promise((accept, reject) => {
   const img = new Image();
@@ -971,6 +973,7 @@ const [
   img.onerror = err => {
     reject(err);
   };
+  img.crossOrigin = 'Anonymous';
   img.src = src;
 })));
 const fontSpec = await Promise.all([
@@ -2047,6 +2050,7 @@ const trayMesh = (() => {
     chevronLeftImg,
     chevronRightImg,
     timesCircleImg,
+    faviconImg,
   ].map((img, i) => {
     const iconMesh = _makeIconMesh(img, i);
     iconMesh.position.set(-0.8 + i * 0.4, 0.1, 0);
