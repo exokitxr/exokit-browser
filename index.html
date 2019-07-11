@@ -1348,6 +1348,17 @@ const _bindEventTarget = target => {
     }; */
 
     _bindEvents({
+      mousemove(e) {
+        localVector2D.set(
+          (event.clientX / window.innerWidth) * 2 - 1,
+          -(event.clientY / window.innerHeight) * 2 + 1
+        );
+        localRaycaster.setFromCamera(localVector2D, camera);
+
+        mouse.position.copy(localRaycaster.ray.origin);
+        mouse.quaternion.setFromUnitVectors(localVector.set(0, 0, -1), localRaycaster.ray.direction);
+        // console.log('set mouse', localVector2D.toArray(), localRaycaster.ray.origin.toArray(), localRaycaster.ray.direction.toArray());
+      },
       /* mousemove(e) {
         const localCamera = camera;
         localCamera.matrixWorldInverse.fromArray(fakeXrDisplay.viewMatrix);
@@ -1468,15 +1479,6 @@ const _bindEventTarget = target => {
 
             fakeXrDisplay.pushUpdate();
           // }
-        } else {
-          localVector.set(
-            (event.clientX / window.innerWidth) * 2 - 1,
-            -(event.clientY / window.innerHeight) * 2 + 1
-          );
-          localRaycaster.setFromCamera(localVector, camera);
-
-          mouse.position.copy(localRaycaster.ray.origin);
-          mouse.quaternion.setFromUnitVectors(localVector.set(0, 0, -1), localRaycaster.ray.direction);
         }
       },
       wheel(e) {
@@ -1671,6 +1673,7 @@ for (let i = 0; i < controllerMeshes.length; i++) {
       .applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, -0.5));
     const material = new THREE.MeshBasicMaterial({
       color: RAY_COLOR,
+      side: THREE.DoubleSide,
     });
 
     const mesh = new THREE.Mesh(geometry, material);
