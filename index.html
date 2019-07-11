@@ -5010,16 +5010,25 @@ const _startFakeVrDisplay = async (width, height) => {
       quaternion: camera.quaternion,
       viewMatrix: camera.matrixWorld.toArray(),
       projectionMatrix: camera.projectionMatrix.toArray(),
-      pushUpdate() {
+      pushHmdUpdate(position = this.position, quaternion = this.quaternion) {
         camera.updateMatrixWorld();
-
+      },
+      pushGamepadsUpdate(position = this.position, quaternion = this.quaternion) {
         localVector
-          .copy(camera.position)
-          .add(localVector2.set(0.5, -0.3, -0.5).applyQuaternion(camera.quaternion))
+          .copy(position)
+          .add(localVector2.set(0.5, -0.3, -0.5).applyQuaternion(quaternion))
           .toArray(gamepad.pose.position);
         localQuaternion
-          .copy(camera.quaternion)
+          .copy(quaternion)
           .toArray(gamepad.pose.orientation);
+      },
+      pushUpdate() {
+        this.pushHmdUpdate();
+        this.pushGamepadsUpdate();
+      },
+      pushUpdate() {
+        this.pushHmdUpdate();
+        this.pushGamepadsUpdate();
       },
     };
 
