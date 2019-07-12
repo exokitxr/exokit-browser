@@ -1952,8 +1952,9 @@ const trayMesh = (() => {
   });
   const mesh = new THREE.Mesh(geometry, material);
 
-  const _makeIconMesh = (img, onclick, oncrosshair, onclose, pagable) => {
+  const _makeIconMesh = (img, type, onclick, oncrosshair, onclose, pagable) => {
     const iconSize = 0.2;
+    const subIconSize = 0.4;
     const geometry = new THREE.PlaneBufferGeometry(iconSize, iconSize);
     const texture = new THREE.Texture(img);
     if (img) {
@@ -2005,6 +2006,26 @@ const trayMesh = (() => {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.frustumCulled = false;
 
+    if (type) {
+      const material2 = material.clone();
+      const typeImg = (() => {
+        switch (type) {
+          case 'browser': return browserImg;
+          case 'portal': return hurricaneImg;
+          case 'volume': return diceImg;
+          default: return null;
+        }
+      })();
+      const texture = new THREE.Texture(typeImg);
+      texture.needsUpdate = true;
+      material2.uniforms.uTex.value = texture;
+      const typeMesh = new THREE.Mesh(geometry, material2);
+      typeMesh.frustumCulled = false;
+      typeMesh.position.set(-0.15, 0.15, 0);
+      typeMesh.scale.set(subIconSize, subIconSize, subIconSize);
+      mesh.add(typeMesh);
+      mesh.typeMesh = typeMesh;
+    }
     if (oncrosshair) {
       const material2 = material.clone();
       const texture = new THREE.Texture(crosshairImg);
@@ -2013,9 +2034,8 @@ const trayMesh = (() => {
       const crosshairMesh = new THREE.Mesh(geometry, material2);
       crosshairMesh.visible = false;
       crosshairMesh.frustumCulled = false;
-      const f = 0.4;
       crosshairMesh.position.set(0, 0.15, 0);
-      crosshairMesh.scale.set(f, f, f);
+      crosshairMesh.scale.set(subIconSize, subIconSize, subIconSize);
       mesh.add(crosshairMesh);
       mesh.crosshairMesh = crosshairMesh;
     }
@@ -2027,9 +2047,8 @@ const trayMesh = (() => {
       const closeMesh = new THREE.Mesh(geometry, material2);
       closeMesh.visible = false;
       closeMesh.frustumCulled = false;
-      const f = 0.4;
       closeMesh.position.set(0.15, 0.15, 0);
-      closeMesh.scale.set(f, f, f);
+      closeMesh.scale.set(subIconSize, subIconSize, subIconSize);
       mesh.add(closeMesh);
       mesh.closeMesh = closeMesh;
     }
@@ -2045,6 +2064,9 @@ const trayMesh = (() => {
         mesh.material.uniforms.uColor.value = new THREE.Color(0x9ccc65);
         mesh.material.uniforms.uTime.value = (Date.now() % 1000) / 1000;
 
+        if (mesh.typeMesh) {
+          mesh.typeMesh.visible = true;
+        }
         if (mesh.crosshairMesh) {
           mesh.crosshairMesh.visible = true;
         }
@@ -2056,6 +2078,9 @@ const trayMesh = (() => {
         mesh.material.uniforms.uColor.value = new THREE.Color(0);
         mesh.material.uniforms.uTime.value = 0;
 
+        if (mesh.typeMesh) {
+          mesh.typeMesh.visible = false;
+        }
         if (mesh.crosshairMesh) {
           mesh.crosshairMesh.visible = false;
         }
@@ -2139,8 +2164,8 @@ const trayMesh = (() => {
     };
     return mesh;
   };
-  const _makeAndAddIconMesh = (img, x, y, onclick, oncrosshair, onclose, pagable, parentMesh) => {
-    const iconMesh = _makeIconMesh(img, onclick, oncrosshair, onclose, pagable);
+  const _makeAndAddIconMesh = (img, typeImg, x, y, onclick, oncrosshair, onclose, pagable, parentMesh) => {
+    const iconMesh = _makeIconMesh(img, typeImg, onclick, oncrosshair, onclose, pagable);
     iconMesh.setPosition(x, y);
     parentMesh.add(iconMesh);
     return iconMesh;
@@ -2163,9 +2188,17 @@ const trayMesh = (() => {
     // [timesImg, 5, 0, null],
     // [crosshairImg, 5, 0, null],
     [plusImg, 5, 1, () => {
-      _addAppIconMesh(faviconImg, null);
+      const type = (() => {
+        switch (selectedIconCoord.x) {
+          case 1: return 'browser';
+          case 2: return 'portal';
+          case 3: return 'volume';
+          default: return null;
+        }
+      })();
+      _addAppIconMesh(faviconImg, type);
     }],
-  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, x, y, onclick, null, null, false, actionIconMeshes));
+  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, null, x, y, onclick, null, null, false, actionIconMeshes));
   mesh.add(actionIconMeshes);
 
   const appIconMeshes = new THREE.Object3D();
@@ -2184,15 +2217,16 @@ const trayMesh = (() => {
     [locationImg, 5, 1, () => {
       console.log('set tab location'); // XXX
     }],
-  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, x, y, onclick, null, null, false, appIconMeshes));
+  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, null, x, y, onclick, null, null, false, appIconMeshes));
   mesh.add(appIconMeshes);
 
-  const _addAppIconMesh = (img, onclick) => {
+  const _addAppIconMesh = (img, type) => {
     for (let x = 0;; x++) {
       if (appIconMeshes.children.findIndex(mesh => mesh.x === x) === -1) {
-        const iconMesh = _makeAndAddIconMesh(img, x, 0, onclick, i => {
+        const y = 0;
+        const iconMesh = _makeAndAddIconMesh(img, type, x, y, null, i => {
           moveSpecs[i] = {
-            type: 'browser',
+            type,
           };
         }, () => { 
           const index = appIconMeshes.children.indexOf(iconMesh);
@@ -2215,7 +2249,7 @@ const trayMesh = (() => {
       selectedIconMesh = actionIconMeshes;
       selectedIconCoord.set(1, 0);
     }],
-  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, x, y, onclick, null, null, false, settingsIconMeshes));
+  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, null, x, y, onclick, null, null, false, settingsIconMeshes));
   mesh.add(settingsIconMeshes);
 
   let selectedIconMesh = actionIconMeshes;
@@ -2365,7 +2399,7 @@ const _makeMoveMesh = i => {
     cornerGeometry.clone()
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, -1, 0))))
       .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0)),
-  ]).applyMatrix(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
+  ]);
   const browserMesh = new THREE.Mesh(browserGeometry, material);
   browserMesh.visible = false;
   object.add(browserMesh);
@@ -2382,65 +2416,45 @@ const _makeMoveMesh = i => {
   ]);
   const portalGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
     edgeGeometry.clone()
-      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0.5, -0.5)),
+      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0.5, 0)),
     edgeGeometry.clone()
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, -1, 0))))
-      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, -0.5, -0.5)),
+      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, -0.5, 0)),
     edgeGeometry.clone()
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))))
-      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0.5, 0.5)),
+      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0.5, 1)),
     edgeGeometry.clone()
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))))
-      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0.5, -0.5)),
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0.5, 0)),
     edgeGeometry.clone()
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))))
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))))
-      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0.5, 0.5)),
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0.5, 1)),
     edgeGeometry.clone()
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))))
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0, -1, 0))))
-      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, -0.5, 0.5)),
+      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, -0.5, 1)),
     edgeGeometry.clone()
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))))
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, -1, 0))))
-      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.5, -0.5)),
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0)),
     edgeGeometry.clone()
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(-1, 1, 0).normalize(), new THREE.Vector3(1, -1, 0).normalize())))
-      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0.5)),
-  ]).applyMatrix(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.5, 1)),
+  ]);
   const portalMesh = new THREE.Mesh(portalGeometry, material);
   portalMesh.visible = false;
   object.add(portalMesh);
 
   const volumeGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
-    edgeGeometry.clone()
-      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0.5, -0.5)),
-    edgeGeometry.clone()
-      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, -1, 0))))
-      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, -0.5, -0.5)),
-    edgeGeometry.clone()
-      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))))
-      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0.5, 0.5)),
-    edgeGeometry.clone()
-      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))))
-      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0.5, -0.5)),
-    edgeGeometry.clone()
-      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))))
-      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))))
-      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0.5, 0.5)),
-    edgeGeometry.clone()
-      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))))
-      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0, -1, 0))))
-      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, -0.5, 0.5)),
-    edgeGeometry.clone()
-      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))))
-      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, -1, 0))))
-      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.5, -0.5)),
-    edgeGeometry.clone()
-      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(-1, 1, 0).normalize(), new THREE.Vector3(1, -1, 0).normalize())))
-      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0.5)),
-  ]).applyMatrix(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
-  const volumeMesh = new THREE.Mesh(browserGeometry, material);
+    portalGeometry
+      .clone()
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, 0.5)),
+    new THREE.BoxBufferGeometry(0.2, 0.03, 0.03),
+    new THREE.BoxBufferGeometry(0.03, 0.2, 0.03),
+    new THREE.BoxBufferGeometry(0.03, 0.03, 0.2),
+  ])
+  const volumeMesh = new THREE.Mesh(volumeGeometry, material);
   volumeMesh.visible = false;
   object.add(volumeMesh);
 
