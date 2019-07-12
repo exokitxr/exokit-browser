@@ -5651,6 +5651,7 @@ const _startFakeVrDisplay = async (width, height) => {
     }
     fakeXrDisplay.position.set(0, 1.6, 0);
     fakeXrDisplay.pushUpdate();
+    fakeXrDisplay.enable();
     await _enterXr();
   } else {
     fakeXrDisplay = {
@@ -5736,6 +5737,7 @@ const _endFakeVrDisplay = async () => {
     await fakeXrDisplay.display.exitPresent();
   }
 
+  fakeXrDisplay.disable();
   fakeXrDisplay = null;
 
   // renderer.domElement.framebuffer = null; // XXX destroy this framebuffer
