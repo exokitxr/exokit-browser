@@ -980,19 +980,6 @@ const [
   img.crossOrigin = 'Anonymous';
   img.src = src;
 })));
-console.log('got', {layersImg,
-  browserImg,
-  hurricaneImg,
-  diceImg,
-  cogsImg,
-  arrowLeftImg,
-  chevronLeftImg,
-  chevronRightImg,
-  timesCircleImg,
-  plusImg,
-  locationImg,
-  faviconImg,
-  keyboardImg,});
 const fontSpec = await Promise.all([
   fetch('DejaVu-sdf.json').then(res => res.json()),
   new Promise((accept, reject ) => {
