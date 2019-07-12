@@ -943,28 +943,30 @@ scene.add(floorMesh);
 
 const [
   layersImg,
-  plusImg,
   browserImg,
   hurricaneImg,
   diceImg,
   cogsImg,
-  chevronDownImg,
+  arrowLeftImg,
   chevronLeftImg,
   chevronRightImg,
   timesCircleImg,
+  plusImg,
+  locationImg,
   faviconImg,
   keyboardImg,
 ] = await Promise.all([
   'layers.png',
-  'plus.png',
   'browser.png',
   'hurricane.png',
   'dice.png',
   'cogs.png',
-  'chevron-down.png',
+  'arrow-left.png',
   'chevron-left.png',
   'chevron-right.png',
   'times-circle.png',
+  'plus.png',
+  'location.png',
   'https://cors-anywhere.herokuapp.com/https://google.com/favicon.ico',
   'keyboard.png',
 ].map(src => new Promise((accept, reject) => {
@@ -978,6 +980,19 @@ const [
   img.crossOrigin = 'Anonymous';
   img.src = src;
 })));
+console.log('got', {layersImg,
+  browserImg,
+  hurricaneImg,
+  diceImg,
+  cogsImg,
+  arrowLeftImg,
+  chevronLeftImg,
+  chevronRightImg,
+  timesCircleImg,
+  plusImg,
+  locationImg,
+  faviconImg,
+  keyboardImg,});
 const fontSpec = await Promise.all([
   fetch('DejaVu-sdf.json').then(res => res.json()),
   new Promise((accept, reject ) => {
@@ -2023,7 +2038,7 @@ const trayMesh = (() => {
       }
     };
     mesh.intersect = ray => {
-      if (img) {
+      if (mesh.parent.visible && img) {
         localMatrix.compose(
           ray.origin,
           localQuaternion.setFromUnitVectors(localVector.set(0, 0, -1), ray.direction),
@@ -2056,26 +2071,26 @@ const trayMesh = (() => {
   };
   const _makeAndAddIconMesh = (img, x, y, parentMesh) => {
     const iconMesh = _makeIconMesh(img, x, y);
-    iconMesh.position.set(-0.8 + x * 0.4, 0.1 + y * 0.4, 0);
+    iconMesh.position.set(-0.8 + x * 0.4, 0.1 + y * 0.3, 0);
     iconMesh.updateMatrixWorld();
     parentMesh.add(iconMesh);
   };
 
   const actionIconMeshes = new THREE.Object3D();
   [
-    layersImg,
-    plusImg,
-    browserImg,
-    hurricaneImg,
-    diceImg,
-    cogsImg,
-    timesCircleImg,
-  ].forEach((img, i) => _makeAndAddIconMesh(img, i, 0, actionIconMeshes));
+    [layersImg, 0, 0],
+    [browserImg, 1, 0],
+    [hurricaneImg, 2, 0],
+    [diceImg, 3, 0],
+    [cogsImg, 4, 0],
+    [timesCircleImg, 5, 0],
+    [plusImg, 5, 1],
+  ].forEach(([img, x, y]) => _makeAndAddIconMesh(img, x, y, actionIconMeshes));
   mesh.add(actionIconMeshes);
 
   const appIconMeshes = new THREE.Object3D();
   [
-    [chevronDownImg, -1, 1],
+    [arrowLeftImg, -1, 1],
     [chevronLeftImg, -1, 0],
     [faviconImg, 0, 0],
     [null, 1, 0],
@@ -2083,7 +2098,8 @@ const trayMesh = (() => {
     [null, 3, 0],
     [null, 4, 0],
     [chevronRightImg, 5, 0],
-  ].forEach(([img, x, y], i) => _makeAndAddIconMesh(img, x, y, appIconMeshes));
+    [locationImg, 5, 1],
+  ].forEach(([img, x, y]) => _makeAndAddIconMesh(img, x, y, appIconMeshes));
   mesh.add(appIconMeshes);
 
   let selectedIconMesh = actionIconMeshes;
