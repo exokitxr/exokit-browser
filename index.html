@@ -1960,7 +1960,7 @@ const trayMesh = (() => {
   });
   const mesh = new THREE.Mesh(geometry, material);
 
-  const _makeIconMesh = (img, x, y, onclick, oncrosshair, onclose) => {
+  const _makeIconMesh = (img, onclick, oncrosshair, onclose) => {
     const iconSize = 0.2;
     const geometry = new THREE.PlaneBufferGeometry(iconSize, iconSize);
     const texture = new THREE.Texture(img);
@@ -2042,8 +2042,13 @@ const trayMesh = (() => {
       mesh.closeMesh = closeMesh;
     }
 
-    mesh.x = x;
-    mesh.y = y;
+    mesh.x = 0;
+    mesh.y = 0;
+    mesh.setPosition = (newX, newY) => {
+      mesh.position.set(-0.8 + newX * 0.4, 0.1 + newY * 0.3, 0);
+      mesh.x = newX;
+      mesh.y = newY;
+    };
     mesh.update = () => {
       const _select = () => {
         mesh.material.uniforms.uColor.value = new THREE.Color(0x9ccc65);
@@ -2070,7 +2075,7 @@ const trayMesh = (() => {
       if (mesh.parent === selectedIconMesh) {
         mesh.visible = true;
 
-        if (x === selectedIconCoord.x && y === selectedIconCoord.y) {
+        if (mesh.x === selectedIconCoord.x && mesh.y === selectedIconCoord.y) {
           _select();
         } else {
           _unselect();
@@ -2120,7 +2125,7 @@ const trayMesh = (() => {
             type: 'icon',
             distance: localRay.origin.distanceTo(intersectionPoint),
             onclick: onclick || (() => {
-              selectedIconCoord.set(x, y);
+              selectedIconCoord.set(mesh.x, mesh.y);
             }),
           };
         }
@@ -2133,10 +2138,10 @@ const trayMesh = (() => {
     return mesh;
   };
   const _makeAndAddIconMesh = (img, x, y, onclick, oncrosshair, onclose, parentMesh) => {
-    const iconMesh = _makeIconMesh(img, x, y, onclick, oncrosshair, onclose, onclick);
-    iconMesh.position.set(-0.8 + x * 0.4, 0.1 + y * 0.3, 0);
-    iconMesh.updateMatrixWorld();
+    const iconMesh = _makeIconMesh(img, onclick, oncrosshair, onclose, onclick);
+    iconMesh.setPosition(x, y);
     parentMesh.add(iconMesh);
+    return iconMesh;
   };
 
   const actionIconMeshes = new THREE.Object3D();
@@ -2170,11 +2175,6 @@ const trayMesh = (() => {
     [chevronLeftImg, -1, 0, () => {
       console.log('page tabs left'); // XXX
     }],
-    /* [faviconImg, 0, 0, null],
-    [null, 1, 0, null],
-    [null, 2, 0, null],
-    [null, 3, 0, null],
-    [null, 4, 0, null], */
     [chevronRightImg, 5, 0, () => {
       console.log('page tabs right'); // XXX
     }],
@@ -2187,10 +2187,15 @@ const trayMesh = (() => {
   const _addAppIconMesh = (img, onclick) => {
     for (let x = 0;; x++) {
       if (appIconMeshes.children.findIndex(mesh => mesh.x === x) === -1) {
-        _makeAndAddIconMesh(img, x, 0, onclick, () => {
-          console.log('click target'); // XXX
+        const iconMesh = _makeAndAddIconMesh(img, x, 0, onclick, () => {
+          console.log('click crosshair'); // XXX
         }, () => { 
-          console.log('click close'); // XXX
+          const index = appIconMeshes.children.indexOf(iconMesh);
+          appIconMeshes.remove(iconMesh);
+          for (let i = index; i < appIconMeshes.children.length; i++) {
+            const child = appIconMeshes.children[i];
+            child.setPosition(child.x - 1, child.y);
+          }
         }, appIconMeshes);
         selectedIconMesh = appIconMeshes;
         selectedIconCoord.set(x, 0);
