@@ -5693,30 +5693,39 @@ const _startFakeVrDisplay = async (width, height) => {
     };
     navigator.getGamepads = () => [gamepad];
 
-    window.addEventListener('mousedown', e => {
-      if (window.document.pointerLockElement) {
-        gamepad.buttons[1].pressed = true;
-      } else if (intersectionSpecs[0] || moveSpecs[0]) {
-        gamepad.buttons[1].pressed = true;
-
-        if (orbitControls) {
-          _removeOrbitControls();
-        }
-      }
-    });
-    window.addEventListener('mouseup', e => {
-      gamepad.buttons[1].pressed = false;
-
-      if (!window.document.pointerLockElement) {
-        _addOrbitControls();
-      }
-    });
     window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio, false);
     });
   }
+
+  window.addEventListener('mousedown', e => {
+    const gamepads = navigator.getGamepads();
+    if (window.document.pointerLockElement) {
+      for (let i = 0; i < gamepads.length; i++) {
+        gamepads[i].buttons[1].pressed = true;
+      }
+    } else if (intersectionSpecs[0] || moveSpecs[0]) {
+      for (let i = 0; i < gamepads.length; i++) {
+        gamepads[i].buttons[1].pressed = true;
+      }
+
+      if (orbitControls) {
+        _removeOrbitControls();
+      }
+    }
+  });
+  window.addEventListener('mouseup', e => {
+    const gamepads = navigator.getGamepads();
+    for (let i = 0; i < gamepads.length; i++) {
+      gamepads[i].buttons[1].pressed = false;
+    }
+
+    if (!window.document.pointerLockElement) {
+      _addOrbitControls();
+    }
+  });
   
   renderer.setAnimationLoop(animate);
 };
