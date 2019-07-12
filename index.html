@@ -1959,7 +1959,9 @@ const trayMesh = (() => {
   const _makeIconMesh = (img, x, y) => {
     const geometry = new THREE.PlaneBufferGeometry(0.2, 0.2);
     const texture = new THREE.Texture(img);
-    texture.needsUpdate = true;
+    if (img) {
+      texture.needsUpdate = true;
+    }
     const iconVsh = `
       uniform float uTime;
       varying vec2 vUv;
@@ -2021,27 +2023,31 @@ const trayMesh = (() => {
       }
     };
     mesh.intersect = ray => {
-      localMatrix.compose(
-        ray.origin,
-        localQuaternion.setFromUnitVectors(localVector.set(0, 0, -1), ray.direction),
-        localVector2.set(1, 1, 1)
-      ).premultiply(
-        localMatrix2
-          .copy(mesh.matrixWorld)
-          .getInverse(localMatrix2)
-      ).decompose(localRay.origin, localQuaternion, localVector);
-      localRay.direction.set(0, 0, -1).applyQuaternion(localQuaternion);
-      localBox.setFromCenterAndSize(localVector.set(0, 0, 0), localVector2.set(0.2, 0.2, 0.2));
+      if (img) {
+        localMatrix.compose(
+          ray.origin,
+          localQuaternion.setFromUnitVectors(localVector.set(0, 0, -1), ray.direction),
+          localVector2.set(1, 1, 1)
+        ).premultiply(
+          localMatrix2
+            .copy(mesh.matrixWorld)
+            .getInverse(localMatrix2)
+        ).decompose(localRay.origin, localQuaternion, localVector);
+        localRay.direction.set(0, 0, -1).applyQuaternion(localQuaternion);
+        localBox.setFromCenterAndSize(localVector.set(0, 0, 0), localVector2.set(0.2, 0.2, 0.2));
 
-      const intersectionPoint = localRay.intersectBox(localBox, localVector);
-      if (intersectionPoint) {
-        const distance = localRay.origin.distanceTo(intersectionPoint);
-        return {
-          type: 'icon',
-          distance,
-          x,
-          y,
-        };
+        const intersectionPoint = localRay.intersectBox(localBox, localVector);
+        if (intersectionPoint) {
+          const distance = localRay.origin.distanceTo(intersectionPoint);
+          return {
+            type: 'icon',
+            distance,
+            x,
+            y,
+          };
+        } else {
+          return null;
+        }
       } else {
         return null;
       }
@@ -2072,10 +2078,10 @@ const trayMesh = (() => {
     [chevronDownImg, -1, 1],
     [chevronLeftImg, -1, 0],
     [faviconImg, 0, 0],
-    [faviconImg, 1, 0],
-    [faviconImg, 2, 0],
-    [faviconImg, 3, 0],
-    [faviconImg, 4, 0],
+    [null, 1, 0],
+    [null, 2, 0],
+    [null, 3, 0],
+    [null, 4, 0],
     [chevronRightImg, 5, 0],
   ].forEach(([img, x, y], i) => _makeAndAddIconMesh(img, x, y, appIconMeshes));
   mesh.add(appIconMeshes);
