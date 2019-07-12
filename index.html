@@ -2348,6 +2348,59 @@ const trayMesh = (() => {
         object.topLine.end
       );
     };
+    object.intersect = ray => {
+      const intersectionPoint = ray.intersectPlane(keyboardMesh.plane, localVector);
+      if (intersectionPoint) {
+        const leftIntersectionPoint = keyboardMesh.leftLine.closestPointToPoint(intersectionPoint, true, localVector2);
+        const topIntersectionPoint = keyboardMesh.topLine.closestPointToPoint(intersectionPoint, true, localVector3);
+
+        const xFactor = topIntersectionPoint.distanceTo(keyboardMesh.topLine.start) / (1);
+        const yFactor = leftIntersectionPoint.distanceTo(keyboardMesh.leftLine.start) / (keyboardHeight / keyboardWidth);
+        const distance = ray.origin.distanceTo(intersectionPoint);
+
+        if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
+          const x = xFactor * keyboardWidth;
+          const y = yFactor * keyboardHeight;
+
+          for (let j = 0; j < keyMap.length; j++) {
+            const [key, kx1, ky1, kx2, ky2] = keyMap[j];
+            if (x >= kx1 && x < kx2 && y >= ky1 && y < ky2) {
+              const width = kx2 - kx1;
+              const height = ky2 - ky1;
+              let imageData = keyboardHighlightCanvasCtx.getImageData(kx1, ky1, width, height);
+              if (key === 'enter') { // special case the enter key; it has a non-rectangular shape
+                cacheCanvasCtx.putImageData(imageData, 0, 0);
+                cacheCanvasCtx.clearRect(0, 0, 80, 140);
+
+                imageData = cacheCanvasCtx.getImageData(0, 0, imageData.width, imageData.height);
+              }
+
+              keyMesh.material.map.image = imageData;
+              keyMesh.material.map.needsUpdate = true;
+
+              keyMesh.position
+                .set(
+                  -1/2 + ((width/2 + kx1) / keyboardWidth),
+                  (keyboardHeight / keyboardWidth)/2 - ((height/2 + ky1) / keyboardHeight * (keyboardHeight / keyboardWidth)),
+                   0.01 * (1)
+                );
+              keyMesh.scale.set(
+                width / keyboardWidth,
+                height / keyboardHeight * (keyboardHeight / keyboardWidth),
+                1
+              );
+              keyMesh.updateMatrixWorld();
+              keyMesh.visible = true;
+
+              return {
+                type: 'key',
+                key,
+              };
+            }
+          }
+        }
+      }
+    };
 
     return object;
   })();
@@ -2355,13 +2408,17 @@ const trayMesh = (() => {
 
   mesh.update = () => {
     labelMesh.update();
+    keyboardMesh.update();
     [actionIconMeshes, appIconMeshes, settingsIconMeshes].forEach(iconMeshes => {
       for (let i = 0; i < iconMeshes.children.length; i++) {
         iconMeshes.children[i].update(selectedIconPage);
       }
     });
   };
-  mesh.getIntersectionCandidates = () => [labelMesh].concat(actionIconMeshes.children).concat(appIconMeshes.children).concat(settingsIconMeshes.children);
+  mesh.getIntersectionCandidates = () => [labelMesh, keyboardMesh]
+    .concat(actionIconMeshes.children)
+    .concat(appIconMeshes.children)
+    .concat(settingsIconMeshes.children);
 
   mesh.frustumCulled = false;
   return mesh;
