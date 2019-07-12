@@ -5745,7 +5745,7 @@ _startFakeVrDisplay()
   .catch(err => {
     console.warn(err.stack);
   });
-const _enterVr = () => {
+const _enterVr = async () => {
   if (navigator.xr) { // WebXR
     display = await navigator.xr.requestDevice();
 
