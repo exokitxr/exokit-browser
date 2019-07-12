@@ -950,7 +950,8 @@ const [
   arrowLeftImg,
   chevronLeftImg,
   chevronRightImg,
-  timesCircleImg,
+  timesImg,
+  crosshairImg,
   plusImg,
   locationImg,
   faviconImg,
@@ -964,7 +965,8 @@ const [
   'arrow-left.png',
   'chevron-left.png',
   'chevron-right.png',
-  'times-circle.png',
+  'times.png',
+  'crosshair.png',
   'plus.png',
   'location.png',
   'https://cors-anywhere.herokuapp.com/https://google.com/favicon.ico',
@@ -1958,8 +1960,9 @@ const trayMesh = (() => {
   });
   const mesh = new THREE.Mesh(geometry, material);
 
-  const _makeIconMesh = (img, x, y, onclick) => {
-    const geometry = new THREE.PlaneBufferGeometry(0.2, 0.2);
+  const _makeIconMesh = (img, x, y, onclick, oncrosshair, onclose) => {
+    const iconSize = 0.2;
+    const geometry = new THREE.PlaneBufferGeometry(iconSize, iconSize);
     const texture = new THREE.Texture(img);
     if (img) {
       texture.needsUpdate = true;
@@ -2009,18 +2012,68 @@ const trayMesh = (() => {
     });
     const mesh = new THREE.Mesh(geometry, material);
     mesh.frustumCulled = false;
+
+    if (oncrosshair) {
+      const material2 = material.clone();
+      const texture = new THREE.Texture(crosshairImg);
+      texture.needsUpdate = true;
+      material2.uniforms.uTex.value = texture;
+      const crosshairMesh = new THREE.Mesh(geometry, material2);
+      crosshairMesh.visible = false;
+      crosshairMesh.frustumCulled = false;
+      const f = 0.4;
+      crosshairMesh.position.set(0, 0.15, 0);
+      crosshairMesh.scale.set(f, f, f);
+      mesh.add(crosshairMesh);
+      mesh.crosshairMesh = crosshairMesh;
+    }
+    if (onclose) {
+      const material2 = material.clone();
+      const texture = new THREE.Texture(timesImg);
+      texture.needsUpdate = true;
+      material2.uniforms.uTex.value = texture;
+      const closeMesh = new THREE.Mesh(geometry, material2);
+      closeMesh.visible = false;
+      closeMesh.frustumCulled = false;
+      const f = 0.4;
+      closeMesh.position.set(0.15, 0.15, 0);
+      closeMesh.scale.set(f, f, f);
+      mesh.add(closeMesh);
+      mesh.closeMesh = closeMesh;
+    }
+
     mesh.x = x;
     mesh.y = y;
     mesh.update = () => {
+      const _select = () => {
+        mesh.material.uniforms.uColor.value = new THREE.Color(0x9ccc65);
+        mesh.material.uniforms.uTime.value = (Date.now() % 1000) / 1000;
+
+        if (mesh.crosshairMesh) {
+          mesh.crosshairMesh.visible = true;
+        }
+        if (mesh.closeMesh) {
+          mesh.closeMesh.visible = true;
+        }
+      };
+      const _unselect = () => {
+        mesh.material.uniforms.uColor.value = new THREE.Color(0);
+        mesh.material.uniforms.uTime.value = 0;
+
+        if (mesh.crosshairMesh) {
+          mesh.crosshairMesh.visible = false;
+        }
+        if (mesh.closeMesh) {
+          mesh.closeMesh.visible = false;
+        }
+      };
       if (mesh.parent === selectedIconMesh) {
         mesh.visible = true;
 
         if (x === selectedIconCoord.x && y === selectedIconCoord.y) {
-          mesh.material.uniforms.uColor.value = new THREE.Color(0x9ccc65);
-          mesh.material.uniforms.uTime.value = (Date.now() % 1000) / 1000;
+          _select();
         } else {
-          mesh.material.uniforms.uColor.value = new THREE.Color(0);
-          mesh.material.uniforms.uTime.value = 0;
+          _unselect();
         }
       } else {
         mesh.visible = false;
@@ -2038,29 +2091,49 @@ const trayMesh = (() => {
             .getInverse(localMatrix2)
         ).decompose(localRay.origin, localQuaternion, localVector);
         localRay.direction.set(0, 0, -1).applyQuaternion(localQuaternion);
-        localBox.setFromCenterAndSize(localVector.set(0, 0, 0), localVector2.set(0.2, 0.2, 0.2));
 
-        const intersectionPoint = localRay.intersectBox(localBox, localVector);
+        if (mesh.crosshairMesh && mesh.crosshairMesh.visible) {
+          const intersectionPoint = localRay.intersectBox(localBox.setFromCenterAndSize(mesh.crosshairMesh.position, localVector.copy(mesh.crosshairMesh.scale).multiplyScalar(iconSize)), localVector);
+          if (intersectionPoint) {
+            return {
+              type: 'icon-crosshair',
+              distance: localRay.origin.distanceTo(intersectionPoint),
+              oncrosshair,
+            };
+          }
+        }
+
+        if (mesh.closeMesh && mesh.closeMesh.visible) {
+          const intersectionPoint = localRay.intersectBox(localBox.setFromCenterAndSize(mesh.closeMesh.position, localVector.copy(mesh.closeMesh.scale).multiplyScalar(iconSize)), localVector);
+          if (intersectionPoint) {
+            return {
+              type: 'icon-close',
+              distance: localRay.origin.distanceTo(intersectionPoint),
+              onclose,
+            };
+          }
+        }
+
+        const intersectionPoint = localRay.intersectBox(localBox.setFromCenterAndSize(localVector.set(0, 0, 0), localVector2.set(0.2, 0.2, 0.2)), localVector);
         if (intersectionPoint) {
-          const distance = localRay.origin.distanceTo(intersectionPoint);
           return {
             type: 'icon',
-            distance,
+            distance: localRay.origin.distanceTo(intersectionPoint),
             onclick: onclick || (() => {
               selectedIconCoord.set(x, y);
             }),
           };
-        } else {
-          return null;
         }
+
+        return null;
       } else {
         return null;
       }
     };
     return mesh;
   };
-  const _makeAndAddIconMesh = (img, x, y, onclick, parentMesh) => {
-    const iconMesh = _makeIconMesh(img, x, y, onclick);
+  const _makeAndAddIconMesh = (img, x, y, onclick, oncrosshair, onclose, parentMesh) => {
+    const iconMesh = _makeIconMesh(img, x, y, onclick, oncrosshair, onclose, onclick);
     iconMesh.position.set(-0.8 + x * 0.4, 0.1 + y * 0.3, 0);
     iconMesh.updateMatrixWorld();
     parentMesh.add(iconMesh);
@@ -2080,11 +2153,12 @@ const trayMesh = (() => {
       // selectedIconCoord.set(-1, 1);
       selectedIconCoord.set(0, 0);
     }],
-    [timesCircleImg, 5, 0, null],
+    // [timesImg, 5, 0, null],
+    // [crosshairImg, 5, 0, null],
     [plusImg, 5, 1, () => {
       _addAppIconMesh(faviconImg, null);
     }],
-  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, x, y, onclick, actionIconMeshes));
+  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, x, y, onclick, null, null, actionIconMeshes));
   mesh.add(actionIconMeshes);
 
   const appIconMeshes = new THREE.Object3D();
@@ -2107,13 +2181,17 @@ const trayMesh = (() => {
     [locationImg, 5, 1, () => {
       console.log('set tab location'); // XXX
     }],
-  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, x, y, onclick, appIconMeshes));
+  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, x, y, onclick, null, null, appIconMeshes));
   mesh.add(appIconMeshes);
 
   const _addAppIconMesh = (img, onclick) => {
     for (let x = 0;; x++) {
       if (appIconMeshes.children.findIndex(mesh => mesh.x === x) === -1) {
-        _makeAndAddIconMesh(img, x, 0, onclick, appIconMeshes);
+        _makeAndAddIconMesh(img, x, 0, onclick, () => {
+          console.log('click target'); // XXX
+        }, () => { 
+          console.log('click close'); // XXX
+        }, appIconMeshes);
         selectedIconMesh = appIconMeshes;
         selectedIconCoord.set(x, 0);
         break;
@@ -2127,7 +2205,7 @@ const trayMesh = (() => {
       selectedIconMesh = actionIconMeshes;
       selectedIconCoord.set(1, 0);
     }],
-  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, x, y, onclick, settingsIconMeshes));
+  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, x, y, onclick, null, null, settingsIconMeshes));
   mesh.add(settingsIconMeshes);
 
   let selectedIconMesh = actionIconMeshes;
@@ -4878,6 +4956,12 @@ function animate(time, frame) {
           keyboardFocus = mesh;
         } else if (type === 'icon') {
           intersectionSpec.onclick();
+        } else if (type === 'icon-crosshair') {
+          intersectionSpec.oncrosshair();
+        } else if (type === 'icon-close') {
+          intersectionSpec.onclose();
+        } else {
+          console.warn(`unknown intersection type ${type}`);
         }
       }
     } else {
