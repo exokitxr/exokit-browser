@@ -218,35 +218,6 @@ const registryUrl = query.registryUrl || DEFAULT_REGISTRY_URL;
 
 // load
 
-const keyMap = [];
-fetch('keyboard.svg')
-  .then(res => res.text())
-  .then(keyboardText => {
-    const div = document.createElement('div');
-    div.innerHTML = keyboardText;
-    const keyEls = div.querySelectorAll('svg > g[key]');
-    for (let i = 0; i < keyEls.length; i++) {
-      const keyEl = keyEls[i];
-      const key = keyEl.getAttribute('key');
-      const shapeEl = keyEl.children[0];
-      const boundings = svgBoundings[shapeEl.tagName.toLowerCase()](shapeEl);
-      const {
-        left,
-        right,
-        top,
-        bottom,
-      } = boundings;
-      const x1 = left * keyboardMatrix[0];
-      const x2 = right * keyboardMatrix[0];
-      const y1 = top * keyboardMatrix[1];
-      const y2 = bottom * keyboardMatrix[1];
-      keyMap.push([key, x1, y1, x2, y2]);
-    }
-  })
-  .catch(err => {
-    console.warn(err.stack);
-  });
-
 const iconMeshes = [];
 
 const _requestSpriteMesh = url => new Promise((accept, reject) => {
@@ -933,6 +904,7 @@ const [
   faviconImg,
   keyboardImg,
   keyboardHighlightCanvasCtx,
+  keyMap,
 ] = await Promise.all(
   [
     'layers.png',
@@ -959,22 +931,52 @@ const [
     };
     img.crossOrigin = 'Anonymous';
     img.src = src;
-  })).concat(new Promise((accept, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'Anonymous';
-    img.src = 'keyboard-highlight.png';
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
-      accept(ctx);
-    };
-    img.onerror = err => {
-      reject(err);
-    };
-  }))
+  })).concat([
+    new Promise((accept, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.src = 'keyboard-highlight.png';
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        accept(ctx);
+      };
+      img.onerror = err => {
+        reject(err);
+      };
+    }),
+    fetch('keyboard.svg')
+      .then(res => res.text())
+      .then(keyboardText => {
+        const result = [];
+
+        const div = document.createElement('div');
+        div.innerHTML = keyboardText;
+        const keyEls = div.querySelectorAll('svg > g[key]');
+        for (let i = 0; i < keyEls.length; i++) {
+          const keyEl = keyEls[i];
+          const key = keyEl.getAttribute('key');
+          const shapeEl = keyEl.children[0];
+          const boundings = svgBoundings[shapeEl.tagName.toLowerCase()](shapeEl);
+          const {
+            left,
+            right,
+            top,
+            bottom,
+          } = boundings;
+          const x1 = left * keyboardMatrix[0];
+          const x2 = right * keyboardMatrix[0];
+          const y1 = top * keyboardMatrix[1];
+          const y2 = bottom * keyboardMatrix[1];
+          result.push([key, x1, y1, x2, y2]);
+        }
+
+        return Promise.resolve(result);
+      }),
+  ])
 );
 const fontSpec = await Promise.all([
   fetch('DejaVu-sdf.json').then(res => res.json()),
@@ -2348,7 +2350,7 @@ const trayMesh = (() => {
         object.topLine.end
       );
     };
-    object.intersect = ray => {
+    object.intersect = (ray, index) => {
       const intersectionPoint = ray.intersectPlane(keyboardMesh.plane, localVector);
       if (intersectionPoint) {
         const leftIntersectionPoint = keyboardMesh.leftLine.closestPointToPoint(intersectionPoint, true, localVector2);
@@ -2361,6 +2363,7 @@ const trayMesh = (() => {
         if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
           const x = xFactor * keyboardWidth;
           const y = yFactor * keyboardHeight;
+          const keyMesh = planeMesh.keyMeshes[index];
 
           for (let j = 0; j < keyMap.length; j++) {
             const [key, kx1, ky1, kx2, ky2] = keyMap[j];
@@ -5140,7 +5143,7 @@ function animate(time, frame) {
         let found = false;
         for (let j = 0; j < candidates.length; j++) {
           const candidate = candidates[j];
-          const intersectionSpec = candidate.intersect(controllerMesh.ray);
+          const intersectionSpec = candidate.intersect(controllerMesh.ray, i);
           if (intersectionSpec) {
             intersectionSpecs[i] = intersectionSpec;
 
