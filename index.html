@@ -5651,65 +5651,6 @@ const _startFakeVrDisplay = async (width, height) => {
     }
     fakeXrDisplay.position.set(0, 1.6, 0);
     fakeXrDisplay.pushUpdate();
-
-    if (navigator.xr) {
-      const session = await navigator.xr.requestSession({
-        exclusive: true,
-      });
-      fakeXrDisplay.session = session;
-
-      const _end = () => {
-        renderer.vr.enabled = false;
-        renderer.vr.setSession(null);
-        renderer.vr.setAnimationLoop(null);
-
-        _emitLayersExitPresent();
-
-        session.removeEventListener('end', _end);
-      };
-      session.addEventListener('end', _end);
-
-      await new Promise((accept, reject) => {
-        session.requestAnimationFrame((timestamp, frame) => {
-          session.layers = layers;
-
-          renderer.vr.enabled = true;
-          renderer.vr.setSession(session, {
-            frameOfReferenceType: 'stage',
-          });
-          renderer.vr.setAnimationLoop(animate);
-
-          const {width, height} = session.baseLayer.getViewport(frame.getViewerPose().views[0]);
-          cameraViewport[0] = width;
-          cameraViewport[1] = height;
-
-          _emitLayersVrDisplayActivate();
-
-          accept();
-        });
-      });
-    } else {
-      const displays = await navigator.getVRDisplays();
-      const display = displays[0];
-      await display.requestPresent([{
-        source: renderer.domElement,
-      }]);
-
-      fakeXrDisplay.display = display;
-
-      const _vrdisplaypresentchange = () => {
-        _emitLayersExitPresent();
-
-        display.removeEventListener('vrdisplaypresentchange', _vrdisplaypresentchange);
-      };
-      display.addEventListener('vrdisplaypresentchange', _vrdisplaypresentchange);
-
-      display.layers = layers;
-
-      renderer.vr.enabled = true;
-      renderer.vr.setDevice(display);
-      renderer.vr.setAnimationLoop(animate);
-    }
   } else {
     fakeXrDisplay = {
       position: camera.position,
@@ -5791,30 +5732,12 @@ const _endFakeVrDisplay = async () => {
 };
 _startFakeVrDisplay()
   .then(() => {
-    /* const tabUrl = (() => {
-      const {t = 'tutorial.html'} = query;
-      if (!/^[a-z]+:\/\//.test(t)) {
-        return `../${t}`;
-      } else {
-        return t;
-      }
-    })();
-    _openUrl(tabUrl);
-
-    focusedTab = rig.menuMesh.urlMesh;
-    rig.menuMesh.urlMesh.updateText();
-    rig.menuMesh.listMesh.updateList(); */
-
     _bindEventTarget('ui');
 
     const roomMesh = _makeRoomMesh(0, 0, 0, 0, 0, 0, 0xffee58);
-    // scene.add(roomMesh);
-    // rooms.push(roomMesh);
-
     const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, roomMesh);
     scene.add(roomLinkMesh);
     roomLinks.push(roomLinkMesh);
-
     _addVolume(roomMesh);
 
     console.log('loaded fake display');
@@ -5822,102 +5745,77 @@ _startFakeVrDisplay()
   .catch(err => {
     console.warn(err.stack);
   });
-/* (async () => {
-  if (!query.fake) {
-    if (navigator.xr) { // WebXR
-      display = await navigator.xr.requestDevice();
+const _enterVr = () => {
+  if (navigator.xr) { // WebXR
+    display = await navigator.xr.requestDevice();
 
-      if (display) {
-        const session = await display.requestSession({
-          exclusive: true,
+    if (display) {
+      const session = await display.requestSession({
+        exclusive: true,
+      });
+      display.session = session;
+
+      session.layers = layers;
+
+      // console.log('request first frame');
+      session.requestAnimationFrame((timestamp, frame) => {
+        renderer.vr.setSession(session, {
+          frameOfReferenceType: 'stage',
         });
-        display.session = session;
 
-        session.layers = layers;
-
-        // console.log('request first frame');
-        session.requestAnimationFrame((timestamp, frame) => {
-          renderer.vr.setSession(session, {
-            frameOfReferenceType: 'stage',
-          });
-
-          const viewport = session.baseLayer.getViewport(frame.views[0]);
-          // const width = viewport.width;
-          const height = viewport.height;
-          const fullWidth = (() => {
-            let result = 0;
-            for (let i = 0; i < frame.views.length; i++) {
-              result += session.baseLayer.getViewport(frame.views[i]).width;
-            }
-            return result;
-          })();
-          renderer.setSize(fullWidth, height);
-
-          renderer.setAnimationLoop(null);
-
-          renderer.vr.enabled = true;
-          renderer.vr.setDevice(display);
-          renderer.vr.setAnimationLoop(animate);
-
-          if (window.browser && window.browser.magicleap) {
-            window.browser.magicleap.RequestDepthPopulation(true);
-            // renderer.autoClearDepth = false;
+        const viewport = session.baseLayer.getViewport(frame.views[0]);
+        // const width = viewport.width;
+        const height = viewport.height;
+        const fullWidth = (() => {
+          let result = 0;
+          for (let i = 0; i < frame.views.length; i++) {
+            result += session.baseLayer.getViewport(frame.views[i]).width;
           }
-
-          _openUrl('tutorial.html');
-          _updateRigLists();
-
-          console.log('loaded root in XR');
-        });
-      } else {
-        console.log('no xr displays');
-        await _bootFakeDisplay();
-      }
-    } else { // WebVR
-      console.log('request device');
-      const displays = await navigator.getVRDisplays();
-      display = displays[0];
-
-      if (display) {
-        console.log('request present');
-        await display.requestPresent([
-          {
-            source: renderer.domElement,
-          }
-        ]);
-        console.log('entered vr');
-
-        display.layers = layers;
-
-        const {renderWidth: width, renderHeight: height} = display.getEyeParameters('left');
-        renderer.setSize(width * 2, height);
+          return result;
+        })();
+        renderer.setSize(fullWidth, height);
 
         renderer.setAnimationLoop(null);
+
         renderer.vr.enabled = true;
         renderer.vr.setDevice(display);
         renderer.vr.setAnimationLoop(animate);
 
-        if (window.browser && window.browser.magicleap) {
-          window.browser.magicleap.RequestDepthPopulation(true);
-          // renderer.autoClearDepth = false;
-        }
-
-        _openUrl('tutorial.html');
-        _updateRigLists();
-
         console.log('loaded root in XR');
-      } else {
-        console.log('no vr displays');
-        await _bootFakeDisplay();
-      }
+      });
+    } else {
+      console.log('no xr displays');
     }
-  } else {
-    await _bootFakeDisplay();
+  } else { // WebVR
+    console.log('request device');
+    const displays = await navigator.getVRDisplays();
+    display = displays[0];
+
+    if (display) {
+      console.log('request present');
+      await display.requestPresent([
+        {
+          source: renderer.domElement,
+        }
+      ]);
+      console.log('entered vr');
+
+      display.layers = layers;
+
+      const {renderWidth: width, renderHeight: height} = display.getEyeParameters('left');
+      renderer.setSize(width * 2, height);
+
+      renderer.setAnimationLoop(null);
+      renderer.vr.enabled = true;
+      renderer.vr.setDevice(display);
+      renderer.vr.setAnimationLoop(animate);
+
+      console.log('loaded root in XR');
+    } else {
+      console.log('no vr displays');
+    }
   }
-})()
-  .catch(err => {
-    console.warn(err.stack);
-  }); */
+};
 
 // renderer.setAnimationLoop(animate);
 // _openRig(new THREE.Vector3(0, 1.5, -1), new THREE.Quaternion());
