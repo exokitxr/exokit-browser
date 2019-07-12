@@ -5651,6 +5651,7 @@ const _startFakeVrDisplay = async (width, height) => {
     }
     fakeXrDisplay.position.set(0, 1.6, 0);
     fakeXrDisplay.pushUpdate();
+    await _enterXr();
   } else {
     fakeXrDisplay = {
       position: camera.position,
@@ -5715,9 +5716,9 @@ const _startFakeVrDisplay = async (width, height) => {
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio, false);
     });
-
-    renderer.setAnimationLoop(animate);
   }
+  
+  renderer.setAnimationLoop(animate);
 };
 const _endFakeVrDisplay = async () => {
   if (fakeXrDisplay.session) {
@@ -5730,62 +5731,40 @@ const _endFakeVrDisplay = async () => {
 
   // renderer.domElement.framebuffer = null; // XXX destroy this framebuffer
 };
-_startFakeVrDisplay()
-  .then(() => {
-    _bindEventTarget('ui');
-
-    const roomMesh = _makeRoomMesh(0, 0, 0, 0, 0, 0, 0xffee58);
-    const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, roomMesh);
-    scene.add(roomLinkMesh);
-    roomLinks.push(roomLinkMesh);
-    _addVolume(roomMesh);
-
-    console.log('loaded fake display');
-  })
-  .catch(err => {
-    console.warn(err.stack);
-  });
-const _enterVr = async () => {
+const _enterXr = async () => {
   if (navigator.xr) { // WebXR
-    display = await navigator.xr.requestDevice();
+    const session = await navigator.xr.requestSession({
+      exclusive: true,
+    });
+    session.layers = layers;
 
-    if (display) {
-      const session = await display.requestSession({
-        exclusive: true,
+    // console.log('request first frame');
+    session.requestAnimationFrame((timestamp, frame) => {
+      renderer.vr.setSession(session, {
+        frameOfReferenceType: 'stage',
       });
-      display.session = session;
 
-      session.layers = layers;
+      const pose = frame.getViewerPose();
+      const viewport = session.baseLayer.getViewport(pose.views[0]);
+      // const width = viewport.width;
+      const height = viewport.height;
+      const fullWidth = (() => {
+        let result = 0;
+        for (let i = 0; i < pose.views.length; i++) {
+          result += session.baseLayer.getViewport(pose.views[i]).width;
+        }
+        return result;
+      })();
+      renderer.setSize(fullWidth, height);
 
-      // console.log('request first frame');
-      session.requestAnimationFrame((timestamp, frame) => {
-        renderer.vr.setSession(session, {
-          frameOfReferenceType: 'stage',
-        });
+      renderer.setAnimationLoop(null);
 
-        const viewport = session.baseLayer.getViewport(frame.views[0]);
-        // const width = viewport.width;
-        const height = viewport.height;
-        const fullWidth = (() => {
-          let result = 0;
-          for (let i = 0; i < frame.views.length; i++) {
-            result += session.baseLayer.getViewport(frame.views[i]).width;
-          }
-          return result;
-        })();
-        renderer.setSize(fullWidth, height);
+      renderer.vr.enabled = true;
+      renderer.vr.setDevice(display);
+      renderer.vr.setAnimationLoop(animate);
 
-        renderer.setAnimationLoop(null);
-
-        renderer.vr.enabled = true;
-        renderer.vr.setDevice(display);
-        renderer.vr.setAnimationLoop(animate);
-
-        console.log('loaded root in XR');
-      });
-    } else {
-      console.log('no xr displays');
-    }
+      console.log('loaded root in XR');
+    });
   } else { // WebVR
     console.log('request device');
     const displays = await navigator.getVRDisplays();
@@ -5816,6 +5795,21 @@ const _enterVr = async () => {
     }
   }
 };
+_startFakeVrDisplay()
+  .then(() => {
+    _bindEventTarget('ui');
+
+    /* const roomMesh = _makeRoomMesh(0, 0, 0, 0, 0, 0, 0xffee58);
+    const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, roomMesh);
+    scene.add(roomLinkMesh);
+    roomLinks.push(roomLinkMesh);
+    _addVolume(roomMesh); */
+
+    console.log('loaded fake display');
+  })
+  .catch(err => {
+    console.warn(err.stack);
+  });
 
 // renderer.setAnimationLoop(animate);
 // _openRig(new THREE.Vector3(0, 1.5, -1), new THREE.Quaternion());
