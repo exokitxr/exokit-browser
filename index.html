@@ -1268,29 +1268,21 @@ const toolMesh = (() => {
       case 1: {
         mesh.tool = 'point';
         textMesh.geometry.update('Point');
-        // pointerMesh.visible = true;
-        // targetMesh.visible = false;
         break;
       }
       case 2: {
         mesh.tool = 'browser';
         textMesh.geometry.update('Browser');
-        // pointerMesh.visible = true;
-        // targetMesh.visible = false;
         break;
       }
       case 3: {
         mesh.tool = 'portal';
         textMesh.geometry.update('Portal');
-        // pointerMesh.visible = true;
-        // targetMesh.visible = false;
         break;
       }
       case 4: {
         mesh.tool = 'volume';
         textMesh.geometry.update('Volume');
-        // pointerMesh.visible = false;
-        // targetMesh.visible = true;
         break;
       }
       default: {
@@ -2189,7 +2181,7 @@ const trayMesh = (() => {
       if (appIconMeshes.children.findIndex(mesh => mesh.x === x) === -1) {
         const iconMesh = _makeAndAddIconMesh(img, x, 0, onclick, i => {
           moveSpecs[i] = {
-            // XXX
+            type: 'browser',
           };
         }, () => { 
           const index = appIconMeshes.children.indexOf(iconMesh);
@@ -2337,7 +2329,36 @@ const trayMesh = (() => {
 scene.add(trayMesh);
 
 const _makeMoveMesh = i => {
-  const targetGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
+  const object = new THREE.Object3D();
+
+  const material = new THREE.MeshBasicMaterial({
+    color: new THREE.Color(0x333333),
+  });
+
+  const cornerGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
+    new THREE.BoxBufferGeometry(0.2, 0.03, 0.03)
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0.1, 0, 0)),
+    new THREE.BoxBufferGeometry(0.03, 0.2, 0.03)
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0, -0.1, 0)),
+  ]);
+  const browserGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
+    cornerGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0.5, 0)),
+    cornerGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0.5, 0)),
+    cornerGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(-1, 0, 0))))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, -0.5, 0)),
+    cornerGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, -1, 0))))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0)),
+  ]).applyMatrix(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
+  const browserMesh = new THREE.Mesh(browserGeometry, material);
+  browserMesh.visible = false;
+  object.add(browserMesh);
+
+  const edgeGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
     new THREE.BoxBufferGeometry(0.03, 0.2, 0.03)
       .applyMatrix(new THREE.Matrix4().makeTranslation(0, -0.1, 0)),
     new THREE.BoxBufferGeometry(0.03, 0.2, 0.03)
@@ -2347,70 +2368,109 @@ const _makeMoveMesh = i => {
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(1, 0, 0))))
       .applyMatrix(new THREE.Matrix4().makeTranslation(0.1, 0, 0)),
   ]);
-  const geometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
-    targetGeometry.clone()
+  const portalGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
+    edgeGeometry.clone()
       .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0.5, -0.5)),
-    targetGeometry.clone()
+    edgeGeometry.clone()
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, -1, 0))))
       .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, -0.5, -0.5)),
-    targetGeometry.clone()
+    edgeGeometry.clone()
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))))
       .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0.5, 0.5)),
-    targetGeometry.clone()
+    edgeGeometry.clone()
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))))
       .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0.5, -0.5)),
-    targetGeometry.clone()
+    edgeGeometry.clone()
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))))
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))))
       .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0.5, 0.5)),
-    targetGeometry.clone()
+    edgeGeometry.clone()
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))))
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0, -1, 0))))
       .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, -0.5, 0.5)),
-    targetGeometry.clone()
+    edgeGeometry.clone()
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))))
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, -1, 0))))
       .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.5, -0.5)),
-    targetGeometry.clone()
+    edgeGeometry.clone()
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(-1, 1, 0).normalize(), new THREE.Vector3(1, -1, 0).normalize())))
       .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0.5)),
   ]).applyMatrix(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
-  const targetVsh = `
-    varying vec2 vUv;
-    void main() {
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+  const portalMesh = new THREE.Mesh(portalGeometry, material);
+  portalMesh.visible = false;
+  object.add(portalMesh);
+
+  const volumeGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
+    edgeGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0.5, -0.5)),
+    edgeGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, -1, 0))))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, -0.5, -0.5)),
+    edgeGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0.5, 0.5)),
+    edgeGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0.5, -0.5)),
+    edgeGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))))
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0.5, 0.5)),
+    edgeGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))))
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0, -1, 0))))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, -0.5, 0.5)),
+    edgeGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))))
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, -1, 0))))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.5, -0.5)),
+    edgeGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(-1, 1, 0).normalize(), new THREE.Vector3(1, -1, 0).normalize())))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0.5)),
+  ]).applyMatrix(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
+  const volumeMesh = new THREE.Mesh(browserGeometry, material);
+  volumeMesh.visible = false;
+  object.add(volumeMesh);
+
+  object.setMode = mode => {
+    [browserMesh, portalMesh, volumeMesh].forEach(mesh => {
+      mesh.visible = false;
+    });
+
+    switch (mode) {
+      case 'browser': {
+        browserMesh.visible = true;
+        break;
+      }
+      case 'portal': {
+        portalMesh.visible = true;
+        break;
+      }
+      case 'volume': {
+        volumeMesh.visible = true;
+        break;
+      }
     }
-  `;
-  const targetFsh = `
-    void main() {
-      gl_FragColor = vec4(0.1, 0.1, 0.1, 1.0);
-    }
-  `;
-  const material = new THREE.ShaderMaterial({
-    vertexShader: targetVsh,
-    fragmentShader: targetFsh,
-    // transparent: true,
-  });
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.frustumCulled = false;
-  mesh.visible = false;
-  mesh.update = () => {
-    if (moveSpecs[i]) {
-      mesh.visible = true;
+  };
+  object.update = () => {
+    const moveSpec = moveSpecs[i];
+    if (moveSpec) {
+      object.visible = true;
 
       const gamepads = navigator.getGamepads();
       const gamepad = gamepads[i];
       if (gamepad) {
-        mesh.quaternion.fromArray(gamepad.pose.orientation);
-        mesh.position
+        object.quaternion.fromArray(gamepad.pose.orientation);
+        object.position
           .fromArray(gamepad.pose.position)
-          .add(localVector.set(0, 0, -3).applyQuaternion(mesh.quaternion));
+          .add(localVector.set(0, 0, -3).applyQuaternion(object.quaternion));
+        object.setMode(moveSpec.type);
       }
     } else {
-      mesh.visible = false;
+      object.visible = false;
     }
   };
-  return mesh;
+  return object;
 };
 const moveMeshes = [
   _makeMoveMesh(0),
