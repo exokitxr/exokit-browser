@@ -5756,10 +5756,6 @@ _startFakeVrDisplay()
     scene.add(roomLinkMesh);
     roomLinks.push(roomLinkMesh);
 
-    const roomDiagramMesh = _makeRoomDiagramMesh(roomDiagrams.length, 'volume', 'tutorial.html', 0xffee58);
-    scene.add(roomDiagramMesh);
-    roomDiagrams.push(roomDiagramMesh);
-
     _addVolume(roomMesh);
 
     console.log('loaded fake display');
