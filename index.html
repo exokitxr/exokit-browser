@@ -2009,6 +2009,8 @@ const trayMesh = (() => {
     });
     const mesh = new THREE.Mesh(geometry, material);
     mesh.frustumCulled = false;
+    mesh.x = x;
+    mesh.y = y;
     mesh.update = () => {
       if (mesh.parent === selectedIconMesh) {
         mesh.visible = true;
@@ -2080,7 +2082,7 @@ const trayMesh = (() => {
     }],
     [timesCircleImg, 5, 0, null],
     [plusImg, 5, 1, () => {
-      console.log('add tab'); // XXX
+      _addAppIconMesh(faviconImg, null);
     }],
   ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, x, y, onclick, actionIconMeshes));
   mesh.add(actionIconMeshes);
@@ -2094,11 +2096,11 @@ const trayMesh = (() => {
     [chevronLeftImg, -1, 0, () => {
       console.log('page tabs left'); // XXX
     }],
-    [faviconImg, 0, 0, null],
+    /* [faviconImg, 0, 0, null],
     [null, 1, 0, null],
     [null, 2, 0, null],
     [null, 3, 0, null],
-    [null, 4, 0, null],
+    [null, 4, 0, null], */
     [chevronRightImg, 5, 0, () => {
       console.log('page tabs right'); // XXX
     }],
@@ -2107,6 +2109,17 @@ const trayMesh = (() => {
     }],
   ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, x, y, onclick, appIconMeshes));
   mesh.add(appIconMeshes);
+
+  const _addAppIconMesh = (img, onclick) => {
+    for (let x = 0;; x++) {
+      if (appIconMeshes.children.findIndex(mesh => mesh.x === x) === -1) {
+        _makeAndAddIconMesh(img, x, 0, onclick, appIconMeshes);
+        selectedIconMesh = appIconMeshes;
+        selectedIconCoord.set(x, 0);
+        break;
+      }
+    }
+  };
 
   const settingsIconMeshes = new THREE.Object3D();
   [
