@@ -2187,8 +2187,10 @@ const trayMesh = (() => {
   const _addAppIconMesh = (img, onclick) => {
     for (let x = 0;; x++) {
       if (appIconMeshes.children.findIndex(mesh => mesh.x === x) === -1) {
-        const iconMesh = _makeAndAddIconMesh(img, x, 0, onclick, () => {
-          console.log('click crosshair'); // XXX
+        const iconMesh = _makeAndAddIconMesh(img, x, 0, onclick, i => {
+          moveSpecs[i] = {
+            // XXX
+          };
         }, () => { 
           const index = appIconMeshes.children.indexOf(iconMesh);
           appIconMeshes.remove(iconMesh);
@@ -2333,6 +2335,90 @@ const trayMesh = (() => {
   return mesh;
 })();
 scene.add(trayMesh);
+
+const _makeMoveMesh = i => {
+  const targetGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
+    new THREE.BoxBufferGeometry(0.03, 0.2, 0.03)
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0, -0.1, 0)),
+    new THREE.BoxBufferGeometry(0.03, 0.2, 0.03)
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 1))))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, 0.1)),
+    new THREE.BoxBufferGeometry(0.03, 0.2, 0.03)
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(1, 0, 0))))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0.1, 0, 0)),
+  ]);
+  const geometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
+    targetGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0.5, -0.5)),
+    targetGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, -1, 0))))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, -0.5, -0.5)),
+    targetGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0.5, 0.5)),
+    targetGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0.5, -0.5)),
+    targetGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))))
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0.5, 0.5)),
+    targetGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))))
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0, -1, 0))))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, -0.5, 0.5)),
+    targetGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))))
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, -1, 0))))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.5, -0.5)),
+    targetGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(-1, 1, 0).normalize(), new THREE.Vector3(1, -1, 0).normalize())))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0.5)),
+  ]).applyMatrix(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
+  const targetVsh = `
+    varying vec2 vUv;
+    void main() {
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+    }
+  `;
+  const targetFsh = `
+    void main() {
+      gl_FragColor = vec4(0.1, 0.1, 0.1, 1.0);
+    }
+  `;
+  const material = new THREE.ShaderMaterial({
+    vertexShader: targetVsh,
+    fragmentShader: targetFsh,
+    // transparent: true,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  mesh.visible = false;
+  mesh.update = () => {
+    if (moveSpecs[i]) {
+      mesh.visible = true;
+
+      const gamepads = navigator.getGamepads();
+      const gamepad = gamepads[i];
+      if (gamepad) {
+        mesh.quaternion.fromArray(gamepad.pose.orientation);
+        mesh.position
+          .fromArray(gamepad.pose.position)
+          .add(localVector.set(0, 0, -3).applyQuaternion(mesh.quaternion));
+      }
+    } else {
+      mesh.visible = false;
+    }
+  };
+  return mesh;
+};
+const moveMeshes = [
+  _makeMoveMesh(0),
+  _makeMoveMesh(1),
+];
+for (let i = 0; i < moveMeshes.length; i++) {
+  scene.add(moveMeshes[i]);
+}
 
 const _makeRoomMesh = (sx, sy, sz, dx, dy, dz, color) => {
   const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
@@ -4100,6 +4186,10 @@ const intersectionSpecs = [
   null,
   null,
 ];
+const moveSpecs = [
+  null,
+  null,
+];
 
 const _handleDefaultKey = (code, shiftKey) => {
   let c = String.fromCharCode(code);
@@ -4894,6 +4984,13 @@ function animate(time, frame) {
   };
   _updateTrayMesh();
 
+  const _updateMoves = () => {
+    for (let i = 0; i < moveMeshes.length; i++) {
+      moveMeshes[i].update();
+    }
+  };
+  _updateMoves();
+
   const _updateIntersections = () => {
     for (let i = 0; i < 2; i++) {
       if (!pendingRooms[i]) {
@@ -4945,130 +5042,134 @@ function animate(time, frame) {
       keyboardFocus = null;
     }
 
-    const intersectionSpec = intersectionSpecs[i];
-    if (intersectionSpec) {
-      if (pressed && !lastPressed) {
-        const {type} = intersectionSpec;
-        if (type === 'label') {
-          const {mesh} = intersectionSpec;
-          const glyphs = mesh.getGlyphs();
-          const distanceSpecs = glyphs
-            .map((c, i) => ({i, x: c.x, distance: Math.abs(intersectionSpec.x - c.x)}))
-            .sort((a, b) => a.distance - b.distance);
-          const distanceSpec = distanceSpecs.length > 0 ? distanceSpecs[0] : {i: 0, x: 0};
-          mesh.caretMesh.setValue(distanceSpec.i);
-          mesh.caretMesh.visible = true;
-          keyboardFocus = mesh;
-        } else if (type === 'icon') {
-          intersectionSpec.onclick();
-        } else if (type === 'icon-crosshair') {
-          intersectionSpec.oncrosshair();
-        } else if (type === 'icon-close') {
-          intersectionSpec.onclose();
-        } else {
-          console.warn(`unknown intersection type ${type}`);
-        }
-      }
+    if (pressed && !lastPressed && moveSpecs[i]) {
+      moveSpecs[i] = null;
     } else {
-      if (window.document.pointerLockElement) {
-        if (toolMesh.tool === 'point') {
-          if (start) {
-            const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-            const p = c.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion));
-            const point = _makePointMesh(p.x, p.y, p.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w);
-            scene.add(point);
-            pointMeshes.push(point);
-            pendingRooms[i] = point;
-          } else if (end) {
-            const point = pendingRooms[i];
-            if (point) {
-              pendingRooms[i] = null;
-              const labelMesh = _makeLabelMesh('https://google.com');
-              labelMesh.position.copy(point.position);
-              labelMesh.position.y += 0.1;
-              labelMesh.rotation.setFromQuaternion(point.quaternion, 'YXZ');
-              labelMesh.rotation.x = 0;
-              labelMesh.updateMatrixWorld();
-              labelMesh.update();
-              scene.add(labelMesh);
-              roomLabels.push(labelMesh);
-
-              const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, point);
-              scene.add(roomLinkMesh);
-              roomLinks.push(roomLinkMesh);
-            }
+      const intersectionSpec = intersectionSpecs[i];
+      if (intersectionSpec) {
+        if (pressed && !lastPressed) {
+          const {type} = intersectionSpec;
+          if (type === 'label') {
+            const {mesh} = intersectionSpec;
+            const glyphs = mesh.getGlyphs();
+            const distanceSpecs = glyphs
+              .map((c, i) => ({i, x: c.x, distance: Math.abs(intersectionSpec.x - c.x)}))
+              .sort((a, b) => a.distance - b.distance);
+            const distanceSpec = distanceSpecs.length > 0 ? distanceSpecs[0] : {i: 0, x: 0};
+            mesh.caretMesh.setValue(distanceSpec.i);
+            mesh.caretMesh.visible = true;
+            keyboardFocus = mesh;
+          } else if (type === 'icon') {
+            intersectionSpec.onclick(i);
+          } else if (type === 'icon-crosshair') {
+            intersectionSpec.oncrosshair(i);
+          } else if (type === 'icon-close') {
+            intersectionSpec.onclose(i);
           } else {
-            const point = pendingRooms[i];
-            if (point) {
+            console.warn(`unknown intersection type ${type}`);
+          }
+        }
+      } else {
+        if (window.document.pointerLockElement) {
+          if (toolMesh.tool === 'point') {
+            if (start) {
               const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
               const p = c.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion));
-              point.setEnd(p.x, p.y, p.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w);
-              // console.log('update room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
-            }
-          }
-        } else if (toolMesh.tool === 'browser' || toolMesh.tool === 'portal') {
-          if (start) {
-            const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-            const p = c.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion));
-            const browser = _makeBrowserMesh(p.x, p.y, p.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w, 0x9ccc65);
-            scene.add(browser);
-            // rooms.push(browser);
-            pendingRooms[i] = browser;
-          } else if (end) {
-            const browser = pendingRooms[i];
-            if (browser) {
-              pendingRooms[i] = null;
-              const labelMesh = _makeLabelMesh('https://google.com');
-              labelMesh.position.copy(browser.position);
-              labelMesh.position.y += 0.1;
-              labelMesh.rotation.setFromQuaternion(browser.quaternion, 'YXZ');
-              labelMesh.rotation.x = 0;
-              labelMesh.updateMatrixWorld();
-              labelMesh.update();
-              scene.add(labelMesh);
-              roomLabels.push(labelMesh);
+              const point = _makePointMesh(p.x, p.y, p.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w);
+              scene.add(point);
+              pointMeshes.push(point);
+              pendingRooms[i] = point;
+            } else if (end) {
+              const point = pendingRooms[i];
+              if (point) {
+                pendingRooms[i] = null;
+                const labelMesh = _makeLabelMesh('https://google.com');
+                labelMesh.position.copy(point.position);
+                labelMesh.position.y += 0.1;
+                labelMesh.rotation.setFromQuaternion(point.quaternion, 'YXZ');
+                labelMesh.rotation.x = 0;
+                labelMesh.updateMatrixWorld();
+                labelMesh.update();
+                scene.add(labelMesh);
+                roomLabels.push(labelMesh);
 
-              const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, browser);
-              scene.add(roomLinkMesh);
-              roomLinks.push(roomLinkMesh);
+                const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, point);
+                scene.add(roomLinkMesh);
+                roomLinks.push(roomLinkMesh);
+              }
+            } else {
+              const point = pendingRooms[i];
+              if (point) {
+                const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
+                const p = c.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion));
+                point.setEnd(p.x, p.y, p.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w);
+                // console.log('update room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
+              }
             }
-          } else {
-            const browser = pendingRooms[i];
-            if (browser) {
-              const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-              browser.setEnd(c.position.x, c.position.y, c.position.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w);
-              // console.log('update room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
-            }
-          }
-        } else {
-          if (start) {
-            const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-            const p = c.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion));
-            const room = _makeVolumeMesh(p.x, p.y, p.z, p.x, p.y, p.z, 0x4caf50);
-            scene.add(room);
-            rooms.push(room);
-            pendingRooms[i] = room;
-          } else if (end) {
-            const room = pendingRooms[i];
-            if (room) {
-              // room.setColor(0x5c6bc0);
-              pendingRooms[i] = null;
-              const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, room);
-              scene.add(roomLinkMesh);
-              roomLinks.push(roomLinkMesh);
-              const roomDiagramMesh = _makeRoomDiagramMesh(roomDiagrams.length, room.classify(), 'tutorial.html', 0xffee58);
-              scene.add(roomDiagramMesh);
-              roomDiagrams.push(roomDiagramMesh);
-              _addVolume(room);
-              // console.log('end room', room.classify(), targetMesh.material.uniforms.worldPos.value.toArray().join(','));
-            }
-          } else {
-            const room = pendingRooms[i];
-            if (room) {
+          } else if (toolMesh.tool === 'browser' || toolMesh.tool === 'portal') {
+            if (start) {
               const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
               const p = c.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion));
-              room.setEnd(p.x, p.y, p.z);
-              // console.log('update room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
+              const browser = _makeBrowserMesh(p.x, p.y, p.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w, 0x9ccc65);
+              scene.add(browser);
+              // rooms.push(browser);
+              pendingRooms[i] = browser;
+            } else if (end) {
+              const browser = pendingRooms[i];
+              if (browser) {
+                pendingRooms[i] = null;
+                const labelMesh = _makeLabelMesh('https://google.com');
+                labelMesh.position.copy(browser.position);
+                labelMesh.position.y += 0.1;
+                labelMesh.rotation.setFromQuaternion(browser.quaternion, 'YXZ');
+                labelMesh.rotation.x = 0;
+                labelMesh.updateMatrixWorld();
+                labelMesh.update();
+                scene.add(labelMesh);
+                roomLabels.push(labelMesh);
+
+                const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, browser);
+                scene.add(roomLinkMesh);
+                roomLinks.push(roomLinkMesh);
+              }
+            } else {
+              const browser = pendingRooms[i];
+              if (browser) {
+                const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
+                browser.setEnd(c.position.x, c.position.y, c.position.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w);
+                // console.log('update room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
+              }
+            }
+          } else {
+            if (start) {
+              const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
+              const p = c.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion));
+              const room = _makeVolumeMesh(p.x, p.y, p.z, p.x, p.y, p.z, 0x4caf50);
+              scene.add(room);
+              rooms.push(room);
+              pendingRooms[i] = room;
+            } else if (end) {
+              const room = pendingRooms[i];
+              if (room) {
+                // room.setColor(0x5c6bc0);
+                pendingRooms[i] = null;
+                const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, room);
+                scene.add(roomLinkMesh);
+                roomLinks.push(roomLinkMesh);
+                const roomDiagramMesh = _makeRoomDiagramMesh(roomDiagrams.length, room.classify(), 'tutorial.html', 0xffee58);
+                scene.add(roomDiagramMesh);
+                roomDiagrams.push(roomDiagramMesh);
+                _addVolume(room);
+                // console.log('end room', room.classify(), targetMesh.material.uniforms.worldPos.value.toArray().join(','));
+              }
+            } else {
+              const room = pendingRooms[i];
+              if (room) {
+                const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
+                const p = c.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion));
+                room.setEnd(p.x, p.y, p.z);
+                // console.log('update room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
+              }
             }
           }
         }
@@ -5513,7 +5614,7 @@ const _startFakeVrDisplay = async (width, height) => {
     window.addEventListener('mousedown', e => {
       if (window.document.pointerLockElement) {
         gamepad.buttons[1].pressed = true;
-      } else if (intersectionSpecs[0]) {
+      } else if (intersectionSpecs[0] || moveSpecs[0]) {
         gamepad.buttons[1].pressed = true;
 
         if (orbitControls) {
