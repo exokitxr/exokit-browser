@@ -2073,7 +2073,11 @@ const trayMesh = (() => {
     [browserImg, 1, 0, null],
     [hurricaneImg, 2, 0, null],
     [diceImg, 3, 0, null],
-    [cogsImg, 4, 0, null],
+    [cogsImg, 4, 0, () => {
+      selectedIconMesh = settingsIconMeshes;
+      // selectedIconCoord.set(-1, 1);
+      selectedIconCoord.set(0, 0);
+    }],
     [timesCircleImg, 5, 0, null],
     [plusImg, 5, 1, () => {
       console.log('add tab'); // XXX
@@ -2085,7 +2089,7 @@ const trayMesh = (() => {
   [
     [arrowLeftImg, -1, 1, () => {
       selectedIconMesh = actionIconMeshes;
-      selectedIconCoord.set(0, 0);
+      selectedIconCoord.set(1, 0);
     }],
     [chevronLeftImg, -1, 0, () => {
       console.log('page tabs left'); // XXX
@@ -2103,6 +2107,15 @@ const trayMesh = (() => {
     }],
   ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, x, y, onclick, appIconMeshes));
   mesh.add(appIconMeshes);
+
+  const settingsIconMeshes = new THREE.Object3D();
+  [
+    [arrowLeftImg, -1, 1, () => {
+      selectedIconMesh = actionIconMeshes;
+      selectedIconCoord.set(1, 0);
+    }],
+  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, x, y, onclick, settingsIconMeshes));
+  mesh.add(settingsIconMeshes);
 
   let selectedIconMesh = actionIconMeshes;
   let selectedIconCoord = new THREE.Vector2(1, 0);
@@ -2212,14 +2225,13 @@ const trayMesh = (() => {
 
   mesh.update = () => {
     labelMesh.update();
-    for (let i = 0; i < actionIconMeshes.children.length; i++) {
-      actionIconMeshes.children[i].update();
-    }
-    for (let i = 0; i < appIconMeshes.children.length; i++) {
-      appIconMeshes.children[i].update();
-    }
+    [actionIconMeshes, appIconMeshes, settingsIconMeshes].forEach(iconMeshes => {
+      for (let i = 0; i < iconMeshes.children.length; i++) {
+        iconMeshes.children[i].update();
+      }
+    });
   };
-  mesh.getIntersectionCandidates = () => [labelMesh].concat(actionIconMeshes.children).concat(appIconMeshes.children);
+  mesh.getIntersectionCandidates = () => [labelMesh].concat(actionIconMeshes.children).concat(appIconMeshes.children).concat(settingsIconMeshes.children);
 
   mesh.frustumCulled = false;
   return mesh;
