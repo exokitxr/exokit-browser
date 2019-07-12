@@ -1022,11 +1022,11 @@ const _makeTextMesh = (s = '', size = 1) => {
   };
   return mesh;
 };
-const textMesh = _makeTextMesh('Lorem ipsum dolor sit amet');
+/* const textMesh = _makeTextMesh('Lorem ipsum dolor sit amet');
 textMesh.position.x -= 0.5;
 textMesh.position.y += 1;
 textMesh.frustumCulled = false;
-scene.add(textMesh);
+scene.add(textMesh); */
 
 const _makeCaretMesh = labelMesh => {
   const geometry = new THREE.PlaneBufferGeometry(0.005, 0.1)
@@ -1043,7 +1043,7 @@ const _makeCaretMesh = labelMesh => {
   mesh.setValue = newValue => {
     value = newValue;
 
-    const {glyphs} = textMesh.geometry.layout;
+    const glyphs = labelMesh.getGlyphs();
     if (glyphs.length > 0) {
       if (value < glyphs.length) {
         mesh.position.x = glyphs[value].x * labelMesh.textMesh.scale.x;
@@ -1229,7 +1229,7 @@ scene.add(pointerMesh);
 })();
 scene.add(targetMesh); */
 
-const toolMesh = (() => {
+/* const toolMesh = (() => {
   const geometry = new THREE.PlaneBufferGeometry(0.4, 0.1)
     .applyMatrix(new THREE.Matrix4().makeTranslation(0, -0.1/2, 0));
   const toolVsh = `
@@ -1294,7 +1294,7 @@ const toolMesh = (() => {
   return mesh;
 })();
 scene.add(toolMesh);
-toolMesh.setTool(1);
+toolMesh.setTool(1); */
 
 // events
 
@@ -1559,14 +1559,14 @@ const _bindEventTarget = target => {
               keys.ctrl = true;
               break;
             }
-            case 49: // 1
+            /* case 49: // 1
             case 50: // 2
             case 51: // 3
             case 52: // 4
             {
               toolMesh.setTool(e.which - 48);
               break;
-            }
+            } */
           }
         }
       },
@@ -1736,7 +1736,7 @@ for (let i = 0; i < controllerMeshes.length; i++) {
   scene.add(controllerMesh);
   controllerMeshes[i] = controllerMesh;
 }
-controllerMeshes[0].add(toolMesh);
+// controllerMeshes[0].add(toolMesh);
 const _getControllerIndex = gamepad => gamepad.hand === 'left' ? 0 : 1;
 
 // grid
@@ -5149,7 +5149,7 @@ function animate(time, frame) {
             console.warn(`unknown intersection type ${type}`);
           }
         }
-      } else {
+      } /* else {
         if (window.document.pointerLockElement) {
           if (toolMesh.tool === 'point') {
             if (start) {
@@ -5253,7 +5253,7 @@ function animate(time, frame) {
             }
           }
         }
-      }
+      } */
     }
   };
   const _makeMenuAnimation = spec => {
@@ -5747,10 +5747,9 @@ _startFakeVrDisplay()
 
     _bindEventTarget('ui');
 
-    // const roomMesh = _makeRoomMesh(-8, 0, -8, 8, 4, 8, 0xffee58);
     const roomMesh = _makeRoomMesh(0, 0, 0, 0, 0, 0, 0xffee58);
-    scene.add(roomMesh);
-    rooms.push(roomMesh);
+    // scene.add(roomMesh);
+    // rooms.push(roomMesh);
 
     const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, roomMesh);
     scene.add(roomLinkMesh);
