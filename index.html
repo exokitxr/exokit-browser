@@ -1442,13 +1442,22 @@ const _bindEventTarget = target => {
           _handleKey(e.keyCode, e.shiftKey);
         }
       },
+      keypress(e) {
+        switch (e.which) {
+          case 114: {// R
+            _endFakeVrDisplay()
+              .then(() => _enterXr())
+              .catch(err => {
+                console.warn(err.stack);
+              });
+            break;
+          }
+        }
+      },
       dblclick(e) {
         if (!window.document.pointerLockElement) {
           renderer.domElement.requestPointerLock();
         }
-      },
-      keypress(e) {
-        // XXX
       },
     }, {
       pointerlockchange(e) {
@@ -1618,11 +1627,24 @@ const _bindEventTarget = target => {
         }
       },
       keypress(e) {
+        switch (e.which) {
+          case 114: {// R
+            _endFakeVrDisplay()
+              .then(() => _enterXr())
+              .catch(err => {
+                console.warn(err.stack);
+              });
+            break;
+          }
+        }
+      },
+      /* keypress(e) {
         if (!window.document.pointerLockElement) {
           if (focusedTab) {
-            /* if (focusedTab === rig.menuMesh.urlMesh) {
-              rig.menuMesh.urlMesh.handleKey(e.keyCode, e.shiftKey);
-            } else */if (focusedTab.iframe) {
+            // if (focusedTab === rig.menuMesh.urlMesh) {
+            //   rig.menuMesh.urlMesh.handleKey(e.keyCode, e.shiftKey);
+            // } else
+            if (focusedTab.iframe) {
               focusedTab.iframe.sendKeyPress(e.which, {
                 shiftKey: e.shiftKey,
                 ctrlKey: e.ctrlKey,
@@ -1631,7 +1653,7 @@ const _bindEventTarget = target => {
             }
           }
         }
-      },
+      }, */
     }, {
       pointerlockchange(e) {
         if (!window.document.pointerLockElement) {
