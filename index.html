@@ -1971,7 +1971,7 @@ const trayMesh = (() => {
   });
   const mesh = new THREE.Mesh(geometry, material);
 
-  const _makeIconMesh = (img, x, y) => {
+  const _makeIconMesh = (img, x, y, onclick) => {
     const geometry = new THREE.PlaneBufferGeometry(0.2, 0.2);
     const texture = new THREE.Texture(img);
     if (img) {
@@ -2038,7 +2038,7 @@ const trayMesh = (() => {
       }
     };
     mesh.intersect = ray => {
-      if (mesh.parent.visible && img) {
+      if (mesh.visible && img) {
         localMatrix.compose(
           ray.origin,
           localQuaternion.setFromUnitVectors(localVector.set(0, 0, -1), ray.direction),
@@ -2057,8 +2057,9 @@ const trayMesh = (() => {
           return {
             type: 'icon',
             distance,
-            x,
-            y,
+            onclick: onclick || (() => {
+              selectedIconCoord.set(x, y);
+            }),
           };
         } else {
           return null;
@@ -2069,8 +2070,8 @@ const trayMesh = (() => {
     };
     return mesh;
   };
-  const _makeAndAddIconMesh = (img, x, y, parentMesh) => {
-    const iconMesh = _makeIconMesh(img, x, y);
+  const _makeAndAddIconMesh = (img, x, y, onclick, parentMesh) => {
+    const iconMesh = _makeIconMesh(img, x, y, onclick);
     iconMesh.position.set(-0.8 + x * 0.4, 0.1 + y * 0.3, 0);
     iconMesh.updateMatrixWorld();
     parentMesh.add(iconMesh);
@@ -2078,28 +2079,42 @@ const trayMesh = (() => {
 
   const actionIconMeshes = new THREE.Object3D();
   [
-    [layersImg, 0, 0],
-    [browserImg, 1, 0],
-    [hurricaneImg, 2, 0],
-    [diceImg, 3, 0],
-    [cogsImg, 4, 0],
-    [timesCircleImg, 5, 0],
-    [plusImg, 5, 1],
-  ].forEach(([img, x, y]) => _makeAndAddIconMesh(img, x, y, actionIconMeshes));
+    [layersImg, 0, 0, () => {
+      selectedIconMesh = appIconMeshes;
+      selectedIconCoord.set(0, 0);
+    }],
+    [browserImg, 1, 0, null],
+    [hurricaneImg, 2, 0, null],
+    [diceImg, 3, 0, null],
+    [cogsImg, 4, 0, null],
+    [timesCircleImg, 5, 0, null],
+    [plusImg, 5, 1, () => {
+      console.log('add tab'); // XXX
+    }],
+  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, x, y, onclick, actionIconMeshes));
   mesh.add(actionIconMeshes);
 
   const appIconMeshes = new THREE.Object3D();
   [
-    [arrowLeftImg, -1, 1],
-    [chevronLeftImg, -1, 0],
-    [faviconImg, 0, 0],
-    [null, 1, 0],
-    [null, 2, 0],
-    [null, 3, 0],
-    [null, 4, 0],
-    [chevronRightImg, 5, 0],
-    [locationImg, 5, 1],
-  ].forEach(([img, x, y]) => _makeAndAddIconMesh(img, x, y, appIconMeshes));
+    [arrowLeftImg, -1, 1, () => {
+      selectedIconMesh = actionIconMeshes;
+      selectedIconCoord.set(0, 0);
+    }],
+    [chevronLeftImg, -1, 0, () => {
+      console.log('page tabs left'); // XXX
+    }],
+    [faviconImg, 0, 0, null],
+    [null, 1, 0, null],
+    [null, 2, 0, null],
+    [null, 3, 0, null],
+    [null, 4, 0, null],
+    [chevronRightImg, 5, 0, () => {
+      console.log('page tabs right'); // XXX
+    }],
+    [locationImg, 5, 1, () => {
+      console.log('set tab location'); // XXX
+    }],
+  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, x, y, onclick, appIconMeshes));
   mesh.add(appIconMeshes);
 
   let selectedIconMesh = actionIconMeshes;
@@ -2208,17 +2223,6 @@ const trayMesh = (() => {
   })();
   mesh.add(keyboardMesh);
 
-  mesh.selectIcon = (x, y) => {
-    if (selectedIconMesh === actionIconMeshes && x === 0 && y === 0) {
-      selectedIconMesh = appIconMeshes;
-      selectedIconCoord.set(0, 0);
-    } else if (selectedIconMesh === appIconMeshes && x === -1 && y === 1) {
-      selectedIconMesh = actionIconMeshes;
-      selectedIconCoord.set(0, 0);
-    } else {
-      selectedIconCoord.set(x, y);
-    }
-  };
   mesh.update = () => {
     labelMesh.update();
     for (let i = 0; i < actionIconMeshes.children.length; i++) {
@@ -4861,8 +4865,7 @@ function animate(time, frame) {
           mesh.caretMesh.visible = true;
           keyboardFocus = mesh;
         } else if (type === 'icon') {
-          const {x, y} = intersectionSpec;
-          trayMesh.selectIcon(x, y);
+          intersectionSpec.onclick();
         }
       }
     } else {
