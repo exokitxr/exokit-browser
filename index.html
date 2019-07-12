@@ -4839,7 +4839,7 @@ function animate(time, frame) {
     const start = pressed && !lastPressed;
     const end = lastPressed && !pressed;
 
-    if (gamepad.buttons[1].pressed) {
+    if (pressed && !lastPressed) {
       for (let i = 0; i < roomLabels.length; i++) {
         roomLabels[i].caretMesh.visible = false;
       }
