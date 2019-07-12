@@ -1952,7 +1952,7 @@ const trayMesh = (() => {
   });
   const mesh = new THREE.Mesh(geometry, material);
 
-  const _makeIconMesh = (img, onclick, oncrosshair, onclose) => {
+  const _makeIconMesh = (img, onclick, oncrosshair, onclose, pagable) => {
     const iconSize = 0.2;
     const geometry = new THREE.PlaneBufferGeometry(iconSize, iconSize);
     const texture = new THREE.Texture(img);
@@ -2037,11 +2037,10 @@ const trayMesh = (() => {
     mesh.x = 0;
     mesh.y = 0;
     mesh.setPosition = (newX, newY) => {
-      mesh.position.set(-0.8 + newX * 0.4, 0.1 + newY * 0.3, 0);
       mesh.x = newX;
       mesh.y = newY;
     };
-    mesh.update = () => {
+    mesh.update = page => {
       const _select = () => {
         mesh.material.uniforms.uColor.value = new THREE.Color(0x9ccc65);
         mesh.material.uniforms.uTime.value = (Date.now() % 1000) / 1000;
@@ -2065,12 +2064,23 @@ const trayMesh = (() => {
         }
       };
       if (mesh.parent === selectedIconMesh) {
-        mesh.visible = true;
+        let {x, y} = mesh;
+        if (pagable) {
+          x += 5 * page;
 
-        if (mesh.x === selectedIconCoord.x && mesh.y === selectedIconCoord.y) {
-          _select();
+          mesh.visible = x >= 0 && x < 5;
         } else {
-          _unselect();
+          mesh.visible = true;
+        }
+
+        if (mesh.visible) {
+          mesh.position.set(-0.8 + x * 0.4, 0.1 + y * 0.3, 0);
+
+          if (mesh.x === selectedIconCoord.x && mesh.y === selectedIconCoord.y) {
+            _select();
+          } else {
+            _unselect();
+          }
         }
       } else {
         mesh.visible = false;
@@ -2129,8 +2139,8 @@ const trayMesh = (() => {
     };
     return mesh;
   };
-  const _makeAndAddIconMesh = (img, x, y, onclick, oncrosshair, onclose, parentMesh) => {
-    const iconMesh = _makeIconMesh(img, onclick, oncrosshair, onclose, onclick);
+  const _makeAndAddIconMesh = (img, x, y, onclick, oncrosshair, onclose, pagable, parentMesh) => {
+    const iconMesh = _makeIconMesh(img, onclick, oncrosshair, onclose, pagable);
     iconMesh.setPosition(x, y);
     parentMesh.add(iconMesh);
     return iconMesh;
@@ -2155,7 +2165,7 @@ const trayMesh = (() => {
     [plusImg, 5, 1, () => {
       _addAppIconMesh(faviconImg, null);
     }],
-  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, x, y, onclick, null, null, actionIconMeshes));
+  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, x, y, onclick, null, null, false, actionIconMeshes));
   mesh.add(actionIconMeshes);
 
   const appIconMeshes = new THREE.Object3D();
@@ -2163,17 +2173,18 @@ const trayMesh = (() => {
     [arrowLeftImg, -1, 1, () => {
       selectedIconMesh = actionIconMeshes;
       selectedIconCoord.set(1, 0);
+      selectedIconPage = 0;
     }],
     [chevronLeftImg, -1, 0, () => {
-      console.log('page tabs left'); // XXX
+      selectedIconPage = Math.max(selectedIconPage - 1, 0);
     }],
     [chevronRightImg, 5, 0, () => {
-      console.log('page tabs right'); // XXX
+      selectedIconPage++;
     }],
     [locationImg, 5, 1, () => {
       console.log('set tab location'); // XXX
     }],
-  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, x, y, onclick, null, null, appIconMeshes));
+  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, x, y, onclick, null, null, false, appIconMeshes));
   mesh.add(appIconMeshes);
 
   const _addAppIconMesh = (img, onclick) => {
@@ -2190,7 +2201,7 @@ const trayMesh = (() => {
             const child = appIconMeshes.children[i];
             child.setPosition(child.x - 1, child.y);
           }
-        }, appIconMeshes);
+        }, true, appIconMeshes);
         selectedIconMesh = appIconMeshes;
         selectedIconCoord.set(x, 0);
         break;
@@ -2204,11 +2215,12 @@ const trayMesh = (() => {
       selectedIconMesh = actionIconMeshes;
       selectedIconCoord.set(1, 0);
     }],
-  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, x, y, onclick, null, null, settingsIconMeshes));
+  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, x, y, onclick, null, null, false, settingsIconMeshes));
   mesh.add(settingsIconMeshes);
 
   let selectedIconMesh = actionIconMeshes;
   let selectedIconCoord = new THREE.Vector2(1, 0);
+  let selectedIconPage = 0;
 
   const labelMesh = _makeLabelMesh('https://google.com');
   labelMesh.position.y = 0.4;
@@ -2317,7 +2329,7 @@ const trayMesh = (() => {
     labelMesh.update();
     [actionIconMeshes, appIconMeshes, settingsIconMeshes].forEach(iconMeshes => {
       for (let i = 0; i < iconMeshes.children.length; i++) {
-        iconMeshes.children[i].update();
+        iconMeshes.children[i].update(selectedIconPage);
       }
     });
   };
