@@ -5218,6 +5218,7 @@ function animate(time, frame) {
       if (intersectionSpec) {
         if (pressed && !lastPressed) {
           const {type} = intersectionSpec;
+
           if (type === 'label') {
             const {mesh} = intersectionSpec;
             const glyphs = mesh.getGlyphs();
@@ -5234,6 +5235,9 @@ function animate(time, frame) {
             intersectionSpec.oncrosshair(i);
           } else if (type === 'icon-close') {
             intersectionSpec.onclose(i);
+          } else if (type === 'key') {
+            const {key} = intersectionSpec;
+            console.log(`got key instersection: ${key}`);
           } else {
             console.warn(`unknown intersection type ${type}`);
           }
