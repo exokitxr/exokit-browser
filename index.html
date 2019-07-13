@@ -1791,7 +1791,7 @@ const _getControllerIndex = gamepad => gamepad.hand === 'left' ? 0 : 1;
 
 // grid
 
-const gridMesh = (() => {
+/* const gridMesh = (() => {
   const topGeometry = new THREE.BoxBufferGeometry(0.01, 1, 0.01);
   const leftGeometry = topGeometry.clone().applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(
     new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(-1, 0, 0))
@@ -1851,7 +1851,6 @@ const gridMesh = (() => {
       }
 
       gl_FragColor = vec4(0.11055276381909548, 0.27638190954773867, 0.4103852596314908, 1.0) * (4.0 - pow(d, 3.0)) * 0.5; // 0x42a5f5
-      // gl_FragColor = max(gl_FragCoor, vec4(0.2));
       if (gl_FragColor.a >= 1.9) {
         gl_FragColor.rgb *= 3.0;
       } else if (gl_FragColor.a <= 0.1) {
@@ -1874,7 +1873,7 @@ const gridMesh = (() => {
   mesh.frustumCulled = false;
   return mesh;
 })();
-scene.add(gridMesh);
+scene.add(gridMesh); */
 
 const _makeLabelMesh = s => {
   const width = 2;
@@ -5559,7 +5558,7 @@ function animate(time, frame) {
     pointerMesh.rotation.x += 0.1;
     pointerMesh.rotation.z += 0.1;
 
-    gridMesh.material.uniforms.uTime.value = (gridMesh.material.uniforms.uTime.value + 0.1) % 14;
+    // gridMesh.material.uniforms.uTime.value = (gridMesh.material.uniforms.uTime.value + 0.1) % 14;
     /* targetMesh.material.uniforms.uTime.value = (Date.now() % 1000) / 1000;
     c.matrixWorld.decompose(targetMesh.material.uniforms.worldPos.value, localQuaternion, localVector2);
     targetMesh.material.uniforms.worldPos.value
