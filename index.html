@@ -1470,6 +1470,19 @@ const _bindEventTarget = target => {
           }
         }
       },
+      keyup(e) {
+        if (!keyboardFocus) {
+          switch (e.which) {
+            case 69: { // E
+              const gamepads = navigator.getGamepads();
+              if (gamepads[1]) {
+                gamepads[1].buttons[2].pressed = false;
+              }
+              break;
+            }
+          }
+        }
+      },
       dblclick(e) {
         if (!window.document.pointerLockElement && !intersectionSpecs[1]) {
           renderer.domElement.requestPointerLock();
