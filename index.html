@@ -2232,7 +2232,7 @@ const trayMesh = (() => {
     }],
     // [timesImg, 5, 0, null],
     // [crosshairImg, 5, 0, null],
-    [plusImg, 5, 1, () => {
+    [plusImg, 5, 1, i => {
       const type = (() => {
         switch (selectedIconCoord.x) {
           case 1: return 'browser';
@@ -2241,7 +2241,7 @@ const trayMesh = (() => {
           default: return null;
         }
       })();
-      _addAppIconMesh(faviconImg, type);
+      _addAppIconMesh(faviconImg, type, i);
     }],
   ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, null, x, y, onclick, null, null, false, actionIconMeshes));
   mesh.add(actionIconMeshes);
@@ -2265,14 +2265,12 @@ const trayMesh = (() => {
   ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, null, x, y, onclick, null, null, false, appIconMeshes));
   mesh.add(appIconMeshes);
 
-  const _addAppIconMesh = (img, type) => {
+  const _addAppIconMesh = (img, type, i) => {
     for (let x = 0;; x++) {
       if (appIconMeshes.children.findIndex(mesh => mesh.x === x) === -1) {
         const y = 0;
         const iconMesh = _makeAndAddIconMesh(img, type, x, y, null, i => {
-          moveSpecs[i] = {
-            type,
-          };
+          _moveApp(iconMesh, i);
         }, () => { 
           const index = appIconMeshes.children.indexOf(iconMesh);
           appIconMeshes.remove(iconMesh);
@@ -2283,9 +2281,18 @@ const trayMesh = (() => {
         }, true, appIconMeshes);
         selectedIconMesh = appIconMeshes;
         selectedIconCoord.set(x, 0);
+        
+        _moveApp(iconMesh, i);
+
         break;
       }
     }
+  };
+  const _moveApp = (iconMesh, i) => {
+    const {type} = iconMesh;
+    moveSpecs[i] = {
+      type,
+    };
   };
 
   const settingsIconMeshes = new THREE.Object3D();
