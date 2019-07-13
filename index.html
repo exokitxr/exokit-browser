@@ -5689,6 +5689,8 @@ const _startFakeVrDisplay = async (width, height) => {
       quaternion: camera.quaternion,
       viewMatrix: camera.matrixWorld.toArray(),
       projectionMatrix: camera.projectionMatrix.toArray(),
+      enable() {},
+      disable() {},
       pushHmdUpdate(position = this.position, quaternion = this.quaternion) {
         camera.updateMatrixWorld();
       },
@@ -5705,6 +5707,7 @@ const _startFakeVrDisplay = async (width, height) => {
         );
       },
     };
+    fakeXrDisplay.enable();
 
     renderer.setSize(window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio, false);
 
