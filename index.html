@@ -2049,93 +2049,16 @@ const trayMesh = (() => {
   const mesh = new THREE.Mesh(geometry, material);
 
   const _makeIframe = (url, type) => {
-    if (type === 'browser') {
-      const iframe = document.createElement('iframe');
-      iframe.d = 2;
-      iframe.onload = () => {
-        console.log(`iframe loaded: ${type} ${url}`);
-      };
-      iframe.onerror = err => {
-        console.log(`iframe load error: ${type} ${url} ${err.stack}`);
-      };
-      iframe.src = url;
-
-      /* const [sx, sy, sz, dx, dy, dz] = roomMesh.getRange();
-      const wx = Math.abs(dx - sx) + 1;
-      const wy = Math.abs(dy - sy) + 1;
-      const wz = Math.abs(dz - sz) + 1;
-      const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-      c.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-      localVector.set(0, 0, -1).applyQuaternion(localQuaternion);
-      const normal = new THREE.Vector3();
-      let scale;
-      if (wx === 1) {
-        if (localVector.x > 0) {
-          normal.set(-1, 0, 0);
-        } else {
-          normal.set(1, 0, 0);
-        }
-        scale = [wz, wy, 1];
-      } else if (wy === 1) {
-        if (localVector.y > 0) {
-          normal.set(0, -1, 0);
-        } else {
-          normal.set(0, 1, 0);
-        }
-        scale = [wx, wz, 1];
-      } else {
-        if (localVector.z > 0) {
-          normal.set(0, 0, -1);
-        } else {
-          normal.set(0, 0, 1);
-        }
-        scale = [wx, wy, 1];
-      }
-
-      const position = [(sx+dx)/2 + normal.x/2, (sy+dy)/2 + normal.y/2, (sz+dz)/2 + normal.z/2];
-      if (position[1] > 0) {
-        position[1] += 0.5;
-      }
-      iframe.position = position;
-      iframe.orientation = localQuaternion.setFromUnitVectors(localVector.set(0, 0, 1), normal).toArray();
-      iframe.scale = scale; */
-
-      layers.push(iframe);
-      
-      return iframe;
-    } else if (type === 'portal') {
-      const iframe = document.createElement('iframe');
-      iframe.d = 3;
-      iframe.onload = () => {
-        console.log(`iframe loaded: ${type} ${url}`);
-      };
-      iframe.onerror = err => {
-        console.log(`iframe load error: ${type} ${url} ${err.stack}`);
-      };
-      iframe.src = url;
-
-      layers.push(iframe);
-      
-      return iframe;
-    } else if (type === 'volume') {
-      const iframe = document.createElement('iframe');
-      iframe.d = 3;
-      iframe.onload = () => {
-        console.log(`iframe loaded: ${type} ${url}`);
-      };
-      iframe.onerror = err => {
-        console.log(`iframe load error: ${type} ${url} ${err.stack}`);
-      };
-      iframe.src = url;
-
-      layers.push(iframe);
-      
-      return iframe;
-    } else {
-      console.warn('unknown iframe type', type, new Error().stack);
-
-      return null;
-    }
+    const iframe = document.createElement('iframe');
+    iframe.onload = () => {
+      console.log(`iframe loaded: ${type} ${url}`);
+    };
+    iframe.onerror = err => {
+      console.log(`iframe load error: ${type} ${url} ${err.stack}`);
+    };
+    iframe.d = type === 'browser' ? 2 : 3;
+    iframe.src = url;
+    return iframe;
   };
   const _makeIconMesh = (url, img, type, onclick, oncrosshair, onclose, pagable) => {
     const iconSize = 0.2;
