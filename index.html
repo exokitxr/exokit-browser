@@ -2037,7 +2037,96 @@ const trayMesh = (() => {
   });
   const mesh = new THREE.Mesh(geometry, material);
 
-  const _makeIconMesh = (img, type, onclick, oncrosshair, onclose, pagable) => {
+  const _makeIframe = (url, type) => {
+    if (type === 'browser') {
+      const iframe = document.createElement('iframe');
+      iframe.d = 2;
+      iframe.onload = () => {
+        console.log(`iframe loaded: ${type} ${url}`);
+      };
+      iframe.onerror = err => {
+        console.log(`iframe load error: ${type} ${url} ${err.stack}`);
+      };
+      iframe.src = url;
+
+      /* const [sx, sy, sz, dx, dy, dz] = roomMesh.getRange();
+      const wx = Math.abs(dx - sx) + 1;
+      const wy = Math.abs(dy - sy) + 1;
+      const wz = Math.abs(dz - sz) + 1;
+      const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
+      c.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      localVector.set(0, 0, -1).applyQuaternion(localQuaternion);
+      const normal = new THREE.Vector3();
+      let scale;
+      if (wx === 1) {
+        if (localVector.x > 0) {
+          normal.set(-1, 0, 0);
+        } else {
+          normal.set(1, 0, 0);
+        }
+        scale = [wz, wy, 1];
+      } else if (wy === 1) {
+        if (localVector.y > 0) {
+          normal.set(0, -1, 0);
+        } else {
+          normal.set(0, 1, 0);
+        }
+        scale = [wx, wz, 1];
+      } else {
+        if (localVector.z > 0) {
+          normal.set(0, 0, -1);
+        } else {
+          normal.set(0, 0, 1);
+        }
+        scale = [wx, wy, 1];
+      }
+
+      const position = [(sx+dx)/2 + normal.x/2, (sy+dy)/2 + normal.y/2, (sz+dz)/2 + normal.z/2];
+      if (position[1] > 0) {
+        position[1] += 0.5;
+      }
+      iframe.position = position;
+      iframe.orientation = localQuaternion.setFromUnitVectors(localVector.set(0, 0, 1), normal).toArray();
+      iframe.scale = scale; */
+
+      layers.push(iframe);
+      
+      return iframe;
+    } else if (type === 'portal') {
+      const iframe = document.createElement('iframe');
+      iframe.d = 3;
+      iframe.onload = () => {
+        console.log(`iframe loaded: ${type} ${url}`);
+      };
+      iframe.onerror = err => {
+        console.log(`iframe load error: ${type} ${url} ${err.stack}`);
+      };
+      iframe.src = url;
+
+      layers.push(iframe);
+      
+      return iframe;
+    } else if (type === 'volume') {
+      const iframe = document.createElement('iframe');
+      iframe.d = 3;
+      iframe.onload = () => {
+        console.log(`iframe loaded: ${type} ${url}`);
+      };
+      iframe.onerror = err => {
+        console.log(`iframe load error: ${type} ${url} ${err.stack}`);
+      };
+      iframe.src = url;
+
+      layers.push(iframe);
+      
+      return iframe;
+    } else {
+      console.warn('unknown iframe type', type, new Error().stack);
+
+      return null;
+    }
+  };
+  const _makeIconMesh = (url, img, type, onclick, oncrosshair, onclose, pagable) => {
     const iconSize = 0.2;
     const subIconSize = 0.4;
     const geometry = new THREE.PlaneBufferGeometry(iconSize, iconSize);
@@ -2095,6 +2184,10 @@ const trayMesh = (() => {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.frustumCulled = false;
 
+    if (url && type) {
+      const iframe = _makeIframe(url, type);
+      mesh.iframe = iframe;
+    }
     if (type) {
       const material2 = material.clone();
       const typeImg = (() => {
@@ -2254,8 +2347,8 @@ const trayMesh = (() => {
     };
     return mesh;
   };
-  const _makeAndAddIconMesh = (img, type, x, y, onclick, oncrosshair, onclose, pagable, parentMesh) => {
-    const iconMesh = _makeIconMesh(img, type, onclick, oncrosshair, onclose, pagable);
+  const _makeAndAddIconMesh = (url, img, type, x, y, onclick, oncrosshair, onclose, pagable, parentMesh) => {
+    const iconMesh = _makeIconMesh(url, img, type, onclick, oncrosshair, onclose, pagable);
     iconMesh.setPosition(x, y);
     parentMesh.add(iconMesh);
     return iconMesh;
@@ -2286,9 +2379,10 @@ const trayMesh = (() => {
           default: return null;
         }
       })();
-      _addAppIconMesh(faviconImg, type, i);
+      const url = (type === 'browser') ? 'https://google.com' : 'https://rawcdn.githack.com/exokitxr/webxr-samples/a8e2c94eba0ee5c9215f20d13057b6c25675d9b0/xr-presentation.html';
+      _addAppIconMesh(url, faviconImg, type, i);
     }],
-  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, null, x, y, onclick, null, null, false, actionIconMeshes));
+  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(null, img, null, x, y, onclick, null, null, false, actionIconMeshes));
   mesh.add(actionIconMeshes);
 
   const appIconMeshes = new THREE.Object3D();
@@ -2307,14 +2401,14 @@ const trayMesh = (() => {
     [locationImg, 5, 1, () => {
       console.log('set tab location'); // XXX
     }],
-  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, null, x, y, onclick, null, null, false, appIconMeshes));
+  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(null, img, null, x, y, onclick, null, null, false, appIconMeshes));
   mesh.add(appIconMeshes);
 
-  const _addAppIconMesh = (img, type, i) => {
+  const _addAppIconMesh = (url, img, type, i) => {
     for (let x = 0;; x++) {
       if (appIconMeshes.children.findIndex(mesh => mesh.x === x) === -1) {
         const y = 0;
-        const iconMesh = _makeAndAddIconMesh(img, type, x, y, null, i => {
+        const iconMesh = _makeAndAddIconMesh(url, img, type, x, y, null, i => {
           _moveApp(iconMesh, i);
         }, () => { 
           const index = appIconMeshes.children.indexOf(iconMesh);
@@ -2334,9 +2428,8 @@ const trayMesh = (() => {
     }
   };
   const _moveApp = (iconMesh, i) => {
-    const {type} = iconMesh;
     moveSpecs[i] = {
-      type,
+      iconMesh,
     };
   };
 
@@ -2346,7 +2439,7 @@ const trayMesh = (() => {
       selectedIconMesh = actionIconMeshes;
       selectedIconCoord.set(1, 0);
     }],
-  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(img, null, x, y, onclick, null, null, false, settingsIconMeshes));
+  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(null, img, null, x, y, onclick, null, null, false, settingsIconMeshes));
   mesh.add(settingsIconMeshes);
 
   let selectedIconMesh = actionIconMeshes;
@@ -2642,11 +2735,19 @@ const _makeMoveMesh = i => {
       const gamepads = navigator.getGamepads();
       const gamepad = gamepads[i];
       if (gamepad) {
+        const {iconMesh} = moveSpec;
+        const {type, iframe} = iconMesh;
+
         object.quaternion.fromArray(gamepad.pose.orientation);
         object.position
           .fromArray(gamepad.pose.position)
           .add(localVector.set(0, 0, -3).applyQuaternion(object.quaternion));
-        object.setMode(moveSpec.type);
+        object.setMode(type);
+        
+        if (iframe) {
+          iframe.position = object.position.toArray();
+          iframe.orientation = object.quaternion.toArray();
+        }
       }
     } else {
       object.visible = false;
