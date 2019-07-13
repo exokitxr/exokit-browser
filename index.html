@@ -5800,7 +5800,7 @@ const _enterXr = async () => {
       renderer.setAnimationLoop(null);
 
       renderer.vr.enabled = true;
-      renderer.vr.setDevice(display);
+      renderer.vr.setSession(session);
       renderer.vr.setAnimationLoop(animate);
 
       console.log('loaded root in XR');
