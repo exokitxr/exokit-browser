@@ -1589,7 +1589,7 @@ const _bindEventTarget = target => {
         }
       },
       keyup(e) {
-        if (window.document.pointerLockElement) {
+        // if (window.document.pointerLockElement) {
           switch (e.which) {
             case 87: { // W
               keys.up = false;
@@ -1623,7 +1623,7 @@ const _bindEventTarget = target => {
               break;
             }
           }
-        } else {
+        /* } else {
           if (focusedTab && focusedTab.iframe) {
             focusedTab.iframe.sendKeyUp(e.which, {
               shiftKey: e.shiftKey,
@@ -1631,7 +1631,7 @@ const _bindEventTarget = target => {
               altKey: e.altKey,
             });
           }
-        }
+        } */
       },
       keypress(e) {
         switch (e.which) {
