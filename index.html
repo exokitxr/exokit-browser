@@ -3653,7 +3653,7 @@ const doorMeshGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
     .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1))))
     .applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, -0.5)),
 ]);
-const _makePortalMesh = (position, quaternion, scale, iframe, color) => {
+const _makePortal = iframe => {
   const geometry = portalGeometry;
   const material = new THREE.ShaderMaterial({
     uniforms: {
@@ -3690,7 +3690,7 @@ const _makePortalMesh = (position, quaternion, scale, iframe, color) => {
     fragmentShader: portalFsh,
   });
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.copy(position);
+  /* mesh.position.copy(position);
   mesh.quaternion.copy(quaternion);
   mesh.scale.copy(scale);
   mesh.box = new THREE.Box3().setFromCenterAndSize(mesh.position, mesh.scale);
@@ -3698,7 +3698,7 @@ const _makePortalMesh = (position, quaternion, scale, iframe, color) => {
     new THREE.Vector3(0, 0, -1).applyQuaternion(quaternion),
     position.clone().multiplyScalar(-1).add(new THREE.Vector3(0, 0, -scale.z/2).applyQuaternion(quaternion))
   );
-  mesh.material.uniforms.uPlane.value.set(plane.normal.x, plane.normal.y, plane.normal.z, plane.constant);
+  mesh.material.uniforms.uPlane.value.set(plane.normal.x, plane.normal.y, plane.normal.z, plane.constant); */
   mesh.numRenders = 0;
   mesh.onBeforeRender = function(renderer, scene, camera, geometry, material, group) {
     material.uniforms.mwi.value = viewMatrices[mesh.numRenders];
@@ -3725,17 +3725,58 @@ const _makePortalMesh = (position, quaternion, scale, iframe, color) => {
   image.onerror = err => {
     console.warn('fail', err.stack);
   };
+
   const doorMesh = (() => {
     const geometry = doorMeshGeometry;
     const material = new THREE.MeshPhongMaterial({
-      color,
+      color: 0x1976d2,
     });
     const mesh = new THREE.Mesh(geometry, material);
     return mesh;
   })();
   mesh.add(doorMesh);
-  mesh.iframe = iframe;
-  return mesh;
+
+  const plane = new THREE.Plane();
+  const _update = () => {  
+    plane.setFromNormalAndCoplanarPoint(
+      new THREE.Vector3(0, 0, -1).applyQuaternion(mesh.quaternion),
+      mesh.position.clone().multiplyScalar(-1).add(new THREE.Vector3(0, 0, -mesh.scale.z/2).applyQuaternion(mesh.quaternion))
+    )
+    mesh.material.uniforms.uPlane.value.set(plane.normal.x, plane.normal.y, plane.normal.z, plane.constant);
+  };
+  
+  scene.add(mesh);
+  
+  return {
+    get position() {
+      return mesh.position.toArray();
+    },
+    set position(position) {
+      mesh.position.fromArray(position);
+      iframe.position = position;
+      _update();
+    },
+    get orientation() {
+      return mesh.quaternion.toArray();
+    },
+    set orientation(orientation) {
+      mesh.quaternion.fromArray(orientation);
+      iframe.orientation = orientation;
+      _update();
+    },
+    get scale() {
+      return mesh.scale.toArray();
+    },
+    set scale(scale) {
+      mesh.scale.fromArray(scale);
+      iframe.scale = scale;
+      _update();
+    },
+    destroy() {
+      scene.remove(mesh);
+      iframe.destroy();
+    },
+  };
 };
 
 const volumeGeometry = (() => {
