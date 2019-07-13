@@ -1944,7 +1944,7 @@ const _makeLabelMesh = s => {
     vertexShader: labelVsh,
     fragmentShader: labelFsh,
     transparent: true,
-    depthWrite: false,
+    // depthWrite: false,
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.width = width;
