@@ -2723,7 +2723,7 @@ const _makeMoveMesh = i => {
   object.add(portalMesh);
 
   const volumeTargetGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
-    portalGeometry
+    portalTargetGeometry
       .clone()
       .applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, 0.5)),
     new THREE.BoxBufferGeometry(0.2, 0.03, 0.03),
