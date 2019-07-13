@@ -4400,13 +4400,15 @@ const _handleKey = (code, shiftKey) => {
     const {position, quaternion, scale} = _getFrontOfCamera();
     _openUrl(u, position, quaternion, scale, optionsMesh.d);
     _updateRigLists(); */
+  } else if (code === 27) { // esc
+    trayMesh.labelMesh.caretMesh.visible = false;
+    keyboardFocus = null;
   } else if (
     code === 9 || // tab
     code === 16 || // shift
     code === 17 || // ctrl
     code === 18 || // alt
     code === 20 || // capslock
-    code === 27 || // esc
     code === 91 // win
   ) {
     // nothing
