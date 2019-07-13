@@ -1379,8 +1379,8 @@ const _bindEventTarget = target => {
     _bindEvents({
       mousemove(e) {
         localVector2D.set(
-          (event.clientX / window.innerWidth) * 2 - 1,
-          -(event.clientY / window.innerHeight) * 2 + 1
+          (e.clientX / window.innerWidth) * 2 - 1,
+          -(e.clientY / window.innerHeight) * 2 + 1
         );
         localRaycaster.setFromCamera(localVector2D, camera);
 
