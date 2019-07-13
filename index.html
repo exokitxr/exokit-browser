@@ -5407,7 +5407,7 @@ function animate(time, frame) {
         if (bumper && !lastBumper) {
           const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
           c.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-          localVector.add(localVector2.set(0, 0, -1).applyQuaternion(localQuaternion));
+          localVector.add(localVector2.set(0, -0.5, -1 + 0.2/2).applyQuaternion(localQuaternion));
 
           menuAnimation = _makeMenuAnimation({
             start: {
@@ -5429,13 +5429,7 @@ function animate(time, frame) {
           const f = menuAnimation.getValue();
 
           trayMesh.quaternion.copy(start.quaternion).slerp(end.quaternion, f);
-          trayMesh.position.copy(start.position)
-            .add(localVector.set(0, -0.5, 0.2/2).applyQuaternion(start.quaternion))
-            .lerp(
-              localVector.copy(end.position)
-                .add(localVector2.set(0, -0.5, 0.2/2).applyQuaternion(end.quaternion)),
-              f
-            );
+          trayMesh.position.copy(start.position).lerp(localVector.copy(end.position), f);
           trayMesh.scale.copy(start.scale).lerp(end.scale, f);
           trayMesh.updateMatrixWorld();
 
