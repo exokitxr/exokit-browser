@@ -1465,7 +1465,7 @@ const _bindEventTarget = target => {
         }
       },
       dblclick(e) {
-        if (!window.document.pointerLockElement) {
+        if (!window.document.pointerLockElement && !intersectionSpecs[1]) {
           renderer.domElement.requestPointerLock();
         }
       },
