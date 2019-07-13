@@ -866,7 +866,6 @@ const skyboxMesh = (() => {
     }
   `;
   const skyboxFsh = `
-    uniform float uTime;
     uniform float uAnimation;
     varying vec3 vPosition;
     varying vec2 vUv;
@@ -876,10 +875,6 @@ const skyboxMesh = (() => {
   `;
   const material = new THREE.ShaderMaterial({
     uniforms: {
-      uTime: {
-        type: 'f',
-        value: 0,
-      },
       uAnimation: {
         type: 'f',
         value: 1,
