@@ -2399,7 +2399,7 @@ const trayMesh = (() => {
       selectedIconPage++;
     }],
     [locationImg, 5, 1, () => {
-      console.log('set tab location'); // XXX
+      console.log('set selected tab location'); // XXX
     }],
   ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(null, img, null, x, y, onclick, null, null, false, appIconMeshes));
   mesh.add(appIconMeshes);
