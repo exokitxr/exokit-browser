@@ -5753,10 +5753,17 @@ const _startFakeVrDisplay = async (width, height) => {
   renderer.setAnimationLoop(animate);
 };
 const _endFakeVrDisplay = async () => {
-  if (fakeXrDisplay.session) {
-    await fakeXrDisplay.session.end();
-  } else if (fakeXrDisplay.display) {
-    await fakeXrDisplay.display.exitPresent();
+  renderer.vr.enabled = false;
+  // renderer.vr.setSession(null);
+  // renderer.vr.setDevice(null);
+  renderer.vr.setAnimationLoop(null);
+
+  if (session) {
+    await session.end();
+    session = null;
+  } else if (display) {
+    await display.exitPresent();
+    display = null;
   }
 
   fakeXrDisplay.disable();
