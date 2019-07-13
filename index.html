@@ -4521,10 +4521,9 @@ function animate(time, frame) {
         controllerMeshes[i].visible = false;
       }
 
-      for (let i = 0; i < gamepads.length && i < 2; i++) {
+      for (let i = 0; i < 2; i++) {
         const gamepad = gamepads[i];
-
-        if (gamepad.connected) {
+        if (gamepad && gamepad.connected) {
           const controllerIndex = _getControllerIndex(gamepad);
           const controllerMesh = controllerMeshes[controllerIndex];
           controllerMesh.position.fromArray(gamepad.pose.position);
@@ -5362,65 +5361,55 @@ function animate(time, frame) {
     for (let i = 0; i < 2; i++) {
       const gamepad = gamepads[i];
 
-      // if (gamepad.hand === 'right') {
+      if (gamepad) {
         const pressed = gamepad.buttons[1].pressed;
         const lastPressed = lastPresseds[i];
         _handleTrigger(gamepad, i, pressed, lastPressed);
         lastPresseds[i] = pressed;
-      // }
 
-      const bumper = gamepad.buttons[2].pressed;
-      const lastBumper = lastButtons[i].bumper;
+        const bumper = gamepad.buttons[2].pressed;
+        const lastBumper = lastButtons[i].bumper;
 
-      if (bumper && !lastBumper) {
-        const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-        c.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-        localVector.add(localVector2.set(0, 0, -1).applyQuaternion(localQuaternion));
+        if (bumper && !lastBumper) {
+          const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
+          c.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+          localVector.add(localVector2.set(0, 0, -1).applyQuaternion(localQuaternion));
 
-        menuAnimation = _makeMenuAnimation({
-          start: {
-            position: trayMesh.position.clone(),
-            quaternion: trayMesh.quaternion.clone(),
-            scale: new THREE.Vector3(1, 1, 1),
-          },
-          end: {
-            position: localVector.clone(),
-            quaternion: localQuaternion.clone(),
-            scale: new THREE.Vector3(1, 1, 1),
-          },
-        });
-      }
-      lastButtons[i].bumper = bumper;
+          menuAnimation = _makeMenuAnimation({
+            start: {
+              position: trayMesh.position.clone(),
+              quaternion: trayMesh.quaternion.clone(),
+              scale: new THREE.Vector3(1, 1, 1),
+            },
+            end: {
+              position: localVector.clone(),
+              quaternion: localQuaternion.clone(),
+              scale: new THREE.Vector3(1, 1, 1),
+            },
+          });
+        }
+        lastButtons[i].bumper = bumper;
 
-      if (menuAnimation) {
-        const {spec: {start, end}} = menuAnimation;
-        const f = menuAnimation.getValue();
+        if (menuAnimation) {
+          const {spec: {start, end}} = menuAnimation;
+          const f = menuAnimation.getValue();
 
-        trayMesh.quaternion.copy(start.quaternion).slerp(end.quaternion, f);
-        trayMesh.position.copy(start.position)
-          .add(localVector.set(0, -0.5, 0.2/2).applyQuaternion(start.quaternion))
-          .lerp(
-            localVector.copy(end.position)
-              .add(localVector2.set(0, -0.5, 0.2/2).applyQuaternion(end.quaternion)),
-            f
-          );
-        trayMesh.scale.copy(start.scale).lerp(end.scale, f);
-        trayMesh.updateMatrixWorld();
+          trayMesh.quaternion.copy(start.quaternion).slerp(end.quaternion, f);
+          trayMesh.position.copy(start.position)
+            .add(localVector.set(0, -0.5, 0.2/2).applyQuaternion(start.quaternion))
+            .lerp(
+              localVector.copy(end.position)
+                .add(localVector2.set(0, -0.5, 0.2/2).applyQuaternion(end.quaternion)),
+              f
+            );
+          trayMesh.scale.copy(start.scale).lerp(end.scale, f);
+          trayMesh.updateMatrixWorld();
 
-        if (f >= 1) {
-          menuAnimation = null;
+          if (f >= 1) {
+            menuAnimation = null;
+          }
         }
       }
-
-      /* const location = targetMesh.material.uniforms.worldPos.value;
-      const cubeLocation = localVector.set(Math.floor(location.x), Math.floor(location.y), Math.floor(location.z));
-      for (let i = 0; i < rooms.length; i++) {
-        const room = rooms[i];
-        const isPending = pendingRooms.some(pendingRoom => pendingRoom === room);
-        if (!isPending) {
-          room.setHighlight(room.contains(cubeLocation));
-        }
-      } */
     }
   };
   _updateGridControls();
@@ -5687,8 +5676,12 @@ const _startFakeVrDisplay = async (width, height) => {
     fakeXrDisplay = {
       position: camera.position,
       quaternion: camera.quaternion,
-      viewMatrix: camera.matrixWorld.toArray(),
-      projectionMatrix: camera.projectionMatrix.toArray(),
+      get viewMatrix() {
+        return camera.matrixWorldInverse.toArray(new Float32Array(16));
+      },
+      get projectionMatrix() {
+        return camera.projectionMatrix.toArray(new Float32Array(16));
+      },
       enable() {},
       disable() {},
       pushHmdUpdate(position = this.position, quaternion = this.quaternion) {
