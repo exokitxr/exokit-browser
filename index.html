@@ -2382,15 +2382,23 @@ const trayMesh = (() => {
     // [timesImg, 5, 0, null],
     // [crosshairImg, 5, 0, null],
     [plusImg, 5, 1, i => {
-      const type = (() => {
-        switch (selectedIconCoord.x) {
-          case 1: return 'browser';
-          case 2: return 'portal';
-          case 3: return 'volume';
-          default: return null;
+      let url = null, type = null;
+      switch (selectedIconCoord.x) {
+        case 1: {
+          url = 'https://google.com';
+          type = 'browser';
+          break;
         }
-      })();
-      const url = (type === 'browser') ? 'https://google.com' : 'https://rawcdn.githack.com/exokitxr/webxr-samples/a8e2c94eba0ee5c9215f20d13057b6c25675d9b0/xr-presentation.html';
+        case 2: {
+          url = 'https://aframe.io/a-painter/';
+          type = 'portal';
+          break;
+        }
+        case 3: {
+          url = 'https://rawcdn.githack.com/exokitxr/webxr-samples/a8e2c94eba0ee5c9215f20d13057b6c25675d9b0/xr-presentation.html';
+          type = 'volume';
+        }
+      }
       _addAppIconMesh(url, faviconImg, type, i);
     }],
   ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(null, img, null, x, y, onclick, null, null, false, actionIconMeshes));
