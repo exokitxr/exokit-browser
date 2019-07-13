@@ -1378,15 +1378,25 @@ const _bindEventTarget = target => {
 
     _bindEvents({
       mousemove(e) {
-        localVector2D.set(
-          (e.clientX / window.innerWidth) * 2 - 1,
-          -(e.clientY / window.innerHeight) * 2 + 1
-        );
-        localRaycaster.setFromCamera(localVector2D, camera);
+        if (fakeXrDisplay) {
+          const localCamera = camera;
+          localCamera.matrixWorldInverse.fromArray(fakeXrDisplay.viewMatrix);
+          localCamera.matrixWorld.getInverse(localCamera.matrixWorldInverse);
+          localCamera.projectionMatrix.fromArray(fakeXrDisplay.projectionMatrix);
+          localCamera.projectionMatrixInverse.getInverse(localCamera.projectionMatrix);
 
-        mouse.position.copy(localRaycaster.ray.origin);
-        mouse.quaternion.setFromUnitVectors(localVector.set(0, 0, -1), localRaycaster.ray.direction);
+          let xFactor = e.clientX / window.innerWidth;
+          if (window.FakeXRDisplay) {
+            xFactor = (xFactor % 0.5) * 2;
+          }
+          const yFactor = -e.clientY / window.innerHeight;
+          localVector2D.set(xFactor * 2 - 1, yFactor * 2 + 1);
+          localRaycaster.setFromCamera(localVector2D, localCamera);
+
         // console.log('set mouse', localVector2D.toArray(), localRaycaster.ray.origin.toArray(), localRaycaster.ray.direction.toArray());
+          mouse.position.copy(localRaycaster.ray.origin);
+          mouse.quaternion.setFromUnitVectors(localVector.set(0, 0, -1), localRaycaster.ray.direction);
+        }
       },
       /* mousemove(e) {
         const localCamera = camera;
