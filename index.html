@@ -2281,12 +2281,7 @@ const trayMesh = (() => {
       }
     };
     mesh.destroy = () => {
-      const {iframe} = mesh;
-      if (iframe) {
-        layers.splice(layers.indexOf(iframe), 1);
-
-        iframe.destroy();
-      }
+      mesh.iframe && mesh.iframe.destroy();
     };
     return mesh;
   };
