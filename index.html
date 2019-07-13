@@ -2061,9 +2061,13 @@ const trayMesh = (() => {
       varying vec2 vUv;
       void main() {
         gl_FragColor = texture2D(uTex, vUv);
-        gl_FragColor.rgb += uColor;
-        if (uColor.r > 0. || uColor.g > 0. || uColor.b > 0.) {
-          gl_FragColor.rgb += (1.0 - pow(uTime, 0.5)) * 0.8;
+        if (gl_FragColor.a >= 0.01) {
+          gl_FragColor.rgb += uColor;
+          if (uColor.r > 0. || uColor.g > 0. || uColor.b > 0.) {
+            gl_FragColor.rgb += (1.0 - pow(uTime, 0.5)) * 0.8;
+          }
+        } else {
+          discard;
         }
       }
     `;
