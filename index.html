@@ -1564,8 +1564,8 @@ const _bindEventTarget = target => {
             }
             case 69: { // E
               const gamepads = navigator.getGamepads();
-              if (gamepads[0]) {
-                gamepads[0].buttons[2].pressed = true;
+              if (gamepads[1]) {
+                gamepads[1].buttons[2].pressed = true;
               }
               break;
             }
@@ -5163,8 +5163,8 @@ function animate(time, frame) {
 
   const _updateIntersections = () => {
     for (let i = 0; i < 2; i++) {
-      if (!pendingRooms[i]) {
-        const controllerMesh = controllerMeshes[i];
+      const controllerMesh = controllerMeshes[i];
+      if (controllerMesh.visible && !pendingRooms[i]) {
         controllerMesh.update();
 
         // const candidates = roomLabels//.concat(pointMeshes);
