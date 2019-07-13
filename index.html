@@ -2119,7 +2119,20 @@ const trayMesh = (() => {
     mesh.frustumCulled = false;
 
     if (url && type) {
-      mesh.iframe = _makeIframe(url, type);
+      const iframe = _makeIframe(url, type);
+
+      if (type === 'browser' || type === 'volume') {
+        layers.push(iframe);
+        iframe.destroy = (destroy => function() {
+          layers.splice(layers.indexOf(iframe), 1);
+          return destroy.apply(this, arguments);
+        })(iframe.destroy);
+        mesh.iframe = iframe;
+      } else if (type === 'portal') {
+        mesh.iframe = _makePortal(iframe);
+      } else {
+        throw new Error(`unknown iframe type ${type}`);
+      }
     } else {
       mesh.iframe = null;
     }
