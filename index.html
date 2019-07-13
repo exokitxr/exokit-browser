@@ -2196,8 +2196,9 @@ const trayMesh = (() => {
     mesh.frustumCulled = false;
 
     if (url && type) {
-      const iframe = _makeIframe(url, type);
-      mesh.iframe = iframe;
+      mesh.iframe = _makeIframe(url, type);
+    } else {
+      mesh.iframe = null;
     }
     if (type) {
       const material2 = material.clone();
@@ -2356,6 +2357,14 @@ const trayMesh = (() => {
         return null;
       }
     };
+    mesh.destroy = () => {
+      const {iframe} = mesh;
+      if (iframe) {
+        layers.splice(layers.indexOf(iframe), 1);
+
+        iframe.destroy();
+      }
+    };
     return mesh;
   };
   const _makeAndAddIconMesh = (url, img, type, x, y, onclick, oncrosshair, onclose, pagable, parentMesh) => {
@@ -2429,15 +2438,16 @@ const trayMesh = (() => {
           _moveApp(iconMesh, i);
         }, () => { 
           const index = appIconMeshes.children.indexOf(iconMesh);
-          appIconMeshes.remove(iconMesh);
           for (let i = index; i < appIconMeshes.children.length; i++) {
             const child = appIconMeshes.children[i];
             child.setPosition(child.x - 1, child.y);
           }
+          appIconMeshes.remove(iconMesh);
+          
+          iconMesh.destroy();
         }, true, appIconMeshes);
         selectedIconMesh = appIconMeshes;
         selectedIconCoord.set(x, 0);
-        
         _moveApp(iconMesh, i);
 
         break;
