@@ -2208,8 +2208,8 @@ const trayMesh = (() => {
     };
     return mesh;
   };
-  const _makeAndAddIconMesh = (img, typeImg, x, y, onclick, oncrosshair, onclose, pagable, parentMesh) => {
-    const iconMesh = _makeIconMesh(img, typeImg, onclick, oncrosshair, onclose, pagable);
+  const _makeAndAddIconMesh = (img, type, x, y, onclick, oncrosshair, onclose, pagable, parentMesh) => {
+    const iconMesh = _makeIconMesh(img, type, onclick, oncrosshair, onclose, pagable);
     iconMesh.setPosition(x, y);
     parentMesh.add(iconMesh);
     return iconMesh;
