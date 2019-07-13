@@ -2663,7 +2663,7 @@ const _makeMoveMesh = i => {
     new THREE.BoxBufferGeometry(0.03, 0.2, 0.03)
       .applyMatrix(new THREE.Matrix4().makeTranslation(0, -0.1, 0)),
   ]);
-  const browserGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
+  const browserTargetGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
     cornerGeometry.clone()
       .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0.5, 0)),
     cornerGeometry.clone()
@@ -2676,7 +2676,7 @@ const _makeMoveMesh = i => {
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, -1, 0))))
       .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0)),
   ]);
-  const browserMesh = new THREE.Mesh(browserGeometry, material);
+  const browserMesh = new THREE.Mesh(browserTargetGeometry, material);
   browserMesh.visible = false;
   object.add(browserMesh);
 
@@ -2690,7 +2690,7 @@ const _makeMoveMesh = i => {
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(1, 0, 0))))
       .applyMatrix(new THREE.Matrix4().makeTranslation(0.1, 0, 0)),
   ]);
-  const portalGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
+  const portalTargetGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
     edgeGeometry.clone()
       .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0.5, 0)),
     edgeGeometry.clone()
@@ -2718,11 +2718,11 @@ const _makeMoveMesh = i => {
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(-1, 1, 0).normalize(), new THREE.Vector3(1, -1, 0).normalize())))
       .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.5, 1)),
   ]);
-  const portalMesh = new THREE.Mesh(portalGeometry, material);
+  const portalMesh = new THREE.Mesh(portalTargetGeometry, material);
   portalMesh.visible = false;
   object.add(portalMesh);
 
-  const volumeGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
+  const volumeTargetGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
     portalGeometry
       .clone()
       .applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, 0.5)),
@@ -2730,7 +2730,7 @@ const _makeMoveMesh = i => {
     new THREE.BoxBufferGeometry(0.03, 0.2, 0.03),
     new THREE.BoxBufferGeometry(0.03, 0.03, 0.2),
   ])
-  const volumeMesh = new THREE.Mesh(volumeGeometry, material);
+  const volumeMesh = new THREE.Mesh(volumeTargetGeometry, material);
   volumeMesh.visible = false;
   object.add(volumeMesh);
 
