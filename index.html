@@ -33,7 +33,7 @@ iframe, audio {
     <script src="xrmp-three.js"></script>
     <script>
 (async () => {
-let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewport = new THREE.Vector4(0, 0, 1, 1), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls = null, transformControls, rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], contentMeshes = [], portalMeshes = [], menuAnimation = null, keyboardFocus = null;
+let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewport = new THREE.Vector4(0, 0, 1, 1), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls = null, transformControls, rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], contentMeshes = [], portalMeshes = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null;
 const viewMatrices = [
   new THREE.Matrix4(),
   new THREE.Matrix4(),
@@ -893,18 +893,23 @@ const skyboxMesh = (() => {
 scene.add(skyboxMesh);
 
 const floorMesh = (() => {
-  const geometry = new THREE.PlaneBufferGeometry(1000, 1000)
+  const geometry = new THREE.PlaneBufferGeometry(1000, 1000, 1000, 1000)
     .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 1))));
   const floorVsh = `
+    uniform float uAnimation;
     varying vec3 vPosition;
     varying float depth;
     void main() {
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+      float radius = sqrt(position.x*position.x + position.z*position.z);
+      // vec3 p = vec3(position.x, position.y - (1.0 - uAnimation * radius), position.z);
+      vec3 p = vec3(position.x, position.y - (1.0 - uAnimation) * radius, position.z);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.);
       vPosition = position;
       depth = gl_Position.z / 200.0;
     }
   `;
   const floorFsh = `
+    uniform float uAnimation;
     varying vec3 vPosition;
     varying float depth;
     void main() {
@@ -914,12 +919,18 @@ const floorMesh = (() => {
       if (f.x <= 0.01 || f.x >= 0.99 || f.z <= 0.01 || f.z >= 0.99) {
         a = 0.0;
       } else {
-        a = 1.0;
+        a = uAnimation;
       }
       gl_FragColor = vec4(vec3(c), a);
     }
   `;
   const material = new THREE.ShaderMaterial({
+    uniforms: {
+      uAnimation: {
+        type: 'f',
+        value: 1,
+      },
+    },
     vertexShader: floorVsh,
     fragmentShader: floorFsh,
     transparent: true,
@@ -5555,31 +5566,61 @@ function animate(time, frame) {
           c.matrixWorld.decompose(localVector, localQuaternion, localVector2);
           localVector.add(localVector2.set(0, -0.5, -1 + 0.2/2).applyQuaternion(localQuaternion));
 
-          menuAnimation = _makeMenuAnimation({
-            start: {
-              position: trayMesh.position.clone(),
-              quaternion: trayMesh.quaternion.clone(),
-              scale: new THREE.Vector3(1, 1, 1),
-            },
-            end: {
-              position: localVector.clone(),
-              quaternion: localQuaternion.clone(),
-              scale: new THREE.Vector3(1, 1, 1),
-            },
-          });
+          if (menuFactor < 0.5) {
+            menuAnimation = _makeMenuAnimation({
+              start: {
+                factor: menuFactor,
+                position: localVector.clone(),
+                quaternion: localQuaternion.clone(),
+                scale: new THREE.Vector3(0.001, 0.001, 0.001),
+              },
+              end: {
+                factor: 1,
+                position: localVector.clone(),
+                quaternion: localQuaternion.clone(),
+                scale: new THREE.Vector3(1, 1, 1),
+              },
+            });
+          } else {
+            menuAnimation = _makeMenuAnimation({
+              start: {
+                factor: menuFactor,
+                position: trayMesh.position.clone(),
+                quaternion: trayMesh.quaternion.clone(),
+                scale: new THREE.Vector3(1, 1, 1),
+              },
+              end: {
+                factor: 0,
+                position: trayMesh.position.clone(),
+                quaternion: trayMesh.quaternion.clone(),
+                scale: new THREE.Vector3(0.001, 0.001, 0.001),
+              },
+            });
+          }
         }
         lastButtons[i].bumper = bumper;
 
         if (menuAnimation) {
           const {spec: {start, end}} = menuAnimation;
           const f = menuAnimation.getValue();
+          menuFactor = start.factor + (end.factor - start.factor) * f;
 
           trayMesh.quaternion.copy(start.quaternion).slerp(end.quaternion, f);
           trayMesh.position.copy(start.position).lerp(localVector.copy(end.position), f);
           trayMesh.scale.copy(start.scale).lerp(end.scale, f);
           trayMesh.updateMatrixWorld();
+          trayMesh.visible = true;
+          skyboxMesh.material.uniforms.uAnimation.value = menuFactor;
+          skyboxMesh.visible = true;
+          floorMesh.material.uniforms.uAnimation.value = menuFactor;
+          floorMesh.visible = true;
 
           if (f >= 1) {
+            if (end.factor === 0) {
+              trayMesh.visible = false;
+              skyboxMesh.visible = false;
+              floorMesh.visible = false;
+            }
             menuAnimation = null;
           }
         }
