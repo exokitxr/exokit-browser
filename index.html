@@ -1936,7 +1936,7 @@ const _makeLabelMesh = s => {
         // gl_FragColor = vec4(vec3(0.11055276381909548, 0.27638190954773867, 0.4103852596314908) * 2.0, 1.0);
         gl_FragColor = color;
       } else {
-        gl_FragColor = vec4(0.0, 0.0, 0.0, 0.5);
+        gl_FragColor = vec4(vUv.x, vUv.y, 0.0, 0.5);
       }
     }
   `;
