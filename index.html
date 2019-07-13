@@ -2311,6 +2311,7 @@ const trayMesh = (() => {
   const labelMesh = _makeLabelMesh('https://google.com');
   labelMesh.position.y = 0.4;
   mesh.add(labelMesh);
+  mesh.labelMesh = labelMesh;
 
   const keyboardMesh = (() => {
     const object = new THREE.Object3D();
