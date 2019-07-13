@@ -1393,7 +1393,7 @@ const _bindEventTarget = target => {
           localVector2D.set(xFactor * 2 - 1, yFactor * 2 + 1);
           localRaycaster.setFromCamera(localVector2D, localCamera);
 
-        // console.log('set mouse', localVector2D.toArray(), localRaycaster.ray.origin.toArray(), localRaycaster.ray.direction.toArray());
+          // console.log('set mouse', localVector2D.toArray(), localRaycaster.ray.origin.toArray(), localRaycaster.ray.direction.toArray());
           mouse.position.copy(localRaycaster.ray.origin);
           mouse.quaternion.setFromUnitVectors(localVector.set(0, 0, -1), localRaycaster.ray.direction);
         }
