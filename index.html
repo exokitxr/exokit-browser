@@ -2312,12 +2312,12 @@ const trayMesh = (() => {
   const actionIconMeshes = new THREE.Object3D();
   [
     [layersImg, 0, 0, () => {
-      selectedIconMesh = appIconMeshes;
-      selectedIconCoord.set(0, 0);
-      selectedIconPage = 0;
-      
       const iconMesh = appIconMeshes.children.find(iconMesh => iconMesh.x === 0 && iconMesh.y === 0);
       if (iconMesh) {
+        selectedIconMesh = appIconMeshes;
+        selectedIconCoord.set(0, 0);
+        selectedIconPage = 0;
+
         labelMesh.textMesh.setText(iconMesh.url);
       }
     }],
@@ -2397,8 +2397,21 @@ const trayMesh = (() => {
             child.setPosition(child.x - 1, child.y);
           }
           appIconMeshes.remove(iconMesh);
-          
           iconMesh.destroy();
+          
+          if (appIconMeshes.children.some(iconMesh => iconMesh.x === selectedIconCoord.x && iconMesh.y === selectedIconCoord.y)) {
+            // nothing
+          } else {
+            if (appIconMeshes.children.some(iconMesh => iconMesh.x === 0 && iconMesh.y === 0)) {
+              selectedIconCoord.set(0, 0);
+            } else {
+              selectedIconMesh = actionIconMeshes;
+              selectedIconCoord.set(1, 0);
+              selectedIconPage = 0;
+              
+              labelMesh.textMesh.setText(DEFAULT_URL);
+            }
+          }
         }, true, appIconMeshes);
         selectedIconMesh = appIconMeshes;
         selectedIconCoord.set(x, 0);
