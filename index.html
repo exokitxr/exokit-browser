@@ -2323,12 +2323,15 @@ const trayMesh = (() => {
     }],
     [browserImg, 1, 0, () => {
       selectedIconCoord.set(1, 0);
+      labelMesh.textMesh.setText('https://google.com');
     }],
     [hurricaneImg, 2, 0, () => {
       selectedIconCoord.set(2, 0);
+      labelMesh.textMesh.setText('https://rawcdn.githack.com/exokitxr/webxr-samples/a8e2c94eba0ee5c9215f20d13057b6c25675d9b0/xr-presentation.html');
     }],
     [diceImg, 3, 0, () => {
       selectedIconCoord.set(3, 0);
+      labelMesh.textMesh.setText('https://aframe.io/a-painter/');
     }],
     [cogsImg, 4, 0, () => {
       selectedIconMesh = settingsIconMeshes;
@@ -2336,24 +2339,21 @@ const trayMesh = (() => {
       selectedIconCoord.set(0, 0);
     }],
     [plusImg, 5, 1, i => {
-      let url = null, type = null;
+      let type = null;
       switch (selectedIconCoord.x) {
         case 1: {
-          url = 'https://google.com';
           type = 'browser';
           break;
         }
         case 2: {
-          url = 'https://rawcdn.githack.com/exokitxr/webxr-samples/a8e2c94eba0ee5c9215f20d13057b6c25675d9b0/xr-presentation.html';
           type = 'portal';
           break;
         }
         case 3: {
-          url = 'https://aframe.io/a-painter/';
           type = 'volume';
         }
       }
-      _addAppIconMesh(url, faviconImg, type, i);
+      _addAppIconMesh(labelMesh.textMesh.getText(), faviconImg, type, i);
     }],
   ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(null, img, null, x, y, onclick, null, null, false, actionIconMeshes));
   mesh.add(actionIconMeshes);
