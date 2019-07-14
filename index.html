@@ -153,7 +153,7 @@ let servers = [];
 let serversLoading = false;
 let serverConnectedUrl = null;
 
-const DEFAULT_URL = 'http://lol.com';
+const DEFAULT_URL = 'https://google.com';
 const DEFAULT_REGISTRY_URL = 'http://xrmp.exokit.org:9001';
 const DEFAULT_SKIN_URL = 'skin2.png';
 const RAY_COLOR = 0x44c2ff;
@@ -1063,8 +1063,14 @@ const _makeTextMesh = (s = '', size = 1) => {
   mesh.scale.set(scaleFactor, -scaleFactor, -scaleFactor);
   mesh.getText = () => s;
   mesh.setText = newS => {
-    s = newS;
-    geometry.update(s);
+    if (newS !== s) {
+      s = newS;
+      geometry.update(s);
+      /* mesh.dispatchEvent({
+        type: 'update',
+        url: s,
+      }); */
+    }
   };
   return mesh;
 };
@@ -2178,9 +2184,14 @@ const trayMesh = (() => {
       mesh.closeMesh = closeMesh;
     }
 
+    mesh.url = url;
     mesh.type = type;
     mesh.x = 0;
     mesh.y = 0;
+    mesh.setUrl = s => {
+      console.log('set mesh url', s);
+      mesh.url = s;
+    };
     mesh.setPosition = (newX, newY) => {
       mesh.x = newX;
       mesh.y = newY;
@@ -2277,9 +2288,7 @@ const trayMesh = (() => {
           return {
             type: 'icon',
             distance: localRay.origin.distanceTo(intersectionPoint),
-            onclick: onclick || (() => {
-              selectedIconCoord.set(mesh.x, mesh.y);
-            }),
+            onclick,
           };
         }
 
@@ -2305,10 +2314,22 @@ const trayMesh = (() => {
     [layersImg, 0, 0, () => {
       selectedIconMesh = appIconMeshes;
       selectedIconCoord.set(0, 0);
+      selectedIconPage = 0;
+      
+      const iconMesh = appIconMeshes.children.find(iconMesh => iconMesh.x === 0 && iconMesh.y === 0);
+      if (iconMesh) {
+        labelMesh.textMesh.setText(iconMesh.url);
+      }
     }],
-    [browserImg, 1, 0, null],
-    [hurricaneImg, 2, 0, null],
-    [diceImg, 3, 0, null],
+    [browserImg, 1, 0, () => {
+      selectedIconCoord.set(1, 0);
+    }],
+    [hurricaneImg, 2, 0, () => {
+      selectedIconCoord.set(2, 0);
+    }],
+    [diceImg, 3, 0, () => {
+      selectedIconCoord.set(3, 0);
+    }],
     [cogsImg, 4, 0, () => {
       selectedIconMesh = settingsIconMeshes;
       // selectedIconCoord.set(-1, 1);
@@ -2343,6 +2364,8 @@ const trayMesh = (() => {
       selectedIconMesh = actionIconMeshes;
       selectedIconCoord.set(1, 0);
       selectedIconPage = 0;
+      
+      labelMesh.textMesh.setText(DEFAULT_URL);
     }],
     [chevronLeftImg, -1, 0, () => {
       selectedIconPage = Math.max(selectedIconPage - 1, 0);
@@ -2351,7 +2374,9 @@ const trayMesh = (() => {
       selectedIconPage++;
     }],
     [locationImg, 5, 1, () => {
-      console.log('set selected tab location'); // XXX
+      const iconMesh = appIconMeshes.children.find(iconMesh => iconMesh.x === selectedIconCoord.x && iconMesh.y === selectedIconCoord.y);
+      const url = labelMesh.textMesh.getText();
+      iconMesh.setUrl(url);
     }],
   ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(null, img, null, x, y, onclick, null, null, false, appIconMeshes));
   mesh.add(appIconMeshes);
@@ -2360,7 +2385,10 @@ const trayMesh = (() => {
     for (let x = 0;; x++) {
       if (appIconMeshes.children.findIndex(mesh => mesh.x === x) === -1) {
         const y = 0;
-        const iconMesh = _makeAndAddIconMesh(url, img, type, x, y, null, i => {
+        const iconMesh = _makeAndAddIconMesh(url, img, type, x, y, () => {
+          selectedIconCoord.set(iconMesh.x, iconMesh.y);
+          labelMesh.textMesh.setText(iconMesh.url);
+        }, i => {
           _moveApp(iconMesh, i);
         }, () => { 
           const index = appIconMeshes.children.indexOf(iconMesh);
@@ -2391,6 +2419,8 @@ const trayMesh = (() => {
     [arrowLeftImg, -1, 1, () => {
       selectedIconMesh = actionIconMeshes;
       selectedIconCoord.set(1, 0);
+
+      labelMesh.textMesh.setText(DEFAULT_URL);
     }],
   ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(null, img, null, x, y, onclick, null, null, false, settingsIconMeshes));
   mesh.add(settingsIconMeshes);
@@ -2399,10 +2429,18 @@ const trayMesh = (() => {
   let selectedIconCoord = new THREE.Vector2(1, 0);
   let selectedIconPage = 0;
 
-  const labelMesh = _makeLabelMesh('https://google.com');
+  const labelMesh = _makeLabelMesh(DEFAULT_URL);
   labelMesh.position.y = 0.4;
   mesh.add(labelMesh);
   mesh.labelMesh = labelMesh;
+  
+  /* labelMesh.textMesh.addEventListener('update', e => {
+    const {url} = e;
+    if (selectedIconMesh === appIconMeshes) {
+      const iconMesh = appIconMeshes.children.find(iconMesh => iconMesh.x === selectedIconCoord.x && iconMesh.y === selectedIconCoord.y);
+      iconMesh.setUrl(url);
+    }
+  }); */
 
   const keyboardMesh = (() => {
     const object = new THREE.Object3D();
