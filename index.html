@@ -2189,8 +2189,8 @@ const trayMesh = (() => {
     mesh.x = 0;
     mesh.y = 0;
     mesh.setUrl = s => {
-      console.log('set mesh url', s);
       mesh.url = s;
+      mesh.iframe.src = s;
     };
     mesh.setPosition = (newX, newY) => {
       mesh.x = newX;
