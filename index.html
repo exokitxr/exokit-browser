@@ -953,6 +953,7 @@ const [
   crosshairImg,
   plusImg,
   locationImg,
+  xImg,
   faviconImg,
   keyboardImg,
   keyboardHighlightCanvasCtx,
@@ -971,6 +972,7 @@ const [
     'crosshair.png',
     'plus.png',
     'location.png',
+    'x.png',
     'https://cors-anywhere.herokuapp.com/https://google.com/favicon.ico',
     'keyboard.png',
   ].map(src => new Promise((accept, reject) => {
@@ -3467,6 +3469,10 @@ const doorMeshGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
 ]);
 const _makePortal = iframe => {
   const geometry = portalGeometry;
+
+  const xTex = new THREE.Texture(xImg);
+  xTex.needsUpdate = true
+
   const material = new THREE.ShaderMaterial({
     uniforms: {
       uTex: {
@@ -3483,7 +3489,7 @@ const _makePortal = iframe => {
       },
       uXTex: {
         type: 't',
-        value: null,
+        value: xTex,
       },
       uPlane: {
         type: 'v4',
@@ -3517,25 +3523,6 @@ const _makePortal = iframe => {
     material.uniforms.pmi.value = projectionMatrices[mesh.numRenders];
 
     mesh.numRenders = (mesh.numRenders + 1) % 2;
-  };
-  const image = new Image();
-  image.src = 'x.png';
-  image.onload = () => {
-    mesh.material.uniforms.uXTex.value = new THREE.Texture(
-      image,
-      THREE.UVMapping,
-      THREE.RepeatWrapping,
-      THREE.RepeatWrapping,
-      THREE.LinearFilter,
-      THREE.LinearFilter,
-      THREE.RGBAFormat,
-      THREE.UnsignedByteType,
-      16
-    );
-    mesh.material.uniforms.uXTex.value.needsUpdate = true;
-  };
-  image.onerror = err => {
-    console.warn('fail', err.stack);
   };
 
   const doorMesh = (() => {
