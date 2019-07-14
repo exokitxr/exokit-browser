@@ -33,7 +33,7 @@ iframe, audio {
     <script src="xrmp-three.js"></script> -->
     <script>
 (async () => {
-let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewportVector = new THREE.Vector2(), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls = null, transformControls, rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], contentMeshes = [], portalMeshes = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null;
+let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewportVector = new THREE.Vector2(), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls = null, transformControls, rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null;
 const viewMatrices = [
   new THREE.Matrix4(),
   new THREE.Matrix4(),
@@ -42,7 +42,6 @@ const projectionMatrices = [
   new THREE.Matrix4(),
   new THREE.Matrix4(),
 ];
-const cameraViewport = [0, 0];
 const mouse = {
   position: new THREE.Vector3(),
   quaternion: new THREE.Quaternion(),
@@ -3263,124 +3262,6 @@ const _makeRoomDiagramMesh = (index, type, label, color) => {
 
   return mesh;
 };
-const _addVolume = roomMesh => {
-  const iframe = document.createElement('iframe');
-  document.body.appendChild(iframe);
-
-  const type = roomMesh.classify();
-  if (type === 'point') {
-    iframe.d = 3;
-    iframe.src = 'tutorial.html';
-
-    const [sx, sy, sz, dx, dy, dz] = roomMesh.getRange();
-    const position = [(sx+dx)/2, (sy+dy)/2, (sz+dz)/2];
-    iframe.position = position;
-    iframe.orientation = [0, 0, 0, 1];
-    iframe.scale = [1, 1, 1];
-
-    layers.push(iframe);
-  } else if (type === 'portal') {
-    iframe.d = 3;
-    iframe.src = 'tutorial.html';
-
-    // _setPosition();
-
-    const [sx, sy, sz, dx, dy, dz] = roomMesh.getRange();
-    const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-    c.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-    localVector.set(0, 0, -1).applyQuaternion(localQuaternion);
-    const normal = new THREE.Vector3();
-    if (Math.abs(localVector.x) >= Math.abs(localVector.z)) {
-      if (localVector.x >= 0) {
-        normal.set(-1, 0, 0);
-      } else {
-        normal.set(1, 0, 0);
-      }
-    } else {
-      if (localVector.z >= 0) {
-        normal.set(0, 0, -1);
-      } else {
-        normal.set(0, 0, 1);
-      }
-    }
-
-    const position = new THREE.Vector3((sx+dx)/2, (sy+dy)/2 + 0.5, (sz+dz)/2);
-    const quaternion = new THREE.Quaternion().setFromUnitVectors(localVector.set(0, 0, 1), normal);
-    const scale = new THREE.Vector3(1, 2, 1);
-    const color = 0x333333;
-
-    iframe.position = [position.x, position.y - 1, position.z];
-    iframe.orientation = quaternion.toArray();
-    iframe.scale = [1, 1, 1];
-
-    const portalMesh = _makePortalMesh(position, quaternion, scale, iframe, color);
-    scene.add(portalMesh);
-    portalMeshes.push(portalMesh);
-  } else if (type === 'plane') {
-    iframe.d = 2;
-    iframe.src = 'https://google.com';
-
-    const [sx, sy, sz, dx, dy, dz] = roomMesh.getRange();
-    const wx = Math.abs(dx - sx) + 1;
-    const wy = Math.abs(dy - sy) + 1;
-    const wz = Math.abs(dz - sz) + 1;
-    const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-    c.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-    localVector.set(0, 0, -1).applyQuaternion(localQuaternion);
-    const normal = new THREE.Vector3();
-    let scale;
-    if (wx === 1) {
-      if (localVector.x > 0) {
-        normal.set(-1, 0, 0);
-      } else {
-        normal.set(1, 0, 0);
-      }
-      scale = [wz, wy, 1];
-    } else if (wy === 1) {
-      if (localVector.y > 0) {
-        normal.set(0, -1, 0);
-      } else {
-        normal.set(0, 1, 0);
-      }
-      scale = [wx, wz, 1];
-    } else {
-      if (localVector.z > 0) {
-        normal.set(0, 0, -1);
-      } else {
-        normal.set(0, 0, 1);
-      }
-      scale = [wx, wy, 1];
-    }
-
-    const position = [(sx+dx)/2 + normal.x/2, (sy+dy)/2 + normal.y/2, (sz+dz)/2 + normal.z/2];
-    if (position[1] > 0) {
-      position[1] += 0.5;
-    }
-    iframe.position = position;
-    iframe.orientation = localQuaternion.setFromUnitVectors(localVector.set(0, 0, 1), normal).toArray();
-    iframe.scale = scale;
-
-    layers.push(iframe);
-  } else /* if (type === 'volume') */ {
-    iframe.d = 3;
-    // iframe.src = 'https://rawcdn.githack.com/exokitxr/webxr-samples/a8e2c94eba0ee5c9215f20d13057b6c25675d9b0/xr-presentation.html';
-    iframe.src = 'rain.html';
-
-    // _setPosition();
-
-    const [sx, sy, sz, dx, dy, dz] = roomMesh.getRange();
-    iframe.position = [(sx+dx)/2, (sy+dy)/2, (sz+dz)/2];
-    iframe.orientation = [0, 0, 0, 1];
-    iframe.scale = [1, 1, 1];
-
-    const position = new THREE.Vector3((sx+dx)/2, (sy+dy)/2 + 0.5, (sz+dz)/2);
-    const quaternion = new THREE.Quaternion();
-    const scale = new THREE.Vector3(Math.abs(sx - dx) + 1, Math.abs(sy - dy) + 1, Math.abs(sz - dz) + 1);
-    const contentMesh = _makeContentMesh(position, quaternion, scale, iframe);
-    scene.add(contentMesh);
-    contentMeshes.push(contentMesh);
-  }
-};
 
 const portalVsh = `
   varying vec3 vWorldPos;
@@ -5616,115 +5497,6 @@ function animate(time, frame) {
     }
   };
   _updateGridControls();
-
-  for (let i = 0; i < contentMeshes.length; i++) {
-    const contentMesh = contentMeshes[i];
-    const {iframe: volumeIframe} = contentMesh;
-
-    if (volumeIframe.contentWindow && volumeIframe.contentWindow.framebuffer) {
-      const {tex, width, height} = volumeIframe.contentWindow.framebuffer;
-      if (!contentMesh.material.uniforms.uTex.value) {
-        {
-          const texture = new THREE.Texture(
-            null,
-            THREE.UVMapping,
-            THREE.ClampToEdgeWrapping,
-            THREE.ClampToEdgeWrapping,
-            THREE.LinearFilter,
-            THREE.LinearFilter,
-            THREE.RGBAFormat,
-            THREE.UnsignedByteType,
-            16
-          );
-          const properties = renderer.properties.get(texture);
-          properties.__webglTexture = {
-            id: volumeIframe.contentWindow.framebuffer.tex,
-          };
-          properties.__webglInit = true;
-
-          contentMesh.material.uniforms.uTex.value = texture;
-        }
-        {
-          const texture = new THREE.Texture(
-            null,
-            THREE.UVMapping,
-            THREE.ClampToEdgeWrapping,
-            THREE.ClampToEdgeWrapping,
-            THREE.LinearFilter,
-            THREE.LinearFilter,
-            THREE.DepthStencilFormat,
-            THREE.UnsignedInt248Type,
-            16
-          );
-          const properties = renderer.properties.get(texture);
-          properties.__webglTexture = {
-            id: volumeIframe.contentWindow.framebuffer.depthTex,
-          };
-          properties.__webglInit = true;
-
-          contentMesh.material.uniforms.uDepthTex.value = texture;
-        }
-      }
-
-      const w = cameraViewport[0] * 2;
-      const h = cameraViewport[1];
-      contentMesh.material.uniforms.uViewport.value.set(w, h);
-    }
-  }
-  for (let i = 0; i < portalMeshes.length; i++) {
-    const portalMesh = portalMeshes[i];
-    const {iframe: portalIframe} = portalMesh;
-
-    if (portalIframe.contentWindow && portalIframe.contentWindow.framebuffer) {
-      const {tex/*, width, height*/} = portalIframe.contentWindow.framebuffer;
-      if (!portalMesh.material.uniforms.uTex.value) {
-        {
-          const texture = new THREE.Texture(
-            null,
-            THREE.UVMapping,
-            THREE.ClampToEdgeWrapping,
-            THREE.ClampToEdgeWrapping,
-            THREE.LinearFilter,
-            THREE.LinearFilter,
-            THREE.RGBAFormat,
-            THREE.UnsignedByteType,
-            16
-          );
-          const properties = renderer.properties.get(texture);
-          properties.__webglTexture = {
-            id: portalIframe.contentWindow.framebuffer.tex,
-          };
-          properties.__webglInit = true;
-
-          portalMesh.material.uniforms.uTex.value = texture;
-        }
-        {
-          const texture = new THREE.Texture(
-            null,
-            THREE.UVMapping,
-            THREE.ClampToEdgeWrapping,
-            THREE.ClampToEdgeWrapping,
-            THREE.LinearFilter,
-            THREE.LinearFilter,
-            THREE.DepthStencilFormat,
-            THREE.UnsignedInt248Type,
-            16
-          );
-          const properties = renderer.properties.get(texture);
-          properties.__webglTexture = {
-            id: portalIframe.contentWindow.framebuffer.depthTex,
-          };
-          properties.__webglInit = true;
-
-          portalMesh.material.uniforms.uDepthTex.value = texture;
-        }
-      }
-
-      const w = cameraViewport[0] * 2;
-      const h = cameraViewport[1];
-      portalMesh.material.uniforms.uViewport.value.set(w, h);
-    }
-  }
 
   const _render = () => {
     const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
