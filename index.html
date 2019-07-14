@@ -2413,8 +2413,13 @@ const trayMesh = (() => {
             }
           }
         }, true, appIconMeshes);
+
         selectedIconMesh = appIconMeshes;
         selectedIconCoord.set(x, 0);
+        selectedIconPage = 0;
+
+        labelMesh.textMesh.setText(url);
+
         _moveApp(iconMesh, i);
 
         break;
