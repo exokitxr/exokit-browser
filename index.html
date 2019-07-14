@@ -2038,6 +2038,10 @@ const trayMesh = (() => {
     side: THREE.DoubleSide,
   });
   const mesh = new THREE.Mesh(geometry, material);
+  mesh.position
+    .copy(camera.position)
+    .add(new THREE.Vector3(0, -0.5, -1 + 0.2/2));
+  mesh.frustumCulled = false;
 
   const _makeIframe = (url, type) => {
     const iframe = document.createElement('iframe');
@@ -2567,7 +2571,6 @@ const trayMesh = (() => {
     .concat(appIconMeshes.children)
     .concat(settingsIconMeshes.children);
 
-  mesh.frustumCulled = false;
   return mesh;
 })();
 scene.add(trayMesh);
