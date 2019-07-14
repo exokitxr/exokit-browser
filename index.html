@@ -3470,6 +3470,49 @@ const doorMeshGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
 const _makePortal = iframe => {
   const geometry = portalGeometry;
 
+  iframe.addEventListener('load', () => {
+    iframe.contentWindow.once('framebuffer', () => {
+      {
+        const tex = new THREE.Texture(
+          null,
+          THREE.UVMapping,
+          THREE.ClampToEdgeWrapping,
+          THREE.ClampToEdgeWrapping,
+          THREE.LinearFilter,
+          THREE.LinearFilter,
+          THREE.RGBAFormat,
+          THREE.UnsignedByteType,
+          16
+        );
+        const properties = renderer.properties.get(tex);
+        properties.__webglTexture = {
+          id: iframe.contentWindow.framebuffer.tex,
+        };
+        properties.__webglInit = true;
+        material.uniforms.uTex.value = tex;
+      }
+      {
+        const depthTex = new THREE.Texture(
+          null,
+          THREE.UVMapping,
+          THREE.ClampToEdgeWrapping,
+          THREE.ClampToEdgeWrapping,
+          THREE.LinearFilter,
+          THREE.LinearFilter,
+          THREE.DepthStencilFormat,
+          THREE.UnsignedInt248Type,
+          16
+        );
+        const properties = renderer.properties.get(depthTex);
+        properties.__webglTexture = {
+          id: iframe.contentWindow.framebuffer.depthTex,
+        };
+        properties.__webglInit = true;
+        material.uniforms.uDepthTex.value = depthTex;
+      }
+    });
+  }, {once: true});
+  
   const xTex = new THREE.Texture(xImg);
   xTex.needsUpdate = true
 
