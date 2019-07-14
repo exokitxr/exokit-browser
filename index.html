@@ -33,7 +33,7 @@ iframe, audio {
     <script src="xrmp-three.js"></script> -->
     <script>
 (async () => {
-let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewport = new THREE.Vector4(0, 0, 1, 1), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls = null, transformControls, rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], contentMeshes = [], portalMeshes = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null;
+let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewportVector = new THREE.Vector2(), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls = null, transformControls, rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], contentMeshes = [], portalMeshes = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null;
 const viewMatrices = [
   new THREE.Matrix4(),
   new THREE.Matrix4(),
@@ -3598,7 +3598,7 @@ const _makePortal = iframe => {
       },
       uViewport: {
         type: 'v2',
-        value: new THREE.Vector2(),
+        value: viewportVector,
       },
       uXTex: {
         type: 't',
@@ -6006,6 +6006,7 @@ const _enterXr = async () => {
         return result;
       })();
       renderer.setSize(fullWidth, height);
+      viewportVector.set(fullWidth, height);
 
       renderer.setAnimationLoop(null);
 
@@ -6032,7 +6033,9 @@ const _enterXr = async () => {
       display.layers = layers;
 
       const {renderWidth: width, renderHeight: height} = display.getEyeParameters('left');
-      renderer.setSize(width * 2, height);
+      const fullWidth = width * 2;
+      renderer.setSize(fullWidth, height);
+      viewportVector.set(fullWidth, height);
 
       renderer.setAnimationLoop(null);
       renderer.vr.enabled = true;
