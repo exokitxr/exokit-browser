@@ -3701,6 +3701,12 @@ const _makePortal = iframe => {
   scene.add(mesh);
   
   return {
+    get src() {
+      return iframe.src;
+    },
+    set src(src) {
+      iframe.src = src;
+    },
     get position() {
       return mesh.position.toArray();
     },
