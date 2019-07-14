@@ -3641,7 +3641,7 @@ const _makePortal = iframe => {
         material.uniforms.uDepthTex.value = depthTex;
       }
     });
-  }, {once: true});
+  });
   
   const xTex = new THREE.Texture(xImg);
   xTex.needsUpdate = true
