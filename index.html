@@ -34,14 +34,6 @@ iframe, audio {
     <script>
 (async () => {
 let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewportVector = new THREE.Vector2(), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls = null, transformControls, rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null;
-const viewMatrices = [
-  new THREE.Matrix4(),
-  new THREE.Matrix4(),
-];
-const projectionMatrices = [
-  new THREE.Matrix4(),
-  new THREE.Matrix4(),
-];
 const mouse = {
   position: new THREE.Vector3(),
   quaternion: new THREE.Quaternion(),
@@ -3282,52 +3274,92 @@ const portalFsh = `
   uniform vec4 uPlane;
   varying vec3 vWorldPos;
   // varying vec2 vUv;
-  uniform mat4 pmi;
-  uniform mat4 mwi;
+  uniform mat4 projectionMatrix;
   float checkPlane(vec4 worldPos, vec4 uPlane) {
     return dot(worldPos.xyz, uPlane.xyz) - uPlane.w;
   }
   // from https://gamedev.stackexchange.com/questions/108856/fast-position-reconstruction-from-depth/111885#111885
-  vec4 calculate_view_position(vec2 texture_coordinate, float depth_from_depth_buffer) {
+  vec4 calculate_view_position(vec2 texture_coordinate, float depth_from_depth_buffer, mat4 projectionMatrixInverse) {
     vec3 clip_space_position = vec3(texture_coordinate, depth_from_depth_buffer) * 2.0 - vec3(1.0);
-    vec4 view_position = vec4(vec2(pmi[0][0], pmi[1][1]) * clip_space_position.xy,
+    vec4 view_position = vec4(vec2(projectionMatrixInverse[0][0], projectionMatrixInverse[1][1]) * clip_space_position.xy,
       -1.0,
-      pmi[2][3] * clip_space_position.z + pmi[3][3]);
+      projectionMatrixInverse[2][3] * clip_space_position.z + projectionMatrixInverse[3][3]);
     return view_position;
+  }
+  mat4 inverse(mat4 m) {
+    float
+        a00 = m[0][0], a01 = m[0][1], a02 = m[0][2], a03 = m[0][3],
+        a10 = m[1][0], a11 = m[1][1], a12 = m[1][2], a13 = m[1][3],
+        a20 = m[2][0], a21 = m[2][1], a22 = m[2][2], a23 = m[2][3],
+        a30 = m[3][0], a31 = m[3][1], a32 = m[3][2], a33 = m[3][3],
+
+        b00 = a00 * a11 - a01 * a10,
+        b01 = a00 * a12 - a02 * a10,
+        b02 = a00 * a13 - a03 * a10,
+        b03 = a01 * a12 - a02 * a11,
+        b04 = a01 * a13 - a03 * a11,
+        b05 = a02 * a13 - a03 * a12,
+        b06 = a20 * a31 - a21 * a30,
+        b07 = a20 * a32 - a22 * a30,
+        b08 = a20 * a33 - a23 * a30,
+        b09 = a21 * a32 - a22 * a31,
+        b10 = a21 * a33 - a23 * a31,
+        b11 = a22 * a33 - a23 * a32,
+
+        det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
+
+    return mat4(
+        a11 * b11 - a12 * b10 + a13 * b09,
+        a02 * b10 - a01 * b11 - a03 * b09,
+        a31 * b05 - a32 * b04 + a33 * b03,
+        a22 * b04 - a21 * b05 - a23 * b03,
+        a12 * b08 - a10 * b11 - a13 * b07,
+        a00 * b11 - a02 * b08 + a03 * b07,
+        a32 * b02 - a30 * b05 - a33 * b01,
+        a20 * b05 - a22 * b02 + a23 * b01,
+        a10 * b10 - a11 * b08 + a13 * b06,
+        a01 * b08 - a00 * b10 - a03 * b06,
+        a30 * b04 - a31 * b02 + a33 * b00,
+        a21 * b02 - a20 * b04 - a23 * b00,
+        a11 * b07 - a10 * b09 - a12 * b06,
+        a00 * b09 - a01 * b07 + a02 * b06,
+        a31 * b01 - a30 * b03 - a32 * b00,
+        a20 * b03 - a21 * b01 + a22 * b00) / det;
   }
   /* vec4 calculate_view_position(vec2 texture_coordinate, float depth_from_depth_buffer) {
     return pmi * vec4(vec3(texture_coordinate, depth_from_depth_buffer) * 2.0 - 1.0, 1.0);
   } */
+  /* vec2 ndc = (texCoordFull * 2.0) - 1.0;
+  float z_n = 2.0 * z_b - 1.0;
+  float zNear = projectionMatrix[3][2] / (projectionMatrix[2][2] - 1.0);
+  float zFar = projectionMatrix[3][2] / (projectionMatrix[2][2] + 1.0);
+  float z_e = 2.0 * zNear * zFar / (zFar + zNear - z_n * (zFar - zNear)); */
+  mat4 viewMatrixInverse = inverse(viewMatrix);
+  mat4 projectionMatrixInverse = inverse(projectionMatrix);
   void main() {
     vec2 texCoord = gl_FragCoord.xy / uViewport;
+    // gl_FragColor = vec4(texCoord, 0., 1.);
     vec2 texCoordFull = vec2(mod(texCoord.x, 0.5) * 2.0, texCoord.y);
     float z_b = texture2D(uDepthTex, texCoord).r;
 
-    /* vec2 ndc = (texCoordFull * 2.0) - 1.0;
-    float z_n = 2.0 * z_b - 1.0;
-    float zNear = projectionMatrix[3][2] / (projectionMatrix[2][2] - 1.0);
-    float zFar = projectionMatrix[3][2] / (projectionMatrix[2][2] + 1.0);
-    float z_e = 2.0 * zNear * zFar / (zFar + zNear - z_n * (zFar - zNear)); */
-
-    vec4 worldPos = calculate_view_position(texCoordFull, z_b);
+    vec4 worldPos = calculate_view_position(texCoordFull, z_b, projectionMatrixInverse);
     worldPos /= worldPos.w;
-    worldPos = mwi * worldPos;
+    worldPos = viewMatrixInverse * worldPos;
 
-    float p = checkPlane(worldPos, uPlane);
-    if (p >= 0.0) {
-    // if (worldPos.y >= 0.0) {
+    // float p = checkPlane(worldPos, uPlane);
+    // if (p >= 0.0) {
       gl_FragColor = texture2D(uTex, texCoord);
       gl_FragDepth = min(gl_FragCoord.z, z_b);
-    } else {
+    /* } else {
       if (p >= -0.05) {
         gl_FragColor = texture2D(uXTex, vec2(0., 0.));
       } else {
         gl_FragColor = texture2D(uXTex, vWorldPos.xy * 10.0);
       }
       gl_FragDepth = gl_FragCoord.z;
-    }
+    } */
     
-    gl_FragColor.rgb += vec3(texCoord, 1.0) * 0.2;
+    gl_FragColor.rgb += vec3(texCoordFull, 1.0) * 0.2;
   }
 `;
 
@@ -3353,30 +3385,71 @@ const volumeFsh = `
   uniform vec4 uPlane5;
   varying vec3 vWorldPos;
   // varying vec2 vUv;
-  uniform mat4 pmi;
-  uniform mat4 mwi;
+  uniform mat4 projectionMatrix;
   bool checkPlane(vec4 worldPos, vec4 uPlane) {
     return dot(worldPos.xyz, uPlane.xyz) >= uPlane.w;
   }
   // from https://gamedev.stackexchange.com/questions/108856/fast-position-reconstruction-from-depth/111885#111885
-  vec4 calculate_view_position(vec2 texture_coordinate, float depth_from_depth_buffer) {
+  vec4 calculate_view_position(vec2 texture_coordinate, float depth_from_depth_buffer, mat4 projectionMatrixInverse) {
     vec3 clip_space_position = vec3(texture_coordinate, depth_from_depth_buffer) * 2.0 - vec3(1.0);
     vec4 view_position = vec4(vec2(pmi[0][0], pmi[1][1]) * clip_space_position.xy,
       -1.0,
       pmi[2][3] * clip_space_position.z + pmi[3][3]);
     return view_position;
   }
+  mat4 inverse(mat4 m) {
+    float
+        a00 = m[0][0], a01 = m[0][1], a02 = m[0][2], a03 = m[0][3],
+        a10 = m[1][0], a11 = m[1][1], a12 = m[1][2], a13 = m[1][3],
+        a20 = m[2][0], a21 = m[2][1], a22 = m[2][2], a23 = m[2][3],
+        a30 = m[3][0], a31 = m[3][1], a32 = m[3][2], a33 = m[3][3],
+
+        b00 = a00 * a11 - a01 * a10,
+        b01 = a00 * a12 - a02 * a10,
+        b02 = a00 * a13 - a03 * a10,
+        b03 = a01 * a12 - a02 * a11,
+        b04 = a01 * a13 - a03 * a11,
+        b05 = a02 * a13 - a03 * a12,
+        b06 = a20 * a31 - a21 * a30,
+        b07 = a20 * a32 - a22 * a30,
+        b08 = a20 * a33 - a23 * a30,
+        b09 = a21 * a32 - a22 * a31,
+        b10 = a21 * a33 - a23 * a31,
+        b11 = a22 * a33 - a23 * a32,
+
+        det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
+
+    return mat4(
+        a11 * b11 - a12 * b10 + a13 * b09,
+        a02 * b10 - a01 * b11 - a03 * b09,
+        a31 * b05 - a32 * b04 + a33 * b03,
+        a22 * b04 - a21 * b05 - a23 * b03,
+        a12 * b08 - a10 * b11 - a13 * b07,
+        a00 * b11 - a02 * b08 + a03 * b07,
+        a32 * b02 - a30 * b05 - a33 * b01,
+        a20 * b05 - a22 * b02 + a23 * b01,
+        a10 * b10 - a11 * b08 + a13 * b06,
+        a01 * b08 - a00 * b10 - a03 * b06,
+        a30 * b04 - a31 * b02 + a33 * b00,
+        a21 * b02 - a20 * b04 - a23 * b00,
+        a11 * b07 - a10 * b09 - a12 * b06,
+        a00 * b09 - a01 * b07 + a02 * b06,
+        a31 * b01 - a30 * b03 - a32 * b00,
+        a20 * b03 - a21 * b01 + a22 * b00) / det;
+  }
   /* vec4 calculate_view_position(vec2 texture_coordinate, float depth_from_depth_buffer) {
     return pmi * vec4(vec3(texture_coordinate, depth_from_depth_buffer) * 2.0 - 1.0, 1.0);
   } */
+  mat4 viewMatrixInverse = inverse(viewMatrix);
+  mat4 projectionMatrixInverse = inverse(projectionMatrix);
   void main() {
     vec2 texCoord = gl_FragCoord.xy / uViewport;
     vec2 texCoordFull = vec2(mod(texCoord.x, 0.5) * 2.0, texCoord.y);
     float z_b = texture2D(uDepthTex, texCoord).r;
 
-    vec4 worldPos = calculate_view_position(texCoordFull, z_b);
+    vec4 worldPos = calculate_view_position(texCoordFull, z_b, projectionMatrixInverse);
     worldPos /= worldPos.w;
-    worldPos = mwi * worldPos;
+    worldPos = viewMatrixInverse * worldPos;
 
     vec4 c = texture2D(uTex, texCoord);
 
@@ -3538,18 +3611,11 @@ const _makePortal = iframe => {
         type: 'v4',
         value: new THREE.Vector4(),
       },
-      pmi: {
-        type: 'm4',
-        value: new THREE.Matrix4(),
-      },
-      mwi: {
-        type: 'm4',
-        value: new THREE.Matrix4(),
-      },
     },
     vertexShader: portalVsh,
     fragmentShader: portalFsh,
   });
+
   const mesh = new THREE.Mesh(geometry, material);
   /* mesh.position.copy(position);
   mesh.quaternion.copy(quaternion);
@@ -3560,13 +3626,6 @@ const _makePortal = iframe => {
     position.clone().multiplyScalar(-1).add(new THREE.Vector3(0, 0, -scale.z/2).applyQuaternion(quaternion))
   );
   mesh.material.uniforms.uPlane.value.set(plane.normal.x, plane.normal.y, plane.normal.z, plane.constant); */
-  mesh.numRenders = 0;
-  mesh.onBeforeRender = function(renderer, scene, camera, geometry, material, group) {
-    material.uniforms.mwi.value = viewMatrices[mesh.numRenders];
-    material.uniforms.pmi.value = projectionMatrices[mesh.numRenders];
-
-    mesh.numRenders = (mesh.numRenders + 1) % 2;
-  };
 
   const doorMesh = (() => {
     const geometry = doorMeshGeometry;
@@ -3671,14 +3730,6 @@ const _makeContentMesh = (position, quaternion, scale, iframe) => {
         type: 'v4',
         value: new THREE.Vector4(),
       },
-      pmi: {
-        type: 'm4',
-        value: new THREE.Matrix4(),
-      },
-      mwi: {
-        type: 'm4',
-        value: new THREE.Matrix4(),
-      },
     },
     vertexShader: volumeVsh,
     fragmentShader: volumeFsh,
@@ -3750,13 +3801,6 @@ const _makeContentMesh = (position, quaternion, scale, iframe) => {
     );
     mesh.material.uniforms.uPlane5.value.set(plane.normal.x, plane.normal.y, plane.normal.z, -plane.constant);
   }
-  mesh.numRenders = 0;
-  mesh.onBeforeRender = function(renderer, scene, camera, geometry, material, group) {
-    material.uniforms.mwi.value = viewMatrices[mesh.numRenders];
-    material.uniforms.pmi.value = projectionMatrices[mesh.numRenders];
-      
-    mesh.numRenders = (mesh.numRenders + 1) % 2;
-  };
   mesh.iframe = iframe;
   return mesh;
 };
@@ -4535,20 +4579,6 @@ const _handleKey = (code, shiftKey) => {
 const startTime = Date.now();
 let lastTime = 0;
 function animate(time, frame) {
-  if (frame) {
-    const pose = frame.getViewerPose();
-    const {views} = pose;
-    for (let i = 0; i < views.length; i++) {
-      const view = views[i];
-      viewMatrices[i]
-        .fromArray(pose.getViewMatrix(view))
-        .getInverse(viewMatrices[i]);
-      projectionMatrices[i]
-        .fromArray(view.projectionMatrix)
-        .getInverse(projectionMatrices[i]);
-    }
-  }
-
   /* const gl = renderer.getContext();
   gl.clearColor(1, 0, 0, 1);
   gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
