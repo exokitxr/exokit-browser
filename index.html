@@ -2052,10 +2052,10 @@ const trayMesh = (() => {
   const _makeIframe = (url, type) => {
     const iframe = document.createElement('iframe');
     iframe.addEventListener('load', () => {
-      console.log(`iframe loaded: ${type} ${url}`);
+      console.log(`iframe loaded: ${type} ${iframe.src}`);
     });
     iframe.addEventListener('error', err => {
-      console.log(`iframe load error: ${type} ${url} ${err.stack}`);
+      console.log(`iframe load error: ${type} ${iframe.src} ${err.stack}`);
     });
     iframe.d = type === 'browser' ? 2 : 3;
     iframe.src = url;
