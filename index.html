@@ -1847,17 +1847,20 @@ const trayMesh = (() => {
       labelMesh.textMesh.setText('https://google.com');
       labelMesh.visible = true;
       actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
+      mapMesh.visible = false;
     }],
     [diceImg, 2, 0, () => {
       selectedIconCoord.set(2, 0);
       labelMesh.textMesh.setText('https://rawcdn.githack.com/exokitxr/webxr-samples/a8e2c94eba0ee5c9215f20d13057b6c25675d9b0/xr-presentation.html');
       labelMesh.visible = true;
       actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
+      mapMesh.visible = false;
     }],
     [mapImg, 3, 0, () => {
       selectedIconCoord.set(3, 0);
       labelMesh.visible = false;
       actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = false;
+      mapMesh.visible = true;
     }],
     [cogsImg, 4, 0, () => {
       selectedIconMesh = settingsIconMeshes;
@@ -1891,6 +1894,7 @@ const trayMesh = (() => {
       labelMesh.textMesh.setText(DEFAULT_URL);
       labelMesh.visible = true;
       actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
+      mapMesh.visible = false;
     }],
     [chevronLeftImg, -1, 0, () => {
       selectedIconPage = Math.max(selectedIconPage - 1, 0);
@@ -1937,6 +1941,7 @@ const trayMesh = (() => {
               labelMesh.textMesh.setText(DEFAULT_URL);
               labelMesh.visible = true;
               actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
+              mapMesh.visible = false;
             }
           }
         }, true, appIconMeshes);
@@ -1968,6 +1973,7 @@ const trayMesh = (() => {
       labelMesh.textMesh.setText(DEFAULT_URL);
       labelMesh.visible = true;
       actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
+      mapMesh.visible = false;
     }],
   ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(null, img, null, x, y, onclick, null, null, false, settingsIconMeshes));
   mesh.add(settingsIconMeshes);
@@ -1980,6 +1986,60 @@ const trayMesh = (() => {
   labelMesh.position.y = 0.4;
   mesh.add(labelMesh);
   mesh.labelMesh = labelMesh;
+
+  const mapMesh = (() => {
+    const geometry = new THREE.PlaneBufferGeometry(11, 11, 11, 11)
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 1))));
+    const floorVsh = `
+      uniform float uAnimation;
+      varying vec3 vPosition;
+      // varying float depth;
+      void main() {
+        float radius = sqrt(position.x*position.x + position.z*position.z);
+        // vec3 p = vec3(position.x, position.y - (1.0 - uAnimation * radius), position.z);
+        vec3 p = vec3(position.x, position.y - (1.0 - uAnimation) * radius, position.z);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.);
+        vPosition = position;
+        // depth = gl_Position.z / 200.0;
+      }
+    `;
+    const floorFsh = `
+      uniform float uAnimation;
+      varying vec3 vPosition;
+      varying float depth;
+      void main() {
+        // float c = 0.8 + depth;
+        float c = 0.5;
+        float a;
+        vec3 f = fract(vPosition + 0.5);
+        if (f.x <= 0.05 || f.x >= 0.95 || f.z <= 0.05 || f.z >= 0.95) {
+          a = 0.0;
+        } else {
+          a = uAnimation;
+        }
+        gl_FragColor = vec4(vec3(c), a);
+      }
+    `;
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        uAnimation: {
+          type: 'f',
+          value: 1,
+        },
+      },
+      vertexShader: floorVsh,
+      fragmentShader: floorFsh,
+      transparent: true,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    const factor = 0.04;
+    mesh.position.y = 0.3;
+    mesh.scale.set(factor, factor, factor);
+    mesh.frustumCulled = false;
+    return mesh;
+  })();
+  mesh.add(mapMesh);
+  mesh.mapMesh = mapMesh;
   
   /* labelMesh.textMesh.addEventListener('update', e => {
     const {url} = e;
