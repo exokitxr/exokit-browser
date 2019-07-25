@@ -956,22 +956,12 @@ scene.add(targetMesh); */
   mesh.tool = '';
   mesh.setTool = tool => {
     switch (tool) {
-      case 1: {
-        mesh.tool = 'point';
-        textMesh.geometry.update('Point');
-        break;
-      }
       case 2: {
         mesh.tool = 'browser';
         textMesh.geometry.update('Browser');
         break;
       }
       case 3: {
-        mesh.tool = 'portal';
-        textMesh.geometry.update('Portal');
-        break;
-      }
-      case 4: {
         mesh.tool = 'volume';
         textMesh.geometry.update('Volume');
         break;
@@ -1774,8 +1764,6 @@ const trayMesh = (() => {
           return destroy.apply(this, arguments);
         })(iframe.destroy);
         mesh.iframe = iframe;
-      } else if (type === 'portal') {
-        mesh.iframe = _makePortal(iframe);
       } else {
         throw new Error(`unknown iframe type ${type}`);
       }
@@ -1787,8 +1775,7 @@ const trayMesh = (() => {
       const typeImg = (() => {
         switch (type) {
           case 'browser': return browserImg;
-          case 'portal': return diceImg;
-          case 'volume': return mapImg;
+          case 'volume': return diceImg;
           default: return null;
         }
       })();
@@ -1991,11 +1978,8 @@ const trayMesh = (() => {
           break;
         }
         case 2: {
-          type = 'portal';
-          break;
-        }
-        case 3: {
           type = 'volume';
+          break;
         }
       }
       _addAppIconMesh(labelMesh.textMesh.getText(), faviconImg, type, i);
@@ -2344,10 +2328,6 @@ const _makeMoveMesh = i => {
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(-1, 1, 0).normalize(), new THREE.Vector3(1, -1, 0).normalize())))
       .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.5, 1)),
   ]);
-  const portalMesh = new THREE.Mesh(portalTargetGeometry, material);
-  portalMesh.visible = false;
-  object.add(portalMesh);
-
   const volumeTargetGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
     portalTargetGeometry
       .clone()
@@ -2361,17 +2341,13 @@ const _makeMoveMesh = i => {
   object.add(volumeMesh);
 
   object.setMode = mode => {
-    [browserMesh, portalMesh, volumeMesh].forEach(mesh => {
+    [browserMesh, volumeMesh].forEach(mesh => {
       mesh.visible = false;
     });
 
     switch (mode) {
       case 'browser': {
         browserMesh.visible = true;
-        break;
-      }
-      case 'portal': {
-        portalMesh.visible = true;
         break;
       }
       case 'volume': {
@@ -3178,215 +3154,6 @@ const volumeFsh = `
     }
   }
 `;
-
-const portalGeometry = (() => {
-  const g = new THREE.BoxBufferGeometry().toNonIndexed();
-  // g.applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, -0.5));
-  const ps = g.attributes.position.array;
-  const uvs = g.attributes.uv.array;
-  const ps2 = [];
-  // const uvs2 = [];
-  for (let i = 0; i < ps.length/9; i++) {
-    if (!(ps[i*9+2] >= 0 && ps[i*9+2+3] >= 0 && ps[i*9+2+6] >= 0)) {
-      ps2.push.apply(ps2, ps.slice(i*9, (i+1)*9));
-      // uvs2.push.apply(uvs2, uvs.slice(i*6, (i+1)*6));
-    }
-  };
-  const ps3 = new Float32Array(ps2.length);
-  // const uvs3 = new Float32Array(uvs2.length);
-  for (let i = 0; i < ps2.length/9; i++) {
-    ps3[i*9] = ps2[i*9];
-    ps3[i*9+1] = ps2[i*9+1];
-    ps3[i*9+2] = ps2[i*9+2];
-
-    ps3[i*9+3] = ps2[i*9+6];
-    ps3[i*9+3+1] = ps2[i*9+6+1];
-    ps3[i*9+3+2] = ps2[i*9+6+2];
-
-    ps3[i*9+6] = ps2[i*9+3];
-    ps3[i*9+6+1] = ps2[i*9+3+1];
-    ps3[i*9+6+2] = ps2[i*9+3+2];
-    
-    /* uvs3[i*6] = uvs2[i*6];
-    uvs3[i*6+1] = uvs2[i*6+1];
-
-    uvs3[i*6+2] = uvs2[i*6+4];
-    uvs3[i*6+2+1] = uvs2[i*6+4+1];
-
-    uvs3[i*6+4] = uvs2[i*6+2];
-    uvs3[i*6+4+1] = uvs2[i*6+2+1]; */
-  };
-  const geometry = new THREE.BufferGeometry();    
-  geometry.addAttribute('position', new THREE.BufferAttribute(ps3, 3));
-  // geometry.addAttribute('uv', new THREE.BufferAttribute(uvs3, 2));
-  return geometry;
-})();
-const doorMeshGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
-  new THREE.PlaneBufferGeometry(0.1, 1).applyMatrix(new THREE.Matrix4().makeTranslation(-0.45, 0, 0.5)),
-  new THREE.PlaneBufferGeometry(0.1, 1).applyMatrix(new THREE.Matrix4().makeTranslation(0.45, 0, 0.5)),
-  new THREE.PlaneBufferGeometry(1, 0.1).applyMatrix(new THREE.Matrix4().makeTranslation(0, 0.45, 0.5)),
-  new THREE.PlaneBufferGeometry(1, 0.1).applyMatrix(new THREE.Matrix4().makeTranslation(0, -0.45, 0.5)),
-  new THREE.PlaneBufferGeometry(1, 1)
-    .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(-1, 0, 0))))
-    .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0, 0)),
-  new THREE.PlaneBufferGeometry(1, 1)
-    .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(1, 0, 0))))
-    .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0, 0)),
-  new THREE.PlaneBufferGeometry(1, 1)
-    .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 1, 0))))
-    .applyMatrix(new THREE.Matrix4().makeTranslation(0, 0.5, 0)),
-  new THREE.PlaneBufferGeometry(1, 1)
-    .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, -1, 0))))
-    .applyMatrix(new THREE.Matrix4().makeTranslation(0, -0.5, 0)),
-  new THREE.PlaneBufferGeometry(1, 1)
-    .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1))))
-    .applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, -0.5)),
-]);
-const _makePortal = iframe => {
-  const geometry = portalGeometry;
-
-  iframe.addEventListener('load', () => {
-    iframe.contentWindow.once('framebuffer', () => {
-      {
-        const tex = new THREE.Texture(
-          null,
-          THREE.UVMapping,
-          THREE.ClampToEdgeWrapping,
-          THREE.ClampToEdgeWrapping,
-          THREE.LinearFilter,
-          THREE.LinearFilter,
-          THREE.RGBAFormat,
-          THREE.UnsignedByteType,
-          16
-        );
-        const properties = renderer.properties.get(tex);
-        properties.__webglTexture = {
-          id: iframe.contentWindow.framebuffer.tex,
-        };
-        properties.__webglInit = true;
-        material.uniforms.uTex.value = tex;
-      }
-      {
-        const depthTex = new THREE.Texture(
-          null,
-          THREE.UVMapping,
-          THREE.ClampToEdgeWrapping,
-          THREE.ClampToEdgeWrapping,
-          THREE.LinearFilter,
-          THREE.LinearFilter,
-          THREE.DepthStencilFormat,
-          THREE.UnsignedInt248Type,
-          16
-        );
-        const properties = renderer.properties.get(depthTex);
-        properties.__webglTexture = {
-          id: iframe.contentWindow.framebuffer.depthTex,
-        };
-        properties.__webglInit = true;
-        material.uniforms.uDepthTex.value = depthTex;
-      }
-    });
-  });
-  
-  const xTex = new THREE.Texture(xImg);
-  xTex.needsUpdate = true
-
-  const material = new THREE.ShaderMaterial({
-    uniforms: {
-      uTex: {
-        type: 't',
-        value: null,
-      },
-      uDepthTex: {
-        type: 't',
-        value: null,
-      },
-      uViewport: {
-        type: 'v2',
-        value: viewportVector,
-      },
-      uXTex: {
-        type: 't',
-        value: xTex,
-      },
-      uPlane: {
-        type: 'v4',
-        value: new THREE.Vector4(),
-      },
-    },
-    vertexShader: portalVsh,
-    fragmentShader: portalFsh,
-  });
-
-  const mesh = new THREE.Mesh(geometry, material);
-  /* mesh.position.copy(position);
-  mesh.quaternion.copy(quaternion);
-  mesh.scale.copy(scale);
-  mesh.box = new THREE.Box3().setFromCenterAndSize(mesh.position, mesh.scale);
-  const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(
-    new THREE.Vector3(0, 0, -1).applyQuaternion(quaternion),
-    position.clone().multiplyScalar(-1).add(new THREE.Vector3(0, 0, -scale.z/2).applyQuaternion(quaternion))
-  );
-  mesh.material.uniforms.uPlane.value.set(plane.normal.x, plane.normal.y, plane.normal.z, plane.constant); */
-
-  const doorMesh = (() => {
-    const geometry = doorMeshGeometry;
-    const material = new THREE.MeshPhongMaterial({
-      color: 0x111111,
-    });
-    const mesh = new THREE.Mesh(geometry, material);
-    return mesh;
-  })();
-  mesh.add(doorMesh);
-
-  const plane = new THREE.Plane();
-  const _update = () => {  
-    plane.setFromNormalAndCoplanarPoint(
-      new THREE.Vector3(0, 0, -1).applyQuaternion(mesh.quaternion),
-      mesh.position.clone().multiplyScalar(-1).add(new THREE.Vector3(0, 0, -mesh.scale.z/2).applyQuaternion(mesh.quaternion))
-    )
-    mesh.material.uniforms.uPlane.value.set(plane.normal.x, plane.normal.y, plane.normal.z, plane.constant);
-  };
-  
-  scene.add(mesh);
-  
-  return {
-    get src() {
-      return iframe.src;
-    },
-    set src(src) {
-      iframe.src = src;
-    },
-    get position() {
-      return mesh.position.toArray();
-    },
-    set position(position) {
-      mesh.position.fromArray(position);
-      iframe.position = position;
-      _update();
-    },
-    get orientation() {
-      return mesh.quaternion.toArray();
-    },
-    set orientation(orientation) {
-      mesh.quaternion.fromArray(orientation);
-      iframe.orientation = orientation;
-      _update();
-    },
-    get scale() {
-      return mesh.scale.toArray();
-    },
-    set scale(scale) {
-      mesh.scale.fromArray(scale);
-      iframe.scale = scale;
-      _update();
-    },
-    destroy() {
-      scene.remove(mesh);
-      iframe.destroy();
-    },
-  };
-};
 
 const volumeGeometry = (() => {
   const g = new THREE.BoxBufferGeometry(1, 1, 1).toNonIndexed();
