@@ -1753,6 +1753,7 @@ const trayMesh = (() => {
     });
     const mesh = new THREE.Mesh(geometry, material);
     mesh.frustumCulled = false;
+    mesh.localVisible = true;
 
     if (url && type) {
       const iframe = _makeIframe(url, type);
@@ -1864,7 +1865,7 @@ const trayMesh = (() => {
 
           mesh.visible = x >= 0 && x < 5;
         } else {
-          mesh.visible = true;
+          mesh.visible = mesh.localVisible;
         }
 
         if (mesh.visible) {
@@ -1956,14 +1957,19 @@ const trayMesh = (() => {
     [browserImg, 1, 0, () => {
       selectedIconCoord.set(1, 0);
       labelMesh.textMesh.setText('https://google.com');
+      labelMesh.visible = true;
+      actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
     }],
     [diceImg, 2, 0, () => {
       selectedIconCoord.set(2, 0);
       labelMesh.textMesh.setText('https://rawcdn.githack.com/exokitxr/webxr-samples/a8e2c94eba0ee5c9215f20d13057b6c25675d9b0/xr-presentation.html');
+      labelMesh.visible = true;
+      actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
     }],
     [mapImg, 3, 0, () => {
       selectedIconCoord.set(3, 0);
-      labelMesh.textMesh.setText('https://aframe.io/a-painter/');
+      labelMesh.visible = false;
+      actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = false;
     }],
     [cogsImg, 4, 0, () => {
       selectedIconMesh = settingsIconMeshes;
@@ -1995,6 +2001,8 @@ const trayMesh = (() => {
       selectedIconPage = 0;
       
       labelMesh.textMesh.setText(DEFAULT_URL);
+      labelMesh.visible = true;
+      actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
     }],
     [chevronLeftImg, -1, 0, () => {
       selectedIconPage = Math.max(selectedIconPage - 1, 0);
@@ -2039,6 +2047,8 @@ const trayMesh = (() => {
               selectedIconPage = 0;
               
               labelMesh.textMesh.setText(DEFAULT_URL);
+              labelMesh.visible = true;
+              actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
             }
           }
         }, true, appIconMeshes);
@@ -2068,6 +2078,8 @@ const trayMesh = (() => {
       selectedIconCoord.set(1, 0);
 
       labelMesh.textMesh.setText(DEFAULT_URL);
+      labelMesh.visible = true;
+      actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
     }],
   ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(null, img, null, x, y, onclick, null, null, false, settingsIconMeshes));
   mesh.add(settingsIconMeshes);
