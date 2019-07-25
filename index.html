@@ -578,7 +578,7 @@ scene.add(floorMesh);
 const [
   layersImg,
   browserImg,
-  hurricaneImg,
+  mapImg,
   diceImg,
   cogsImg,
   arrowLeftImg,
@@ -597,7 +597,7 @@ const [
   [
     'layers.png',
     'browser.png',
-    'hurricane.png',
+    'map.png',
     'dice.png',
     'cogs.png',
     'arrow-left.png',
@@ -1787,8 +1787,8 @@ const trayMesh = (() => {
       const typeImg = (() => {
         switch (type) {
           case 'browser': return browserImg;
-          case 'portal': return hurricaneImg;
-          case 'volume': return diceImg;
+          case 'portal': return diceImg;
+          case 'volume': return mapImg;
           default: return null;
         }
       })();
@@ -1970,11 +1970,11 @@ const trayMesh = (() => {
       selectedIconCoord.set(1, 0);
       labelMesh.textMesh.setText('https://google.com');
     }],
-    [hurricaneImg, 2, 0, () => {
+    [diceImg, 2, 0, () => {
       selectedIconCoord.set(2, 0);
       labelMesh.textMesh.setText('https://rawcdn.githack.com/exokitxr/webxr-samples/a8e2c94eba0ee5c9215f20d13057b6c25675d9b0/xr-presentation.html');
     }],
-    [diceImg, 3, 0, () => {
+    [mapImg, 3, 0, () => {
       selectedIconCoord.set(3, 0);
       labelMesh.textMesh.setText('https://aframe.io/a-painter/');
     }],
