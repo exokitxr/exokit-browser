@@ -2035,6 +2035,7 @@ const trayMesh = (() => {
     const factor = 0.04;
     mesh.position.y = 0.3;
     mesh.scale.set(factor, factor, factor);
+    mesh.visible = false;
     mesh.frustumCulled = false;
     return mesh;
   })();
