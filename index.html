@@ -2214,7 +2214,8 @@ const trayMesh = (() => {
   mesh.getIntersectionCandidates = () => [labelMesh, keyboardMesh]
     .concat(actionIconMeshes.children)
     .concat(appIconMeshes.children)
-    .concat(settingsIconMeshes.children);
+    .concat(settingsIconMeshes.children)
+    .filter(mesh => mesh.visible);
 
   return mesh;
 })();
