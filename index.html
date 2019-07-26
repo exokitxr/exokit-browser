@@ -31,7 +31,7 @@ iframe, audio {
     <script src="skin.js"></script> -->
     <script>
 (async () => {
-let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewportVector = new THREE.Vector2(), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls = null, transformControls, rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], guardianMeshes = [], baseMeshes = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null;
+let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewportVector = new THREE.Vector2(), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls = null, transformControls, rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], guardianMeshes = [], baseMeshes = [], selectedBaseMesh = null, menuAnimation = null, menuFactor = 1, keyboardFocus = null;
 const mouse = {
   position: new THREE.Vector3(),
   quaternion: new THREE.Quaternion(),
@@ -391,7 +391,7 @@ const _makeGuardianMesh = scene => {
     varying vec3 vWorldPos;
     varying float vDepth;
     void main() {
-      gl_FragColor = vec4(${new THREE.Color(0x5c6bc0).toArray().map(n => n.toFixed(8)).join(',')}, (1.0-vDepth)*uAnimation);
+      gl_FragColor = vec4(${new THREE.Color(scene.color/*0x5c6bc0*/).toArray().map(n => n.toFixed(8)).join(',')}, (1.0-vDepth)*uAnimation);
     }
   `;
   const material = new THREE.ShaderMaterial({
@@ -415,7 +415,7 @@ const _makeBaseMesh = scene => {
     .applyMatrix(new THREE.Matrix4().makeTranslation(0, -0.01, 0));
   const geometry = THREE.BufferGeometryUtils.mergeBufferGeometries(scene.coords.map(coord =>
     planeGeometry.clone()
-      .applyMatrix(new THREE.Matrix4().makeTranslation(coord[0]*16, 0, coord[1]*16))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(coord[0]*7, 0, coord[1]*7))
   ));
   const baseVsh = `
     void main() {
@@ -425,7 +425,7 @@ const _makeBaseMesh = scene => {
   const baseFsh = `
     uniform float uAnimation;
     void main() {
-      gl_FragColor = vec4(${new THREE.Color(0x5c6bc0).toArray().map(n => n.toFixed(8)).join(',')}, uAnimation*0.5);
+      gl_FragColor = vec4(${new THREE.Color(scene.color/*0x5c6bc0*/).toArray().map(n => n.toFixed(8)).join(',')}, uAnimation*0.5);
     }
   `;
   const material = new THREE.ShaderMaterial({
@@ -442,6 +442,9 @@ const _makeBaseMesh = scene => {
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
+  mesh.destroy = () => {
+    // XXX
+  };
   return mesh;
 };
 
@@ -504,12 +507,15 @@ const _addScene = sceneSpec => {
   scene.add(guardianMesh);
   guardianMeshes.push(guardianMesh);
   const baseMesh = _makeBaseMesh(sceneSpec);
-  scene.add(baseMesh);
-  const baseMeshIndex = scene.children.indexOf(baseMesh);
-  scene.children.splice(baseMeshIndex, 1);
-  const floorMeshIndex = scene.children.indexOf(floorMesh);
-  scene.children.splice(floorMeshIndex, 0, baseMesh);
+  _insertBefore(baseMesh, floorMesh);
   baseMeshes.push(baseMesh);
+};
+const _insertBefore = (a, b) => {
+  scene.add(a);
+  const aIndex = scene.children.indexOf(a);
+  scene.children.splice(aIndex, 1);
+  const bIndex = scene.children.indexOf(b);
+  scene.children.splice(bIndex, 0, a);
 };
 
 // main
@@ -647,7 +653,7 @@ const floorMesh = (() => {
     const point = ray.origin.y !== 0 ? ray.intersectPlane(mesh.plane, localVector) : null;
     if (point) {
       const distance = ray.origin.distanceTo(point);
-      if (distance < 5) {
+      if (distance < 10) {
         const {x, z: y} = point;
         return {
           type: 'floor',
@@ -1263,7 +1269,7 @@ const _bindEventTarget = target => {
         }
       },
       dblclick(e) {
-        if (!window.document.pointerLockElement && !intersectionSpecs[1]) {
+        if (!window.document.pointerLockElement && !(intersectionSpecs[1] && intersectionSpecs[1].cancel)) {
           renderer.domElement.requestPointerLock();
         }
       },
@@ -1517,6 +1523,7 @@ _addScene({
     mode: '2d',
     coord: [1, 1, -1],
   }],
+  color: 0x9ccc65,
 });
 
 // controller meshes
@@ -5121,7 +5128,18 @@ function animate(time, frame) {
           } else if (type === 'floor') {
             const x = Math.floor((intersectionSpec.x + 3)/6);
             const y = Math.floor((intersectionSpec.y + 3)/6);
-            console.log('click floor', x, y);
+            if (selectedBaseMesh) {
+              scene.remove(selectedBaseMesh);
+              selectedBaseMesh.destroy();
+              selectedBaseMesh = null;
+            }
+            selectedBaseMesh = _makeBaseMesh({
+              coords: [
+                [x, y],
+              ],
+              color: 0x42a5f5,
+            });
+            _insertBefore(selectedBaseMesh, floorMesh);
           } else if (type === 'key') {
             const {key} = intersectionSpec;
             console.log(`click key: ${key}`);
@@ -5330,7 +5348,12 @@ function animate(time, frame) {
               trayMesh.visible = false;
               skyboxMesh.visible = false;
               floorMesh.visible = false;
-              guardianMesh.visible = false;
+              for (let i = 0; i < guardianMeshes.length; i++) {
+                guardianMeshes[i].visible = false;
+              }
+              for (let i = 0; i < baseMeshes.length; i++) {
+                baseMeshes[i].visible = false;
+              }
             }
             menuAnimation = null;
           }
