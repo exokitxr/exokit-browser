@@ -1903,7 +1903,7 @@ const trayMesh = (() => {
         layers.push(iframe);
         iframe.destroy = (destroy => function() {
           layers.splice(layers.indexOf(iframe), 1);
-          return destroy.apply(this, arguments);
+          destroy && destroy.apply(this, arguments);
         })(iframe.destroy);
         mesh.iframe = iframe;
 
