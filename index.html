@@ -459,6 +459,25 @@ const floorMesh = (() => {
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
+  mesh.plane = new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 1, 0), new THREE.Vector3());
+  mesh.intersect = ray => {
+    const point = ray.intersectPlane(mesh.plane, localVector);
+    if (point) {
+      const distance = ray.origin.distanceTo(point);
+      if (distance < 10) {
+        return {
+          type: 'floor',
+          mesh,
+          point,
+          distance,
+        };
+      } else {
+        return null;
+      }
+    } else {
+      return null;
+    }
+  };
   return mesh;
 })();
 scene.add(floorMesh);
@@ -2413,15 +2432,28 @@ const _makeMoveMesh = i => {
         const {iconMesh} = moveSpec;
         const {type, iframe} = iconMesh;
 
-        object.quaternion.fromArray(gamepad.pose.orientation);
-        object.position
-          .fromArray(gamepad.pose.position)
-          .add(localVector.set(0, 0, -3).applyQuaternion(object.quaternion));
+        localVector.fromArray(gamepad.pose.position);
+        localQuaternion.fromArray(gamepad.pose.orientation);
+        localRay.set(localVector, localVector2.set(0, 0, -1).applyQuaternion(localQuaternion));
+        const intersection = floorMesh.intersect(localRay, i);
+        if (intersection) {
+          localVector.set(Math.floor(intersection.point.x + 0.5), intersection.point.y + 1, Math.floor(intersection.point.z + 0.5));
+          localEuler.setFromQuaternion(localQuaternion, localEuler.order);
+          localEuler.x = 0;
+          localEuler.z = 0;
+          const old = localEuler.y;
+          localEuler.y = Math.round((localEuler.y < 0 ? (localEuler.y+Math.PI*2) : localEuler.y) / (Math.PI/2)) * (Math.PI/2);
+          localQuaternion.setFromEuler(localEuler);
+        } else {
+          localVector.fromArray(gamepad.pose.position).add(localVector2.set(0, 0, -3).applyQuaternion(localQuaternion));
+        }
+
+        object.position.copy(localVector);
+        object.quaternion.copy(localQuaternion);
         object.setMode(type);
-        
         if (iframe) {
-          iframe.position = object.position.toArray();
-          iframe.orientation = object.quaternion.toArray();
+          iframe.position = localVector.toArray();
+          iframe.orientation = localQuaternion.toArray();
         }
       }
     } else {
