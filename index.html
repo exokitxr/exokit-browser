@@ -1612,6 +1612,7 @@ const _makeLabelMesh = s => {
     vertexShader: labelVsh,
     fragmentShader: labelFsh,
     transparent: true,
+    side: THREE.DoubleSide,
     // depthWrite: false,
   });
   const mesh = new THREE.Mesh(geometry, material);
