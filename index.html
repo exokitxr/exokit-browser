@@ -1988,9 +1988,11 @@ const trayMesh = (() => {
   mesh.labelMesh = labelMesh;
 
   const mapMesh = (() => {
-    const geometry = new THREE.PlaneBufferGeometry(11, 11, 11, 11)
+    const size = 11;
+    const scale = 0.04;
+    const geometry = new THREE.PlaneBufferGeometry(size, size, size, size)
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 1))));
-    const floorVsh = `
+    const mapVsh = `
       uniform float uAnimation;
       varying vec3 vPosition;
       // varying float depth;
@@ -2003,7 +2005,7 @@ const trayMesh = (() => {
         // depth = gl_Position.z / 200.0;
       }
     `;
-    const floorFsh = `
+    const mapFsh = `
       uniform float uAnimation;
       varying vec3 vPosition;
       varying float depth;
@@ -2027,16 +2029,71 @@ const trayMesh = (() => {
           value: 1,
         },
       },
-      vertexShader: floorVsh,
-      fragmentShader: floorFsh,
+      vertexShader: mapVsh,
+      fragmentShader: mapFsh,
       transparent: true,
     });
     const mesh = new THREE.Mesh(geometry, material);
-    const factor = 0.04;
     mesh.position.y = 0.3;
-    mesh.scale.set(factor, factor, factor);
+    mesh.scale.set(scale, scale, scale);
     mesh.visible = false;
     mesh.frustumCulled = false;
+    mesh.width = size*scale;
+    mesh.height = size*scale;
+    mesh.plane = new THREE.Plane();
+    mesh.leftLine = new THREE.Line3();
+    mesh.topLine = new THREE.Line3();
+    mesh.update = () => {
+      const menuWorldWidth = size;
+      const menuWorldHeight = size;
+      mesh.leftLine.start
+        .set(-menuWorldWidth/2, 0, menuWorldHeight/2)
+        .applyMatrix4(mesh.matrixWorld);
+      mesh.leftLine.end
+        .set(-menuWorldWidth/2, 0, -menuWorldHeight/2)
+        .applyMatrix4(mesh.matrixWorld);
+
+      mesh.topLine.start
+        .set(-menuWorldWidth/2, 0, menuWorldHeight/2)
+        .applyMatrix4(mesh.matrixWorld);
+      mesh.topLine.end
+        .set(menuWorldWidth/2, 0, menuWorldHeight/2)
+        .applyMatrix4(mesh.matrixWorld);
+
+      mesh.plane.setFromCoplanarPoints(
+        mesh.leftLine.start,
+        mesh.leftLine.end,
+        mesh.topLine.end
+      );
+    };
+    mesh.intersect = ray => {
+      const intersectionPoint = ray.intersectPlane(mesh.plane, localVector);
+      if (intersectionPoint) {
+        const leftIntersectionPoint = mesh.leftLine.closestPointToPoint(intersectionPoint, true, localVector2);
+        const topIntersectionPoint = mesh.topLine.closestPointToPoint(intersectionPoint, true, localVector3);
+
+        const xFactor = topIntersectionPoint.distanceTo(mesh.topLine.start) / mesh.width;
+        const yFactor = leftIntersectionPoint.distanceTo(mesh.leftLine.start) / mesh.height;
+        const distance = ray.origin.distanceTo(intersectionPoint);
+
+        if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
+          const xScale = mesh.width;
+          const x = xFactor * xScale;
+          const yScale = mesh.height;
+          const y = yFactor * yScale;
+          return {
+            type: 'map',
+            mesh,
+            distance,
+            x,
+            y,
+            xScale,
+            yScale,
+          };
+        }
+      }
+      return null;
+    };
 
     const avatarMesh = (() => {
       const geometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
@@ -2215,6 +2272,7 @@ const trayMesh = (() => {
               return {
                 type: 'key',
                 key,
+                distance,
               };
             }
           }
@@ -2229,13 +2287,14 @@ const trayMesh = (() => {
   mesh.update = () => {
     labelMesh.update();
     keyboardMesh.update();
+    mapMesh.update();
     [actionIconMeshes, appIconMeshes, settingsIconMeshes].forEach(iconMeshes => {
       for (let i = 0; i < iconMeshes.children.length; i++) {
         iconMeshes.children[i].update(selectedIconPage);
       }
     });
   };
-  mesh.getIntersectionCandidates = () => [labelMesh, keyboardMesh]
+  mesh.getIntersectionCandidates = () => [labelMesh, keyboardMesh, mapMesh]
     .concat(actionIconMeshes.children)
     .concat(appIconMeshes.children)
     .concat(settingsIconMeshes.children)
@@ -4742,28 +4801,27 @@ function animate(time, frame) {
       if (controllerMesh.visible && !pendingRooms[i]) {
         controllerMesh.update();
 
-        // const candidates = roomLabels//.concat(pointMeshes);
         const candidates = trayMesh.getIntersectionCandidates();
 
-        let found = false;
+        const intersections = [];
         for (let j = 0; j < candidates.length; j++) {
           const candidate = candidates[j];
-          const intersectionSpec = candidate.intersect(controllerMesh.ray, i);
-          if (intersectionSpec) {
-            intersectionSpecs[i] = intersectionSpec;
-
-            controllerMesh.dotMesh.position.z = -intersectionSpec.distance;
-            controllerMesh.dotMesh.updateMatrixWorld();
-            controllerMesh.dotMesh.visible = true;
-
-            controllerMesh.rayMesh.scale.z = intersectionSpec.distance;
-            controllerMesh.rayMesh.updateMatrixWorld();
-
-            found = true;
-            break;
+          const intersection = candidate.intersect(controllerMesh.ray, i);
+          if (intersection) {
+            intersections.push(intersection);
           }
         }
-        if (!found) {
+        if (intersections.length > 0) {
+          const intersection = intersections.sort((a, b) => a.distance - b.distance)[0];
+          intersectionSpecs[i] = intersection;
+
+          controllerMesh.dotMesh.position.z = -intersection.distance;
+          controllerMesh.dotMesh.updateMatrixWorld();
+          controllerMesh.dotMesh.visible = true;
+
+          controllerMesh.rayMesh.scale.z = intersection.distance;
+          controllerMesh.rayMesh.updateMatrixWorld();
+        } else {
           controllerMesh.dotMesh.visible = false;
 
           controllerMesh.rayMesh.scale.z = 1;
@@ -4811,6 +4869,8 @@ function animate(time, frame) {
             intersectionSpec.oncrosshair(i);
           } else if (type === 'icon-close') {
             intersectionSpec.onclose(i);
+          } else if (type === 'map') {
+            console.log('click map', intersectionSpec);
           } else if (type === 'key') {
             const {key} = intersectionSpec;
             console.log(`got key instersection: ${key}`);
