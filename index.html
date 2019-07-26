@@ -2377,10 +2377,10 @@ const _makeMoveMesh = i => {
   const volumeTargetGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
     portalTargetGeometry
       .clone()
-      .applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, 0.5)),
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, -0.5)),
     new THREE.BoxBufferGeometry(0.2, 0.03, 0.03),
-    new THREE.BoxBufferGeometry(0.03, 0.2, 0.03),
-    new THREE.BoxBufferGeometry(0.03, 0.03, 0.2),
+    new THREE.BoxBufferGeometry(0.03, 0.1, 0.03).applyMatrix(new THREE.Matrix4().makeTranslation(0, 0.1/2, 0)),
+    new THREE.BoxBufferGeometry(0.03, 0.03, 0.1).applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, -0.1/2)),
   ])
   const volumeMesh = new THREE.Mesh(volumeTargetGeometry, material);
   volumeMesh.visible = false;
