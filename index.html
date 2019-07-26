@@ -442,19 +442,9 @@ const _makeBaseMesh = scene => {
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
-  mesh.addCoord = (x, y) => {
-    const index = scene.coords.findIndex(coord => coord[0] === x && coord[1] === y);
-    if (index === -1) {
-      scene.coords.push([x, y])
-    } else {
-      scene.coords.splice(index, 1);
-    }
-    if (scene.coords.length > 0) {
-      mesh.geometry = _makeGeometry(scene.coords);
-      return true;
-    } else {
-      return false;
-    }
+  mesh.scene = scene;
+  mesh.refresh = () => {
+    mesh.geometry = _makeGeometry(scene.coords);
   };
   mesh.destroy = () => {
     // XXX
@@ -3861,6 +3851,15 @@ function animate(time, frame) {
             const x = Math.floor((intersectionSpec.x + 3)/6);
             const y = Math.floor((intersectionSpec.y + 3)/6);
             const gamepads = navigator.getGamepads();
+            const _setCoord = (coords, x, y) => {
+              const index = coords.findIndex(coord => coord[0] === x && coord[1] === y);
+              if (index === -1) {
+                coords.push([x, y])
+              } else {
+                coords.splice(index, 1);
+              }
+              return coords.length > 0;
+            };
             const _destroySelectedBaseMesh = () => {
               scene.remove(selectedBaseMesh);
               selectedBaseMesh.destroy();
@@ -3870,7 +3869,9 @@ function animate(time, frame) {
               _destroySelectedBaseMesh();
             }
             if (selectedBaseMesh) {
-              if (!selectedBaseMesh.addCoord(x, y)) {
+              if (_setCoord(selectedBaseMesh.scene.coords, x, y)) {
+                selectedBaseMesh.refresh();
+              } else {
                 _destroySelectedBaseMesh();
               }
             } else {
