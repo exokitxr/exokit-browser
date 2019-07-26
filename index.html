@@ -319,60 +319,63 @@ const _makeGuardianMesh = scene => {
     frontGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, -0.5, 0)),
     frontGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0)), */
   ]);
-  const boxGeometries = [];
-  for (let i = 0; i < scene.coords.length; i++) {
-    const coord = scene.coords[i];
-    const hasCoords = {
-      left: scene.coords.some(coord2 => coord2[0] === coord[0]-1 && coord2[1] === coord[1]),
-      right: scene.coords.some(coord2 => coord2[0] === coord[0]+1 && coord2[1] === coord[1]),
-      up: scene.coords.some(coord2 => coord2[0] === coord[0] && coord2[1] === coord[1]-1),
-      down: scene.coords.some(coord2 => coord2[0] === coord[0] && coord2[1] === coord[1]+1),
-    };
-    if (!hasCoords.up) {
-      for (let x = coord[0]*6 - 3; x <= ((coord[0] + 1) * 6) - 3; x++) {
-        for (let y = 0; y <= 2; y++) {
-          const z = -3;
-          boxGeometries.push(boxGeometry.clone()
-            .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
-          );
+  const _makeGeometry = () => {
+    const boxGeometries = [];
+    for (let i = 0; i < scene.coords.length; i++) {
+      const coord = scene.coords[i];
+      const hasCoords = {
+        left: scene.coords.some(coord2 => coord2[0] === coord[0]-1 && coord2[1] === coord[1]),
+        right: scene.coords.some(coord2 => coord2[0] === coord[0]+1 && coord2[1] === coord[1]),
+        up: scene.coords.some(coord2 => coord2[0] === coord[0] && coord2[1] === coord[1]-1),
+        down: scene.coords.some(coord2 => coord2[0] === coord[0] && coord2[1] === coord[1]+1),
+      };
+      if (!hasCoords.up) {
+        for (let x = coord[0]*6 - 3; x <= ((coord[0] + 1) * 6) - 3; x++) {
+          for (let y = 0; y <= 2; y++) {
+            const z = -3;
+            boxGeometries.push(boxGeometry.clone()
+              .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
+            );
+          }
+        }
+      }
+      if (!hasCoords.down) {
+        for (let x = coord[0]*6 - 3; x <= ((coord[0] + 1) * 6) - 3; x++) {
+          for (let y = 0; y <= 2; y++) {
+            const z = 3;
+            boxGeometries.push(boxGeometry.clone()
+              .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI)))
+              .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
+            );
+          }
+        }
+      }
+      if (!hasCoords.left) {
+        for (let z = coord[0]*6 - 3; z <= ((coord[1] + 1) * 6) - 3; z++) {
+          for (let y = 0; y <= 2; y++) {
+            const x = -3;
+            boxGeometries.push(boxGeometry.clone()
+              .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI/2)))
+              .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
+            );
+          }
+        }
+      }
+      if (!hasCoords.right) {
+        for (let z = coord[0]*6 - 3; z <= ((coord[1] + 1) * 6) - 3; z++) {
+          for (let y = 0; y <= 2; y++) {
+            const x = 3;
+            boxGeometries.push(boxGeometry.clone()
+              .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI/2)))
+              .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
+            );
+          }
         }
       }
     }
-    if (!hasCoords.down) {
-      for (let x = coord[0]*6 - 3; x <= ((coord[0] + 1) * 6) - 3; x++) {
-        for (let y = 0; y <= 2; y++) {
-          const z = 3;
-          boxGeometries.push(boxGeometry.clone()
-            .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI)))
-            .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
-          );
-        }
-      }
-    }
-    if (!hasCoords.left) {
-      for (let z = coord[0]*6 - 3; z <= ((coord[1] + 1) * 6) - 3; z++) {
-        for (let y = 0; y <= 2; y++) {
-          const x = -3;
-          boxGeometries.push(boxGeometry.clone()
-            .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI/2)))
-            .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
-          );
-        }
-      }
-    }
-    if (!hasCoords.right) {
-      for (let z = coord[0]*6 - 3; z <= ((coord[1] + 1) * 6) - 3; z++) {
-        for (let y = 0; y <= 2; y++) {
-          const x = 3;
-          boxGeometries.push(boxGeometry.clone()
-            .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI/2)))
-            .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
-          );
-        }
-      }
-    }
-  }
-  const geometry = THREE.BufferGeometryUtils.mergeBufferGeometries(boxGeometries);
+    return THREE.BufferGeometryUtils.mergeBufferGeometries(boxGeometries);
+  };
+  const geometry = _makeGeometry();
   const gridVsh = `
     varying vec3 vWorldPos;
     // varying vec2 vUv;
@@ -406,6 +409,9 @@ const _makeGuardianMesh = scene => {
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
+  mesh.refresh = () => {
+    mesh.geometry = _makeGeometry();
+  };
   return mesh;
 };
 const _makeBaseMesh = scene => {
