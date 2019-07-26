@@ -644,15 +644,19 @@ const floorMesh = (() => {
   mesh.frustumCulled = false;
   mesh.plane = new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 1, 0), new THREE.Vector3());
   mesh.intersect = ray => {
-    const point = ray.intersectPlane(mesh.plane, localVector);
+    const point = ray.origin.y !== 0 ? ray.intersectPlane(mesh.plane, localVector) : null;
     if (point) {
       const distance = ray.origin.distanceTo(point);
       if (distance < 5) {
+        const {x, z: y} = point;
         return {
           type: 'floor',
           mesh,
           point,
           distance,
+          cancel: false,
+          x,
+          y,
         };
       } else {
         return null;
@@ -1748,6 +1752,7 @@ const _makeLabelMesh = s => {
           type: 'label',
           mesh,
           distance,
+          cancel: true,
           x,
           y,
           xScale,
@@ -2002,6 +2007,7 @@ const trayMesh = (() => {
             return {
               type: 'icon-crosshair',
               distance: localRay.origin.distanceTo(intersectionPoint),
+              cancel: true,
               oncrosshair,
             };
           }
@@ -2013,6 +2019,7 @@ const trayMesh = (() => {
             return {
               type: 'icon-close',
               distance: localRay.origin.distanceTo(intersectionPoint),
+              cancel: true,
               onclose,
             };
           }
@@ -2023,6 +2030,7 @@ const trayMesh = (() => {
           return {
             type: 'icon',
             distance: localRay.origin.distanceTo(intersectionPoint),
+            cancel: true,
             onclick,
           };
         }
@@ -2307,6 +2315,7 @@ const trayMesh = (() => {
             type: 'map',
             mesh,
             distance,
+            cancel: true,
             x: x - Math.floor(11/2),
             y: y - Math.floor(11/2),
             xScale,
@@ -2495,6 +2504,7 @@ const trayMesh = (() => {
                 type: 'key',
                 key,
                 distance,
+                cancel: true,
               };
             }
           }
@@ -2517,7 +2527,7 @@ const trayMesh = (() => {
     });
   };
   mesh.getIntersectionCandidates = () => mesh.visible ?
-    [labelMesh, keyboardMesh, mapMesh]
+    [labelMesh, keyboardMesh, mapMesh, floorMesh]
       .concat(actionIconMeshes.children)
       .concat(appIconMeshes.children)
       .concat(settingsIconMeshes.children)
@@ -5108,6 +5118,10 @@ function animate(time, frame) {
             intersectionSpec.onclose(i);
           } else if (type === 'map') {
             console.log('click map', intersectionSpec.x, intersectionSpec.y);
+          } else if (type === 'floor') {
+            const x = Math.floor((intersectionSpec.x + 3)/6);
+            const y = Math.floor((intersectionSpec.y + 3)/6);
+            console.log('click floor', x, y);
           } else if (type === 'key') {
             const {key} = intersectionSpec;
             console.log(`click key: ${key}`);
@@ -5531,32 +5545,36 @@ const _startFakeVrDisplay = async (width, height) => {
   }
 
   window.addEventListener('mousedown', e => {
-    const gamepads = navigator.getGamepads();
-    if (window.document.pointerLockElement) {
-      const gamepad = gamepads[1];
-      if (gamepad) {
-        gamepad.buttons[1].pressed = true;
-      }
-    } else if (intersectionSpecs[1] || moveSpecs[1]) {
-      const gamepad = gamepads[1];
-      if (gamepad) {
-        gamepad.buttons[1].pressed = true;
-      }
+    if (e.button === 0) {
+      const gamepads = navigator.getGamepads();
+      if (window.document.pointerLockElement) {
+        const gamepad = gamepads[1];
+        if (gamepad) {
+          gamepad.buttons[1].pressed = true;
+        }
+      } else if (intersectionSpecs[1] || moveSpecs[1]) {
+        const gamepad = gamepads[1];
+        if (gamepad) {
+          gamepad.buttons[1].pressed = true;
+        }
 
-      if (orbitControls) {
-        _removeOrbitControls();
+        if (orbitControls && ((intersectionSpecs[1] && intersectionSpecs[1].cancel) || moveSpecs[1])) {
+          _removeOrbitControls();
+        }
       }
     }
   });
   window.addEventListener('mouseup', e => {
-    const gamepads = navigator.getGamepads();
-    const gamepad = gamepads[1];
-    if (gamepad) {
-      gamepad.buttons[1].pressed = false;
-    }
+    if (e.button === 0) {
+      const gamepads = navigator.getGamepads();
+      const gamepad = gamepads[1];
+      if (gamepad) {
+        gamepad.buttons[1].pressed = false;
+      }
 
-    if (!window.document.pointerLockElement) {
-      _addOrbitControls();
+      if (!window.document.pointerLockElement) {
+        _addOrbitControls();
+      }
     }
   });
   
