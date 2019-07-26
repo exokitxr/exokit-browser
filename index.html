@@ -1489,6 +1489,102 @@ const _getControllerIndex = gamepad => gamepad.hand === 'left' ? 0 : 1;
 })();
 scene.add(gridMesh); */
 
+const guardianMesh = (() => {
+  const topGeometry = new THREE.BoxBufferGeometry(0.01, 1, 0.01);
+  const leftGeometry = topGeometry.clone().applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(
+    new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(-1, 0, 0))
+  ));
+  const frontGeometry = topGeometry.clone().applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(
+    new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))
+  ));
+  const boxGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
+    // topGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0, 0.5)),
+    // topGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0, 0.5)),
+    topGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0, -0.5)),
+    topGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0, -0.5)),
+    // leftGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0, 0.5, 0.5)),
+    leftGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0, 0.5, -0.5)),
+    // leftGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0, -0.5, 0.5)),
+    leftGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0, -0.5, -0.5)),
+    /* frontGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0.5, 0)),
+    frontGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0.5, 0)),
+    frontGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, -0.5, 0)),
+    frontGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0)), */
+  ]);
+  const boxGeometries = [];
+  for (let x = -3; x <= 3; x++) {
+    for (let y = 0; y <= 2; y++) {
+      {
+        const z = -3;
+        boxGeometries.push(boxGeometry.clone()
+          .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
+        );
+      }
+      {
+        const z = 3;
+        boxGeometries.push(boxGeometry.clone()
+          .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI)))
+          .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
+        );
+      }
+    }
+  }
+  for (let z = -3; z <= 3; z++) {
+    for (let y = 0; y <= 2; y++) {
+      {
+        const x = -3;
+        boxGeometries.push(boxGeometry.clone()
+          .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI/2)))
+          .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
+        );
+      }
+      {
+        const x = 3;
+        boxGeometries.push(boxGeometry.clone()
+          .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI/2)))
+          .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
+        );
+      }
+    }
+  }
+  const geometry = THREE.BufferGeometryUtils.mergeBufferGeometries(boxGeometries);
+  const gridVsh = `
+    varying vec3 vWorldPos;
+    // varying vec2 vUv;
+    varying float vDepth;
+    void main() {
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+      // vUv = uv;
+      vWorldPos = abs(position);
+      vDepth = gl_Position.z / 2.0;
+    }
+  `;
+  const gridFsh = `
+    // uniform sampler2D uTex;
+    uniform float uAnimation;
+    varying vec3 vWorldPos;
+    varying float vDepth;
+    void main() {
+      gl_FragColor = vec4(${new THREE.Color(0x5c6bc0).toArray().map(n => n.toFixed(8)).join(',')}, (1.0-vDepth)*uAnimation);
+    }
+  `;
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      uAnimation: {
+        type: 'f',
+        value: 1,
+      },
+    },
+    vertexShader: gridVsh,
+    fragmentShader: gridFsh,
+    transparent: true,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  return mesh;
+})();
+scene.add(guardianMesh);
+
 const _makeLabelMesh = s => {
   const width = 2;
   const height = 0.2;
@@ -5125,12 +5221,15 @@ function animate(time, frame) {
           skyboxMesh.visible = true;
           floorMesh.material.uniforms.uAnimation.value = menuFactor;
           floorMesh.visible = true;
+          guardianMesh.material.uniforms.uAnimation.value = menuFactor;
+          guardianMesh.visible = true;
 
           if (f >= 1) {
             if (end.factor === 0) {
               trayMesh.visible = false;
               skyboxMesh.visible = false;
               floorMesh.visible = false;
+              guardianMesh.visible = false;
             }
             menuAnimation = null;
           }
