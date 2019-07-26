@@ -416,26 +416,48 @@ scene.add(skyboxMesh);
 
 const floorMesh = (() => {
   const geometry = new THREE.PlaneBufferGeometry(1000, 1000, 1000, 1000)
-    .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 1))));
+    .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 1))))
+    .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0, -0.5))
+    .toNonIndexed();
+  const scenes = new Float32Array(geometry.attributes.position.array.length / 3);
+  for (let x = -3; x <= 3; x++) {
+    for (let z = -3; z <= 3; z++) {
+      const ax = x + 500;
+      const az = z + 500;
+      const startIndex = ((ax * 1000) + az) * 6;
+      const endIndex = startIndex + 6;
+      scenes.fill(1, startIndex, endIndex);
+    }
+  }
+  geometry.addAttribute('scene', new THREE.BufferAttribute(scenes, 1));
   const floorVsh = `
     uniform float uAnimation;
+    attribute float scene;
     varying vec3 vPosition;
-    varying float depth;
+    varying float vScene;
+    varying float vDepth;
     void main() {
       float radius = sqrt(position.x*position.x + position.z*position.z);
       // vec3 p = vec3(position.x, position.y - (1.0 - uAnimation * radius), position.z);
       vec3 p = vec3(position.x, position.y - (1.0 - uAnimation) * radius, position.z);
       gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.);
       vPosition = position;
-      depth = gl_Position.z / 200.0;
+      vScene = scene;
+      vDepth = gl_Position.z / 200.0;
     }
   `;
   const floorFsh = `
     uniform float uAnimation;
     varying vec3 vPosition;
-    varying float depth;
+    varying float vScene;
+    varying float vDepth;
     void main() {
-      float c = 0.8 + depth;
+      vec3 c;
+      if (vScene == 0.0) {
+        c = vec3(0.8 + vDepth);
+      } else {
+        c = vec3(${new THREE.Color(0x7986cb).toArray().map(n => n.toFixed(8)).join(',')});
+      }
       float a;
       vec3 f = fract(vPosition + 0.5);
       if (f.x <= 0.01 || f.x >= 0.99 || f.z <= 0.01 || f.z >= 0.99) {
@@ -443,7 +465,7 @@ const floorMesh = (() => {
       } else {
         a = uAnimation;
       }
-      gl_FragColor = vec4(vec3(c), a);
+      gl_FragColor = vec4(c, a);
     }
   `;
   const material = new THREE.ShaderMaterial({
