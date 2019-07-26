@@ -464,7 +464,7 @@ const floorMesh = (() => {
     const point = ray.intersectPlane(mesh.plane, localVector);
     if (point) {
       const distance = ray.origin.distanceTo(point);
-      if (distance < 10) {
+      if (distance < 5) {
         return {
           type: 'floor',
           mesh,
