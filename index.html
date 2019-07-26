@@ -31,12 +31,13 @@ iframe, audio {
     <script src="skin.js"></script> -->
     <script>
 (async () => {
-let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewportVector = new THREE.Vector2(), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls = null, transformControls, rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null;
+let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewportVector = new THREE.Vector2(), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls = null, transformControls, rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], guardianMeshes = [], baseMeshes = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null;
 const mouse = {
   position: new THREE.Vector3(),
   quaternion: new THREE.Quaternion(),
 };
 const iconMeshes = [];
+const scenes = [];
 
 let servers = [];
 let serversLoading = false;
@@ -297,6 +298,153 @@ const _makeBoxMesh = () => {
   return mesh;
 };
 
+const _makeGuardianMesh = scene => {
+  const topGeometry = new THREE.BoxBufferGeometry(0.01, 1, 0.01);
+  const leftGeometry = topGeometry.clone().applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(
+    new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(-1, 0, 0))
+  ));
+  const frontGeometry = topGeometry.clone().applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(
+    new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))
+  ));
+  const boxGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
+    // topGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0, 0.5)),
+    // topGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0, 0.5)),
+    topGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0, -0.5)),
+    topGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0, -0.5)),
+    // leftGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0, 0.5, 0.5)),
+    leftGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0, 0.5, -0.5)),
+    // leftGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0, -0.5, 0.5)),
+    leftGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0, -0.5, -0.5)),
+    /* frontGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0.5, 0)),
+    frontGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0.5, 0)),
+    frontGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, -0.5, 0)),
+    frontGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0)), */
+  ]);
+  const boxGeometries = [];
+  for (let i = 0; i < scene.coords.length; i++) {
+    const coord = scene.coords[i];
+    const hasCoords = {
+      left: scene.coords.some(coord2 => coord2[0] === coord[0]-1 && coord2[1] === coord[1]),
+      right: scene.coords.some(coord2 => coord2[0] === coord[0]+1 && coord2[1] === coord[1]),
+      up: scene.coords.some(coord2 => coord2[0] === coord[0] && coord2[1] === coord[1]-1),
+      down: scene.coords.some(coord2 => coord2[0] === coord[0] && coord2[1] === coord[1]+1),
+    };
+    if (!hasCoords.up) {
+      for (let x = coord[0]*6 - 3; x <= ((coord[0] + 1) * 6) - 3; x++) {
+        for (let y = 0; y <= 2; y++) {
+          const z = -3;
+          boxGeometries.push(boxGeometry.clone()
+            .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
+          );
+        }
+      }
+    }
+    if (!hasCoords.down) {
+      for (let x = coord[0]*6 - 3; x <= ((coord[0] + 1) * 6) - 3; x++) {
+        for (let y = 0; y <= 2; y++) {
+          const z = 3;
+          boxGeometries.push(boxGeometry.clone()
+            .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI)))
+            .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
+          );
+        }
+      }
+    }
+    if (!hasCoords.left) {
+      for (let z = coord[0]*6 - 3; z <= ((coord[1] + 1) * 6) - 3; z++) {
+        for (let y = 0; y <= 2; y++) {
+          const x = -3;
+          boxGeometries.push(boxGeometry.clone()
+            .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI/2)))
+            .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
+          );
+        }
+      }
+    }
+    if (!hasCoords.right) {
+      for (let z = coord[0]*6 - 3; z <= ((coord[1] + 1) * 6) - 3; z++) {
+        for (let y = 0; y <= 2; y++) {
+          const x = 3;
+          boxGeometries.push(boxGeometry.clone()
+            .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI/2)))
+            .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
+          );
+        }
+      }
+    }
+  }
+  const geometry = THREE.BufferGeometryUtils.mergeBufferGeometries(boxGeometries);
+  const gridVsh = `
+    varying vec3 vWorldPos;
+    // varying vec2 vUv;
+    varying float vDepth;
+    void main() {
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+      // vUv = uv;
+      vWorldPos = abs(position);
+      vDepth = gl_Position.z / 2.0;
+    }
+  `;
+  const gridFsh = `
+    // uniform sampler2D uTex;
+    uniform float uAnimation;
+    varying vec3 vWorldPos;
+    varying float vDepth;
+    void main() {
+      gl_FragColor = vec4(${new THREE.Color(0x5c6bc0).toArray().map(n => n.toFixed(8)).join(',')}, (1.0-vDepth)*uAnimation);
+    }
+  `;
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      uAnimation: {
+        type: 'f',
+        value: 1,
+      },
+    },
+    vertexShader: gridVsh,
+    fragmentShader: gridFsh,
+    transparent: true,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  return mesh;
+};
+const _makeBaseMesh = scene => {
+  const planeGeometry = new THREE.PlaneBufferGeometry(7, 7)
+    .applyMatrix(localMatrix.makeRotationFromQuaternion(localQuaternion.setFromAxisAngle(localVector.set(1, 0, 0), -Math.PI/2)))
+    .applyMatrix(new THREE.Matrix4().makeTranslation(0, -0.01, 0));
+  const geometry = THREE.BufferGeometryUtils.mergeBufferGeometries(scene.coords.map(coord =>
+    planeGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeTranslation(coord[0]*16, 0, coord[1]*16))
+  ));
+  const baseVsh = `
+    void main() {
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+    }
+  `;
+  const baseFsh = `
+    uniform float uAnimation;
+    void main() {
+      gl_FragColor = vec4(${new THREE.Color(0x5c6bc0).toArray().map(n => n.toFixed(8)).join(',')}, uAnimation*0.5);
+    }
+  `;
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      uAnimation: {
+        type: 'f',
+        value: 1,
+      },
+    },
+    vertexShader: baseVsh,
+    fragmentShader: baseFsh,
+    side: THREE.DoubleSide,
+    transparent: true,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  return mesh;
+};
+
 const _openUrl = (u, position = new THREE.Vector3(), orientation = new THREE.Quaternion(), scale, d = 3, local = true, id = tabId++) => {
   if (scale === undefined) {
     scale = new THREE.Vector3(1, d === 3 ? 1 : window.innerHeight/window.innerWidth, 1);
@@ -350,6 +498,18 @@ const _openUrl = (u, position = new THREE.Vector3(), orientation = new THREE.Qua
   iframe.src = u;
 
   const tab = _addTab(iframe, position, orientation, scale, d, local, id);
+};
+const _addScene = sceneSpec => {
+  const guardianMesh = _makeGuardianMesh(sceneSpec);
+  scene.add(guardianMesh);
+  guardianMeshes.push(guardianMesh);
+  const baseMesh = _makeBaseMesh(sceneSpec);
+  scene.add(baseMesh);
+  const baseMeshIndex = scene.children.indexOf(baseMesh);
+  scene.children.splice(baseMeshIndex, 1);
+  const floorMeshIndex = scene.children.indexOf(floorMesh);
+  scene.children.splice(floorMeshIndex, 0, baseMesh);
+  baseMeshes.push(baseMesh);
 };
 
 // main
@@ -418,7 +578,7 @@ const floorMesh = (() => {
   const geometry = new THREE.PlaneBufferGeometry(1000, 1000, 1000, 1000)
     .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 1))))
     .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0, -0.5))
-    .toNonIndexed();
+    /* .toNonIndexed();
   const scenes = new Float32Array(geometry.attributes.position.array.length / 3);
   for (let x = -3; x <= 3; x++) {
     for (let z = -3; z <= 3; z++) {
@@ -429,12 +589,12 @@ const floorMesh = (() => {
       scenes.fill(1, startIndex, endIndex);
     }
   }
-  geometry.addAttribute('scene', new THREE.BufferAttribute(scenes, 1));
+  geometry.addAttribute('scene', new THREE.BufferAttribute(scenes, 1)); */
   const floorVsh = `
     uniform float uAnimation;
-    attribute float scene;
+    // attribute float scene;
     varying vec3 vPosition;
-    varying float vScene;
+    // varying float vScene;
     varying float vDepth;
     void main() {
       float radius = sqrt(position.x*position.x + position.z*position.z);
@@ -442,28 +602,29 @@ const floorMesh = (() => {
       vec3 p = vec3(position.x, position.y - (1.0 - uAnimation) * radius, position.z);
       gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.);
       vPosition = position;
-      vScene = scene;
+      // vScene = scene;
       vDepth = gl_Position.z / 200.0;
     }
   `;
   const floorFsh = `
     uniform float uAnimation;
     varying vec3 vPosition;
-    varying float vScene;
+    // varying float vScene;
     varying float vDepth;
     void main() {
       vec3 c;
-      if (vScene == 0.0) {
+      // if (vScene == 0.0) {
         c = vec3(0.8 + vDepth);
-      } else {
+      /* } else {
         c = vec3(${new THREE.Color(0x7986cb).toArray().map(n => n.toFixed(8)).join(',')});
-      }
+      } */
       float a;
       vec3 f = fract(vPosition + 0.5);
       if (f.x <= 0.01 || f.x >= 0.99 || f.z <= 0.01 || f.z >= 0.99) {
-        a = 0.0;
+        // a = 0.0;
+        discard;
       } else {
-        a = uAnimation;
+        a = uAnimation*0.5;
       }
       gl_FragColor = vec4(c, a);
     }
@@ -1306,7 +1467,7 @@ const _bindEventTarget = target => {
 
 // mutation observer
 
-const observer = new MutationObserver(records => {
+/* const observer = new MutationObserver(records => {
   for (let i = 0; i < records.length; i++) {
     const record = records[i];
     const {removedNodes} = record;
@@ -1341,6 +1502,17 @@ const observer = new MutationObserver(records => {
 });
 observer.observe(document.body, {
   childList: true,
+}); */
+
+_addScene({
+  coords: [
+    [0, 0],
+  ],
+  urls: [{
+    url: 'https://google.com',
+    mode: '2d',
+    coord: [1, 1, -1],
+  }],
 });
 
 // controller meshes
@@ -1488,102 +1660,6 @@ const _getControllerIndex = gamepad => gamepad.hand === 'left' ? 0 : 1;
   return mesh;
 })();
 scene.add(gridMesh); */
-
-const guardianMesh = (() => {
-  const topGeometry = new THREE.BoxBufferGeometry(0.01, 1, 0.01);
-  const leftGeometry = topGeometry.clone().applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(
-    new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(-1, 0, 0))
-  ));
-  const frontGeometry = topGeometry.clone().applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(
-    new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))
-  ));
-  const boxGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
-    // topGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0, 0.5)),
-    // topGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0, 0.5)),
-    topGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0, -0.5)),
-    topGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0, -0.5)),
-    // leftGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0, 0.5, 0.5)),
-    leftGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0, 0.5, -0.5)),
-    // leftGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0, -0.5, 0.5)),
-    leftGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0, -0.5, -0.5)),
-    /* frontGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0.5, 0)),
-    frontGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0.5, 0)),
-    frontGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, -0.5, 0)),
-    frontGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0)), */
-  ]);
-  const boxGeometries = [];
-  for (let x = -3; x <= 3; x++) {
-    for (let y = 0; y <= 2; y++) {
-      {
-        const z = -3;
-        boxGeometries.push(boxGeometry.clone()
-          .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
-        );
-      }
-      {
-        const z = 3;
-        boxGeometries.push(boxGeometry.clone()
-          .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI)))
-          .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
-        );
-      }
-    }
-  }
-  for (let z = -3; z <= 3; z++) {
-    for (let y = 0; y <= 2; y++) {
-      {
-        const x = -3;
-        boxGeometries.push(boxGeometry.clone()
-          .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI/2)))
-          .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
-        );
-      }
-      {
-        const x = 3;
-        boxGeometries.push(boxGeometry.clone()
-          .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI/2)))
-          .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
-        );
-      }
-    }
-  }
-  const geometry = THREE.BufferGeometryUtils.mergeBufferGeometries(boxGeometries);
-  const gridVsh = `
-    varying vec3 vWorldPos;
-    // varying vec2 vUv;
-    varying float vDepth;
-    void main() {
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
-      // vUv = uv;
-      vWorldPos = abs(position);
-      vDepth = gl_Position.z / 2.0;
-    }
-  `;
-  const gridFsh = `
-    // uniform sampler2D uTex;
-    uniform float uAnimation;
-    varying vec3 vWorldPos;
-    varying float vDepth;
-    void main() {
-      gl_FragColor = vec4(${new THREE.Color(0x5c6bc0).toArray().map(n => n.toFixed(8)).join(',')}, (1.0-vDepth)*uAnimation);
-    }
-  `;
-  const material = new THREE.ShaderMaterial({
-    uniforms: {
-      uAnimation: {
-        type: 'f',
-        value: 1,
-      },
-    },
-    vertexShader: gridVsh,
-    fragmentShader: gridFsh,
-    transparent: true,
-  });
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.frustumCulled = false;
-  return mesh;
-})();
-scene.add(guardianMesh);
 
 const _makeLabelMesh = s => {
   const width = 2;
@@ -5224,8 +5300,16 @@ function animate(time, frame) {
           skyboxMesh.visible = true;
           floorMesh.material.uniforms.uAnimation.value = menuFactor;
           floorMesh.visible = true;
-          guardianMesh.material.uniforms.uAnimation.value = menuFactor;
-          guardianMesh.visible = true;
+          for (let i = 0; i < guardianMeshes.length; i++) {
+            const guardianMesh = guardianMeshes[i];
+            guardianMesh.material.uniforms.uAnimation.value = menuFactor;
+            guardianMesh.visible = true;
+          }
+          for (let i = 0; i < baseMeshes.length; i++) {
+            const baseMesh = baseMeshes[i];
+            baseMesh.material.uniforms.uAnimation.value = menuFactor;
+            baseMesh.visible = true;
+          }
 
           if (f >= 1) {
             if (end.factor === 0) {
