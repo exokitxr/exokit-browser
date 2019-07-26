@@ -2080,6 +2080,7 @@ const trayMesh = (() => {
     };
     mesh.destroy = () => {
       mesh.iframe && mesh.iframe.destroy();
+      mesh.moveMesh && scene.remove(mesh.moveMesh);
     };
     return mesh;
   };
