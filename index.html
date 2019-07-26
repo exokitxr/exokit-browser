@@ -1993,40 +1993,39 @@ const trayMesh = (() => {
     const geometry = new THREE.PlaneBufferGeometry(size, size, size, size)
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 1))));
     const mapVsh = `
-      uniform float uAnimation;
       varying vec3 vPosition;
-      // varying float depth;
       void main() {
         float radius = sqrt(position.x*position.x + position.z*position.z);
-        // vec3 p = vec3(position.x, position.y - (1.0 - uAnimation * radius), position.z);
-        vec3 p = vec3(position.x, position.y - (1.0 - uAnimation) * radius, position.z);
+        vec3 p = vec3(position.x, position.y, position.z);
         gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.);
         vPosition = position;
-        // depth = gl_Position.z / 200.0;
       }
     `;
     const mapFsh = `
-      uniform float uAnimation;
+      uniform vec2 uSelect;
       varying vec3 vPosition;
-      varying float depth;
       void main() {
-        // float c = 0.8 + depth;
-        float c = 0.5;
+        float c;
+        if (floor(vPosition.x + 11.0/2.0) == uSelect.x && floor(vPosition.z + 11.0/2.0) == uSelect.y) {
+          c = 0.7;
+        } else {
+          c = 0.5;
+        }
         float a;
         vec3 f = fract(vPosition + 0.5);
         if (f.x <= 0.05 || f.x >= 0.95 || f.z <= 0.05 || f.z >= 0.95) {
           a = 0.0;
         } else {
-          a = uAnimation;
+          a = 1.0;
         }
         gl_FragColor = vec4(vec3(c), a);
       }
     `;
     const material = new THREE.ShaderMaterial({
       uniforms: {
-        uAnimation: {
-          type: 'f',
-          value: 1,
+        uSelect: {
+          type: 'v2',
+          value: new THREE.Vector2(),
         },
       },
       vertexShader: mapVsh,
@@ -2047,10 +2046,10 @@ const trayMesh = (() => {
       const menuWorldWidth = size;
       const menuWorldHeight = size;
       mesh.leftLine.start
-        .set(-menuWorldWidth/2, 0, menuWorldHeight/2)
+        .set(-menuWorldWidth/2, 0, -menuWorldHeight/2)
         .applyMatrix4(mesh.matrixWorld);
       mesh.leftLine.end
-        .set(-menuWorldWidth/2, 0, -menuWorldHeight/2)
+        .set(-menuWorldWidth/2, 0, menuWorldHeight/2)
         .applyMatrix4(mesh.matrixWorld);
 
       mesh.topLine.start
@@ -2078,15 +2077,18 @@ const trayMesh = (() => {
 
         if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
           const xScale = mesh.width;
-          const x = xFactor * xScale;
+          const x = Math.floor(xFactor * size);
           const yScale = mesh.height;
-          const y = yFactor * yScale;
+          const y = Math.floor(yFactor * size);
+
+          material.uniforms.uSelect.value.set(x, y);
+
           return {
             type: 'map',
             mesh,
             distance,
-            x,
-            y,
+            x: x - Math.floor(11/2),
+            y: y - Math.floor(11/2),
             xScale,
             yScale,
           };
@@ -4870,10 +4872,10 @@ function animate(time, frame) {
           } else if (type === 'icon-close') {
             intersectionSpec.onclose(i);
           } else if (type === 'map') {
-            console.log('click map', intersectionSpec);
+            console.log('click map', intersectionSpec.x, intersectionSpec.y);
           } else if (type === 'key') {
             const {key} = intersectionSpec;
-            console.log(`got key instersection: ${key}`);
+            console.log(`click key: ${key}`);
           } else {
             console.warn(`unknown intersection type ${type}`);
           }
