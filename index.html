@@ -1866,20 +1866,20 @@ const trayMesh = (() => {
       labelMesh.textMesh.setText('https://google.com');
       labelMesh.visible = true;
       actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
-      mapMesh.visible = false;
+      mapMesh.localVisible = false;
     }],
     [diceImg, 2, 0, () => {
       selectedIconCoord.set(2, 0);
       labelMesh.textMesh.setText('https://rawcdn.githack.com/exokitxr/webxr-samples/a8e2c94eba0ee5c9215f20d13057b6c25675d9b0/xr-presentation.html');
       labelMesh.visible = true;
       actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
-      mapMesh.visible = false;
+      mapMesh.localVisible = false;
     }],
     [mapImg, 3, 0, () => {
       selectedIconCoord.set(3, 0);
       labelMesh.visible = false;
       actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = false;
-      mapMesh.visible = true;
+      mapMesh.localVisible = true;
     }],
     [cogsImg, 4, 0, () => {
       selectedIconMesh = settingsIconMeshes;
@@ -1913,7 +1913,7 @@ const trayMesh = (() => {
       labelMesh.textMesh.setText(DEFAULT_URL);
       labelMesh.visible = true;
       actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
-      mapMesh.visible = false;
+      mapMesh.localVisible = false;
     }],
     [chevronLeftImg, -1, 0, () => {
       selectedIconPage = Math.max(selectedIconPage - 1, 0);
@@ -1960,7 +1960,7 @@ const trayMesh = (() => {
               labelMesh.textMesh.setText(DEFAULT_URL);
               labelMesh.visible = true;
               actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
-              mapMesh.visible = false;
+              mapMesh.localVisible = false;
             }
           }
         }, true, appIconMeshes);
@@ -1992,7 +1992,7 @@ const trayMesh = (() => {
       labelMesh.textMesh.setText(DEFAULT_URL);
       labelMesh.visible = true;
       actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
-      mapMesh.visible = false;
+      mapMesh.localVisible = false;
     }],
   ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(null, img, null, x, y, onclick, null, null, false, settingsIconMeshes));
   mesh.add(settingsIconMeshes);
@@ -2052,37 +2052,43 @@ const trayMesh = (() => {
       transparent: true,
     });
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.y = 0.3;
-    mesh.scale.set(scale, scale, scale);
     mesh.visible = false;
     mesh.frustumCulled = false;
     mesh.width = size*scale;
     mesh.height = size*scale;
+    mesh.localVisible = false;
     mesh.plane = new THREE.Plane();
     mesh.leftLine = new THREE.Line3();
     mesh.topLine = new THREE.Line3();
     mesh.update = () => {
-      const menuWorldWidth = size;
-      const menuWorldHeight = size;
-      mesh.leftLine.start
-        .set(-menuWorldWidth/2, 0, -menuWorldHeight/2)
-        .applyMatrix4(mesh.matrixWorld);
-      mesh.leftLine.end
-        .set(-menuWorldWidth/2, 0, menuWorldHeight/2)
-        .applyMatrix4(mesh.matrixWorld);
+      mesh.visible = trayMesh.visible && mesh.localVisible;
+      if (mesh.visible) {
+        mesh.position.copy(trayMesh.position).add(localVector.set(0, 0.3, 0).applyQuaternion(trayMesh.quaternion));
+        mesh.scale.copy(trayMesh.scale).multiplyScalar(scale);
+        mesh.updateMatrixWorld();
 
-      mesh.topLine.start
-        .set(-menuWorldWidth/2, 0, menuWorldHeight/2)
-        .applyMatrix4(mesh.matrixWorld);
-      mesh.topLine.end
-        .set(menuWorldWidth/2, 0, menuWorldHeight/2)
-        .applyMatrix4(mesh.matrixWorld);
+        const menuWorldWidth = size;
+        const menuWorldHeight = size;
+        mesh.leftLine.start
+          .set(-menuWorldWidth/2, 0, -menuWorldHeight/2)
+          .applyMatrix4(mesh.matrixWorld);
+        mesh.leftLine.end
+          .set(-menuWorldWidth/2, 0, menuWorldHeight/2)
+          .applyMatrix4(mesh.matrixWorld);
 
-      mesh.plane.setFromCoplanarPoints(
-        mesh.leftLine.start,
-        mesh.leftLine.end,
+        mesh.topLine.start
+          .set(-menuWorldWidth/2, 0, menuWorldHeight/2)
+          .applyMatrix4(mesh.matrixWorld);
         mesh.topLine.end
-      );
+          .set(menuWorldWidth/2, 0, menuWorldHeight/2)
+          .applyMatrix4(mesh.matrixWorld);
+
+        mesh.plane.setFromCoplanarPoints(
+          mesh.leftLine.start,
+          mesh.leftLine.end,
+          mesh.topLine.end
+        );
+      }
     };
     mesh.intersect = ray => {
       const intersectionPoint = ray.intersectPlane(mesh.plane, localVector);
@@ -2140,7 +2146,7 @@ const trayMesh = (() => {
 
     return mesh;
   })();
-  mesh.add(mapMesh);
+  scene.add(mapMesh);
   mesh.mapMesh = mapMesh;
   
   /* labelMesh.textMesh.addEventListener('update', e => {
