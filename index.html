@@ -31,7 +31,7 @@ iframe, audio {
     <script src="skin.js"></script> -->
     <script>
 (async () => {
-let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewportVector = new THREE.Vector2(), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls = null, transformControls, rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], guardianMeshes = [], baseMeshes = [], selectedBaseMesh = null, menuAnimation = null, menuFactor = 1, keyboardFocus = null;
+let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastGripped = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewportVector = new THREE.Vector2(), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls = null, transformControls, rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], guardianMeshes = [], baseMeshes = [], selectedBaseMesh = null, menuAnimation = null, menuFactor = 1, keyboardFocus = null;
 const mouse = {
   position: new THREE.Vector3(),
   quaternion: new THREE.Quaternion(),
@@ -442,6 +442,7 @@ const _makeBaseMesh = scene => {
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
+  mesh.scene = scene;
   mesh.destroy = () => {
     // XXX
   };
@@ -1240,6 +1241,13 @@ const _bindEventTarget = target => {
             case 69: { // E
               const gamepads = navigator.getGamepads();
               if (gamepads[1]) {
+                gamepads[1].buttons[5].pressed = true;
+              }
+              break;
+            }
+            case 70: { // F
+              const gamepads = navigator.getGamepads();
+              if (gamepads[1]) {
                 gamepads[1].buttons[2].pressed = true;
               }
               break;
@@ -1259,6 +1267,13 @@ const _bindEventTarget = target => {
         if (!keyboardFocus) {
           switch (e.which) {
             case 69: { // E
+              const gamepads = navigator.getGamepads();
+              if (gamepads[1]) {
+                gamepads[1].buttons[5].pressed = false;
+              }
+              break;
+            }
+            case 70: { // F
               const gamepads = navigator.getGamepads();
               if (gamepads[1]) {
                 gamepads[1].buttons[2].pressed = false;
@@ -1369,6 +1384,13 @@ const _bindEventTarget = target => {
             case 69: { // E
               const gamepads = navigator.getGamepads();
               if (gamepads[1]) {
+                gamepads[1].buttons[5].pressed = true;
+              }
+              break;
+            }
+            case 70: { // E
+              const gamepads = navigator.getGamepads();
+              if (gamepads[1]) {
                 gamepads[1].buttons[2].pressed = true;
               }
               break;
@@ -1412,6 +1434,13 @@ const _bindEventTarget = target => {
               break;
             }
             case 69: { // E
+              const gamepads = navigator.getGamepads();
+              if (gamepads[1]) {
+                gamepads[1].buttons[5].pressed = false;
+              }
+              break;
+            }
+            case 70: { // F
               const gamepads = navigator.getGamepads();
               if (gamepads[1]) {
                 gamepads[1].buttons[2].pressed = false;
@@ -4246,7 +4275,8 @@ const keys = {
 };
 const _makeButtons = () => ({
   trigger: false,
-  bumper: false,
+  grip: false,
+  menu: false,
 });
 const lastButtons = [
   _makeButtons(),
@@ -4683,10 +4713,10 @@ function animate(time, frame) {
         _handleTrigger(gamepad, i, pressed, lastPressed);
         lastPresseds[i] = pressed;
 
-        const bumper = gamepad.buttons[2].pressed;
-        const lastBumper = lastButtons[i].bumper;
+        const menu = gamepad.buttons[5].pressed;
+        const lastMenu = lastButtons[i].menu;
 
-        if (bumper && !lastBumper) {
+        if (menu && !lastMenu) {
           const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
           c.matrixWorld.decompose(localVector, localQuaternion, localVector2);
           localVector.add(localVector2.set(0, -0.5, -1 + 0.2/2).applyQuaternion(localQuaternion));
@@ -4723,7 +4753,7 @@ function animate(time, frame) {
             });
           }
         }
-        lastButtons[i].bumper = bumper;
+        lastButtons[i].menu = menu;
 
         if (menuAnimation) {
           const {spec: {start, end}} = menuAnimation;
@@ -4744,8 +4774,9 @@ function animate(time, frame) {
             guardianMesh.material.uniforms.uAnimation.value = menuFactor;
             guardianMesh.visible = true;
           }
-          for (let i = 0; i < baseMeshes.length; i++) {
-            const baseMesh = baseMeshes[i];
+          const localBaseMeshes = baseMeshes.concat(selectedBaseMesh ? [selectedBaseMesh] : []);
+          for (let i = 0; i < localBaseMeshes.length; i++) {
+            const baseMesh = localBaseMeshes[i];
             baseMesh.material.uniforms.uAnimation.value = menuFactor;
             baseMesh.visible = true;
           }
@@ -4758,8 +4789,9 @@ function animate(time, frame) {
               for (let i = 0; i < guardianMeshes.length; i++) {
                 guardianMeshes[i].visible = false;
               }
-              for (let i = 0; i < baseMeshes.length; i++) {
-                baseMeshes[i].visible = false;
+              const localBaseMeshes = baseMeshes.concat(selectedBaseMesh ? [selectedBaseMesh] : []);
+              for (let i = 0; i < localBaseMeshes.length; i++) {
+                localBaseMeshes[i].visible = false;
               }
             }
             menuAnimation = null;
@@ -4958,10 +4990,12 @@ const _startFakeVrDisplay = async (width, height) => {
         orientation: [0, 0, 0, 1],
       },
       buttons: [
-        {pressed: false},
-        {pressed: false},
-        {pressed: false},
-        {pressed: false},
+        {pressed: false, touched: false},
+        {pressed: false, touched: false},
+        {pressed: false, touched: false},
+        {pressed: false, touched: false},
+        {pressed: false, touched: false},
+        {pressed: false, touched: false},
       ],
       connected: true,
     };
