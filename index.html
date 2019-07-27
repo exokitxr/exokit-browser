@@ -4029,8 +4029,8 @@ function animate(time, frame) {
               lastSceneCoords[1] = NaN;
             }
           } else if (type === 'floor') {
-            const x = Math.floor((intersectionSpec.x + 3)/7);
-            const y = Math.floor((intersectionSpec.y + 3)/7);
+            const x = Math.floor((intersectionSpec.x + 3 + 0.5)/7);
+            const y = Math.floor((intersectionSpec.y + 3 + 0.5)/7);
             const gamepads = navigator.getGamepads();
             const _setCoord = (coords, x, y) => {
               const index = coords.findIndex(coord => coord[0] === x && coord[1] === y);
