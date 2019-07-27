@@ -3946,6 +3946,50 @@ function animate(time, frame) {
           } else if (type === 'map-arrow-left') {
             console.log('click map arrow left');
           } else if (type === 'map-arrow-right') {
+            if (selectedBaseMesh) {
+              const {coords} = selectedBaseMesh.scene;
+              for (;;) {
+                const index = baseMeshes.findIndex(baseMesh => {
+                  for (let i = 0; i < baseMesh.scene.coords.length; i++) {
+                    const coord = baseMesh.scene.coords[i];
+                    for (let j = 0; j < coords.length; j++) {
+                      const coord2 = coords[j];
+                      if (coord[0] === coord2[0] && coord[1] === coord2[1]) {
+                        return true;
+                      }
+                    }
+                  }
+                  return false;
+                });
+                if (index !== -1) {
+                  const guardianMesh = guardianMeshes[index];
+                  guardianMesh.destroy();
+                  scene.remove(guardianMesh);
+                  guardianMeshes.splice(index, 1);
+
+                  const baseMesh = baseMeshes[index];
+                  baseMesh.destroy();
+                  scene.remove(baseMesh);
+                  baseMeshes.splice(index, 1);
+                } else {
+                  break;
+                }
+              }
+
+              const guardianMesh = _makeGuardianMesh({
+                coords: coords.slice(),
+                color: 0x42a5f5,
+              });
+              scene.add(guardianMesh);
+              guardianMeshes.push(guardianMesh);
+
+              const baseMesh = _makeBaseMesh({
+                coords: coords.slice(),
+                color: 0x42a5f5,
+              });
+              _insertBefore(selectedBaseMesh, floorMesh);
+              baseMeshes.push(baseMesh);
+            }
             console.log('click map arrow right');
           } else if (type === 'floor') {
             const x = Math.floor((intersectionSpec.x + 3)/6);
