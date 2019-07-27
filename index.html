@@ -691,9 +691,12 @@ const [
   mapImg,
   diceImg,
   cogsImg,
-  arrowLeftImg,
   chevronLeftImg,
   chevronRightImg,
+  arrowUpImg,
+  arrowDownImg,
+  arrowLeftImg,
+  arrowRightImg,
   timesImg,
   crosshairImg,
   plusImg,
@@ -710,9 +713,12 @@ const [
     'map.png',
     'dice.png',
     'cogs.png',
-    'arrow-left.png',
     'chevron-left.png',
     'chevron-right.png',
+    'arrow-up.png',
+    'arrow-down.png',
+    'arrow-left.png',
+    'arrow-right.png',
     'times.png',
     'crosshair.png',
     'plus.png',
@@ -2256,6 +2262,85 @@ const trayMesh = (() => {
   mesh.labelMesh = labelMesh;
 
   const mapMesh = (() => {
+    const object = new THREE.Object3D();
+
+    object.visible = false;
+    object.localVisible = false;
+    object.update = () => {
+      object.visible = trayMesh.visible && object.localVisible;
+      if (object.visible) {
+        object.position.copy(trayMesh.position).add(localVector.set(0, 0.3, 0).applyQuaternion(trayMesh.quaternion));
+        mesh.scale.copy(trayMesh.scale).multiplyScalar(scale);
+        object.updateMatrixWorld();
+
+        const menuWorldWidth = size;
+        const menuWorldHeight = size;
+        mesh.leftLine.start
+          .set(-menuWorldWidth/2, 0, -menuWorldHeight/2)
+          .applyMatrix4(mesh.matrixWorld);
+        mesh.leftLine.end
+          .set(-menuWorldWidth/2, 0, menuWorldHeight/2)
+          .applyMatrix4(mesh.matrixWorld);
+
+        mesh.topLine.start
+          .set(-menuWorldWidth/2, 0, menuWorldHeight/2)
+          .applyMatrix4(mesh.matrixWorld);
+        mesh.topLine.end
+          .set(menuWorldWidth/2, 0, menuWorldHeight/2)
+          .applyMatrix4(mesh.matrixWorld);
+
+        mesh.plane.setFromCoplanarPoints(
+          mesh.leftLine.start,
+          mesh.leftLine.end,
+          mesh.topLine.end
+        );
+      }
+
+      for (let i = 0; i < arrowMeshes.length; i++) {
+        arrowMeshes[i].update();
+      }
+    };
+    object.intersect = ray => {
+      const intersectionPoint = ray.intersectPlane(mesh.plane, localVector);
+      if (intersectionPoint) {
+        const leftIntersectionPoint = mesh.leftLine.closestPointToPoint(intersectionPoint, true, localVector2);
+        const topIntersectionPoint = mesh.topLine.closestPointToPoint(intersectionPoint, true, localVector3);
+
+        const xFactor = topIntersectionPoint.distanceTo(mesh.topLine.start) / mesh.width;
+        const yFactor = leftIntersectionPoint.distanceTo(mesh.leftLine.start) / mesh.height;
+        const distance = ray.origin.distanceTo(intersectionPoint);
+
+        if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
+          const xScale = mesh.width;
+          const x = Math.floor(xFactor * size);
+          const yScale = mesh.height;
+          const y = Math.floor(yFactor * size);
+
+          material.uniforms.uSelect.value.set(x, y);
+
+          return {
+            type: 'map',
+            // mesh,
+            distance,
+            cancel: true,
+            x: x - Math.floor(11/2),
+            y: y - Math.floor(11/2),
+            xScale,
+            yScale,
+          };
+        }
+      }
+
+      for (let i = 0; i < arrowMeshes.length; i++) {
+        const intersection = arrowMeshes[i].intersect(ray);
+        if (intersection) {
+          return intersection;
+        }
+      }
+
+      return null;
+    };
+
     const size = 11;
     const scale = 0.04;
     const geometry = new THREE.PlaneBufferGeometry(size, size, size, size)
@@ -2302,76 +2387,13 @@ const trayMesh = (() => {
       transparent: true,
     });
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.visible = false;
     mesh.frustumCulled = false;
     mesh.width = size*scale;
     mesh.height = size*scale;
-    mesh.localVisible = false;
     mesh.plane = new THREE.Plane();
     mesh.leftLine = new THREE.Line3();
     mesh.topLine = new THREE.Line3();
-    mesh.update = () => {
-      mesh.visible = trayMesh.visible && mesh.localVisible;
-      if (mesh.visible) {
-        mesh.position.copy(trayMesh.position).add(localVector.set(0, 0.3, 0).applyQuaternion(trayMesh.quaternion));
-        mesh.scale.copy(trayMesh.scale).multiplyScalar(scale);
-        mesh.updateMatrixWorld();
-
-        const menuWorldWidth = size;
-        const menuWorldHeight = size;
-        mesh.leftLine.start
-          .set(-menuWorldWidth/2, 0, -menuWorldHeight/2)
-          .applyMatrix4(mesh.matrixWorld);
-        mesh.leftLine.end
-          .set(-menuWorldWidth/2, 0, menuWorldHeight/2)
-          .applyMatrix4(mesh.matrixWorld);
-
-        mesh.topLine.start
-          .set(-menuWorldWidth/2, 0, menuWorldHeight/2)
-          .applyMatrix4(mesh.matrixWorld);
-        mesh.topLine.end
-          .set(menuWorldWidth/2, 0, menuWorldHeight/2)
-          .applyMatrix4(mesh.matrixWorld);
-
-        mesh.plane.setFromCoplanarPoints(
-          mesh.leftLine.start,
-          mesh.leftLine.end,
-          mesh.topLine.end
-        );
-      }
-    };
-    mesh.intersect = ray => {
-      const intersectionPoint = ray.intersectPlane(mesh.plane, localVector);
-      if (intersectionPoint) {
-        const leftIntersectionPoint = mesh.leftLine.closestPointToPoint(intersectionPoint, true, localVector2);
-        const topIntersectionPoint = mesh.topLine.closestPointToPoint(intersectionPoint, true, localVector3);
-
-        const xFactor = topIntersectionPoint.distanceTo(mesh.topLine.start) / mesh.width;
-        const yFactor = leftIntersectionPoint.distanceTo(mesh.leftLine.start) / mesh.height;
-        const distance = ray.origin.distanceTo(intersectionPoint);
-
-        if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
-          const xScale = mesh.width;
-          const x = Math.floor(xFactor * size);
-          const yScale = mesh.height;
-          const y = Math.floor(yFactor * size);
-
-          material.uniforms.uSelect.value.set(x, y);
-
-          return {
-            type: 'map',
-            mesh,
-            distance,
-            cancel: true,
-            x: x - Math.floor(11/2),
-            y: y - Math.floor(11/2),
-            xScale,
-            yScale,
-          };
-        }
-      }
-      return null;
-    };
+    object.add(mesh);
 
     const avatarMesh = (() => {
       const geometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
@@ -2395,7 +2417,106 @@ const trayMesh = (() => {
     })();
     mesh.add(avatarMesh);
 
-    return mesh;
+    const arrowMeshes = [
+      [
+        arrowUpImg,
+        'map-arrow-up',
+        [0, -1],
+      ],
+      [
+        arrowDownImg,
+        'map-arrow-down',
+        [0, 1],
+      ],
+      [
+        arrowLeftImg,
+        'map-arrow-left',
+        [-1, 0],
+      ],
+      [
+        arrowRightImg,
+        'map-arrow-right',
+        [1, 0],
+      ],
+    ].map(([img, type, offset]) => {
+      const geometry = new THREE.PlaneBufferGeometry(0.1, 0.1)
+        .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(localQuaternion.setFromAxisAngle(localVector.set(1, 0, 0), -Math.PI/2)));
+      const texture = new THREE.Texture(img);
+      texture.needsUpdate = true;
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        alphaTest: 0.01,
+        transparent: true,
+      });
+      const arrowMesh = new THREE.Mesh(geometry, material);
+      arrowMesh.position.set(offset[0], 0, offset[1]).multiplyScalar(0.3);
+      arrowMesh.frustumCulled = false;
+      arrowMesh.width = 0.1;
+      arrowMesh.height = 0.1;
+      arrowMesh.plane = new THREE.Plane();
+      arrowMesh.leftLine = new THREE.Line3();
+      arrowMesh.topLine = new THREE.Line3();
+      arrowMesh.update = () => {
+        arrowMesh.visible = mesh.visible;
+        if (arrowMesh.visible) {
+          const menuWorldWidth = arrowMesh.width;
+          const menuWorldHeight = arrowMesh.height;
+          arrowMesh.leftLine.start
+            .set(-menuWorldWidth/2, 0, -menuWorldHeight/2)
+            .applyMatrix4(arrowMesh.matrixWorld);
+          arrowMesh.leftLine.end
+            .set(-menuWorldWidth/2, 0, menuWorldHeight/2)
+            .applyMatrix4(arrowMesh.matrixWorld);
+
+          arrowMesh.topLine.start
+            .set(-menuWorldWidth/2, 0, menuWorldHeight/2)
+            .applyMatrix4(arrowMesh.matrixWorld);
+          arrowMesh.topLine.end
+            .set(menuWorldWidth/2, 0, menuWorldHeight/2)
+            .applyMatrix4(arrowMesh.matrixWorld);
+
+          arrowMesh.plane.setFromCoplanarPoints(
+            arrowMesh.leftLine.start,
+            arrowMesh.leftLine.end,
+            arrowMesh.topLine.end
+          );
+        }
+      };
+      arrowMesh.intersect = ray => {
+        const intersectionPoint = ray.intersectPlane(arrowMesh.plane, localVector);
+        if (intersectionPoint) {
+          const leftIntersectionPoint = arrowMesh.leftLine.closestPointToPoint(intersectionPoint, true, localVector2);
+          const topIntersectionPoint = arrowMesh.topLine.closestPointToPoint(intersectionPoint, true, localVector3);
+
+          const xFactor = topIntersectionPoint.distanceTo(arrowMesh.topLine.start) / arrowMesh.width;
+          const yFactor = leftIntersectionPoint.distanceTo(arrowMesh.leftLine.start) / arrowMesh.height;
+          const distance = ray.origin.distanceTo(intersectionPoint);
+
+          if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
+            const xScale = mesh.width;
+            const x = Math.floor(xFactor * size);
+            const yScale = mesh.height;
+            const y = Math.floor(yFactor * size);
+
+            return {
+              type,
+              // mesh,
+              distance,
+              cancel: true,
+            };
+          }
+        }
+
+        return null;
+      };
+
+      return arrowMesh;
+    });
+    for (let i = 0; i < arrowMeshes.length; i++) {
+      object.add(arrowMeshes[i]);
+    }
+
+    return object;
   })();
   scene.add(mapMesh);
   mesh.mapMesh = mapMesh;
@@ -3815,6 +3936,14 @@ function animate(time, frame) {
             intersectionSpec.onclose(i);
           } else if (type === 'map') {
             console.log('click map', intersectionSpec.x, intersectionSpec.y);
+          } else if (type === 'map-arrow-up') {
+            console.log('click map arrow up');
+          } else if (type === 'map-arrow-down') {
+            console.log('click map arrow down');
+          } else if (type === 'map-arrow-left') {
+            console.log('click map arrow left');
+          } else if (type === 'map-arrow-right') {
+            console.log('click map arrow right');
           } else if (type === 'floor') {
             const x = Math.floor((intersectionSpec.x + 3)/6);
             const y = Math.floor((intersectionSpec.y + 3)/6);
