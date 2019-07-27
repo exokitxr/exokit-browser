@@ -673,6 +673,8 @@ const [
   mapImg,
   diceImg,
   cogsImg,
+  chevronUpImg,
+  chevronDownImg,
   chevronLeftImg,
   chevronRightImg,
   arrowUpImg,
@@ -683,6 +685,7 @@ const [
   crosshairImg,
   plusImg,
   locationImg,
+  saveImg,
   xImg,
   faviconImg,
   keyboardImg,
@@ -695,6 +698,8 @@ const [
     'map.png',
     'dice.png',
     'cogs.png',
+    'chevron-up.png',
+    'chevron-down.png',
     'chevron-left.png',
     'chevron-right.png',
     'arrow-up.png',
@@ -705,6 +710,7 @@ const [
     'crosshair.png',
     'plus.png',
     'location.png',
+    'save.png',
     'x.png',
     'https://cors-anywhere.herokuapp.com/https://google.com/favicon.ico',
     'keyboard.png',
@@ -2125,6 +2131,7 @@ const trayMesh = (() => {
       mapMesh.localVisible = false;
     }],
     [mapImg, 3, 0, () => {
+      selectedIconMesh = mapIconMeshes;
       selectedIconCoord.set(3, 0);
       labelMesh.visible = false;
       actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = false;
@@ -2234,6 +2241,60 @@ const trayMesh = (() => {
     };
   };
 
+  const mapIconMeshes = new THREE.Object3D();
+  [
+    [arrowLeftImg, 0, 1, () => {
+      selectedIconMesh = actionIconMeshes;
+      selectedIconCoord.set(1, 0);
+
+      labelMesh.textMesh.setText(DEFAULT_URL);
+      labelMesh.visible = true;
+      actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
+      mapMesh.localVisible = false;
+    }],
+    [chevronUpImg, 4, 1, () => {
+      console.log('up');
+    }],
+    [chevronDownImg, 4, 0, () => {
+      console.log('down');
+    }],
+    [saveImg, 4, 2, () => {
+      if (selectedScene) {
+        const {coords} = selectedScene;
+        for (;;) {
+          const index = scenes.findIndex(scene => {
+            for (let i = 0; i < scene.coords.length; i++) {
+              const coord = scene.coords[i];
+              for (let j = 0; j < coords.length; j++) {
+                const coord2 = coords[j];
+                if (coord[0] === coord2[0] && coord[1] === coord2[1]) {
+                  return true;
+                }
+              }
+            }
+            return false;
+          });
+          if (index !== -1) {
+            scenes.splice(index, 1);
+          } else {
+            break;
+          }
+        }
+
+        scenes.push({
+          coords: coords.slice(),
+          urls: [],
+        });
+
+        selectedScene = null;
+
+        lastSceneCoords[0] = NaN;
+        lastSceneCoords[1] = NaN;
+      }
+    }],
+  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(null, img, null, x, y, onclick, null, null, false, mapIconMeshes));
+  mesh.add(mapIconMeshes);
+
   const settingsIconMeshes = new THREE.Object3D();
   [
     [arrowLeftImg, -1, 1, () => {
@@ -2265,7 +2326,7 @@ const trayMesh = (() => {
     object.update = () => {
       object.visible = trayMesh.visible && object.localVisible;
       if (object.visible) {
-        object.position.copy(trayMesh.position).add(localVector.set(0, 0.3, 0).applyQuaternion(trayMesh.quaternion));
+        object.position.copy(trayMesh.position).add(localVector.set(0, 0.2, 0).applyQuaternion(trayMesh.quaternion));
         mesh.scale.copy(trayMesh.scale).multiplyScalar(scale);
         object.updateMatrixWorld();
 
@@ -2684,7 +2745,7 @@ const trayMesh = (() => {
     labelMesh.update();
     keyboardMesh.update();
     mapMesh.update();
-    [actionIconMeshes, appIconMeshes, settingsIconMeshes].forEach(iconMeshes => {
+    [actionIconMeshes, appIconMeshes, mapIconMeshes, settingsIconMeshes].forEach(iconMeshes => {
       for (let i = 0; i < iconMeshes.children.length; i++) {
         iconMeshes.children[i].update(selectedIconPage);
       }
@@ -2694,6 +2755,7 @@ const trayMesh = (() => {
     [labelMesh, keyboardMesh, mapMesh, floorMesh]
       .concat(actionIconMeshes.children)
       .concat(appIconMeshes.children)
+      .concat(mapIconMeshes.children)
       .concat(settingsIconMeshes.children)
       .filter(mesh => mesh.visible)
     : [];
@@ -3996,39 +4058,6 @@ function animate(time, frame) {
             console.log('click map arrow left');
           } else if (type === 'map-arrow-right') {
             console.log('click map arrow right');
-
-            if (selectedScene) {
-              const {coords} = selectedScene;
-              for (;;) {
-                const index = scenes.findIndex(scene => {
-                  for (let i = 0; i < scene.coords.length; i++) {
-                    const coord = scene.coords[i];
-                    for (let j = 0; j < coords.length; j++) {
-                      const coord2 = coords[j];
-                      if (coord[0] === coord2[0] && coord[1] === coord2[1]) {
-                        return true;
-                      }
-                    }
-                  }
-                  return false;
-                });
-                if (index !== -1) {
-                  scenes.splice(index, 1);
-                } else {
-                  break;
-                }
-              }
-
-              scenes.push({
-                coords: coords.slice(),
-                urls: [],
-              });
-
-              selectedScene = null;
-
-              lastSceneCoords[0] = NaN;
-              lastSceneCoords[1] = NaN;
-            }
           } else if (type === 'floor') {
             const x = Math.floor((intersectionSpec.x + 3 + 0.5)/7);
             const y = Math.floor((intersectionSpec.y + 3 + 0.5)/7);
