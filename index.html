@@ -412,6 +412,9 @@ const _makeGuardianMesh = scene => {
   mesh.refresh = () => {
     mesh.geometry = _makeGeometry();
   };
+  mesh.destroy = () => {
+    // XXX
+  };
   return mesh;
 };
 const _makeBaseMesh = scene => {
