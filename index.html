@@ -3903,7 +3903,7 @@ function animate(time, frame) {
         baseMeshes.push(baseMesh);
       }
       if (selectedScene) {
-        const baseMesh = _makeBaseMesh(selectedScene, 0x42a5f5);
+        const baseMesh = _makeBaseMesh(selectedScene, 0x808080); // 0x42a5f5
         _insertBefore(baseMesh, floorMesh);
         baseMeshes.push(baseMesh);
       }
@@ -4024,12 +4024,13 @@ function animate(time, frame) {
               });
 
               selectedScene = null;
+
               lastSceneCoords[0] = NaN;
               lastSceneCoords[1] = NaN;
             }
           } else if (type === 'floor') {
-            const x = Math.floor((intersectionSpec.x + 3)/6);
-            const y = Math.floor((intersectionSpec.y + 3)/6);
+            const x = Math.floor((intersectionSpec.x + 3)/7);
+            const y = Math.floor((intersectionSpec.y + 3)/7);
             const gamepads = navigator.getGamepads();
             const _setCoord = (coords, x, y) => {
               const index = coords.findIndex(coord => coord[0] === x && coord[1] === y);
