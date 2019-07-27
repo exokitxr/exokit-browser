@@ -330,9 +330,9 @@ const _makeGuardianMesh = scene => {
         down: scene.coords.some(coord2 => coord2[0] === coord[0] && coord2[1] === coord[1]+1),
       };
       if (!hasCoords.up) {
-        for (let x = coord[0]*6 - 3; x <= ((coord[0] + 1) * 6) - 3; x++) {
+        for (let x = coord[0]*7 - 3; x <= ((coord[0] + 1) * 7) - 3 - 1; x++) {
           for (let y = 0; y <= 2; y++) {
-            const z = -3;
+            const z = coord[1]*7 - 3;
             boxGeometries.push(boxGeometry.clone()
               .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
             );
@@ -340,9 +340,9 @@ const _makeGuardianMesh = scene => {
         }
       }
       if (!hasCoords.down) {
-        for (let x = coord[0]*6 - 3; x <= ((coord[0] + 1) * 6) - 3; x++) {
+        for (let x = coord[0]*7 - 3; x <= ((coord[0] + 1) * 7) - 3 - 1; x++) {
           for (let y = 0; y <= 2; y++) {
-            const z = 3;
+            const z = coord[1]*7 + 3;
             boxGeometries.push(boxGeometry.clone()
               .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI)))
               .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
@@ -351,9 +351,9 @@ const _makeGuardianMesh = scene => {
         }
       }
       if (!hasCoords.left) {
-        for (let z = coord[0]*6 - 3; z <= ((coord[1] + 1) * 6) - 3; z++) {
+        for (let z = coord[1]*7 - 3; z <= ((coord[1] + 1) * 7) - 3 - 1; z++) {
           for (let y = 0; y <= 2; y++) {
-            const x = -3;
+            const x = coord[0]*7 - 3;
             boxGeometries.push(boxGeometry.clone()
               .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI/2)))
               .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
@@ -362,9 +362,9 @@ const _makeGuardianMesh = scene => {
         }
       }
       if (!hasCoords.right) {
-        for (let z = coord[0]*6 - 3; z <= ((coord[1] + 1) * 6) - 3; z++) {
+        for (let z = coord[1]*7 - 3; z <= ((coord[1] + 1) * 7) - 3 - 1; z++) {
           for (let y = 0; y <= 2; y++) {
-            const x = 3;
+            const x = coord[0]*7 + 3;
             boxGeometries.push(boxGeometry.clone()
               .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI/2)))
               .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
