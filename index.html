@@ -4033,29 +4033,28 @@ function animate(time, frame) {
             const x = Math.floor((intersectionSpec.x + 3 + 0.5)/7);
             const y = Math.floor((intersectionSpec.y + 3 + 0.5)/7);
             const gamepads = navigator.getGamepads();
-            const _setCoord = (coords, x, y) => {
-              const index = coords.findIndex(coord => coord[0] === x && coord[1] === y);
-              if (index === -1) {
-                coords.push([x, y])
-              } else {
-                coords.splice(index, 1);
-              }
-              return coords.length > 0;
-            };
             if (selectedScene && !(gamepads[1] && gamepads[1].buttons[2].pressed)) {
               selectedScene = null;
             }
-            if (selectedScene) {
-              if (_setCoord(selectedScene.coords, x, y)) {
-                // nothing
-              } else {
-                selectedScene = null;
-              }
-            } else {
+            if (!selectedScene) {
               selectedScene = {
-                coords: [[x, y]],
+                coords: [],
                 urls: [],
               };
+            }
+            const sceneToAdd = scenes.find(scene => scene.coords.some(coord => coord[0] === x && coord[1] === y));
+            const coordsToAdd = sceneToAdd ? sceneToAdd.coords.slice() : [[x, y]];
+            for (let i = 0; i < coordsToAdd.length; i++) {
+              const coordToAdd = coordsToAdd[i];
+              const index = selectedScene.coords.findIndex(coord => coord[0] === coordToAdd[0] && coord[1] === coordToAdd[1]);
+              if (index !== -1) {
+                selectedScene.coords.splice(index, 1);
+              } else {
+                selectedScene.coords.push([coordToAdd[0], coordToAdd[1]]);
+              }
+            }
+            if (selectedScene.coords.length === 0) {
+              selectedScene = null;
             }
 
             lastSceneCoords[0] = NaN;
