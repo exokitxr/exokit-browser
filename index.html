@@ -1841,11 +1841,6 @@ const _makeIconMesh = (url, img, type, onclick, oncrosshair, onclose, pagable) =
     const iframe = _makeIframe(url, type);
 
     if (type === 'browser' || type === 'volume') {
-      layers.push(iframe);
-      iframe.destroy = (destroy => function() {
-        layers.splice(layers.indexOf(iframe), 1);
-        destroy && destroy.apply(this, arguments);
-      })(iframe.destroy);
       mesh.iframe = iframe;
 
       mesh.moveMesh = _makeMoveMesh(type);
@@ -2067,6 +2062,10 @@ const _addApp = iconMesh => {
   iconMesh.setPosition(x, 0);
   trayMesh.appIconMeshes.add(iconMesh);
 
+  if (iconMesh.iframe) {
+    layers.push(iconMesh.iframe);
+  }
+
   if (iconMesh.moveMesh) {
     scene.add(iconMesh.moveMesh);
   }
@@ -2090,6 +2089,10 @@ const _removeApp = iconMesh => {
 
   if (iconMesh.moveMesh) {
     scene.remove(iconMesh.moveMesh);
+  }
+
+  if (iconMesh.iframe) {
+    layers.splice(layers.indexOf(iconMesh.iframe), 1);
   }
   
   if (!trayMesh.appIconMeshes.children.some(iconMesh => iconMesh.x === selectedIconCoord.x && iconMesh.y === selectedIconCoord.y)) {
