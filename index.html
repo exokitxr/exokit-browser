@@ -460,60 +460,6 @@ const _makeBaseMesh = (scene, color) => {
   return mesh;
 };
 
-const _openUrl = (u, position = new THREE.Vector3(), orientation = new THREE.Quaternion(), scale, d = 3, local = true, id = tabId++) => {
-  if (scale === undefined) {
-    scale = new THREE.Vector3(1, d === 3 ? 1 : window.innerHeight/window.innerWidth, 1);
-    if (d !== 3) {
-      scale.multiplyScalar(0.4);
-    }
-  }
-
-  const _drawOk = () => {
-    console.log('reality tab load ok: ' + u);
-
-    _pushDomUpdate();
-  };
-  const _drawFail = () => {
-    console.log('reality tab load error: ' + u);
-  };
-
-  const iframe = document.createElement('iframe');
-  iframe.onconsole = (jsString, scriptUrl, startLine) => {
-    console.log('parent got console', {jsString, scriptUrl, startLine});
-  };
-  iframe.onload = function() {
-    const contentDocument = (() => {
-      try {
-        if (this.contentDocument) { // this potentially throws
-          return this.contentDocument;
-        } else {
-          return null;
-        }
-      } catch(err) {
-        console.warn(err.stack);
-        return null;
-      }
-    })();
-    if (contentDocument) {
-      _drawOk();
-    } else {
-      _drawFail();
-
-      _closeTab(tab);
-
-      if (focusedTab === tab) {
-        focusedTab = rig.menuMesh.urlMesh;
-      }
-
-      rig.menuMesh.urlMesh.updateText();
-      _updateRigLists();
-    }
-  };
-  iframe.d = d;
-  iframe.src = u;
-
-  const tab = _addTab(iframe, position, orientation, scale, d, local, id);
-};
 const _insertBefore = (a, b) => {
   scene.add(a);
   const aIndex = scene.children.indexOf(a);
