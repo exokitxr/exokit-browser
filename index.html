@@ -4062,7 +4062,10 @@ function animate(time, frame) {
             const x = Math.floor((intersectionSpec.x + 3 + 0.5)/7);
             const y = Math.floor((intersectionSpec.y + 3 + 0.5)/7);
             const gamepads = navigator.getGamepads();
-            if (selectedScene && !(gamepads[1] && gamepads[1].buttons[2].pressed)) {
+            const gripped = !!(gamepads[1] && gamepads[1].buttons[2].pressed);
+            const targetScene = scenes.find(scene => scene.coords.some(coord => coord[0] === x && coord[1] === y));
+            const targetScenePartiallySelected = !!(targetScene && selectedScene && targetScene.coords.some(coord => selectedScene.coords.some(coord2 => coord[0] === coord2[0] && coord[1] === coord2[1])));
+            if (selectedScene && !gripped) {
               selectedScene = null;
             }
             if (!selectedScene) {
@@ -4071,8 +4074,7 @@ function animate(time, frame) {
                 urls: [],
               };
             }
-            const sceneToAdd = scenes.find(scene => scene.coords.some(coord => coord[0] === x && coord[1] === y));
-            const coordsToAdd = sceneToAdd ? sceneToAdd.coords.slice() : [[x, y]];
+            const coordsToAdd = (targetScene && !targetScenePartiallySelected) ? targetScene.coords.slice() : [[x, y]];
             for (let i = 0; i < coordsToAdd.length; i++) {
               const coordToAdd = coordsToAdd[i];
               const index = selectedScene.coords.findIndex(coord => coord[0] === coordToAdd[0] && coord[1] === coordToAdd[1]);
