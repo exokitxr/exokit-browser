@@ -2200,32 +2200,8 @@ const trayMesh = (() => {
           labelMesh.textMesh.setText(iconMesh.url);
         }, i => {
           _moveApp(iconMesh, i);
-        }, () => { 
-          for (let i = 0; i < appIconMeshes.children.length; i++) {
-            const child = appIconMeshes.children[i];
-            if (child.closeMesh && child.x > iconMesh.x) {
-              child.setPosition(child.x - 1, child.y);
-            }
-          }
-          appIconMeshes.remove(iconMesh);
-          iconMesh.destroy();
-          
-          if (appIconMeshes.children.some(iconMesh => iconMesh.x === selectedIconCoord.x && iconMesh.y === selectedIconCoord.y)) {
-            // nothing
-          } else {
-            if (appIconMeshes.children.some(iconMesh => iconMesh.x === 0 && iconMesh.y === 0)) {
-              selectedIconCoord.set(0, 0);
-            } else {
-              selectedIconMesh = actionIconMeshes;
-              selectedIconCoord.set(1, 0);
-              selectedIconPage = 0;
-              
-              labelMesh.textMesh.setText(DEFAULT_URL);
-              labelMesh.visible = true;
-              actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
-              mapMesh.localVisible = false;
-            }
-          }
+        }, () => {
+          _removeApp(iconMesh);
         }, true, appIconMeshes);
 
         selectedIconMesh = appIconMeshes;
@@ -2247,6 +2223,43 @@ const trayMesh = (() => {
       iconMesh,
       snapScene: null,
     };
+  };
+  const _removeApp = iconMesh => {
+    for (let i = 0; i < appIconMeshes.children.length; i++) {
+      const child = appIconMeshes.children[i];
+      if (child.closeMesh && child.x > iconMesh.x) {
+        child.setPosition(child.x - 1, child.y);
+      }
+    }
+    appIconMeshes.remove(iconMesh);
+    iconMesh.destroy();
+
+    for (let i = 0; i < scenes.length; i++) {
+      const scene = scenes[i];
+      for (;;) {
+        const index = scene.apps.indexOf(iconMesh);
+        if (index !== -1) {
+          scene.apps.splice(index, 1);
+        } else {
+          break;
+        }
+      }
+    }
+    
+    if (!appIconMeshes.children.some(iconMesh => iconMesh.x === selectedIconCoord.x && iconMesh.y === selectedIconCoord.y)) {
+      if (appIconMeshes.children.some(iconMesh => iconMesh.x === 0 && iconMesh.y === 0)) {
+        selectedIconCoord.set(0, 0);
+      } else {
+        selectedIconMesh = actionIconMeshes;
+        selectedIconCoord.set(1, 0);
+        selectedIconPage = 0;
+        
+        labelMesh.textMesh.setText(DEFAULT_URL);
+        labelMesh.visible = true;
+        actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
+        mapMesh.localVisible = false;
+      }
+    }
   };
 
   const mapIconMeshes = new THREE.Object3D();
