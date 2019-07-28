@@ -31,7 +31,7 @@ iframe, audio {
     <script src="skin.js"></script> -->
     <script>
 (async () => {
-let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastGripped = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewportVector = new THREE.Vector2(), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls = null, transformControls, rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], scenes = [], selectedScene = null, guardianMeshes = [], baseMeshes = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null;
+let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastGripped = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewportVector = new THREE.Vector2(), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls = null, transformControls, rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], scenes = [], currentSceneSpec = null, selectedScene = null, guardianMeshes = [], baseMeshes = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null;
 const mouse = {
   position: new THREE.Vector3(),
   quaternion: new THREE.Quaternion(),
@@ -1454,12 +1454,7 @@ scenes.push({
   coords: [
     [0, 0],
   ],
-  urls: [{
-    url: 'https://google.com',
-    mode: '2d',
-    coord: [1, 1, -1],
-  }],
-  color: 0x9ccc65,
+  apps: [],
 });
 scenes.push({
   coords: [
@@ -1467,12 +1462,7 @@ scenes.push({
     [-2, 0],
     [-2, 1],
   ],
-  urls: [{
-    url: 'https://google.com',
-    mode: '3d',
-    coord: [-9, 1, 0],
-  }],
-  color: 0x9ccc65,
+  apps: [],
 });
 
 // controller meshes
@@ -1735,10 +1725,6 @@ const _makeLabelMesh = s => {
 };
 
 const _makeMoveMesh = (() => {
-  const material = new THREE.MeshBasicMaterial({
-    color: new THREE.Color(0x333333),
-  });
-
   const cornerGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
     new THREE.BoxBufferGeometry(0.2, 0.03, 0.03)
       .applyMatrix(new THREE.Matrix4().makeTranslation(0.1, 0, 0)),
@@ -1759,6 +1745,9 @@ const _makeMoveMesh = (() => {
       .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0)),
   ]);
   const _makeBrowserMesh = () => {
+    const material = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(0x333333),
+    });
     const mesh = new THREE.Mesh(browserTargetGeometry, material);
     mesh.frustumCulled = false;
     return mesh;
@@ -1811,6 +1800,9 @@ const _makeMoveMesh = (() => {
     new THREE.BoxBufferGeometry(0.03, 0.03, 0.1).applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, -0.1/2)),
   ])
   const _makeVolumeMesh = () => {
+    const material = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(0x333333),
+    });
     const mesh = new THREE.Mesh(volumeTargetGeometry, material);
     mesh.frustumCulled = false;
     return mesh;
@@ -1986,6 +1978,19 @@ const trayMesh = (() => {
     mesh.setPosition = (newX, newY) => {
       mesh.x = newX;
       mesh.y = newY;
+    };
+    mesh.scene = null;
+    mesh.setSceneBinding = newScene => {
+      if (newScene) {
+        newScene.apps.push(mesh);
+        mesh.moveMesh.material.color.setHex(0x9ccc65);
+      } else {
+        if (mesh.scene) {
+          mesh.scene.apps.splice(mesh.scene.apps.indexOf(mesh), 1);
+        }
+        mesh.moveMesh.material.color.setHex(0x333333);
+      }
+      mesh.scene = newScene;
     };
     mesh.update = page => {
       const _select = () => {
@@ -2236,8 +2241,11 @@ const trayMesh = (() => {
     }
   };
   const _moveApp = (iconMesh, i) => {
+    iconMesh.setSceneBinding(null);
+
     moveSpecs[i] = {
       iconMesh,
+      snapScene: null,
     };
   };
 
@@ -2283,7 +2291,7 @@ const trayMesh = (() => {
 
         scenes.push({
           coords: coords.slice(),
-          urls: [],
+          apps: [],
         });
 
         selectedScene = null;
@@ -3894,17 +3902,28 @@ function animate(time, frame) {
           localVector.fromArray(gamepad.pose.position);
           localQuaternion.fromArray(gamepad.pose.orientation);
           localRay.set(localVector, localVector2.set(0, 0, -1).applyQuaternion(localQuaternion));
-          const intersection = floorMesh.intersect(localRay, i);
+          let intersection = floorMesh.intersect(localRay, i);
           if (intersection) {
-            localVector.set(Math.floor(intersection.point.x + 0.5), intersection.point.y + 1, Math.floor(intersection.point.z + 0.5));
-            localEuler.setFromQuaternion(localQuaternion, localEuler.order);
-            localEuler.x = 0;
-            localEuler.z = 0;
-            const old = localEuler.y;
-            localEuler.y = Math.round((localEuler.y < 0 ? (localEuler.y+Math.PI*2) : localEuler.y) / (Math.PI/2)) * (Math.PI/2);
-            localQuaternion.setFromEuler(localEuler);
-          } else {
+            const coords = [Math.floor((intersection.point.x + 3 + 0.5) / 7), Math.floor((intersection.point.z + 3 + 0.5) / 7)];
+            const targetScene = (currentSceneSpec && currentSceneSpec.coords.some(coords2 => coords2[0] === coords[0] && coords2[1] === coords[1])) ? currentSceneSpec : null;
+            if (targetScene) {
+              const x = Math.floor(intersection.point.x + 0.5);
+              const y = Math.floor(intersection.point.z + 0.5);
+              localVector.set(x, intersection.point.y + 1, y);
+              localEuler.setFromQuaternion(localQuaternion, localEuler.order);
+              localEuler.x = 0;
+              localEuler.z = 0;
+              const old = localEuler.y;
+              localEuler.y = Math.round((localEuler.y < 0 ? (localEuler.y+Math.PI*2) : localEuler.y) / (Math.PI/2)) * (Math.PI/2);
+              localQuaternion.setFromEuler(localEuler);
+              moveSpec.snapScene = targetScene;
+            } else {
+              intersection = null;
+            }
+          }
+          if (!intersection) {
             localVector.fromArray(gamepad.pose.position).add(localVector2.set(0, 0, -3).applyQuaternion(localQuaternion));
+            moveSpec.snapScene = null;
           }
 
           moveMesh.position.copy(localVector);
@@ -3925,14 +3944,14 @@ function animate(time, frame) {
     if (coords[0] !== lastSceneCoords[0] || coords[1] !== lastSceneCoords[1]) {
       lastSceneCoords[0] = coords[0];
       lastSceneCoords[1] = coords[1];
-      let currentSceneSpec = scenes.find(sceneSpec => sceneSpec.coords.some(coords2 => coords2[0] === coords[0] && coords2[1] === coords[1]));
+      currentSceneSpec = scenes.find(sceneSpec => sceneSpec.coords.some(coords2 => coords2[0] === coords[0] && coords2[1] === coords[1]));
       let currentSceneColor;
       if (currentSceneSpec) {
         currentSceneColor = 0x9ccc65;
       } else {
         currentSceneSpec = {
           coords: [coords],
-          urls: [],
+          apps: [],
         };
         currentSceneColor = 0xef5350;
       }
@@ -4025,6 +4044,10 @@ function animate(time, frame) {
     }
 
     if (pressed && !lastPressed && moveSpecs[i]) {
+      const moveSpec = moveSpecs[i];
+      if (moveSpec.snapScene) {
+        moveSpec.iconMesh.setSceneBinding(moveSpec.snapScene);
+      }
       moveSpecs[i] = null;
     } else {
       const intersectionSpec = intersectionSpecs[i];
@@ -4071,7 +4094,7 @@ function animate(time, frame) {
             if (!selectedScene) {
               selectedScene = {
                 coords: [],
-                urls: [],
+                apps: [],
               };
             }
             const coordsToAdd = (targetScene && !targetScenePartiallySelected) ? targetScene.coords.slice() : [[x, y]];
