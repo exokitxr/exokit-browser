@@ -2648,12 +2648,12 @@ const trayMesh = (() => {
       };
       return mesh;
     })();
-    object.add(sendEthMesh);
+    // object.add(sendEthMesh); // XXX
     object.update = () => {
-      sendEthMesh.update();
+      // sendEthMesh.update();
     };
     object.intersect = ray => {
-      return sendEthMesh.intersect(ray);
+      // return sendEthMesh.intersect(ray);
     };
     return object;
   })();
