@@ -1817,6 +1817,366 @@ const _makeMoveMesh = (() => {
   };
 })();
 
+let selectedIconMesh = null;
+let selectedIconCoord = new THREE.Vector2(1, 0);
+let selectedIconPage = 0;
+const _makeIframe = (url, type) => {
+  const iframe = document.createElement('iframe');
+  iframe.addEventListener('load', () => {
+    console.log(`iframe loaded: ${type} ${iframe.src}`);
+  });
+  iframe.addEventListener('error', err => {
+    console.log(`iframe load error: ${type} ${iframe.src} ${err.stack}`);
+  });
+  iframe.d = type === 'browser' ? 2 : 3;
+  iframe.src = url;
+  return iframe;
+};
+const _makeIconMesh = (url, img, type, onclick, oncrosshair, onclose, pagable) => {
+  const iconSize = 0.2;
+  const subIconSize = 0.4;
+  const geometry = new THREE.PlaneBufferGeometry(iconSize, iconSize);
+  const texture = new THREE.Texture(img);
+  if (img) {
+    texture.needsUpdate = true;
+  }
+  const iconVsh = `
+    uniform float uTime;
+    varying vec2 vUv;
+    const float PI = 3.1415926535897932384626433832795;
+    void main() {
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position + vec3(0., sin(pow(uTime, 0.5) * PI) * 0.1, 0.), 1.);
+      vUv = uv;
+    }
+  `;
+  const iconFsh = `
+    uniform sampler2D uTex;
+    uniform vec3 uColor;
+    uniform float uTime;
+    varying vec2 vUv;
+    void main() {
+      gl_FragColor = texture2D(uTex, vUv);
+      if (gl_FragColor.a >= 0.01) {
+        gl_FragColor.rgb += uColor;
+        if (uColor.r > 0. || uColor.g > 0. || uColor.b > 0.) {
+          gl_FragColor.rgb += (1.0 - pow(uTime, 0.5)) * 0.8;
+        }
+      } else {
+        discard;
+      }
+    }
+  `;
+  const color = 0x66bb6a;
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      uTex: {
+        type: 't',
+        value: texture,
+      },
+      uColor: {
+        type: 'c',
+        value: new THREE.Color(0),
+      },
+      uTime: {
+        type: 'f',
+        value: 0,
+      },
+    },
+    vertexShader: iconVsh,
+    fragmentShader: iconFsh,
+    side: THREE.DoubleSide,
+    transparent: true,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  mesh.localVisible = true;
+
+  if (url && type) {
+    const iframe = _makeIframe(url, type);
+
+    if (type === 'browser' || type === 'volume') {
+      layers.push(iframe);
+      iframe.destroy = (destroy => function() {
+        layers.splice(layers.indexOf(iframe), 1);
+        destroy && destroy.apply(this, arguments);
+      })(iframe.destroy);
+      mesh.iframe = iframe;
+
+      mesh.moveMesh = _makeMoveMesh(type);
+    } else {
+      throw new Error(`unknown iframe type ${type}`);
+    }
+  } else {
+    mesh.iframe = null;
+  }
+  if (type) {
+    const material2 = material.clone();
+    const typeImg = (() => {
+      switch (type) {
+        case 'browser': return browserImg;
+        case 'volume': return diceImg;
+        default: return null;
+      }
+    })();
+    const texture = new THREE.Texture(typeImg);
+    texture.needsUpdate = true;
+    material2.uniforms.uTex.value = texture;
+    const typeMesh = new THREE.Mesh(geometry, material2);
+    typeMesh.frustumCulled = false;
+    typeMesh.position.set(-0.15, 0.15, 0);
+    typeMesh.scale.set(subIconSize, subIconSize, subIconSize);
+    mesh.add(typeMesh);
+    mesh.typeMesh = typeMesh;
+  }
+  if (oncrosshair) {
+    const material2 = material.clone();
+    const texture = new THREE.Texture(crosshairImg);
+    texture.needsUpdate = true;
+    material2.uniforms.uTex.value = texture;
+    const crosshairMesh = new THREE.Mesh(geometry, material2);
+    crosshairMesh.visible = false;
+    crosshairMesh.frustumCulled = false;
+    crosshairMesh.position.set(0, 0.15, 0);
+    crosshairMesh.scale.set(subIconSize, subIconSize, subIconSize);
+    mesh.add(crosshairMesh);
+    mesh.crosshairMesh = crosshairMesh;
+  }
+  if (onclose) {
+    const material2 = material.clone();
+    const texture = new THREE.Texture(timesImg);
+    texture.needsUpdate = true;
+    material2.uniforms.uTex.value = texture;
+    const closeMesh = new THREE.Mesh(geometry, material2);
+    closeMesh.visible = false;
+    closeMesh.frustumCulled = false;
+    closeMesh.position.set(0.15, 0.15, 0);
+    closeMesh.scale.set(subIconSize, subIconSize, subIconSize);
+    mesh.add(closeMesh);
+    mesh.closeMesh = closeMesh;
+  }
+
+  mesh.url = url;
+  mesh.type = type;
+  mesh.x = 0;
+  mesh.y = 0;
+  mesh.setUrl = s => {
+    mesh.url = s;
+    mesh.iframe.src = s;
+  };
+  mesh.setPosition = (newX, newY) => {
+    mesh.x = newX;
+    mesh.y = newY;
+  };
+  mesh.scene = null;
+  mesh.setSceneBinding = newScene => {
+    if (newScene) {
+      newScene.apps.push(mesh);
+      mesh.moveMesh.material.color.setHex(0x9ccc65);
+    } else {
+      if (mesh.scene) {
+        mesh.scene.apps.splice(mesh.scene.apps.indexOf(mesh), 1);
+      }
+      mesh.moveMesh.material.color.setHex(0x333333);
+    }
+    mesh.scene = newScene;
+  };
+  mesh.update = page => {
+    const _select = () => {
+      mesh.material.uniforms.uColor.value = new THREE.Color(0x9ccc65);
+      mesh.material.uniforms.uTime.value = (Date.now() % 1000) / 1000;
+
+      if (mesh.typeMesh) {
+        mesh.typeMesh.visible = true;
+      }
+      if (mesh.crosshairMesh) {
+        mesh.crosshairMesh.visible = true;
+      }
+      if (mesh.closeMesh) {
+        mesh.closeMesh.visible = true;
+      }
+    };
+    const _unselect = () => {
+      mesh.material.uniforms.uColor.value = new THREE.Color(0);
+      mesh.material.uniforms.uTime.value = 0;
+
+      if (mesh.typeMesh) {
+        mesh.typeMesh.visible = false;
+      }
+      if (mesh.crosshairMesh) {
+        mesh.crosshairMesh.visible = false;
+      }
+      if (mesh.closeMesh) {
+        mesh.closeMesh.visible = false;
+      }
+    };
+    if (mesh.parent === selectedIconMesh) {
+      let {x, y} = mesh;
+      if (pagable) {
+        x += 5 * page;
+
+        mesh.visible = x >= 0 && x < 5;
+      } else {
+        mesh.visible = mesh.localVisible;
+      }
+
+      if (mesh.visible) {
+        mesh.position.set(-0.8 + x * 0.4, 0.1 + y * 0.3, 0);
+
+        if (mesh.x === selectedIconCoord.x && mesh.y === selectedIconCoord.y) {
+          _select();
+        } else {
+          _unselect();
+        }
+      }
+    } else {
+      mesh.visible = false;
+    }
+  };
+  mesh.intersect = ray => {
+    if (mesh.visible && img) {
+      localMatrix.compose(
+        ray.origin,
+        localQuaternion.setFromUnitVectors(localVector.set(0, 0, -1), ray.direction),
+        localVector2.set(1, 1, 1)
+      ).premultiply(
+        localMatrix2
+          .copy(mesh.matrixWorld)
+          .getInverse(localMatrix2)
+      ).decompose(localRay.origin, localQuaternion, localVector);
+      localRay.direction.set(0, 0, -1).applyQuaternion(localQuaternion);
+
+      if (mesh.crosshairMesh && mesh.crosshairMesh.visible) {
+        const intersectionPoint = localRay.intersectBox(localBox.setFromCenterAndSize(mesh.crosshairMesh.position, localVector.copy(mesh.crosshairMesh.scale).multiplyScalar(iconSize)), localVector);
+        if (intersectionPoint) {
+          return {
+            type: 'icon-crosshair',
+            distance: localRay.origin.distanceTo(intersectionPoint),
+            cancel: true,
+            oncrosshair,
+          };
+        }
+      }
+
+      if (mesh.closeMesh && mesh.closeMesh.visible) {
+        const intersectionPoint = localRay.intersectBox(localBox.setFromCenterAndSize(mesh.closeMesh.position, localVector.copy(mesh.closeMesh.scale).multiplyScalar(iconSize)), localVector);
+        if (intersectionPoint) {
+          return {
+            type: 'icon-close',
+            distance: localRay.origin.distanceTo(intersectionPoint),
+            cancel: true,
+            onclose,
+          };
+        }
+      }
+
+      const intersectionPoint = localRay.intersectBox(localBox.setFromCenterAndSize(localVector.set(0, 0, 0), localVector2.set(0.2, 0.2, 0.2)), localVector);
+      if (intersectionPoint) {
+        return {
+          type: 'icon',
+          distance: localRay.origin.distanceTo(intersectionPoint),
+          cancel: true,
+          onclick,
+        };
+      }
+
+      return null;
+    } else {
+      return null;
+    }
+  };
+  mesh.destroy = () => {
+    mesh.iframe && mesh.iframe.destroy();
+  };
+  return mesh;
+};
+const _addNewApp = (url, img, type, i) => {
+  const iconMesh = _makeIconMesh(url, img, type, () => {
+    selectedIconCoord.set(iconMesh.x, iconMesh.y);
+    trayMesh.labelMesh.textMesh.setText(iconMesh.url);
+  }, i => {
+    _moveApp(iconMesh, i);
+  }, () => {
+    _removeApp(iconMesh);
+    _destroyApp(iconMesh)
+  }, true);
+
+  _addApp(iconMesh);
+  _moveApp(iconMesh, i);
+
+  selectedIconMesh = trayMesh.appIconMeshes;
+  selectedIconCoord.set(iconMesh.x, 0);
+  selectedIconPage = 0;
+
+  trayMesh.labelMesh.textMesh.setText(iconMesh.url);
+};
+const _addApp = iconMesh => {
+  const x = (() => {
+    for (let x = 0;; x++) {
+      if (trayMesh.appIconMeshes.children.findIndex(mesh => mesh.x === x) === -1) {
+        return x;
+      }
+    }
+    return -1;
+  })();
+  iconMesh.setPosition(x, 0);
+  trayMesh.appIconMeshes.add(iconMesh);
+
+  if (iconMesh.moveMesh) {
+    scene.add(iconMesh.moveMesh);
+  }
+};
+const _moveApp = (iconMesh, i) => {
+  iconMesh.setSceneBinding(null);
+
+  moveSpecs[i] = {
+    iconMesh,
+    snapScene: null,
+  };
+};
+const _removeApp = iconMesh => {
+  for (let i = 0; i < trayMesh.appIconMeshes.children.length; i++) {
+    const child = trayMesh.appIconMeshes.children[i];
+    if (child.closeMesh && child.x > iconMesh.x) {
+      child.setPosition(child.x - 1, child.y);
+    }
+  }
+  trayMesh.appIconMeshes.remove(iconMesh);
+
+  if (iconMesh.moveMesh) {
+    scene.remove(iconMesh.moveMesh);
+  }
+  
+  if (!trayMesh.appIconMeshes.children.some(iconMesh => iconMesh.x === selectedIconCoord.x && iconMesh.y === selectedIconCoord.y)) {
+    if (trayMesh.appIconMeshes.children.some(iconMesh => iconMesh.x === 0 && iconMesh.y === 0)) {
+      selectedIconCoord.set(0, 0);
+    } else {
+      selectedIconMesh = trayMesh.actionIconMeshes;
+      selectedIconCoord.set(1, 0);
+      selectedIconPage = 0;
+      
+      trayMesh.labelMesh.textMesh.setText(DEFAULT_URL);
+      trayMesh.labelMesh.visible = true;
+      trayMesh.actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
+      trayMesh.mapMesh.localVisible = false;
+    }
+  }
+};
+const _destroyApp = iconMesh => {
+  iconMesh.destroy();
+
+  for (let i = 0; i < scenes.length; i++) {
+    const scene = scenes[i];
+    for (;;) {
+      const index = scene.apps.indexOf(iconMesh);
+      if (index !== -1) {
+        scene.apps.splice(index, 1);
+      } else {
+        break;
+      }
+    }
+  }
+};
+
 const trayMesh = (() => {
   const geometry = new THREE.PlaneBufferGeometry(2, 0.3)
     .applyMatrix(localMatrix.makeRotationFromQuaternion(localQuaternion.setFromAxisAngle(localVector.set(1, 0, 0), -Math.PI/2)));
@@ -1829,285 +2189,6 @@ const trayMesh = (() => {
     .copy(camera.position)
     .add(new THREE.Vector3(0, -0.5, -1 + 0.2/2));
   mesh.frustumCulled = false;
-
-  const _makeIframe = (url, type) => {
-    const iframe = document.createElement('iframe');
-    iframe.addEventListener('load', () => {
-      console.log(`iframe loaded: ${type} ${iframe.src}`);
-    });
-    iframe.addEventListener('error', err => {
-      console.log(`iframe load error: ${type} ${iframe.src} ${err.stack}`);
-    });
-    iframe.d = type === 'browser' ? 2 : 3;
-    iframe.src = url;
-    return iframe;
-  };
-  const _makeIconMesh = (url, img, type, onclick, oncrosshair, onclose, pagable) => {
-    const iconSize = 0.2;
-    const subIconSize = 0.4;
-    const geometry = new THREE.PlaneBufferGeometry(iconSize, iconSize);
-    const texture = new THREE.Texture(img);
-    if (img) {
-      texture.needsUpdate = true;
-    }
-    const iconVsh = `
-      uniform float uTime;
-      varying vec2 vUv;
-      const float PI = 3.1415926535897932384626433832795;
-      void main() {
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position + vec3(0., sin(pow(uTime, 0.5) * PI) * 0.1, 0.), 1.);
-        vUv = uv;
-      }
-    `;
-    const iconFsh = `
-      uniform sampler2D uTex;
-      uniform vec3 uColor;
-      uniform float uTime;
-      varying vec2 vUv;
-      void main() {
-        gl_FragColor = texture2D(uTex, vUv);
-        if (gl_FragColor.a >= 0.01) {
-          gl_FragColor.rgb += uColor;
-          if (uColor.r > 0. || uColor.g > 0. || uColor.b > 0.) {
-            gl_FragColor.rgb += (1.0 - pow(uTime, 0.5)) * 0.8;
-          }
-        } else {
-          discard;
-        }
-      }
-    `;
-    const color = 0x66bb6a;
-    const material = new THREE.ShaderMaterial({
-      uniforms: {
-        uTex: {
-          type: 't',
-          value: texture,
-        },
-        uColor: {
-          type: 'c',
-          value: new THREE.Color(0),
-        },
-        uTime: {
-          type: 'f',
-          value: 0,
-        },
-      },
-      vertexShader: iconVsh,
-      fragmentShader: iconFsh,
-      side: THREE.DoubleSide,
-      transparent: true,
-    });
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.frustumCulled = false;
-    mesh.localVisible = true;
-
-    if (url && type) {
-      const iframe = _makeIframe(url, type);
-
-      if (type === 'browser' || type === 'volume') {
-        layers.push(iframe);
-        iframe.destroy = (destroy => function() {
-          layers.splice(layers.indexOf(iframe), 1);
-          destroy && destroy.apply(this, arguments);
-        })(iframe.destroy);
-        mesh.iframe = iframe;
-
-        const moveMesh = _makeMoveMesh(type);
-        scene.add(moveMesh);
-        mesh.moveMesh = moveMesh;
-      } else {
-        throw new Error(`unknown iframe type ${type}`);
-      }
-    } else {
-      mesh.iframe = null;
-    }
-    if (type) {
-      const material2 = material.clone();
-      const typeImg = (() => {
-        switch (type) {
-          case 'browser': return browserImg;
-          case 'volume': return diceImg;
-          default: return null;
-        }
-      })();
-      const texture = new THREE.Texture(typeImg);
-      texture.needsUpdate = true;
-      material2.uniforms.uTex.value = texture;
-      const typeMesh = new THREE.Mesh(geometry, material2);
-      typeMesh.frustumCulled = false;
-      typeMesh.position.set(-0.15, 0.15, 0);
-      typeMesh.scale.set(subIconSize, subIconSize, subIconSize);
-      mesh.add(typeMesh);
-      mesh.typeMesh = typeMesh;
-    }
-    if (oncrosshair) {
-      const material2 = material.clone();
-      const texture = new THREE.Texture(crosshairImg);
-      texture.needsUpdate = true;
-      material2.uniforms.uTex.value = texture;
-      const crosshairMesh = new THREE.Mesh(geometry, material2);
-      crosshairMesh.visible = false;
-      crosshairMesh.frustumCulled = false;
-      crosshairMesh.position.set(0, 0.15, 0);
-      crosshairMesh.scale.set(subIconSize, subIconSize, subIconSize);
-      mesh.add(crosshairMesh);
-      mesh.crosshairMesh = crosshairMesh;
-    }
-    if (onclose) {
-      const material2 = material.clone();
-      const texture = new THREE.Texture(timesImg);
-      texture.needsUpdate = true;
-      material2.uniforms.uTex.value = texture;
-      const closeMesh = new THREE.Mesh(geometry, material2);
-      closeMesh.visible = false;
-      closeMesh.frustumCulled = false;
-      closeMesh.position.set(0.15, 0.15, 0);
-      closeMesh.scale.set(subIconSize, subIconSize, subIconSize);
-      mesh.add(closeMesh);
-      mesh.closeMesh = closeMesh;
-    }
-
-    mesh.url = url;
-    mesh.type = type;
-    mesh.x = 0;
-    mesh.y = 0;
-    mesh.setUrl = s => {
-      mesh.url = s;
-      mesh.iframe.src = s;
-    };
-    mesh.setPosition = (newX, newY) => {
-      mesh.x = newX;
-      mesh.y = newY;
-    };
-    mesh.scene = null;
-    mesh.setSceneBinding = newScene => {
-      if (newScene) {
-        newScene.apps.push(mesh);
-        mesh.moveMesh.material.color.setHex(0x9ccc65);
-      } else {
-        if (mesh.scene) {
-          mesh.scene.apps.splice(mesh.scene.apps.indexOf(mesh), 1);
-        }
-        mesh.moveMesh.material.color.setHex(0x333333);
-      }
-      mesh.scene = newScene;
-    };
-    mesh.update = page => {
-      const _select = () => {
-        mesh.material.uniforms.uColor.value = new THREE.Color(0x9ccc65);
-        mesh.material.uniforms.uTime.value = (Date.now() % 1000) / 1000;
-
-        if (mesh.typeMesh) {
-          mesh.typeMesh.visible = true;
-        }
-        if (mesh.crosshairMesh) {
-          mesh.crosshairMesh.visible = true;
-        }
-        if (mesh.closeMesh) {
-          mesh.closeMesh.visible = true;
-        }
-      };
-      const _unselect = () => {
-        mesh.material.uniforms.uColor.value = new THREE.Color(0);
-        mesh.material.uniforms.uTime.value = 0;
-
-        if (mesh.typeMesh) {
-          mesh.typeMesh.visible = false;
-        }
-        if (mesh.crosshairMesh) {
-          mesh.crosshairMesh.visible = false;
-        }
-        if (mesh.closeMesh) {
-          mesh.closeMesh.visible = false;
-        }
-      };
-      if (mesh.parent === selectedIconMesh) {
-        let {x, y} = mesh;
-        if (pagable) {
-          x += 5 * page;
-
-          mesh.visible = x >= 0 && x < 5;
-        } else {
-          mesh.visible = mesh.localVisible;
-        }
-
-        if (mesh.visible) {
-          mesh.position.set(-0.8 + x * 0.4, 0.1 + y * 0.3, 0);
-
-          if (mesh.x === selectedIconCoord.x && mesh.y === selectedIconCoord.y) {
-            _select();
-          } else {
-            _unselect();
-          }
-        }
-      } else {
-        mesh.visible = false;
-      }
-    };
-    mesh.intersect = ray => {
-      if (mesh.visible && img) {
-        localMatrix.compose(
-          ray.origin,
-          localQuaternion.setFromUnitVectors(localVector.set(0, 0, -1), ray.direction),
-          localVector2.set(1, 1, 1)
-        ).premultiply(
-          localMatrix2
-            .copy(mesh.matrixWorld)
-            .getInverse(localMatrix2)
-        ).decompose(localRay.origin, localQuaternion, localVector);
-        localRay.direction.set(0, 0, -1).applyQuaternion(localQuaternion);
-
-        if (mesh.crosshairMesh && mesh.crosshairMesh.visible) {
-          const intersectionPoint = localRay.intersectBox(localBox.setFromCenterAndSize(mesh.crosshairMesh.position, localVector.copy(mesh.crosshairMesh.scale).multiplyScalar(iconSize)), localVector);
-          if (intersectionPoint) {
-            return {
-              type: 'icon-crosshair',
-              distance: localRay.origin.distanceTo(intersectionPoint),
-              cancel: true,
-              oncrosshair,
-            };
-          }
-        }
-
-        if (mesh.closeMesh && mesh.closeMesh.visible) {
-          const intersectionPoint = localRay.intersectBox(localBox.setFromCenterAndSize(mesh.closeMesh.position, localVector.copy(mesh.closeMesh.scale).multiplyScalar(iconSize)), localVector);
-          if (intersectionPoint) {
-            return {
-              type: 'icon-close',
-              distance: localRay.origin.distanceTo(intersectionPoint),
-              cancel: true,
-              onclose,
-            };
-          }
-        }
-
-        const intersectionPoint = localRay.intersectBox(localBox.setFromCenterAndSize(localVector.set(0, 0, 0), localVector2.set(0.2, 0.2, 0.2)), localVector);
-        if (intersectionPoint) {
-          return {
-            type: 'icon',
-            distance: localRay.origin.distanceTo(intersectionPoint),
-            cancel: true,
-            onclick,
-          };
-        }
-
-        return null;
-      } else {
-        return null;
-      }
-    };
-    mesh.destroy = () => {
-      mesh.iframe && mesh.iframe.destroy();
-      mesh.moveMesh && scene.remove(mesh.moveMesh);
-    };
-    return mesh;
-  };
-  const _makeAndAddIconMesh = (url, img, type, x, y, onclick, oncrosshair, onclose, pagable, parentMesh) => {
-    const iconMesh = _makeIconMesh(url, img, type, onclick, oncrosshair, onclose, pagable);
-    iconMesh.setPosition(x, y);
-    parentMesh.add(iconMesh);
-    return iconMesh;
-  };
 
   const actionIconMeshes = new THREE.Object3D();
   [
@@ -2159,10 +2240,15 @@ const trayMesh = (() => {
           break;
         }
       }
-      _addAppIconMesh(labelMesh.textMesh.getText(), faviconImg, type, i);
+      _addNewApp(labelMesh.textMesh.getText(), faviconImg, type, i);
     }],
-  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(null, img, null, x, y, onclick, null, null, false, actionIconMeshes));
+  ].forEach(([img, x, y, onclick]) => {
+    const iconMesh = _makeIconMesh(null, img, null, onclick, null, null, false);
+    iconMesh.setPosition(x, y);
+    actionIconMeshes.add(iconMesh);
+  });
   mesh.add(actionIconMeshes);
+  mesh.actionIconMeshes = actionIconMeshes;
 
   const appIconMeshes = new THREE.Object3D();
   [
@@ -2187,80 +2273,13 @@ const trayMesh = (() => {
       const url = labelMesh.textMesh.getText();
       iconMesh.setUrl(url);
     }],
-  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(null, img, null, x, y, onclick, null, null, false, appIconMeshes));
+  ].forEach(([img, x, y, onclick]) => {
+    const iconMesh = _makeIconMesh(null, img, null, onclick, null, null, false);
+    iconMesh.setPosition(x, y);
+    appIconMeshes.add(iconMesh);
+  });
   mesh.add(appIconMeshes);
   mesh.appIconMeshes = appIconMeshes;
-
-  const _addAppIconMesh = (url, img, type, i) => {
-    for (let x = 0;; x++) {
-      if (appIconMeshes.children.findIndex(mesh => mesh.x === x) === -1) {
-        const y = 0;
-        const iconMesh = _makeAndAddIconMesh(url, img, type, x, y, () => {
-          selectedIconCoord.set(iconMesh.x, iconMesh.y);
-          labelMesh.textMesh.setText(iconMesh.url);
-        }, i => {
-          _moveApp(iconMesh, i);
-        }, () => {
-          _removeApp(iconMesh);
-        }, true, appIconMeshes);
-
-        selectedIconMesh = appIconMeshes;
-        selectedIconCoord.set(x, 0);
-        selectedIconPage = 0;
-
-        labelMesh.textMesh.setText(url);
-
-        _moveApp(iconMesh, i);
-
-        break;
-      }
-    }
-  };
-  const _moveApp = (iconMesh, i) => {
-    iconMesh.setSceneBinding(null);
-
-    moveSpecs[i] = {
-      iconMesh,
-      snapScene: null,
-    };
-  };
-  const _removeApp = iconMesh => {
-    for (let i = 0; i < appIconMeshes.children.length; i++) {
-      const child = appIconMeshes.children[i];
-      if (child.closeMesh && child.x > iconMesh.x) {
-        child.setPosition(child.x - 1, child.y);
-      }
-    }
-    appIconMeshes.remove(iconMesh);
-    iconMesh.destroy();
-
-    for (let i = 0; i < scenes.length; i++) {
-      const scene = scenes[i];
-      for (;;) {
-        const index = scene.apps.indexOf(iconMesh);
-        if (index !== -1) {
-          scene.apps.splice(index, 1);
-        } else {
-          break;
-        }
-      }
-    }
-    
-    if (!appIconMeshes.children.some(iconMesh => iconMesh.x === selectedIconCoord.x && iconMesh.y === selectedIconCoord.y)) {
-      if (appIconMeshes.children.some(iconMesh => iconMesh.x === 0 && iconMesh.y === 0)) {
-        selectedIconCoord.set(0, 0);
-      } else {
-        selectedIconMesh = actionIconMeshes;
-        selectedIconCoord.set(1, 0);
-        selectedIconPage = 0;
-        
-        labelMesh.textMesh.setText(DEFAULT_URL);
-        labelMesh.visible = true;
-        actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
-        mapMesh.localVisible = false;
-      }
-    }
-  };
 
   const mapIconMeshes = new THREE.Object3D();
   [
@@ -2313,7 +2332,11 @@ const trayMesh = (() => {
         lastSceneCoords[1] = NaN;
       }
     }],
-  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(null, img, null, x, y, onclick, null, null, false, mapIconMeshes));
+  ].forEach(([img, x, y, onclick]) => {
+    const iconMesh = _makeIconMesh(null, img, null, x, y, onclick, null, null, false);
+    iconMesh.setPosition(x, y);
+    mapIconMeshes.add(iconMesh);
+  });
   mesh.add(mapIconMeshes);
 
   const settingsIconMeshes = new THREE.Object3D();
@@ -2327,12 +2350,14 @@ const trayMesh = (() => {
       actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
       mapMesh.localVisible = false;
     }],
-  ].forEach(([img, x, y, onclick]) => _makeAndAddIconMesh(null, img, null, x, y, onclick, null, null, false, settingsIconMeshes));
+  ].forEach(([img, x, y, onclick]) => {
+    const iconMesh = _makeIconMesh(null, img, null, x, y, onclick, null, null, false);
+    iconMesh.setPosition(x, y);
+    settingsIconMeshes.add(iconMesh);
+  });
   mesh.add(settingsIconMeshes);
 
-  let selectedIconMesh = actionIconMeshes;
-  let selectedIconCoord = new THREE.Vector2(1, 0);
-  let selectedIconPage = 0;
+  selectedIconMesh = actionIconMeshes;
 
   const labelMesh = _makeLabelMesh(DEFAULT_URL);
   labelMesh.position.y = 0.4;
@@ -3957,7 +3982,17 @@ function animate(time, frame) {
     if (coords[0] !== lastSceneCoords[0] || coords[1] !== lastSceneCoords[1]) {
       lastSceneCoords[0] = coords[0];
       lastSceneCoords[1] = coords[1];
+      if (currentSceneSpec) {
+        for (let i = 0; i < currentSceneSpec.apps.length; i++) {
+          _removeApp(currentSceneSpec.apps[i]);
+        }
+      }
       currentSceneSpec = scenes.find(sceneSpec => sceneSpec.coords.some(coords2 => coords2[0] === coords[0] && coords2[1] === coords[1]));
+      if (currentSceneSpec) {
+        for (let i = 0; i < currentSceneSpec.apps.length; i++) {
+          _addApp(currentSceneSpec.apps[i]);
+        }
+      }
       let currentSceneColor;
       if (currentSceneSpec) {
         currentSceneColor = 0x9ccc65;
