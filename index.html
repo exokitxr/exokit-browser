@@ -2301,6 +2301,7 @@ const trayMesh = (() => {
     [saveImg, 4, 2, () => {
       if (selectedScene) {
         const {coords} = selectedScene;
+        const apps = [];
         for (;;) {
           const index = scenes.findIndex(scene => {
             for (let i = 0; i < scene.coords.length; i++) {
@@ -2315,6 +2316,20 @@ const trayMesh = (() => {
             return false;
           });
           if (index !== -1) {
+            const scene = scenes[index];
+            for (let i = 0; i < scene.apps.length; i++) {
+              const iconMesh = scene.apps[i];
+              if (coords.some(coord => {
+                const minX = coord[0]*7 - 3 - 0.5;
+                const maxX = (coord[0]+1)*7 - 3 - 0.5;
+                const minY = coord[1]*7 - 3 - 0.5;
+                const maxY = (coord[1]+1)*7 - 3 - 0.5;
+                return iconMesh.moveMesh.position.x >= minX && iconMesh.moveMesh.position.x < maxX && iconMesh.moveMesh.position.z >= minY && iconMesh.moveMesh.position.z < maxY;
+              })) {
+                apps.push(iconMesh);
+              }
+            }
+
             scenes.splice(index, 1);
           } else {
             break;
@@ -2323,7 +2338,7 @@ const trayMesh = (() => {
 
         scenes.push({
           coords: coords.slice(),
-          apps: [],
+          apps: apps,
         });
 
         selectedScene = null;
@@ -2333,7 +2348,7 @@ const trayMesh = (() => {
       }
     }],
   ].forEach(([img, x, y, onclick]) => {
-    const iconMesh = _makeIconMesh(null, img, null, x, y, onclick, null, null, false);
+    const iconMesh = _makeIconMesh(null, img, null, onclick, null, null, false);
     iconMesh.setPosition(x, y);
     mapIconMeshes.add(iconMesh);
   });
@@ -2351,7 +2366,7 @@ const trayMesh = (() => {
       mapMesh.localVisible = false;
     }],
   ].forEach(([img, x, y, onclick]) => {
-    const iconMesh = _makeIconMesh(null, img, null, x, y, onclick, null, null, false);
+    const iconMesh = _makeIconMesh(null, img, null, onclick, null, null, false);
     iconMesh.setPosition(x, y);
     settingsIconMeshes.add(iconMesh);
   });
@@ -3982,17 +3997,21 @@ function animate(time, frame) {
     if (coords[0] !== lastSceneCoords[0] || coords[1] !== lastSceneCoords[1]) {
       lastSceneCoords[0] = coords[0];
       lastSceneCoords[1] = coords[1];
-      if (currentSceneSpec) {
-        for (let i = 0; i < currentSceneSpec.apps.length; i++) {
-          _removeApp(currentSceneSpec.apps[i]);
+
+      const oldSceneSpec = currentSceneSpec;
+      const newSceneSpec = scenes.find(sceneSpec => sceneSpec.coords.some(coords2 => coords2[0] === coords[0] && coords2[1] === coords[1])) || null;
+      if (oldSceneSpec && oldSceneSpec !== newSceneSpec) {
+        for (let i = 0; i < oldSceneSpec.apps.length; i++) {
+          _removeApp(oldSceneSpec.apps[i]);
         }
       }
-      currentSceneSpec = scenes.find(sceneSpec => sceneSpec.coords.some(coords2 => coords2[0] === coords[0] && coords2[1] === coords[1]));
-      if (currentSceneSpec) {
-        for (let i = 0; i < currentSceneSpec.apps.length; i++) {
-          _addApp(currentSceneSpec.apps[i]);
+      if (newSceneSpec && newSceneSpec !== oldSceneSpec) {
+        for (let i = 0; i < newSceneSpec.apps.length; i++) {
+          _addApp(newSceneSpec.apps[i]);
         }
       }
+
+      currentSceneSpec = newSceneSpec;
       let currentSceneColor;
       if (currentSceneSpec) {
         currentSceneColor = 0x9ccc65;
