@@ -98,7 +98,7 @@ const _getFrontOfCamera = () => {
   const vrCamera = renderer.vr.enabled ? renderer.vr.getCamera(camera).cameras[0] : camera;
   vrCamera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
   localVector.add(
-    localVector2.set(0, 0, -1.5)
+    localVector2.set(0, 0, -1)
       .applyQuaternion(localQuaternion)
   );
   localVector2.set(1, 1, 1);
@@ -110,7 +110,7 @@ const _getFrontOfCamera = () => {
   };
 };
 
-const _makeBoxGeometry = (x = 1, y = 1, z = 1) => {
+/* const _makeBoxGeometry = (x = 1, y = 1, z = 1) => {
   const size = 1;
   const width = 0.005;
 
@@ -294,7 +294,7 @@ const _makeBoxMesh = () => {
   mesh.visible = false;
   mesh.frustumCulled = false;
   return mesh;
-};
+}; */
 
 const _makeGuardianMesh = (scene, color) => {
   const topGeometry = new THREE.BoxBufferGeometry(0.01, 1, 0.01);
@@ -777,7 +777,7 @@ const fontSpec = await Promise.all([
     new THREE.TextureLoader().load('DejaVu-sdf.png', accept);
   }),
 ]).then(([font, texture]) => ({font, texture}));
-const _makeTextMesh = (s = '', size = 1) => {
+const _makeTextMesh = (s = '', color = 0x000000, size = 1) => {
   const {font, texture} = fontSpec;
 
   // create a geometry of packed bitmap glyphs, 
@@ -799,7 +799,7 @@ const _makeTextMesh = (s = '', size = 1) => {
   var material = new THREE.RawShaderMaterial(createSDFShader({
     map: texture,
     transparent: true,
-    color: 0xffffff,
+    color,
     // color: palette[Math.floor(Math.random() * palette.length)]
     // negate: false,
     side: THREE.DoubleSide,
@@ -1709,7 +1709,7 @@ const _makeLabelMesh = s => {
     return null;
   };
 
-  const textMesh = _makeTextMesh(s);
+  const textMesh = _makeTextMesh(s, 0xFFFFFF);
   textMesh.position.x -= width/2;
   // textMesh.position.x += -0.45;
   textMesh.position.y += 0.02;
@@ -2200,6 +2200,7 @@ const trayMesh = (() => {
         selectedIconPage = 0;
 
         labelMesh.textMesh.setText(iconMesh.url);
+        settingsMesh.visible = false;
       }
     }],
     [browserImg, 1, 0, () => {
@@ -2208,6 +2209,7 @@ const trayMesh = (() => {
       labelMesh.visible = true;
       actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
       mapMesh.localVisible = false;
+      settingsMesh.visible = false;
     }],
     [diceImg, 2, 0, () => {
       selectedIconCoord.set(2, 0);
@@ -2215,6 +2217,7 @@ const trayMesh = (() => {
       labelMesh.visible = true;
       actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
       mapMesh.localVisible = false;
+      settingsMesh.visible = false;
     }],
     [mapImg, 3, 0, () => {
       selectedIconMesh = mapIconMeshes;
@@ -2222,11 +2225,16 @@ const trayMesh = (() => {
       labelMesh.visible = false;
       actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = false;
       mapMesh.localVisible = true;
+      settingsMesh.visible = false;
     }],
     [cogsImg, 4, 0, () => {
       selectedIconMesh = settingsIconMeshes;
       // selectedIconCoord.set(-1, 1);
-      selectedIconCoord.set(0, 0);
+      // selectedIconCoord.set(0, 0);
+      labelMesh.visible = false;
+      actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = false;
+      mapMesh.localVisible = false;
+      settingsMesh.visible = true;
     }],
     [plusImg, 5, 1, i => {
       let type = null;
@@ -2364,6 +2372,7 @@ const trayMesh = (() => {
       labelMesh.visible = true;
       actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
       mapMesh.localVisible = false;
+      settingsMesh.visible = false;
     }],
   ].forEach(([img, x, y, onclick]) => {
     const iconMesh = _makeIconMesh(null, img, null, onclick, null, null, false);
@@ -2638,6 +2647,72 @@ const trayMesh = (() => {
   })();
   scene.add(mapMesh);
   mesh.mapMesh = mapMesh;
+
+  const settingsMesh = (() => {
+    const object = new THREE.Object3D();
+    object.position.set(-1, 0.5, 0);
+    object.visible = false;
+    const sendEthMesh = (() => {
+      const mesh = _makeTextMesh('Send ETH', 0x000000);
+      mesh.plane = new THREE.Plane();
+      mesh.leftLine = new THREE.Line3();
+      mesh.topLine = new THREE.Line3();
+      const menuWorldWidth = 2;
+      const menuWorldHeight = 0.1;
+      mesh.update = () => {
+        mesh.leftLine.start
+          .set(0, menuWorldHeight/2, 0)
+          .applyMatrix4(object.matrixWorld);
+        mesh.leftLine.end
+          .set(0, -menuWorldHeight/2, 0)
+          .applyMatrix4(object.matrixWorld);
+
+        mesh.topLine.start
+          .set(0, menuWorldHeight/2, 0)
+          .applyMatrix4(object.matrixWorld);
+        mesh.topLine.end
+          .set(menuWorldWidth, menuWorldHeight/2, 0)
+          .applyMatrix4(object.matrixWorld);
+
+        mesh.plane.setFromCoplanarPoints(
+          mesh.leftLine.start,
+          mesh.leftLine.end,
+          mesh.topLine.end
+        );
+      };
+      mesh.intersect = ray => {
+        const intersectionPoint = ray.intersectPlane(mesh.plane, localVector);
+        if (intersectionPoint) {
+          const leftIntersectionPoint = mesh.leftLine.closestPointToPoint(intersectionPoint, true, localVector2);
+          const topIntersectionPoint = mesh.topLine.closestPointToPoint(intersectionPoint, true, localVector3);
+
+          const xFactor = topIntersectionPoint.distanceTo(mesh.topLine.start) / menuWorldWidth;
+          const yFactor = leftIntersectionPoint.distanceTo(mesh.leftLine.start) / menuWorldHeight;
+          const distance = ray.origin.distanceTo(intersectionPoint);
+
+          if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
+            return {
+              type: 'sendEth',
+              distance,
+              cancel: true,
+            };
+          }
+        }
+        return null;
+      };
+      return mesh;
+    })();
+    object.add(sendEthMesh);
+    object.update = () => {
+      sendEthMesh.update();
+    };
+    object.intersect = ray => {
+      return sendEthMesh.intersect(ray);
+    };
+    return object;
+  })();
+  mesh.add(settingsMesh);
+  mesh.settingsMesh = settingsMesh;
   
   /* labelMesh.textMesh.addEventListener('update', e => {
     const {url} = e;
@@ -2806,6 +2881,7 @@ const trayMesh = (() => {
     labelMesh.update();
     keyboardMesh.update();
     mapMesh.update();
+    settingsMesh.update();
     [actionIconMeshes, appIconMeshes, mapIconMeshes, settingsIconMeshes].forEach(iconMeshes => {
       for (let i = 0; i < iconMeshes.children.length; i++) {
         iconMeshes.children[i].update(selectedIconPage);
@@ -2813,7 +2889,7 @@ const trayMesh = (() => {
     });
   };
   mesh.getIntersectionCandidates = () => mesh.visible ?
-    [labelMesh, keyboardMesh, mapMesh, floorMesh]
+    [labelMesh, keyboardMesh, mapMesh, settingsMesh, floorMesh]
       .concat(actionIconMeshes.children)
       .concat(appIconMeshes.children)
       .concat(mapIconMeshes.children)
@@ -3010,6 +3086,7 @@ const _makePointMesh = (sx, sy, sz, ox, oy, oz, ow) => {
 
   return mesh;
 };
+const _getIntersectionCandidates = () => renderScene === scene ? trayMesh.getIntersectionCandidates() : paymentMesh.getIntersectionCandidates();
 const _makeBrowserMesh = (sx, sy, sz, ox, oy, oz, ow, color) => {
   let dx = sx;
   let dy = sy;
@@ -3718,15 +3795,94 @@ cacheCanvas.width = 1024;
 cacheCanvas.height = 1024;
 const cacheCanvasCtx = cacheCanvas.getContext('2d');
 
-// box meshes
+const secureScene = new THREE.Scene();
+secureScene.background = new THREE.Color(0x000000);
 
-const boxMeshes = [
-  _makeBoxMesh(),
-  _makeBoxMesh(),
-];
-boxMeshes.forEach(boxMesh => {
-  scene.add(boxMesh);
-});
+const paymentMesh = (() => {
+  const geometry = new THREE.PlaneBufferGeometry(1, 0.5);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0xFFFFFF,
+    side: THREE.DoubleSide,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+
+  const textMesh = (() => {
+    const mesh = _makeTextMesh('Send 0 ETH to 0x0?');
+    mesh.position.set(-0.45, 0.15, 0.01);
+
+    return mesh;
+  })();
+  mesh.add(textMesh);
+  const _makeButtonMesh = (text, color, offset, clickOffset, action) => {
+    const buttonMesh = _makeTextMesh(text, color);
+    buttonMesh.position.set(offset[0], offset[1], 0.01);
+    buttonMesh.plane = new THREE.Plane();
+    buttonMesh.leftLine = new THREE.Line3();
+    buttonMesh.topLine = new THREE.Line3();
+    const menuWorldWidth = 0.5;
+    const menuWorldHeight = 0.2;
+    buttonMesh.update = () => {
+      buttonMesh.leftLine.start
+        .set(clickOffset[0], clickOffset[1] + menuWorldHeight/2, 0)
+        .applyMatrix4(mesh.matrixWorld);
+      buttonMesh.leftLine.end
+        .set(clickOffset[0], clickOffset[1] - menuWorldHeight/2, 0)
+        .applyMatrix4(mesh.matrixWorld);
+
+      buttonMesh.topLine.start
+        .set(clickOffset[0], clickOffset[1] + menuWorldHeight/2, 0)
+        .applyMatrix4(mesh.matrixWorld);
+      buttonMesh.topLine.end
+        .set(clickOffset[0] + menuWorldWidth, clickOffset[1] + menuWorldHeight/2, 0)
+        .applyMatrix4(mesh.matrixWorld);
+
+      buttonMesh.plane.setFromCoplanarPoints(
+        buttonMesh.leftLine.start,
+        buttonMesh.leftLine.end,
+        buttonMesh.topLine.end
+      );
+    };
+    buttonMesh.intersect = ray => {
+      const intersectionPoint = ray.intersectPlane(buttonMesh.plane, localVector);
+      if (intersectionPoint) {
+        const leftIntersectionPoint = buttonMesh.leftLine.closestPointToPoint(intersectionPoint, true, localVector2);
+        const topIntersectionPoint = buttonMesh.topLine.closestPointToPoint(intersectionPoint, true, localVector3);
+
+        const xFactor = topIntersectionPoint.distanceTo(buttonMesh.topLine.start) / menuWorldWidth;
+        const yFactor = leftIntersectionPoint.distanceTo(buttonMesh.leftLine.start) / menuWorldHeight;
+        const distance = ray.origin.distanceTo(intersectionPoint);
+
+        if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
+          return {
+            type: action,
+            distance,
+            cancel: true,
+          };
+        }
+      }
+      return null;
+    };
+    return buttonMesh;
+  };
+  const acceptMesh = _makeButtonMesh('Accept', 0x66bb6a, [-0.35, -0.15], [-0.5, -0.125], 'sendEthAccept');
+  mesh.add(acceptMesh);
+  const rejectMesh = _makeButtonMesh('Reject', 0xef5350, [0.125, -0.15], [0, -0.125], 'sendEthReject');
+  mesh.add(rejectMesh);
+
+  mesh.update = () => {
+    acceptMesh.update();
+    rejectMesh.update();
+  };
+  mesh.getIntersectionCandidates = () => [acceptMesh, rejectMesh];
+
+  return mesh;
+})();
+secureScene.add(paymentMesh);
+
+let renderScene = scene;
+
+// keys
 
 const moves = [null, null];
 const keys = {
@@ -3845,57 +4001,11 @@ const startTime = Date.now();
 let lastTime = 0;
 const lastSceneCoords = [NaN, NaN];
 function animate(time, frame) {
-  /* const gl = renderer.getContext();
-  gl.clearColor(1, 0, 0, 1);
-  gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
-  return; */
   const now = Date.now();
   const timeDiff = now - lastTime;
   const startTimeDiff = now - startTime;
 
   const gamepads = navigator.getGamepads();
-  for (let i = 0; i < gamepads.length && i < 2; i++) {
-    const gamepad = gamepads[i];
-    const moveTab = moves[i];
-    const boxMesh = boxMeshes[i];
-
-    if (moveTab) {
-      const {iframe} = moveTab;
-
-      const scrollFactor = scrollFactors[i];
-      const scaleFactor = scaleFactors[i];
-
-      localVector.fromArray(gamepad.pose.position);
-      localQuaternion.fromArray(gamepad.pose.orientation);
-      localVector
-        .add(
-          localVector2.set(0, 0, -scrollFactor)
-            .applyQuaternion(localQuaternion)
-        );
-      localVector2.set(scaleFactor, scaleFactor, scaleFactor);
-
-      iframe.position = localVector.toArray();
-      iframe.orientation = localQuaternion.toArray();
-      iframe.scale = localVector2.toArray();
-
-      boxMesh.position.copy(localVector);
-      boxMesh.quaternion.copy(localQuaternion);
-      boxMesh.scale.copy(localVector2);
-      // boxMesh.updateMatrixWorld();
-      boxMesh.visible = true;
-
-      if (serverConnectedUrl) {
-        const objectMesh = xrmp.getObjectMeshes().find(objectMesh => objectMesh.object.id === moveTab.id);
-        const {object} = objectMesh;
-        const {objectMatrix} = object;
-        localVector.toArray(objectMatrix.position);
-        localQuaternion.toArray(objectMatrix.quaternion);
-        object.pushUpdate();
-      }
-    } else {
-      boxMesh.visible = false;
-    }
-  }
 
   const _updateControllerMeshes = () => {
     // if (renderer.vr.enabled) {
@@ -4060,13 +4170,18 @@ function animate(time, frame) {
   };
   _updateScene();
 
+  const _updatePaymentMesh = () => {
+    paymentMesh.update();
+  };
+  _updatePaymentMesh();
+
   const _updateIntersections = () => {
     for (let i = 0; i < 2; i++) {
       const controllerMesh = controllerMeshes[i];
       if (controllerMesh.visible && !pendingRooms[i]) {
         controllerMesh.update();
 
-        const candidates = trayMesh.getIntersectionCandidates();
+        const candidates = _getIntersectionCandidates();
 
         const intersections = [];
         for (let j = 0; j < candidates.length; j++) {
@@ -4180,6 +4295,26 @@ function animate(time, frame) {
 
             lastSceneCoords[0] = NaN;
             lastSceneCoords[1] = NaN;
+          } else if (type === 'sendEth') {
+            const {position, quaternion, scale} = _getFrontOfCamera();
+            paymentMesh.position.copy(position);
+            localEuler.setFromQuaternion(quaternion, localEuler.order);
+            localEuler.x = 0;
+            localEuler.z = 0;
+            paymentMesh.quaternion.setFromEuler(localEuler);
+            paymentMesh.scale.copy(scale);
+
+            for (let i = 0; i < controllerMeshes.length; i++) {
+              secureScene.add(controllerMeshes[i]);
+            }
+
+            renderScene = secureScene;
+          } else if (type === 'sendEthAccept' || type === 'sendEthReject') {
+            for (let i = 0; i < controllerMeshes.length; i++) {
+              scene.add(controllerMeshes[i]);
+            }
+
+            renderScene = scene;
           } else if (type === 'key') {
             const {key} = intersectionSpec;
             console.log(`click key: ${key}`);
@@ -4440,7 +4575,7 @@ function animate(time, frame) {
       roomDiagrams[i].update();
     }
 
-    renderer.render(scene, c);
+    renderer.render(renderScene, c);
   };
   _render();
 
