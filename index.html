@@ -2601,6 +2601,57 @@ const trayMesh = (() => {
     const object = new THREE.Object3D();
     object.position.set(-1, 0.5, 0);
     object.visible = false;
+    const loginButtonMesh = (() => {
+      const mesh = _makeTextMesh('Log in', 0x000000);
+      mesh.plane = new THREE.Plane();
+      mesh.leftLine = new THREE.Line3();
+      mesh.topLine = new THREE.Line3();
+      const menuWorldWidth = 2;
+      const menuWorldHeight = 0.1;
+      mesh.update = () => {
+        mesh.leftLine.start
+          .set(0, menuWorldHeight/2, 0)
+          .applyMatrix4(object.matrixWorld);
+        mesh.leftLine.end
+          .set(0, -menuWorldHeight/2, 0)
+          .applyMatrix4(object.matrixWorld);
+
+        mesh.topLine.start
+          .set(0, menuWorldHeight/2, 0)
+          .applyMatrix4(object.matrixWorld);
+        mesh.topLine.end
+          .set(menuWorldWidth, menuWorldHeight/2, 0)
+          .applyMatrix4(object.matrixWorld);
+
+        mesh.plane.setFromCoplanarPoints(
+          mesh.leftLine.start,
+          mesh.leftLine.end,
+          mesh.topLine.end
+        );
+      };
+      mesh.intersect = ray => {
+        const intersectionPoint = ray.intersectPlane(mesh.plane, localVector);
+        if (intersectionPoint) {
+          const leftIntersectionPoint = mesh.leftLine.closestPointToPoint(intersectionPoint, true, localVector2);
+          const topIntersectionPoint = mesh.topLine.closestPointToPoint(intersectionPoint, true, localVector3);
+
+          const xFactor = topIntersectionPoint.distanceTo(mesh.topLine.start) / menuWorldWidth;
+          const yFactor = leftIntersectionPoint.distanceTo(mesh.leftLine.start) / menuWorldHeight;
+          const distance = ray.origin.distanceTo(intersectionPoint);
+
+          if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
+            return {
+              type: 'login',
+              distance,
+              cancel: true,
+            };
+          }
+        }
+        return null;
+      };
+      return mesh;
+    })();
+    object.add(loginButtonMesh);
     const sendEthMesh = (() => {
       const mesh = _makeTextMesh('Send ETH', 0x000000);
       mesh.plane = new THREE.Plane();
@@ -2653,9 +2704,11 @@ const trayMesh = (() => {
     })();
     // object.add(sendEthMesh); // XXX
     object.update = () => {
+      loginButtonMesh.update();
       // sendEthMesh.update();
     };
     object.intersect = ray => {
+      return loginButtonMesh.intersect(ray);
       // return sendEthMesh.intersect(ray);
     };
     return object;
@@ -3035,7 +3088,10 @@ const _makePointMesh = (sx, sy, sz, ox, oy, oz, ow) => {
 
   return mesh;
 };
-const _getIntersectionCandidates = () => renderScene === scene ? trayMesh.getIntersectionCandidates() : paymentMesh.getIntersectionCandidates();
+const _getIntersectionCandidates = () => renderScene === scene ?
+    trayMesh.getIntersectionCandidates()
+  :
+    [loginMesh, paymentMesh].flatMap(mesh => mesh.getIntersectionCandidates());
 const _makeBrowserMesh = (sx, sy, sz, ox, oy, oz, ow, color) => {
   let dx = sx;
   let dy = sy;
@@ -3747,6 +3803,33 @@ const cacheCanvasCtx = cacheCanvas.getContext('2d');
 const secureScene = new THREE.Scene();
 secureScene.background = new THREE.Color(0x000000);
 
+const loginMesh = (() => {
+  const geometry = new THREE.PlaneBufferGeometry(1, 0.5);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0xFFFFFF,
+    side: THREE.DoubleSide,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+
+  const textMesh = (() => {
+    const mesh = _makeTextMesh('Username');
+    mesh.position.set(-0.45, 0.15, 0.01);
+
+    return mesh;
+  })();
+  mesh.add(textMesh);
+
+  mesh.update = () => {
+    // XXX
+  };
+  mesh.getIntersectionCandidates = () => {
+    return []; // XXX
+  };
+
+  return mesh;
+})();
+
 const paymentMesh = (() => {
   const geometry = new THREE.PlaneBufferGeometry(1, 0.5);
   const material = new THREE.MeshBasicMaterial({
@@ -4244,7 +4327,27 @@ function animate(time, frame) {
 
             lastSceneCoords[0] = NaN;
             lastSceneCoords[1] = NaN;
+          } else if (type === 'login') {
+            for (let i = secureScene.children.length - 1; i >= 0; i--) {
+              secureScene.remove(children[children.length - 1]);
+            }
+            const {position, quaternion, scale} = _getFrontOfCamera();
+            loginMesh.position.copy(position);
+            localEuler.setFromQuaternion(quaternion, localEuler.order);
+            localEuler.x = 0;
+            localEuler.z = 0;
+            loginMesh.quaternion.setFromEuler(localEuler);
+            loginMesh.scale.copy(scale);
+            secureScene.add(loginMesh);
+            for (let i = 0; i < controllerMeshes.length; i++) {
+              secureScene.add(controllerMeshes[i]);
+            }
+
+            renderScene = secureScene;
           } else if (type === 'sendEth') {
+            for (let i = secureScene.children.length - 1; i >= 0; i--) {
+              secureScene.remove(children[children.length - 1]);
+            }
             const {position, quaternion, scale} = _getFrontOfCamera();
             paymentMesh.position.copy(position);
             localEuler.setFromQuaternion(quaternion, localEuler.order);
@@ -4252,7 +4355,7 @@ function animate(time, frame) {
             localEuler.z = 0;
             paymentMesh.quaternion.setFromEuler(localEuler);
             paymentMesh.scale.copy(scale);
-
+            secureScene.add(paymentMesh);
             for (let i = 0; i < controllerMeshes.length; i++) {
               secureScene.add(controllerMeshes[i]);
             }
