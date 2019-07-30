@@ -42,6 +42,7 @@ let serversLoading = false;
 let serverConnectedUrl = null;
 
 const DEFAULT_URL = 'https://google.com';
+const PARCEL_SIZE = 7;
 const DEFAULT_REGISTRY_URL = 'http://xrmp.exokit.org:9001';
 const DEFAULT_SKIN_URL = 'skin2.png';
 const RAY_COLOR = 0x44c2ff;
@@ -2344,7 +2345,7 @@ const trayMesh = (() => {
   mesh.add(labelMesh);
   mesh.labelMesh = labelMesh;
 
-  const size = 7;
+  const size = PARCEL_SIZE;
   const scale = 0.04;
   const mapMesh = (() => {
     const object = new THREE.Object3D();
