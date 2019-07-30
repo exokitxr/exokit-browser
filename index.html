@@ -1468,7 +1468,7 @@ for (let i = 0; i < controllerMeshes.length; i++) {
       .applyQuaternion(controllerMesh.quaternion);
   };
 
-  scene.add(controllerMesh);
+  cameraRig.add(controllerMesh);
   controllerMeshes[i] = controllerMesh;
 }
 // controllerMeshes[0].add(toolMesh);
@@ -4377,9 +4377,7 @@ function animate(time, frame) {
             loginMesh.quaternion.setFromEuler(localEuler);
             loginMesh.scale.copy(scale);
             secureScene.add(loginMesh);
-            for (let i = 0; i < controllerMeshes.length; i++) {
-              secureScene.add(controllerMeshes[i]);
-            }
+            secureScene.add(cameraRig);
 
             renderScene = secureScene;
           } else if (type === 'sendEth') {
@@ -4394,15 +4392,11 @@ function animate(time, frame) {
             paymentMesh.quaternion.setFromEuler(localEuler);
             paymentMesh.scale.copy(scale);
             secureScene.add(paymentMesh);
-            for (let i = 0; i < controllerMeshes.length; i++) {
-              secureScene.add(controllerMeshes[i]);
-            }
+            secureScene.add(cameraRig);
 
             renderScene = secureScene;
           } else if (type === 'sendEthAccept' || type === 'sendEthReject') {
-            for (let i = 0; i < controllerMeshes.length; i++) {
-              scene.add(controllerMeshes[i]);
-            }
+            scene.add(cameraRig);
 
             renderScene = scene;
           } else if (type === 'key') {
