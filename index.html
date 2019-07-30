@@ -4002,25 +4002,25 @@ const _handleKey = (code, shiftKey) => {
   } else if (code === 40) { // down
     // nothing
   } else if (code === 190) { // .
-    _handleSingleKey('.');
+    _handleSingleKey(shiftKey ? '>' : '.');
   } else if (code === 188) { // ,
-    _handleSingleKey(',');
+    _handleSingleKey(shiftKey ? '<' : ',');
   } else if (code === 191) { // /
-    _handleSingleKey('/');
+    _handleSingleKey(shiftKey ? '?' : '/');
   } else if (code === 186) { // ;
-    _handleSingleKey(';');
+    _handleSingleKey(shiftKey ? ':' : ';');
   } else if (code === 222) { // ;
-    _handleSingleKey('\'');
+    _handleSingleKey(shiftKey ? '"': '\'');
   } else if (code === 219) { // [
-    _handleSingleKey('[');
+    _handleSingleKey(shiftKey ? '{' : '[');
   } else if (code === 221) { // ]
-    _handleSingleKey(']');
+    _handleSingleKey(shiftKey ? '}' : ']');
   } else if (code === 189) { // -
-    _handleSingleKey('-');
+    _handleSingleKey(shiftKey ? '_' : '-');
   } else if (code === 187) { // =
-    _handleSingleKey('=');
+    _handleSingleKey(shiftKey ? '+' : '=');
   } else if (code === 220) { // \
-    _handleSingleKey('\\');
+    _handleSingleKey(shiftKey ? '|' : '\\');
   } else if (code === -1) {
     // nothing
   } else {
