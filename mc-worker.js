@@ -97,7 +97,43 @@ const _handleMessage = data => {
           faces: faces.slice(0, faceIndex[0]),
         },
       });
-      _freeAll();
+      allocator.freeAll();
+      break;
+    }
+    case 'collide': {
+      const allocator = new Allocator();
+
+      const {positions: positionsData, indices: indicesData, origin: originData, direction: directionData} = data;
+
+      const positions = allocator.alloc(Float32Array, positionsData.length);
+      positions.set(positionsData);
+      const indices = allocator.alloc(Uint32Array, indicesData.length);
+      indices.set(indicesData);
+      const origin = allocator.alloc(Float32Array, 3);
+      origin[0] = originData[0];
+      origin[1] = originData[1];
+      origin[2] = originData[2];
+      const direction = allocator.alloc(Float32Array, 3);
+      direction[0] = directionData[0];
+      direction[1] = directionData[1];
+      direction[2] = directionData[2];
+      const result = allocator.alloc(Float32Array, 3);
+
+      self.LocalModule._doCollide(
+        positions.offset,
+        indices.offset,
+        positions.length,
+        indices.length,
+        origin.offset,
+        direction.offset,
+        result.offset
+      );
+
+      self.postMessage({
+        result: Float32Array.from([result[0], result[1], result[2]]),
+      });
+
+      allocator.freeAll();
       break;
     }
     default: {
