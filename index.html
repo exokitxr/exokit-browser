@@ -2659,7 +2659,7 @@ const trayMesh = (() => {
 
           if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
             return {
-              type: 'login',
+              type: 'loginButton',
               distance,
               cancel: true,
             };
@@ -3821,6 +3821,57 @@ const cacheCanvasCtx = cacheCanvas.getContext('2d');
 const secureScene = new THREE.Scene();
 secureScene.background = new THREE.Color(0x000000);
 
+const _makeButtonMesh = (text, color, offset, clickOffset, action) => {
+  const buttonMesh = _makeTextMesh(text, color);
+  buttonMesh.position.set(offset[0], offset[1], 0.01);
+  buttonMesh.plane = new THREE.Plane();
+  buttonMesh.leftLine = new THREE.Line3();
+  buttonMesh.topLine = new THREE.Line3();
+  const menuWorldWidth = 0.5;
+  const menuWorldHeight = 0.2;
+  buttonMesh.update = () => {
+    buttonMesh.leftLine.start
+      .set(clickOffset[0], clickOffset[1] + menuWorldHeight/2, 0)
+      .applyMatrix4(buttonMesh.parent.matrixWorld);
+    buttonMesh.leftLine.end
+      .set(clickOffset[0], clickOffset[1] - menuWorldHeight/2, 0)
+      .applyMatrix4(buttonMesh.parent.matrixWorld);
+
+    buttonMesh.topLine.start
+      .set(clickOffset[0], clickOffset[1] + menuWorldHeight/2, 0)
+      .applyMatrix4(buttonMesh.parent.matrixWorld);
+    buttonMesh.topLine.end
+      .set(clickOffset[0] + menuWorldWidth, clickOffset[1] + menuWorldHeight/2, 0)
+      .applyMatrix4(buttonMesh.parent.matrixWorld);
+
+    buttonMesh.plane.setFromCoplanarPoints(
+      buttonMesh.leftLine.start,
+      buttonMesh.leftLine.end,
+      buttonMesh.topLine.end
+    );
+  };
+  buttonMesh.intersect = ray => {
+    const intersectionPoint = ray.intersectPlane(buttonMesh.plane, localVector);
+    if (intersectionPoint) {
+      const leftIntersectionPoint = buttonMesh.leftLine.closestPointToPoint(intersectionPoint, true, localVector2);
+      const topIntersectionPoint = buttonMesh.topLine.closestPointToPoint(intersectionPoint, true, localVector3);
+
+      const xFactor = topIntersectionPoint.distanceTo(buttonMesh.topLine.start) / menuWorldWidth;
+      const yFactor = leftIntersectionPoint.distanceTo(buttonMesh.leftLine.start) / menuWorldHeight;
+      const distance = ray.origin.distanceTo(intersectionPoint);
+
+      if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
+        return {
+          type: action,
+          distance,
+          cancel: true,
+        };
+      }
+    }
+    return null;
+  };
+  return buttonMesh;
+};
 const loginMesh = (() => {
   const geometry = new THREE.PlaneBufferGeometry(1, 0.5);
   const material = new THREE.MeshBasicMaterial({
@@ -3831,19 +3882,25 @@ const loginMesh = (() => {
   mesh.frustumCulled = false;
 
   const textMesh = (() => {
-    const mesh = _makeTextMesh('Username');
+    const mesh = _makeTextMesh('Log in');
     mesh.position.set(-0.45, 0.15, 0.01);
-
     return mesh;
   })();
   mesh.add(textMesh);
 
+  const labelMesh = _makeLabelMesh('lol');
+  labelMesh.position.z = 0.01;
+  mesh.add(labelMesh);
+  mesh.labelMesh = labelMesh;
+
+  const submitMesh = _makeButtonMesh('Submit', 0x000000, [-0.15, -0.15], [-0.5, -0.125], 'login');
+  mesh.add(submitMesh);
+
   mesh.update = () => {
-    // XXX
+    labelMesh.update();
+    submitMesh.update();
   };
-  mesh.getIntersectionCandidates = () => {
-    return []; // XXX
-  };
+  mesh.getIntersectionCandidates = () => [labelMesh, submitMesh];
 
   return mesh;
 })();
@@ -3864,57 +3921,6 @@ const paymentMesh = (() => {
     return mesh;
   })();
   mesh.add(textMesh);
-  const _makeButtonMesh = (text, color, offset, clickOffset, action) => {
-    const buttonMesh = _makeTextMesh(text, color);
-    buttonMesh.position.set(offset[0], offset[1], 0.01);
-    buttonMesh.plane = new THREE.Plane();
-    buttonMesh.leftLine = new THREE.Line3();
-    buttonMesh.topLine = new THREE.Line3();
-    const menuWorldWidth = 0.5;
-    const menuWorldHeight = 0.2;
-    buttonMesh.update = () => {
-      buttonMesh.leftLine.start
-        .set(clickOffset[0], clickOffset[1] + menuWorldHeight/2, 0)
-        .applyMatrix4(mesh.matrixWorld);
-      buttonMesh.leftLine.end
-        .set(clickOffset[0], clickOffset[1] - menuWorldHeight/2, 0)
-        .applyMatrix4(mesh.matrixWorld);
-
-      buttonMesh.topLine.start
-        .set(clickOffset[0], clickOffset[1] + menuWorldHeight/2, 0)
-        .applyMatrix4(mesh.matrixWorld);
-      buttonMesh.topLine.end
-        .set(clickOffset[0] + menuWorldWidth, clickOffset[1] + menuWorldHeight/2, 0)
-        .applyMatrix4(mesh.matrixWorld);
-
-      buttonMesh.plane.setFromCoplanarPoints(
-        buttonMesh.leftLine.start,
-        buttonMesh.leftLine.end,
-        buttonMesh.topLine.end
-      );
-    };
-    buttonMesh.intersect = ray => {
-      const intersectionPoint = ray.intersectPlane(buttonMesh.plane, localVector);
-      if (intersectionPoint) {
-        const leftIntersectionPoint = buttonMesh.leftLine.closestPointToPoint(intersectionPoint, true, localVector2);
-        const topIntersectionPoint = buttonMesh.topLine.closestPointToPoint(intersectionPoint, true, localVector3);
-
-        const xFactor = topIntersectionPoint.distanceTo(buttonMesh.topLine.start) / menuWorldWidth;
-        const yFactor = leftIntersectionPoint.distanceTo(buttonMesh.leftLine.start) / menuWorldHeight;
-        const distance = ray.origin.distanceTo(intersectionPoint);
-
-        if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
-          return {
-            type: action,
-            distance,
-            cancel: true,
-          };
-        }
-      }
-      return null;
-    };
-    return buttonMesh;
-  };
   const acceptMesh = _makeButtonMesh('Accept', 0x66bb6a, [-0.35, -0.15], [-0.5, -0.125], 'sendEthAccept');
   mesh.add(acceptMesh);
   const rejectMesh = _makeButtonMesh('Reject', 0xef5350, [0.125, -0.15], [0, -0.125], 'sendEthReject');
@@ -4243,10 +4249,11 @@ function animate(time, frame) {
   };
   _updateScene();
 
-  const _updatePaymentMesh = () => {
+  const _updateSecureScene = () => {
+    loginMesh.update();
     paymentMesh.update();
   };
-  _updatePaymentMesh();
+  _updateSecureScene();
 
   const _updateIntersections = () => {
     for (let i = 0; i < 2; i++) {
@@ -4370,7 +4377,7 @@ function animate(time, frame) {
 
             lastSceneCoords[0] = NaN;
             lastSceneCoords[1] = NaN;
-          } else if (type === 'login') {
+          } else if (type === 'loginButton') {
             for (let i = secureScene.children.length - 1; i >= 0; i--) {
               secureScene.remove(secureScene.children[secureScene.children.length - 1]);
             }
@@ -4385,6 +4392,8 @@ function animate(time, frame) {
             secureScene.add(cameraRig);
 
             renderScene = secureScene;
+          } else if (type === 'login') {
+            console.log('log in', loginMesh.labelMesh.textMesh.getText());
           } else if (type === 'sendEth') {
             for (let i = secureScene.children.length - 1; i >= 0; i--) {
               secureScene.remove(secureScene.children[secureScene.children.length - 1]);
