@@ -4325,7 +4325,7 @@ function animate(time, frame) {
           } else if (type === 'icon-close') {
             intersectionSpec.onclose(i);
           } else if (type === 'map') {
-            cameraRig.position.set(intersectionSpec.x*7, 0, intersectionSpec.y*7);
+            cameraRig.position.set(intersectionSpec.x*7 - camera.position.x, 0, intersectionSpec.y*7 - camera.position.z);
           } else if (type === 'map-arrow-up') {
             console.log('click map arrow up');
           } else if (type === 'map-arrow-down') {
