@@ -4741,14 +4741,14 @@ const _startFakeVrDisplay = async (width, height) => {
     if (isFinite(height)) {
       fakeXrDisplay.height = height;
     }
-    fakeXrDisplay.position.set(0, 1.6, 0);
+    fakeXrDisplay.position.copy(camera.position);
     fakeXrDisplay.pushUpdate();
     fakeXrDisplay.enable();
     await _enterXr();
   } else {
     fakeXrDisplay = {
-      position: new THREE.Vector3(0, 1.6, 0),
-      quaternion: new THREE.Quaternion(),
+      position: camera.position.clone(),
+      quaternion: camera.quaternion.clone(),
       get viewMatrix() {
         return camera.matrixWorldInverse.toArray(new Float32Array(16));
       },
