@@ -4779,6 +4779,7 @@ const _startFakeVrDisplay = async (width, height) => {
           localVector
             .copy(this.position)
             .add(localVector2.set(0.5, -0.3, -0.5).applyQuaternion(this.quaternion))
+            .add(localVector2.fromArray(window.document.xrOffset.position))
         );
       },
     };
