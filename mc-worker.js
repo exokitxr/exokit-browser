@@ -31,7 +31,7 @@ self.wasmModule = (moduleName, moduleFn) => {
       },
     });
 
-    console.log('got module', Module);
+    // console.log('got module', Module);
   } else {
     console.warn('unknown wasm module', moduleName);
   }
