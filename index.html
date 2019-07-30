@@ -4394,6 +4394,10 @@ function animate(time, frame) {
             renderScene = secureScene;
           } else if (type === 'login') {
             console.log('log in', loginMesh.labelMesh.textMesh.getText());
+
+            scene.add(cameraRig);
+
+            renderScene = scene;
           } else if (type === 'sendEth') {
             for (let i = secureScene.children.length - 1; i >= 0; i--) {
               secureScene.remove(secureScene.children[secureScene.children.length - 1]);
