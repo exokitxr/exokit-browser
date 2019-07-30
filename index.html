@@ -80,6 +80,7 @@ const localBox = new THREE.Box3();
 const localRay = new THREE.Ray();
 const localRaycaster = new THREE.Raycaster();
 const localPlane = new THREE.Plane();
+const localCamera = new THREE.PerspectiveCamera();
 
 /* function parseQuery(s) {
   var query = {};
@@ -1061,7 +1062,6 @@ const _bindEventTarget = target => {
     _bindEvents({
       mousemove(e) {
         if (fakeXrDisplay) {
-          const localCamera = camera;
           localCamera.matrixWorldInverse.fromArray(fakeXrDisplay.viewMatrix);
           localCamera.matrixWorld.getInverse(localCamera.matrixWorldInverse);
           localCamera.projectionMatrix.fromArray(fakeXrDisplay.projectionMatrix);
