@@ -38,6 +38,25 @@ self.wasmModule = (moduleName, moduleFn) => {
 };
 importScripts('bin/mc.js');
 
+class Allocator {
+  constructor() {
+    this.offsets = [];
+  }
+  alloc(constructor, size) {
+    const offset = self.LocalModule._doMalloc(size * constructor.BYTES_PER_ELEMENT);
+    const b = new constructor(self.LocalModule.HEAP8.buffer, self.LocalModule.HEAP8.byteOffset + offset, size);
+    b.offset = offset;
+    this.offsets.push(offset);
+    return b;
+  }
+  freeAll() {
+    for (let i = 0; i < this.offsets.length; i++) {
+      self.LocalModule._doFree(this.offsets[i]);
+    }
+    this.offsets.length = 0;
+  }
+}
+
 const queue = [];
 let loaded = false;
 const _handleMessage = data => {
