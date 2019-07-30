@@ -1585,6 +1585,7 @@ worker = (() => {
   });
   return worker;
 })();
+let miningIntersectionSpec = new THREE.Vector3(NaN, NaN, NaN);
 const _makeMiningMesh = (x, z) => {
   const terrainVsh = `
     varying vec3 vViewPosition;
@@ -1631,7 +1632,7 @@ const _makeMiningMesh = (x, z) => {
     uniforms: {
       uSelect: {
         type: 'v3',
-        value: new THREE.Vector3(), // intersectionSpec.position,
+        value: miningIntersectionSpec,
       },
     },
     vertexShader: terrainVsh,
@@ -1742,6 +1743,32 @@ const _makeMiningMesh = (x, z) => {
   };
   mesh.destroy = () => {
     cubeMeshes.splice(cubeMeshes.indexOf(mesh), 1);
+  };
+  let colliding = false;
+  mesh.update = () => {
+    if (!colliding && geometry.attributes.position) {
+      colliding = true;
+
+      const controllerMesh = controllerMeshes[1]; // XXX make this work for all controllers
+      worker.request({
+        method: 'collide',
+        positions: geometry.attributes.position.array,
+        indices: geometry.index.array,
+        origin: controllerMesh.ray.origin.toArray(new Float32Array(3)),
+        direction: controllerMesh.ray.direction.toArray(new Float32Array(3)),
+      })
+        .then(collision => {
+          if (collision.every(n => isFinite(n))) {
+            miningIntersectionSpec.fromArray(collision);
+          }
+        })
+        .catch(err => {
+          console.warn(err.stack);
+        })
+        .finally(() => {
+          colliding = false;
+        });
+    }
   };
 
   worker.request({
@@ -3139,7 +3166,9 @@ scene.add(trayMesh);
 const miningMesh = new THREE.Object3D();
 miningMesh.visible = false;
 scene.add(miningMesh);
-miningMesh.add(_makeMiningMesh(0, -1));
+const miningMesh1 = _makeMiningMesh(0, -1);
+miningMesh.add(miningMesh1);
+miningMeshes.push(miningMesh1);
 
 const _makeRoomMesh = (sx, sy, sz, dx, dy, dz, color) => {
   const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
@@ -4513,6 +4542,13 @@ function animate(time, frame) {
     }
   };
   _updateIntersections();
+
+  const _updateMiningMeshes = () => {
+    for (let i = 0; i < miningMeshes.length; i++) {
+      miningMeshes[i].update();
+    }
+  };
+  _updateMiningMeshes();
 
   const _handleTrigger = (gamepad, i, pressed, lastPressed) => {
     const start = pressed && !lastPressed;
