@@ -4310,7 +4310,7 @@ function animate(time, frame) {
           } else if (type === 'icon-close') {
             intersectionSpec.onclose(i);
           } else if (type === 'map') {
-            console.log('click map', intersectionSpec.x, intersectionSpec.y);
+            cameraRig.position.set(intersectionSpec.x*7, 0, intersectionSpec.y*7);
           } else if (type === 'map-arrow-up') {
             console.log('click map arrow up');
           } else if (type === 'map-arrow-down') {
