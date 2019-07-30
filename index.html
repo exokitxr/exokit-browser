@@ -2255,9 +2255,13 @@ const trayMesh = (() => {
     }],
     [chevronUpImg, 4, 1, () => {
       console.log('up');
+      mapMesh.positionOffset.y = 0.1;
+      mapMesh.minimapMesh.material.uniforms.uType.value = 1;
     }],
     [chevronDownImg, 4, 0, () => {
       console.log('down');
+      mapMesh.positionOffset.y = 0;
+      mapMesh.minimapMesh.material.uniforms.uType.value = 0;
     }],
     [saveImg, 4, 2, () => {
       if (selectedScene) {
@@ -2341,15 +2345,18 @@ const trayMesh = (() => {
   mesh.add(labelMesh);
   mesh.labelMesh = labelMesh;
 
+  const size = 7;
+  const scale = 0.04;
   const mapMesh = (() => {
     const object = new THREE.Object3D();
+    object.positionOffset = new THREE.Vector3();
 
     object.visible = false;
     object.localVisible = false;
     object.update = () => {
       object.visible = trayMesh.visible && object.localVisible;
       if (object.visible) {
-        object.position.copy(trayMesh.position).add(localVector.set(0, 0.2, 0).applyQuaternion(trayMesh.quaternion));
+        object.position.copy(trayMesh.position).add(localVector.set(object.positionOffset.x, object.positionOffset.y + 0.2, object.positionOffset.z).applyQuaternion(trayMesh.quaternion));
         mesh.scale.copy(trayMesh.scale).multiplyScalar(scale);
         object.updateMatrixWorld();
 
@@ -2403,8 +2410,8 @@ const trayMesh = (() => {
             // mesh,
             distance,
             cancel: true,
-            x: x - Math.floor(11/2),
-            y: y - Math.floor(11/2),
+            x: x - Math.floor(size/2),
+            y: y - Math.floor(size/2),
             xScale,
             yScale,
           };
@@ -2421,8 +2428,6 @@ const trayMesh = (() => {
       return null;
     };
 
-    const size = 11;
-    const scale = 0.04;
     const geometry = new THREE.PlaneBufferGeometry(size, size, size, size)
       .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 1))));
     const mapVsh = `
@@ -2435,14 +2440,19 @@ const trayMesh = (() => {
       }
     `;
     const mapFsh = `
+      uniform float uType;
       uniform vec2 uSelect;
       varying vec3 vPosition;
       void main() {
-        float c;
-        if (floor(vPosition.x + 11.0/2.0) == uSelect.x && floor(vPosition.z + 11.0/2.0) == uSelect.y) {
-          c = 0.7;
+        vec3 c;
+        if (floor(vPosition.x + ${size.toFixed(1)}/2.0) == uSelect.x && floor(vPosition.z + ${size.toFixed(1)}/2.0) == uSelect.y) {
+          c = vec3(0.7);
         } else {
-          c = 0.5;
+          if (uType <= 0.0) {
+            c = vec3(0.5);
+          } else {
+            c = vec3(1.0);
+          }
         }
         float a;
         vec3 f = fract(vPosition + 0.5);
@@ -2451,11 +2461,15 @@ const trayMesh = (() => {
         } else {
           a = 1.0;
         }
-        gl_FragColor = vec4(vec3(c), a);
+        gl_FragColor = vec4(c, a);
       }
     `;
     const material = new THREE.ShaderMaterial({
       uniforms: {
+        uType: {
+          type: 'f',
+          value: 0,
+        },
         uSelect: {
           type: 'v2',
           value: new THREE.Vector2(),
@@ -2474,6 +2488,7 @@ const trayMesh = (() => {
     mesh.leftLine = new THREE.Line3();
     mesh.topLine = new THREE.Line3();
     object.add(mesh);
+    object.minimapMesh = mesh;
 
     const avatarMesh = (() => {
       const geometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
