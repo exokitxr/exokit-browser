@@ -2679,6 +2679,7 @@ const trayMesh = (() => {
 
     const sendEthMesh = (() => {
       const mesh = _makeTextMesh('Send ETH', 0x000000);
+      mesh.visible = false;
       mesh.plane = new THREE.Plane();
       mesh.leftLine = new THREE.Line3();
       mesh.topLine = new THREE.Line3();
@@ -2727,14 +2728,21 @@ const trayMesh = (() => {
       };
       return mesh;
     })();
-    // object.add(sendEthMesh); // XXX
+    object.add(sendEthMesh);
+    object.sendEthMesh = sendEthMesh;
     object.update = () => {
       loginButtonMesh.update();
-      // sendEthMesh.update();
+      sendEthMesh.update();
     };
     object.intersect = ray => {
-      return loginButtonMesh.intersect(ray);
-      // return sendEthMesh.intersect(ray);
+      let result = null;
+      if (loginButtonMesh.visible && (result = loginButtonMesh.intersect(ray))) {
+        return result;
+      }
+      if (sendEthMesh.visible && (result = sendEthMesh.intersect(ray))) {
+        return result;
+      }
+      return result;
     };
     return object;
   })();
@@ -4393,6 +4401,7 @@ function animate(time, frame) {
                   trayMesh.settingsMesh.loginButtonMesh.visible = false;
                   trayMesh.settingsMesh.addressMesh.setText(web3.eth.defaultAccount);
                   trayMesh.settingsMesh.addressMesh.visible = true;
+                  trayMesh.settingsMesh.sendEthMesh.visible = true;
                 } else {
                   for (let i = secureScene.children.length - 1; i >= 0; i--) {
                     secureScene.remove(secureScene.children[secureScene.children.length - 1]);
@@ -4414,7 +4423,25 @@ function animate(time, frame) {
             const password = loginMesh.labelMesh.textMesh.getText();
             loginMesh.labelMesh.textMesh.setText('');
 
-            user = makeWeb3(password);
+            user = makeWeb3(password, ({
+              method,
+              data,
+            }) => {
+              for (let i = secureScene.children.length - 1; i >= 0; i--) {
+                secureScene.remove(secureScene.children[secureScene.children.length - 1]);
+              }
+              const {position, quaternion, scale} = _getFrontOfCamera();
+              paymentMesh.position.copy(position);
+              localEuler.setFromQuaternion(quaternion, localEuler.order);
+              localEuler.x = 0;
+              localEuler.z = 0;
+              paymentMesh.quaternion.setFromEuler(localEuler);
+              paymentMesh.scale.copy(scale);
+              secureScene.add(paymentMesh);
+              secureScene.add(cameraRig);
+
+              renderScene = secureScene;
+            });
 
             trayMesh.settingsMesh.loginButtonMesh.visible = false;
             trayMesh.settingsMesh.addressMesh.setText(web3.eth.defaultAccount);
@@ -4423,20 +4450,20 @@ function animate(time, frame) {
 
             renderScene = scene;
           } else if (type === 'sendEth') {
-            for (let i = secureScene.children.length - 1; i >= 0; i--) {
-              secureScene.remove(secureScene.children[secureScene.children.length - 1]);
-            }
-            const {position, quaternion, scale} = _getFrontOfCamera();
-            paymentMesh.position.copy(position);
-            localEuler.setFromQuaternion(quaternion, localEuler.order);
-            localEuler.x = 0;
-            localEuler.z = 0;
-            paymentMesh.quaternion.setFromEuler(localEuler);
-            paymentMesh.scale.copy(scale);
-            secureScene.add(paymentMesh);
-            secureScene.add(cameraRig);
-
-            renderScene = secureScene;
+            user.execute({
+              method: 'send',
+              data: {
+                address: '0x0000000000000000000000000000000000000000',
+                value: 10,
+                currency: 'ETH',
+              },
+            })
+              .then(() => {
+                console.log('send ok');
+              })
+              .catch(err => {
+                console.warn('failed to send', err.stack);
+              });
           } else if (type === 'sendEthAccept' || type === 'sendEthReject') {
             scene.add(cameraRig);
 
