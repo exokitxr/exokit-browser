@@ -4324,7 +4324,9 @@ function animate(time, frame) {
           } else if (type === 'icon-close') {
             intersectionSpec.onclose(i);
           } else if (type === 'map') {
-            cameraRig.position.set(intersectionSpec.x*7 - camera.position.x, 0, intersectionSpec.y*7 - camera.position.z);
+            window.document.xrOffset.position[0] += intersectionSpec.x*7 - camera.position.x;
+            window.document.xrOffset.position[2] += intersectionSpec.y*7 - camera.position.z;
+            window.document.xrOffset.pushUpdate();
           } else if (type === 'map-arrow-up') {
             console.log('click map arrow up');
           } else if (type === 'map-arrow-down') {
@@ -4745,8 +4747,8 @@ const _startFakeVrDisplay = async (width, height) => {
     await _enterXr();
   } else {
     fakeXrDisplay = {
-      position: camera.position,
-      quaternion: camera.quaternion,
+      position: new THREE.Vector3(0, 1.6, 0),
+      quaternion: new THREE.Quaternion(),
       get viewMatrix() {
         return camera.matrixWorldInverse.toArray(new Float32Array(16));
       },
@@ -4756,7 +4758,16 @@ const _startFakeVrDisplay = async (width, height) => {
       enable() {},
       disable() {},
       pushHmdUpdate(position = this.position, quaternion = this.quaternion) {
+        camera.position.copy(this.position);
+        camera.quaternion.copy(this.quaternion);
+        camera.matrix
+          .compose(camera.position, camera.quaternion, camera.scale)
+          .premultiply(localMatrix.fromArray(window.document.xrOffset.matrix))
+          .decompose(camera.position, camera.quaternion, camera.scale);
+        // console.log('pre', window.document.xrOffset.matrix.join(','), window.document.xrOffset.inverse.matrix.join(','));
         camera.updateMatrixWorld();
+        // camera.matrixWorld.copy(camera.matrix);
+        // camera.matrixWorldInverse.getInverse(camera.matrixWorld);
       },
       pushGamepadsUpdate(position = this.position, quaternion = this.quaternion) {
         position.toArray(gamepad.pose.position);
@@ -4798,6 +4809,30 @@ const _startFakeVrDisplay = async (width, height) => {
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio, false);
     });
+
+    window.document.xrOffset = {
+      position: new Float32Array(3),
+      orientation: Float32Array.from([0, 0, 0, 1]),
+      scale: Float32Array.from([1, 1, 1]),
+      matrix: Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]),
+      matrixInverse: Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]),
+      inverse: {
+        matrix: null,
+      },
+      pushUpdate() {
+        localMatrix
+          .compose(
+            localVector.fromArray(this.position),
+            localQuaternion.fromArray(this.orientation),
+            localVector2.fromArray(this.scale)
+          )
+          .toArray(this.matrix);
+        localMatrix
+          .getInverse(localMatrix)
+          .toArray(this.matrixInverse);
+      },
+    };
+    window.document.xrOffset.inverse.matrix = window.document.xrOffset.matrixInverse;
   }
 
   window.addEventListener('mousedown', e => {
