@@ -31,7 +31,7 @@ iframe, audio {
     <script src="skin.js"></script> -->
     <script>
 (async () => {
-let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastGripped = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewportVector = new THREE.Vector2(), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls = null, transformControls, rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], scenes = [], currentSceneSpec = null, selectedScene = null, guardianMeshes = [], baseMeshes = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null;
+let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastGripped = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewportVector = new THREE.Vector2(), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls = null, transformControls, rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], scenes = [], currentSceneSpec = null, selectedScene = null, guardianMeshes = [], baseMeshes = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null, user = null;
 const mouse = {
   position: new THREE.Vector3(),
   quaternion: new THREE.Quaternion(),
@@ -2670,6 +2670,13 @@ const trayMesh = (() => {
       return mesh;
     })();
     object.add(loginButtonMesh);
+    object.loginButtonMesh = loginButtonMesh;
+
+    const addressMesh = _makeTextMesh('');
+    addressMesh.visible = false;
+    object.add(addressMesh);
+    object.addressMesh = addressMesh;
+
     const sendEthMesh = (() => {
       const mesh = _makeTextMesh('Send ETH', 0x000000);
       mesh.plane = new THREE.Plane();
@@ -4378,23 +4385,40 @@ function animate(time, frame) {
             lastSceneCoords[0] = NaN;
             lastSceneCoords[1] = NaN;
           } else if (type === 'loginButton') {
-            for (let i = secureScene.children.length - 1; i >= 0; i--) {
-              secureScene.remove(secureScene.children[secureScene.children.length - 1]);
-            }
-            const {position, quaternion, scale} = _getFrontOfCamera();
-            loginMesh.position.copy(position);
-            localEuler.setFromQuaternion(quaternion, localEuler.order);
-            localEuler.x = 0;
-            localEuler.z = 0;
-            loginMesh.quaternion.setFromEuler(localEuler);
-            loginMesh.scale.copy(scale);
-            secureScene.add(loginMesh);
-            secureScene.add(cameraRig);
+            getWeb3()
+              .then(web3 => {
+                if (web3) {
+                  user = web3;
 
-            renderScene = secureScene;
+                  trayMesh.settingsMesh.loginButtonMesh.visible = false;
+                  trayMesh.settingsMesh.addressMesh.setText(web3.eth.defaultAccount);
+                  trayMesh.settingsMesh.addressMesh.visible = true;
+                } else {
+                  for (let i = secureScene.children.length - 1; i >= 0; i--) {
+                    secureScene.remove(secureScene.children[secureScene.children.length - 1]);
+                  }
+                  const {position, quaternion, scale} = _getFrontOfCamera();
+                  loginMesh.position.copy(position);
+                  localEuler.setFromQuaternion(quaternion, localEuler.order);
+                  localEuler.x = 0;
+                  localEuler.z = 0;
+                  loginMesh.quaternion.setFromEuler(localEuler);
+                  loginMesh.scale.copy(scale);
+                  secureScene.add(loginMesh);
+                  secureScene.add(cameraRig);
+
+                  renderScene = secureScene;
+                }
+              });
           } else if (type === 'login') {
-            console.log('log in', loginMesh.labelMesh.textMesh.getText());
+            const password = loginMesh.labelMesh.textMesh.getText();
+            loginMesh.labelMesh.textMesh.setText('');
 
+            user = makeWeb3(password);
+
+            trayMesh.settingsMesh.loginButtonMesh.visible = false;
+            trayMesh.settingsMesh.addressMesh.setText(web3.eth.defaultAccount);
+            trayMesh.settingsMesh.addressMesh.visible = true;
             scene.add(cameraRig);
 
             renderScene = scene;
