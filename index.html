@@ -1662,7 +1662,7 @@ const _makeMiningMesh = (x, z) => {
       }
     }
   }
-  const shift = Int32Array.from([x*size, 0, z*size]);
+  const shift = Float32Array.from([(x+0.5)*size, 0, (z+0.5)*size]);
 
   mesh.x = x;
   mesh.z = z;

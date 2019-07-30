@@ -65,7 +65,7 @@ const _handleMessage = data => {
       dims[2] = dimsData[2];
       const potential = _alloc(Float32Array, potentialData.length);
       potential.set(potentialData);
-      const shift = _alloc(Int32Array, 3);
+      const shift = _alloc(Float32Array, 3);
       shift[0] = shiftData[0];
       shift[1] = shiftData[1];
       shift[2] = shiftData[2];
