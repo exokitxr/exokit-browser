@@ -2454,11 +2454,13 @@ const trayMesh = (() => {
       console.log('up');
       mapMesh.positionOffset.y = 0.1;
       mapMesh.minimapMesh.material.uniforms.uType.value = 1;
+      miningMesh.visible = true;
     }],
     [chevronDownImg, 4, 0, () => {
       console.log('down');
       mapMesh.positionOffset.y = 0;
       mapMesh.minimapMesh.material.uniforms.uType.value = 0;
+      miningMesh.visible = false;
     }],
     [saveImg, 4, 2, () => {
       if (selectedScene) {
@@ -3134,9 +3136,10 @@ const trayMesh = (() => {
 })();
 scene.add(trayMesh);
 
-const miningMesh = _makeMiningMesh(0, -1);
+const miningMesh = new THREE.Object3D();
+miningMesh.visible = false;
 scene.add(miningMesh);
-miningMeshes.push(miningMesh);
+miningMesh.add(_makeMiningMesh(0, -1));
 
 const _makeRoomMesh = (sx, sy, sz, dx, dy, dz, color) => {
   const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
@@ -4655,7 +4658,7 @@ function animate(time, frame) {
             user.execute({
               method: 'send',
               data: {
-                address: '0x0000000000000000000000000000000000000000',
+                address: '0x2F4cDC4889CC5022D35aE9eA32A219173B9D63Be',
                 value: 10,
                 currency: 'ETH',
               },
