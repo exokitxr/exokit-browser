@@ -4192,49 +4192,52 @@ function animate(time, frame) {
       }
 
       currentSceneSpec = newSceneSpec;
-      let currentSceneColor;
-      if (currentSceneSpec) {
-        currentSceneColor = 0x9ccc65;
-      } else {
-        currentSceneSpec = {
-          coords: [coords],
-          apps: [],
-        };
-        currentSceneColor = 0xef5350;
-      }
 
-      for (let i = 0; i < guardianMeshes.length; i++) {
-        const guardianMesh = guardianMeshes[i];
-        guardianMesh.destroy();
-        scene.remove(guardianMesh);
-      }
-      for (let i = 0; i < baseMeshes.length; i++) {
-        const baseMesh = baseMeshes[i];
-        baseMesh.destroy();
-        scene.remove(baseMesh);
-      }
+      if (trayMesh.visible) {
+        let currentSceneColor;
+        if (currentSceneSpec) {
+          currentSceneColor = 0x9ccc65;
+        } else {
+          currentSceneSpec = {
+            coords: [coords],
+            apps: [],
+          };
+          currentSceneColor = 0xef5350;
+        }
 
-      for (let i = 0; i < scenes.length; i++) {
-        const sceneSpec = scenes[i];
-        if (sceneSpec !== currentSceneSpec && sceneSpec !== selectedScene) {
-          const baseMesh = _makeBaseMesh(sceneSpec, 0x5c6bc0);
+        for (let i = 0; i < guardianMeshes.length; i++) {
+          const guardianMesh = guardianMeshes[i];
+          guardianMesh.destroy();
+          scene.remove(guardianMesh);
+        }
+        for (let i = 0; i < baseMeshes.length; i++) {
+          const baseMesh = baseMeshes[i];
+          baseMesh.destroy();
+          scene.remove(baseMesh);
+        }
+
+        for (let i = 0; i < scenes.length; i++) {
+          const sceneSpec = scenes[i];
+          if (sceneSpec !== currentSceneSpec && sceneSpec !== selectedScene) {
+            const baseMesh = _makeBaseMesh(sceneSpec, 0x5c6bc0);
+            _insertBefore(baseMesh, floorMesh);
+            baseMeshes.push(baseMesh);
+          }
+        }
+
+        if (currentSceneSpec) {
+          const guardianMesh = _makeGuardianMesh(currentSceneSpec, currentSceneColor);
+          scene.add(guardianMesh);
+          guardianMeshes.push(guardianMesh);
+          const baseMesh = _makeBaseMesh(currentSceneSpec, currentSceneColor);
           _insertBefore(baseMesh, floorMesh);
           baseMeshes.push(baseMesh);
         }
-      }
-
-      if (currentSceneSpec) {
-        const guardianMesh = _makeGuardianMesh(currentSceneSpec, currentSceneColor);
-        scene.add(guardianMesh);
-        guardianMeshes.push(guardianMesh);
-        const baseMesh = _makeBaseMesh(currentSceneSpec, currentSceneColor);
-        _insertBefore(baseMesh, floorMesh);
-        baseMeshes.push(baseMesh);
-      }
-      if (selectedScene) {
-        const baseMesh = _makeBaseMesh(selectedScene, 0x808080); // 0x42a5f5
-        _insertBefore(baseMesh, floorMesh);
-        baseMeshes.push(baseMesh);
+        if (selectedScene) {
+          const baseMesh = _makeBaseMesh(selectedScene, 0x808080); // 0x42a5f5
+          _insertBefore(baseMesh, floorMesh);
+          baseMeshes.push(baseMesh);
+        }
       }
     }
   };
