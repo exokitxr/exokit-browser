@@ -1586,6 +1586,19 @@ worker = (() => {
   return worker;
 })();
 const _getKey = (x, z) => [x, z].join(':');
+const _makeMiningPlaceholder = (x, z, token) => {
+  // console.log('make text mesh', token);
+  const mesh = _makeTextMesh('Parcel ' + x + ' : ' + z + ' owned by ' + token.owner, 30);
+  mesh.position.set(x * PARCEL_SIZE, 1, z * PARCEL_SIZE);
+  mesh.update = () => {
+    // XXX
+  };
+  mesh.intersect = () => null;
+  mesh.destroy = () => {
+    // XXX
+  };
+  return mesh;
+};
 const _makeMiningMesh = (x, z) => {
   const terrainVsh = `
     varying vec3 vViewPosition;
@@ -1846,7 +1859,9 @@ const _makeMiningChunk = (x, z) => {
     .then(token => {
       // console.log('got token', token, {x, z});
       if (token && token.id) {
-        // XXX
+        const miningMesh = _makeMiningPlaceholder(x, z, token);
+        object.add(miningMesh);
+        // object.visible = true;
       } else {
         const miningMesh = _makeMiningMesh(x, z);
         object.add(miningMesh);
