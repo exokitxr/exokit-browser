@@ -1585,6 +1585,7 @@ worker = (() => {
   });
   return worker;
 })();
+const _getKey = (x, z) => [x, z].join(':');
 const _makeMiningMesh = (x, z) => {
   const terrainVsh = `
     varying vec3 vViewPosition;
@@ -1662,7 +1663,7 @@ const _makeMiningMesh = (x, z) => {
       }
     }
   }
-  const shift = Float32Array.from([(x+0.5)*size, 0, (z+0.5)*size]);
+  const shift = Float32Array.from([(x-0.5)*size, 0, (z-0.5)*size]);
 
   mesh.x = x;
   mesh.z = z;
@@ -3194,9 +3195,6 @@ scene.add(trayMesh);
 const miningMesh = new THREE.Object3D();
 miningMesh.visible = false;
 scene.add(miningMesh);
-const miningMesh1 = _makeMiningMesh(0, -1);
-miningMesh.add(miningMesh1);
-miningMeshes.push(miningMesh1);
 
 const _makeRoomMesh = (sx, sy, sz, dx, dy, dz, color) => {
   const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
@@ -3385,7 +3383,7 @@ const _makePointMesh = (sx, sy, sz, ox, oy, oz, ow) => {
 };
 const _getIntersectionCandidates = () => renderScene === scene ?
     trayMesh.getIntersectionCandidates()
-      .concat(miningMeshes)
+      .concat(Object.keys(miningMeshes).map(k => miningMeshes[k]))
   :
     [loginMesh, paymentMesh].flatMap(mesh => mesh.getIntersectionCandidates());
 const _makeBrowserMesh = (sx, sy, sz, ox, oy, oz, ow, color) => {
@@ -4523,6 +4521,13 @@ function animate(time, frame) {
           baseMeshes.push(baseMesh);
         }
       }
+
+      const key = _getKey(coords[0], coords[1]);
+      if (!miningMeshes[key]) {
+        const mesh = _makeMiningMesh(coords[0], coords[1]);
+        miningMesh.add(mesh);
+        miningMeshes[key] = mesh;
+      }
     }
   };
   _updateScene();
@@ -4573,8 +4578,8 @@ function animate(time, frame) {
   _updateIntersections();
 
   const _updateMiningMeshes = () => {
-    for (let i = 0; i < miningMeshes.length; i++) {
-      miningMeshes[i].update();
+    for (const k in miningMeshes) {
+      miningMeshes[k].update();
     }
   };
   _updateMiningMeshes();
