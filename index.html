@@ -1682,10 +1682,10 @@ const _makeMiningMesh = (x, z) => {
     return potential[x + y*size*size + z*size];
   };
   mesh.mine = pos => {
-    const x = pos.x - shift[0];
-    const y = pos.y - shift[1];
-    const z = pos.z - shift[2];
-    const factor = 3;
+    const x = Math.floor(pos.x - shift[0]);
+    const y = Math.floor(pos.y - shift[1]);
+    const z = Math.floor(pos.z - shift[2]);
+    const factor = 2;
     const max = Math.sqrt(factor*factor*3);
     for (let dx = -factor; dx <= factor; dx++) {
       for (let dz = -factor; dz <= factor; dz++) {
@@ -1702,7 +1702,7 @@ const _makeMiningMesh = (x, z) => {
             az < size
           ) {
             const index = ax + ay*size*size + az*size;
-            const d = (max - Math.sqrt(dx*dx + dy*dy + dz*dz)) / max * 1.5;
+            const d = (max - Math.sqrt(dx*dx + dy*dy + dz*dz)) / max * 2;
             potential[index] = Math.max(potential[index] - d, 0);
           }
         }
@@ -1767,12 +1767,18 @@ const _makeMiningMesh = (x, z) => {
         });
     }
   };
-  mesh.intersect = () => {
+  mesh.intersect = ray => {
     if (isFinite(material.uniforms.uSelect.value.x)) {
+      const intersectionPoint = material.uniforms.uSelect.value.clone();
+      const distance = ray.origin.distanceTo(intersectionPoint);
       return {
         type: 'mine',
         mesh,
+        intersectionPoint,
+        distance,
       };
+    } else {
+      return null;
     }
   };
 
@@ -4640,7 +4646,8 @@ function animate(time, frame) {
             lastSceneCoords[0] = NaN;
             lastSceneCoords[1] = NaN;
           } else if (type === 'mine') {
-            console.log('got mining intersection', intersectionSpec);
+            const {mesh, intersectionPoint} = intersectionSpec;
+            mesh.mine(intersectionPoint);
           } else if (type === 'loginButton') {
             getWeb3()
               .then(web3 => {
