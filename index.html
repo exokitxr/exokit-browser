@@ -1759,7 +1759,8 @@ const _makeMiningMesh = (x, z) => {
     });
   };
   mesh.destroy = () => {
-    cubeMeshes.splice(cubeMeshes.indexOf(mesh), 1);
+    geometry.dispose();
+    material.dispose();
   };
   let colliding = false;
   mesh.update = () => {
@@ -1829,6 +1830,11 @@ const _makeMiningChunk = (x, z) => {
       }
     }
     return null;
+  };
+  object.destroy = () => {
+    for (let i = 0; i < object.children.length; i++) {
+      object.children[i].destroy();
+    }
   };
   user.execute({
     method: 'getToken',
@@ -4561,6 +4567,7 @@ function animate(time, frame) {
       }
 
       if (user) {
+        const neededKeys = {};
         for (let dx = coords[0] - 1; dx <= coords[0] + 1; dx++) {
           for (let dz = coords[1] - 1; dz <= coords[1] + 1; dz++) {
             const key = _getKey(dx, dz);
@@ -4569,6 +4576,15 @@ function animate(time, frame) {
               scene.add(miningChunk);
               miningMeshes[key] = miningChunk;
             }
+            neededKeys[key] = true;
+          }
+        }
+        for (const k in miningMeshes) {
+          if (!neededKeys[k]) {
+            const miningMesh = miningMeshes[k];
+            miningMesh.destroy();
+            scene.remove(miningMesh);
+            delete miningMeshes[k];
           }
         }
       }
