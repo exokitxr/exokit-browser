@@ -4874,7 +4874,7 @@ function animate(time, frame) {
       },
     };
   };
-  const _updateGridControls = () => {
+  const _updateTrayMeshAnimation = () => {
     const gamepads = navigator.getGamepads();
     for (let i = 0; i < 2; i++) {
       const gamepad = gamepads[i];
@@ -4984,7 +4984,7 @@ function animate(time, frame) {
       }
     }
   };
-  _updateGridControls();
+  _updateTrayMeshAnimation();
 
   const _render = () => {
     const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
