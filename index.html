@@ -1731,18 +1731,28 @@ const _makeMiningMesh = (x, z) => {
           .then(o => {
             const {v, r, s} = o;
             const addr = window.web3.eth.defaultAccount;
-            // const url = 'https://google.com';
-            console.log('got values', addr, x, z, v, r, s);
-            return mintTokenFromSignature(addr, x, z, v, r, s);
+            console.log('mintTokenFromSignature', {addr, x, z, v, r, s});
+            return user.execute({
+              method: 'mintTokenFromSignature',
+              data: {
+                addr,
+                x,
+                y: z,
+                v,
+                r,
+                s,
+              },
+            });
           })
           .then(() => {
-            queue.push(async () => {
+            console.log('mined', {x, z});
+            /* queue.push(async () => {
               _unloadScene(_getKey(x, z));
               lastChunkLoaded[0] = NaN;
               lastChunkLoaded[1] = NaN;
               _refresh();
             });
-            _tick();
+            _tick(); */
           });
       }
     });
@@ -4686,7 +4696,7 @@ function animate(time, frame) {
             const password = loginMesh.labelMesh.textMesh.getText();
             loginMesh.labelMesh.textMesh.setText('');
 
-            user = makeWeb3(password, ({
+            makeWeb3(password, ({
               method,
               data,
             }) => {
@@ -4704,14 +4714,17 @@ function animate(time, frame) {
               secureScene.add(cameraRig);
 
               renderScene = secureScene;
-            });
+            })
+              .then(web3 => {
+                user = web3;
 
-            trayMesh.settingsMesh.loginButtonMesh.visible = false;
-            trayMesh.settingsMesh.addressMesh.setText(web3.eth.defaultAccount);
-            trayMesh.settingsMesh.addressMesh.visible = true;
-            scene.add(cameraRig);
+                trayMesh.settingsMesh.loginButtonMesh.visible = false;
+                trayMesh.settingsMesh.addressMesh.setText(web3.eth.defaultAccount);
+                trayMesh.settingsMesh.addressMesh.visible = true;
+                scene.add(cameraRig);
 
-            renderScene = scene;
+                renderScene = scene;
+              });
           } else if (type === 'sendEth') {
             user.execute({
               method: 'send',

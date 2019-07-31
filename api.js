@@ -1,10 +1,46 @@
+const _fetchJson = u => fetch(u)
+  .then(res => res.json());
+const _makeContract = async web3 => {
+  const [abi, address] = await Promise.all([
+    _fetchJson('./abi.json'),
+    _fetchJson('./address.json'),
+  ]);
+  return new web3.eth.Contract(abi, address);
+};
 async function _execute(spec) {
+  const _waitTransaction = txId => new Promise((accept, reject) => {
+    const _recurse = () => {
+      this.eth.getTransactionReceipt(txId, (err, result) => {
+        if (!err) {
+          if (result !== null) {
+            accept(result);
+          } else {
+            _recurse();
+          }
+        } else {
+          reject(err);
+        }
+      });
+    };
+    _recurse();
+  });
+
   const {method, data} = spec;
   switch (method) {
     case 'send': {
       const {address, value, currency} = data;
       await this.eth.sendTransaction({from: this.eth.defaultAccount, to: address, value});
       break;
+    }
+    case 'mintTokenFromSignature': {
+      const {addr, x, y, v, r, s} = data;
+      const gas = await this.contract.methods.mintTokenFromSignature(addr, x, y, v, r, s).estimateGas({from: this.eth.defaultAccount});
+      console.log('estimate gas', gas);
+      const {transactionHash} = await this.contract.methods.mintTokenFromSignature(addr, x, y, v, r, s).send({from: this.eth.defaultAccount, gas});
+      console.log('got txid', transactionHash);
+      const rx = await _waitTransaction(transactionHash);
+      console.log('got rx', rx);
+      return rx;
     }
     default: throw new Error(`unknown execute method ${method}`);
   }
@@ -14,13 +50,14 @@ const getWeb3 = async () => {
     await window.ethereum.enable()
     const web3 = new window.Web3(window.ethereum);
     web3.eth.defaultAccount = window.ethereum.selectedAddress;
+    web3.contract = await _makeContract(web3);
     web3.execute = _execute;
     return web3;
   } else {
     return null;
   }
 };
-const makeWeb3 = (password = '', approve = () => Promise.reject()) => {
+const makeWeb3 = async (password = '', approve = () => Promise.reject()) => {
   const INFURA_API_KEY = 'ed32fe7667964c1398772a73c2426676';
   const rpcUrl = `https://rinkeby.infura.io/v3/${INFURA_API_KEY}`;
   const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
@@ -31,6 +68,7 @@ const makeWeb3 = (password = '', approve = () => Promise.reject()) => {
   const account = web3.eth.accounts.privateKeyToAccount(privateKey);
   web3.eth.accounts.wallet.add(account);
   web3.eth.defaultAccount = account.address;
+  web3.contract = await _makeContract();
   web3.execute = async spec => {
     await approve(spec);
     return await execute(spec);
