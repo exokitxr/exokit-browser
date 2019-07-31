@@ -2556,14 +2556,14 @@ const trayMesh = (() => {
       if (user) {
         mapMesh.positionOffset.y = 0.1;
         mapMesh.minimapMesh.material.uniforms.uType.value = 1;
-        miningMesh.visible = true;
+        // miningMesh.visible = true;
       }
     }],
     [chevronDownImg, 4, 0, () => {
       console.log('down');
       mapMesh.positionOffset.y = 0;
       mapMesh.minimapMesh.material.uniforms.uType.value = 0;
-      miningMesh.visible = false;
+      // miningMesh.visible = false;
     }],
     [saveImg, 4, 2, () => {
       if (selectedScene) {
