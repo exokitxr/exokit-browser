@@ -1813,6 +1813,46 @@ const _makeMiningMesh = (x, z) => {
 
   return mesh;
 };
+const _makeMiningChunk = (x, z) => {
+  const object = new THREE.Object3D();
+  // object.visible = false;
+  object.update = () => {
+    for (let i = 0; i < object.children.length; i++) {
+      object.children[i].update();
+    }
+  };
+  object.intersect = ray => {
+    for (let i = 0; i < object.children.length; i++) {
+      const intersection = object.children[i].intersect(ray);
+      if (intersection) {
+        return intersection;
+      }
+    }
+    return null;
+  };
+  user.execute({
+    method: 'getToken',
+    data: {
+      x,
+      y: z,
+    },
+  })
+    .then(token => {
+      // console.log('got token', token, {x, z});
+      if (token && token.id) {
+        // XXX
+      } else {
+        console.log('make mining mesh', {x, z});
+        const miningMesh = _makeMiningMesh(x, z);
+        object.add(miningMesh);
+        // object.visible = true;
+      }
+    })
+    .catch(err => {
+      console.warn(err.stack);
+    });
+  return object;
+};
 
 const _makeLabelMesh = s => {
   const width = 2;
@@ -3194,10 +3234,6 @@ const trayMesh = (() => {
 })();
 scene.add(trayMesh);
 
-const miningMesh = new THREE.Object3D();
-miningMesh.visible = false;
-scene.add(miningMesh);
-
 const _makeRoomMesh = (sx, sy, sz, dx, dy, dz, color) => {
   const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
   /* const uvs = geometry.attributes.uv.array;
@@ -4524,11 +4560,17 @@ function animate(time, frame) {
         }
       }
 
-      const key = _getKey(coords[0], coords[1]);
-      if (!miningMeshes[key]) {
-        const mesh = _makeMiningMesh(coords[0], coords[1]);
-        miningMesh.add(mesh);
-        miningMeshes[key] = mesh;
+      if (user) {
+        for (let dx = coords[0] - 1; dx <= coords[0] + 1; dx++) {
+          for (let dz = coords[1] - 1; dz <= coords[1] + 1; dz++) {
+            const key = _getKey(dx, dz);
+            if (!miningMeshes[key]) {
+              const miningChunk = _makeMiningChunk(dx, dz);
+              scene.add(miningChunk);
+              miningMeshes[key] = miningChunk;
+            }
+          }
+        }
       }
     }
   };
@@ -4682,6 +4724,9 @@ function animate(time, frame) {
                   trayMesh.settingsMesh.addressMesh.setText(web3.eth.defaultAccount);
                   trayMesh.settingsMesh.addressMesh.visible = true;
                   trayMesh.settingsMesh.sendEthMesh.visible = true;
+
+                  lastSceneCoords[0] = NaN;
+                  lastSceneCoords[1] = NaN;
                 } else {
                   for (let i = secureScene.children.length - 1; i >= 0; i--) {
                     secureScene.remove(secureScene.children[secureScene.children.length - 1]);
@@ -4731,6 +4776,9 @@ function animate(time, frame) {
                 scene.add(cameraRig);
 
                 renderScene = scene;
+
+                lastSceneCoords[0] = NaN;
+                lastSceneCoords[1] = NaN;
               });
           } else if (type === 'sendEth') {
             user.execute({
