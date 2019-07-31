@@ -1719,7 +1719,14 @@ const _makeMiningMesh = (x, z) => {
 
       if (potential.every(n => n <= 0)) {
         const {x, z} = mesh;
-        fetch(`http://127.0.0.1:8001/sign/${window.web3.eth.defaultAccount}/${x}/${z}`)
+        fetch('https://djj7y2i5p8.execute-api.us-west-1.amazonaws.com/default/Webaverse', {
+          method: 'POST',
+          body: JSON.stringify({
+            addr: window.web3.eth.defaultAccount,
+            x,
+            y: z,
+          }),
+        })
           .then(res => res.json())
           .then(o => {
             const {v, r, s} = o;
