@@ -2508,9 +2508,11 @@ const trayMesh = (() => {
     }],
     [chevronUpImg, 4, 1, () => {
       console.log('up');
-      mapMesh.positionOffset.y = 0.1;
-      mapMesh.minimapMesh.material.uniforms.uType.value = 1;
-      miningMesh.visible = true;
+      if (user) {
+        mapMesh.positionOffset.y = 0.1;
+        mapMesh.minimapMesh.material.uniforms.uType.value = 1;
+        miningMesh.visible = true;
+      }
     }],
     [chevronDownImg, 4, 0, () => {
       console.log('down');
