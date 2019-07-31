@@ -1585,7 +1585,6 @@ worker = (() => {
   });
   return worker;
 })();
-let miningIntersectionSpec = new THREE.Vector3(NaN, NaN, NaN);
 const _makeMiningMesh = (x, z) => {
   const terrainVsh = `
     varying vec3 vViewPosition;
@@ -1632,7 +1631,7 @@ const _makeMiningMesh = (x, z) => {
     uniforms: {
       uSelect: {
         type: 'v3',
-        value: miningIntersectionSpec,
+        value: new THREE.Vector3(NaN, NaN, NaN),
       },
     },
     vertexShader: terrainVsh,
@@ -1758,9 +1757,7 @@ const _makeMiningMesh = (x, z) => {
         direction: controllerMesh.ray.direction.toArray(new Float32Array(3)),
       })
         .then(collision => {
-          if (collision.every(n => isFinite(n))) {
-            miningIntersectionSpec.fromArray(collision);
-          }
+          material.uniforms.uSelect.value.fromArray(collision);
         })
         .catch(err => {
           console.warn(err.stack);
@@ -1768,6 +1765,14 @@ const _makeMiningMesh = (x, z) => {
         .finally(() => {
           colliding = false;
         });
+    }
+  };
+  mesh.intersect = () => {
+    if (isFinite(material.uniforms.uSelect.value.x)) {
+      return {
+        type: 'mine',
+        mesh,
+      };
     }
   };
 
@@ -3357,6 +3362,7 @@ const _makePointMesh = (sx, sy, sz, ox, oy, oz, ow) => {
 };
 const _getIntersectionCandidates = () => renderScene === scene ?
     trayMesh.getIntersectionCandidates()
+      .concat(miningMeshes)
   :
     [loginMesh, paymentMesh].flatMap(mesh => mesh.getIntersectionCandidates());
 const _makeBrowserMesh = (sx, sy, sz, ox, oy, oz, ow, color) => {
@@ -4633,6 +4639,8 @@ function animate(time, frame) {
 
             lastSceneCoords[0] = NaN;
             lastSceneCoords[1] = NaN;
+          } else if (type === 'mine') {
+            console.log('got mining intersection', intersectionSpec);
           } else if (type === 'loginButton') {
             getWeb3()
               .then(web3 => {
