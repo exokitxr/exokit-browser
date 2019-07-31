@@ -35,27 +35,30 @@ async function _execute(spec) {
     case 'getToken': {
       const {x, y} = data;
       const result = await this.contract.methods.getTokenByCoord(x, y).call();
-      // const sceneId = parseInt(result[4], 10);
+      const sceneId = parseInt(result[5], 10);
       return {
         owner: result[0],
         id: parseInt(result[1], 10),
         x: parseInt(result[2], 10),
         y: parseInt(result[3], 10),
         lastTimestamp: parseInt(result[4], 10),
-        /* sceneId,
-        scene: sceneId ? await _getSceneById(sceneId) : null, */
+        sceneId,
+        scene: sceneId ? await _execute({
+          method: 'getScene',
+          data: {
+            sceneId,
+          },
+        }) : null,
       };
     }
-    /* case 'getScene': {
-      const _getSceneById = async sceneId => {
-        const result = await contract.methods.getSceneById(sceneId).call();
-        return {
-          id: parseInt(result[0], 10),
-          url: result[1],
-        };
+    case 'getScene': {
+      const {sceneId} = data;
+      const result = await contract.methods.getSceneById(sceneId).call();
+      return {
+        id: parseInt(result[0], 10),
+        url: result[1],
       };
-      break;
-    } */
+    }
     case 'mintTokenFromSignature': {
       const {addr, x, y, v, r, s} = data;
       const gas = await this.contract.methods.mintTokenFromSignature(addr, x, y, v, r, s).estimateGas({from: this.eth.defaultAccount});
