@@ -2063,7 +2063,6 @@ const _loadSceneMeshFromCoords = (x, z) => {
         const index = sceneMeshes.indexOf(object);
         scene.remove(object);
         sceneMeshes.splice(sceneMeshes.indexOf(object), 1);
-        console.log('remove scene', sceneId, index, sceneMeshes.length);
       }
     });
   return object;
