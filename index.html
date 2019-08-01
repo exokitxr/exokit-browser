@@ -1853,8 +1853,8 @@ const _saveData = () => {
 };
 const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
 const ONE_ADDRESS  = '0x0000000000000000000000000000000000000001';
-const _getUserAddress = () => user ? user.eth.defaultAccount : ONE_ADDRESS;
 const _isInMultiverse = () => trayMesh.mapMesh.minimapMesh.material.uniforms.uType.value === 1;
+const _getUserAddress = () => _isInMultiverse() ? user.eth.defaultAccount : ONE_ADDRESS;
 const _getKey = (x, z) => [x, z].join(':');
 const _getToken = async (x, z) => {
   if (_isInMultiverse()) {
