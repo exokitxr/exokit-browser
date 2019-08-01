@@ -4821,6 +4821,33 @@ function animate(time, frame) {
       currentSceneToken = newSceneMesh && newSceneMesh.token;
 
       if (trayMesh.visible) {
+        const _getCurrentTokenColor = token => {
+          if (token.owner !== NULL_ADDRESS) {
+            if (token.owner === _getUserAddress()) {
+              if (token.id) {
+                return 0x9ccc65;
+              } else {
+                return 0x42a5f5;
+              }
+            } else {
+              return 0x78909c;
+            }
+          } else {
+            return 0xef5350;
+          }
+        };
+        const _getNonCurrentTokenColor = token => {
+          if (token.owner === _getUserAddress()) {
+            if (token.id) {
+              return 0x5c6bc0;
+            } else {
+              return 0x42a5f5;
+            }
+          } else {
+            return 0x78909c;
+          }
+        };
+
         for (let i = 0; i < guardianMeshes.length; i++) {
           const guardianMesh = guardianMeshes[i];
           guardianMesh.destroy();
@@ -4834,8 +4861,8 @@ function animate(time, frame) {
 
         for (let i = 0; i < sceneMeshes.length; i++) {
           const sceneMesh = sceneMeshes[i];
-          if (sceneMesh.token.id !== 0 && sceneMesh.token !== currentSceneToken && sceneMesh.token !== selectedSceneToken) {
-            const baseMesh = _makeBaseMesh(sceneMesh.token, 0x5c6bc0);
+          if (sceneMesh.token.owner !== NULL_ADDRESS && sceneMesh.token !== currentSceneToken && sceneMesh.token !== selectedSceneToken) {
+            const baseMesh = _makeBaseMesh(sceneMesh.token, _getNonCurrentTokenColor(sceneMesh.token));
             _insertBefore(baseMesh, floorMesh);
             baseMeshes.push(baseMesh);
           }
@@ -4846,8 +4873,9 @@ function animate(time, frame) {
             id: 0,
             coords: [coords],
             apps: [],
+            owner: NULL_ADDRESS,
           };
-          const sceneColor = sceneToken.id !== 0 ? 0x9ccc65 : 0xef5350;
+          const sceneColor = _getCurrentTokenColor(sceneToken);
 
           const guardianMesh = _makeGuardianMesh(sceneToken, sceneColor);
           scene.add(guardianMesh);
@@ -4879,7 +4907,9 @@ function animate(time, frame) {
         for (;;) {
           const index = sceneMeshes.findIndex(sceneMesh => !sceneMesh.token.coords.some(coord => neededKeys[_getKey(coord[0], coord[1])]));
           if (index !== -1) {
-            sceneMeshes[index].destroy();
+            const sceneMesh = sceneMeshes[index];
+            sceneMesh.destroy();
+            scene.remove(sceneMesh);
             sceneMeshes.splice(index, 1);
           } else {
             break;
