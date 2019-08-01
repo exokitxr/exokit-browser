@@ -1,11 +1,16 @@
 const _fetchJson = u => fetch(u)
   .then(res => res.json());
-const _makeContract = async web3 => {
-  const [abi, address] = await Promise.all([
-    _fetchJson('./abi.json'),
-    _fetchJson('./address.json'),
+const _makeContracts = async web3 => {
+  const [webaverseAbi, webaverseAddress, webasceneAbi, webasceneAddress] = await Promise.all([
+    _fetchJson('./abis/webaverse.json'),
+    _fetchJson('./addresses/webaverse.json'),
+    _fetchJson('./abis/webascene.json'),
+    _fetchJson('./addresses/webascene.json'),
   ]);
-  return new web3.eth.Contract(abi, address);
+  return {
+    webaverse: new web3.eth.Contract(webaverseAbi, webaverseAddress),
+    webascene: new web3.eth.Contract(webasceneAbi, webasceneAddress),
+  };
 };
 async function _execute(spec) {
   const _waitTransaction = txId => new Promise((accept, reject) => {
@@ -32,9 +37,19 @@ async function _execute(spec) {
       await this.eth.sendTransaction({from: this.eth.defaultAccount, to: address, value});
       break;
     }
+    case 'mintTokenFromSignature': {
+      const {addr, x, y, v, r, s} = data;
+      const gas = await this.contracts.webaverse.methods.mintTokenFromSignature(addr, x, y, v, r, s).estimateGas({from: this.eth.defaultAccount});
+      console.log('estimate gas', gas);
+      const {transactionHash} = await this.contracts.webaverse.methods.mintTokenFromSignature(addr, x, y, v, r, s).send({from: this.eth.defaultAccount, gas});
+      console.log('got txid', transactionHash);
+      const rx = await _waitTransaction(transactionHash);
+      console.log('got rx', rx);
+      return rx;
+    }
     case 'getToken': {
       const {x, y} = data;
-      const result = await this.contract.methods.getTokenByCoord(x, y).call();
+      const result = await this.contracts.webaverse.methods.getTokenByCoord(x, y).call();
       const sceneId = parseInt(result[5], 10);
       return {
         owner: result[0],
@@ -43,31 +58,35 @@ async function _execute(spec) {
         y: parseInt(result[3], 10),
         lastTimestamp: parseInt(result[4], 10),
         sceneId,
-        scene: sceneId ? await _execute({
+        /* scene: sceneId ? await _execute({
           method: 'getScene',
           data: {
             sceneId,
           },
-        }) : null,
+        }) : null, */
       };
     }
     case 'getScene': {
       const {sceneId} = data;
-      const result = await contract.methods.getSceneById(sceneId).call();
+      console.log('get scene 1', sceneId);
+      const result = await this.contracts.webascene.methods.getSceneById(sceneId).call();
+      console.log('get scene 2');
       return {
         id: parseInt(result[0], 10),
-        url: result[1],
+        coords: result[1],
+        apps: result[2],
       };
     }
-    case 'mintTokenFromSignature': {
-      const {addr, x, y, v, r, s} = data;
-      const gas = await this.contract.methods.mintTokenFromSignature(addr, x, y, v, r, s).estimateGas({from: this.eth.defaultAccount});
-      console.log('estimate gas', gas);
-      const {transactionHash} = await this.contract.methods.mintTokenFromSignature(addr, x, y, v, r, s).send({from: this.eth.defaultAccount, gas});
+    case 'setScene': {
+      const {coords, apps} = data;
+      const gas = await this.contracts.webascene.methods.setScene(coords, apps).estimateGas({from: this.eth.defaultAccount});
+      const balance = await this.eth.getBalance(this.eth.defaultAccount);
+      const {transactionHash} = await this.contracts.webascene.methods.setScene(coords, apps).send({from: this.eth.defaultAccount, gas});
       console.log('got txid', transactionHash);
       const rx = await _waitTransaction(transactionHash);
       console.log('got rx', rx);
-      return rx;
+      const result = await contract.methods.getSceneById(sceneId).call();
+      return parseInt(result[0], 10);
     }
     default: throw new Error(`unknown execute method ${method}`);
   }
@@ -77,7 +96,7 @@ const getWeb3 = async () => {
     await window.ethereum.enable()
     const web3 = new window.Web3(window.ethereum);
     web3.eth.defaultAccount = window.ethereum.selectedAddress;
-    web3.contract = await _makeContract(web3);
+    web3.contracts = await _makeContracts(web3);
     web3.execute = _execute;
     return web3;
   } else {
@@ -95,7 +114,7 @@ const makeWeb3 = async (password = '', approve = () => Promise.reject()) => {
   const account = web3.eth.accounts.privateKeyToAccount(privateKey);
   web3.eth.accounts.wallet.add(account);
   web3.eth.defaultAccount = account.address;
-  web3.contract = await _makeContract();
+  web3.contracts = await _makeContracts(web3);
   web3.execute = async spec => {
     await approve(spec);
     return await execute(spec);

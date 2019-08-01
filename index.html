@@ -31,11 +31,12 @@ iframe, audio {
     <script src="skin.js"></script> -->
     <script>
 (async () => {
-let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastGripped = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewportVector = new THREE.Vector2(), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls = null, transformControls, rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], worker = null, scenes = [], currentSceneSpec = null, selectedScene = null, guardianMeshes = [], baseMeshes = [], miningMeshes = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null, user = null;
+let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastGripped = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], viewportVector = new THREE.Vector2(), menuOpen = false, /* menuCoords = [new THREE.Vector2(-1, -1), new THREE.Vector2(-1, -1)], */ orbitControls = null, transformControls, rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], worker = null, /* scenes = [], */ currentSceneToken = null, selectedSceneToken = null, guardianMeshes = [], baseMeshes = [], sceneMeshes = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null, user = null;
 const mouse = {
   position: new THREE.Vector3(),
   quaternion: new THREE.Quaternion(),
 };
+window.getSceneMeshes = () => sceneMeshes; // XXX
 
 let servers = [];
 let serversLoading = false;
@@ -1400,7 +1401,7 @@ const _bindEventTarget = target => {
   }
 };
 
-scenes.push({
+/* scenes.push({
   coords: [
     [0, 0],
   ],
@@ -1413,7 +1414,7 @@ scenes.push({
     [-2, 1],
   ],
   apps: [],
-});
+}); */
 
 // controller meshes
 
@@ -1585,11 +1586,11 @@ worker = (() => {
   });
   return worker;
 })();
-const _getKey = (x, z) => [x, z].join(':');
-const _makeMiningPlaceholder = (x, z, token) => {
+const _makeMiningPlaceholderMesh = (x, z, owner) => {
   // console.log('make text mesh', token);
-  const mesh = _makeTextMesh('Parcel ' + x + ' : ' + z + ' owned by ' + token.owner, 30);
+  const mesh = _makeTextMesh('Parcel ' + x + ' : ' + z + ' owned by ' + owner, 30);
   mesh.position.set(x * PARCEL_SIZE, 1, z * PARCEL_SIZE);
+  // mesh.token = token;
   mesh.update = () => {
     // XXX
   };
@@ -1599,7 +1600,7 @@ const _makeMiningPlaceholder = (x, z, token) => {
   };
   return mesh;
 };
-const _makeMiningMesh = (x, z) => {
+const _makeMiningMesh = (x, z/*, token*/) => {
   const terrainVsh = `
     varying vec3 vViewPosition;
     void main() {
@@ -1657,11 +1658,10 @@ const _makeMiningMesh = (x, z) => {
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
   mesh.visible = false;
+  // mesh.token = token;
+
   const size = PARCEL_SIZE;
-  // mesh.boundingSphere = new THREE.Sphere(new THREE.Vector3((x+0.5)*size, 0.5*size, (z+0.5)*size), Math.sqrt(size*size*3));
-
   const dims = Float32Array.from([size, size, size]);
-
   const potential = new Float32Array(size*size*size);
   potential.fill(1);
   for (let x = 0; x < size; x++) {
@@ -1827,9 +1827,127 @@ const _makeMiningMesh = (x, z) => {
 
   return mesh;
 };
-const _makeMiningChunk = (x, z) => {
+let data;
+const _loadData = () => {
+  const _defaultData = () => ({
+    tokenIds: 0,
+    tokens: {},
+    sceneIds: 0,
+    scenes: {},
+  });
+
+  const s = localStorage.getItem('data');
+  if (typeof s === 'string') {
+    try {
+      data = JSON.parse(s);
+    } catch(err) {
+      data = _defaultData();
+    }
+  } else {
+    data = _defaultData();
+  }
+};
+_loadData();
+const _saveData = () => {
+  localStorage.setItem('data', JSON.stringify(data));
+};
+const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
+const ONE_ADDRESS  = '0x0000000000000000000000000000000000000001';
+const _getUserAddress = () => user ? user.eth.defaultAccount : ONE_ADDRESS;
+const _isInMultiverse = () => trayMesh.mapMesh.minimapMesh.material.uniforms.uType.value === 1;
+const _getKey = (x, z) => [x, z].join(':');
+const _getToken = async (x, z) => {
+  if (_isInMultiverse()) {
+    return await user.execute({
+      method: 'getToken',
+      data: {
+        x,
+        y: z,
+      },
+    });
+  } else {
+    return data.tokens[_getKey(x, z)] || {
+      owner: ONE_ADDRESS,
+      id: 0,
+      x,
+      y: z,
+      lastTimestamp: 0,
+      sceneId: 0,
+    };
+  }
+};
+const _getScene = async sceneId => {
+  if (_isInMultiverse()) {
+    return await user.execute({
+      method: 'getScene',
+      data: {
+        sceneId,
+      },
+    });
+  } else {
+    return data.scenes[sceneId];
+  }
+};
+const _setScene = async (coords, apps) => {
+  if (_isInMultiverse()) {
+    return await user.execute({
+      method: 'setScene',
+      data: {
+        coords,
+        apps,
+      },
+    });
+  } else {
+    const sceneId = ++data.sceneIds;
+    for (let i = 0; i < coords.length; i++) {
+      const [x, z] = coords[i];
+      const key = _getKey(x, z);
+      let token = data.tokens[key];
+      if (!token) {
+        token = data.tokens[key] = {
+          owner: '0x000000000000000000000000000000000000000000',
+          id: ++data.tokenIds,
+          x,
+          y: z,
+          lastTimestamp: 0,
+          sceneId: 0,
+        };
+      }
+      if (token.sceneId) {
+        const oldScene = data.scenes[token.sceneId];
+        for (let j = 0; j < oldScene.coords.length; j++) {
+          const oldCoord = oldScene.coords[j];
+          const oldToken = (() => {
+            for (const k in data.tokens) {
+              const token = data.tokens[k];
+              if (token.x === oldCoord[0] && token.y === oldCoord[1]) {
+                return token;
+              }
+            }
+            return null;
+          })();
+          if (oldToken) {
+            oldToken.sceneId = 0;
+          }
+        }
+        delete data.scenes[token.sceneId];
+      }
+      token.sceneId = sceneId;
+    }
+    const scene = {
+      id: sceneId,
+      coords,
+      apps,
+    };
+    data.scenes[sceneId] = scene;
+    _saveData();
+    return sceneId;
+  }
+};
+const _makeSceneObjectMesh = () => {
   const object = new THREE.Object3D();
-  // object.visible = false;
+  object.token = null;
+  object.apps = [];
   object.update = () => {
     for (let i = 0; i < object.children.length; i++) {
       object.children[i].update();
@@ -1848,31 +1966,116 @@ const _makeMiningChunk = (x, z) => {
     for (let i = 0; i < object.children.length; i++) {
       object.children[i].destroy();
     }
+    if (object.token === selectedSceneToken) {
+      selectedSceneToken = null;
+
+      lastSceneCoords[0] = NaN;
+      lastSceneCoords[1] = NaN;
+    }
+    if (object.token === currentSceneToken) {
+      currentSceneToken = null;
+
+      lastSceneCoords[0] = NaN;
+      lastSceneCoords[1] = NaN;
+    }
+    for (let i = 0; i < object.apps.length; i++) {
+      const iconMesh = object.apps[i];
+      _removeApp(iconMesh);
+      _destroyApp(iconMesh);
+    }
   };
-  user.execute({
-    method: 'getToken',
-    data: {
-      x,
-      y: z,
-    },
-  })
+  return object;
+};
+const _loadSceneMeshFromCoords = (x, z) => {
+  const object = _makeSceneObjectMesh();
+  object.token = {
+    id: 0,
+    coords: [[x, z]],
+    apps: [],
+  };
+  _getToken(x, z)
     .then(token => {
-      // console.log('got token', token, {x, z});
-      if (token && token.id) {
-        const miningMesh = _makeMiningPlaceholder(x, z, token);
-        object.add(miningMesh);
-        // object.visible = true;
-      } else {
-        const miningMesh = _makeMiningMesh(x, z);
-        object.add(miningMesh);
-        // object.visible = true;
+      const {sceneId, owner} = token;
+      const _isValid = () => !sceneId || !sceneMeshes.some(sceneMesh => sceneMesh.token.id === sceneId);
+      if (_isValid()) {
+        const _setDefaultSubMesh = () => {
+          if (_isInMultiverse() && owner === NULL_ADDRESS) {
+            const sceneSubMesh = _makeMiningMesh(token.x, token.y);
+            object.add(sceneSubMesh);
+          } else {
+            const sceneSubMesh = _makeMiningPlaceholderMesh(x, z, owner);
+            object.add(sceneSubMesh);
+          }
+        };
+
+        if (sceneId) {
+          object.token.id = sceneId;
+          _getScene(sceneId)
+            .then(token => {
+              object.token = token;
+              const {coords, apps} = token;
+              object.token.apps = []; // re-added below below
+
+              for (let i = 0; i < apps.length; i++) {
+                const app = apps[i];
+                const {appType: type, url, position, orientation} = app;
+                const iconMesh = _makeIconMesh(url, faviconImg, type, () => {
+                  selectedIconCoord.set(iconMesh.x, iconMesh.y);
+                  trayMesh.labelMesh.textMesh.setText(iconMesh.url);
+                }, i => {
+                  _moveApp(iconMesh, i);
+                }, () => {
+                  _removeApp(iconMesh);
+                  _destroyApp(iconMesh)
+                }, true);
+                _addApp(iconMesh);
+                iconMesh.moveMesh.position.fromArray(position);
+                iconMesh.moveMesh.quaternion.fromArray(orientation);
+                iconMesh.iframe.position = position;
+                iconMesh.iframe.orientation = orientation;
+                iconMesh.setSceneBinding(object);
+              }
+
+              console.log('apps vs', apps.length, object.token.apps.length);
+
+              if (owner !== NULL_ADDRESS) {
+                for (let i = 0; i < coords.length; i++) {
+                  const [x, z] = coords[i];
+                  const sceneSubMesh = _makeMiningPlaceholderMesh(x, z, owner);
+                  object.add(sceneSubMesh);
+                }
+              } else if (_isInMultiverse()) {
+                for (let i = 0; i < coords.length; i++) {
+                  const [x, z] = coords[i];
+                  const sceneSubMesh = _makeMiningMesh(x, z);
+                  object.add(sceneSubMesh);
+                }
+              }
+
+              lastSceneCoords[0] = NaN;
+              lastSceneCoords[1] = NaN;
+            });
+        } else {
+          _setDefaultSubMesh();
+        }
+      } else { // other scene beat us to it
+        object.destroy();
+        const index = sceneMeshes.indexOf(object);
+        scene.remove(object);
+        sceneMeshes.splice(sceneMeshes.indexOf(object), 1);
+        console.log('remove scene', sceneId, index, sceneMeshes.length);
       }
-    })
-    .catch(err => {
-      console.warn(err.stack);
     });
   return object;
 };
+/* const _loadSceneSubMeshFromCoords = (x, z) => _getToken(x, z)
+  .then(token => {
+    // console.log('got token', token, {x, z});
+    return (token && token.id) ?
+      _makeMiningPlaceholderMesh(token.x, token.y, token)
+    :
+      _makeMiningMesh(token.x, token.y, token);
+  }); */
 
 const _makeLabelMesh = s => {
   const width = 2;
@@ -2226,17 +2429,28 @@ const _makeIconMesh = (url, img, type, onclick, oncrosshair, onclose, pagable) =
     mesh.y = newY;
   };
   mesh.scene = null;
-  mesh.setSceneBinding = newScene => {
-    if (newScene) {
-      newScene.apps.push(mesh);
+  mesh.setSceneBinding = newSceneMesh => {
+    if (newSceneMesh) {
+      newSceneMesh.apps.push(mesh);
+      newSceneMesh.token.apps.push({
+        appType: mesh.type,
+        url: mesh.url,
+        position: mesh.moveMesh.position.toArray(),
+        orientation: mesh.moveMesh.quaternion.toArray(),
+      });
+      _saveData();
+
       mesh.moveMesh.material.color.setHex(0x9ccc65);
     } else {
       if (mesh.scene) {
-        mesh.scene.apps.splice(mesh.scene.apps.indexOf(mesh), 1);
+        const index = mesh.scene.apps.indexOf(mesh);
+        mesh.scene.apps.splice(index, 1);
+        mesh.scene.token.apps.splice(index, 1);
+        _saveData();
       }
       mesh.moveMesh.material.color.setHex(0x333333);
     }
-    mesh.scene = newScene;
+    mesh.scene = newSceneMesh;
   };
   mesh.update = page => {
     const _select = () => {
@@ -2392,7 +2606,7 @@ const _moveApp = (iconMesh, i) => {
 
   moveSpecs[i] = {
     iconMesh,
-    snapScene: null,
+    snapSceneMesh: null,
   };
 };
 const _removeApp = iconMesh => {
@@ -2430,12 +2644,13 @@ const _removeApp = iconMesh => {
 const _destroyApp = iconMesh => {
   iconMesh.destroy();
 
-  for (let i = 0; i < scenes.length; i++) {
-    const scene = scenes[i];
+  for (let i = 0; i < sceneMeshes.length; i++) {
+    const sceneMesh = sceneMeshes[i];
     for (;;) {
-      const index = scene.apps.indexOf(iconMesh);
+      const index = sceneMesh.apps.indexOf(iconMesh);
       if (index !== -1) {
-        scene.apps.splice(index, 1);
+        sceneMesh.apps.splice(index, 1);
+        sceneMesh.token.apps.splice(index, 1);
       } else {
         break;
       }
@@ -2571,23 +2786,37 @@ const trayMesh = (() => {
       if (user) {
         mapMesh.positionOffset.y = 0.1;
         mapMesh.minimapMesh.material.uniforms.uType.value = 1;
-        // miningMesh.visible = true;
+
+        for (let i = 0; i < sceneMeshes.length; i++) {
+          const sceneMesh = sceneMeshes[i];
+          sceneMesh.destroy();
+          scene.remove(sceneMesh);
+        }
+        sceneMeshes.length = 0;
       }
     }],
     [chevronDownImg, 4, 0, () => {
       console.log('down');
       mapMesh.positionOffset.y = 0;
       mapMesh.minimapMesh.material.uniforms.uType.value = 0;
-      // miningMesh.visible = false;
+
+      for (let i = 0; i < sceneMeshes.length; i++) {
+        const sceneMesh = sceneMeshes[i];
+        sceneMesh.destroy();
+        scene.remove(sceneMesh);
+      }
+      sceneMeshes.length = 0;
     }],
     [saveImg, 4, 2, () => {
-      if (selectedScene) {
-        const {coords} = selectedScene;
+      if (selectedSceneToken) {
+        const {coords} = selectedSceneToken;
+        const tokenApps = [];
         const apps = [];
+        const children = [];
         for (;;) {
-          const index = scenes.findIndex(scene => {
-            for (let i = 0; i < scene.coords.length; i++) {
-              const coord = scene.coords[i];
+          const index = sceneMeshes.findIndex(sceneMesh => {
+            for (let i = 0; i < sceneMesh.token.coords.length; i++) {
+              const coord = sceneMesh.token.coords[i];
               for (let j = 0; j < coords.length; j++) {
                 const coord2 = coords[j];
                 if (coord[0] === coord2[0] && coord[1] === coord2[1]) {
@@ -2598,9 +2827,9 @@ const trayMesh = (() => {
             return false;
           });
           if (index !== -1) {
-            const scene = scenes[index];
-            for (let i = 0; i < scene.apps.length; i++) {
-              const iconMesh = scene.apps[i];
+            const sceneMesh = sceneMeshes[index];
+            for (let i = 0; i < sceneMesh.apps.length; i++) {
+              const iconMesh = sceneMesh.apps[i];
               if (coords.some(coord => {
                 const minX = coord[0]*7 - 3 - 0.5;
                 const maxX = (coord[0]+1)*7 - 3 - 0.5;
@@ -2608,25 +2837,44 @@ const trayMesh = (() => {
                 const maxY = (coord[1]+1)*7 - 3 - 0.5;
                 return iconMesh.moveMesh.position.x >= minX && iconMesh.moveMesh.position.x < maxX && iconMesh.moveMesh.position.z >= minY && iconMesh.moveMesh.position.z < maxY;
               })) {
+                tokenApps.push(sceneMesh.token.apps[i]);
                 apps.push(iconMesh);
+              } else {
+                _removeApp(iconMesh);
+                _destroyApp(iconMesh);
               }
             }
-
-            scenes.splice(index, 1);
+            children.push.apply(children, sceneMesh.children);
+            sceneMesh.apps = [];
+            sceneMesh.children = [];
+            sceneMesh.destroy();
+            scene.remove(sceneMesh);
+            sceneMeshes.splice(index, 1);
           } else {
             break;
           }
         }
 
-        scenes.push({
-          coords: coords.slice(),
-          apps: apps,
-        });
+        _setScene(coords.slice(), tokenApps)
+          .then(sceneId => {
+            const sceneMesh = _makeSceneObjectMesh();
+            sceneMesh.token = {
+              id: sceneId,
+              coords: coords.slice(),
+              apps: tokenApps,
+            };
+            sceneMesh.apps = apps;
+            for (let i = 0; i < children.length; i++) {
+              sceneMesh.add(children[i]);
+            }
+            scene.add(sceneMesh);
+            sceneMeshes.push(sceneMesh);
 
-        selectedScene = null;
+            selectedSceneToken = null;
 
-        lastSceneCoords[0] = NaN;
-        lastSceneCoords[1] = NaN;
+            lastSceneCoords[0] = NaN;
+            lastSceneCoords[1] = NaN;
+          });
       }
     }],
   ].forEach(([img, x, y, onclick]) => {
@@ -3441,7 +3689,7 @@ const _makePointMesh = (sx, sy, sz, ox, oy, oz, ow) => {
 };
 const _getIntersectionCandidates = () => renderScene === scene ?
     trayMesh.getIntersectionCandidates()
-      .concat(Object.keys(miningMeshes).map(k => miningMeshes[k]))
+      .concat(sceneMeshes)
   :
     [loginMesh, paymentMesh].flatMap(mesh => mesh.getIntersectionCandidates());
 const _makeBrowserMesh = (sx, sy, sz, ox, oy, oz, ow, color) => {
@@ -4478,8 +4726,14 @@ function animate(time, frame) {
           let intersection = floorMesh.intersect(localRay, i);
           if (intersection) {
             const coords = [Math.floor((intersection.point.x + 3 + 0.5) / 7), Math.floor((intersection.point.z + 3 + 0.5) / 7)];
-            const targetScene = (currentSceneSpec && currentSceneSpec.coords.some(coords2 => coords2[0] === coords[0] && coords2[1] === coords[1])) ? currentSceneSpec : null;
-            if (targetScene) {
+            const targetSceneMesh = (() => {
+              if (currentSceneToken && currentSceneToken.coords.some(coords2 => coords2[0] === coords[0] && coords2[1] === coords[1])) {
+                return sceneMeshes.find(sceneMesh => sceneMesh.token === currentSceneToken);
+              } else {
+                return null;
+              }
+            })();
+            if (targetSceneMesh) {
               const x = Math.floor(intersection.point.x + 0.5);
               const y = Math.floor(intersection.point.z + 0.5);
               localVector.set(x, intersection.point.y + 1, y);
@@ -4489,14 +4743,14 @@ function animate(time, frame) {
               const old = localEuler.y;
               localEuler.y = Math.round((localEuler.y < 0 ? (localEuler.y+Math.PI*2) : localEuler.y) / (Math.PI/2)) * (Math.PI/2);
               localQuaternion.setFromEuler(localEuler);
-              moveSpec.snapScene = targetScene;
+              moveSpec.snapSceneMesh = targetSceneMesh;
             } else {
               intersection = null;
             }
           }
           if (!intersection) {
             localVector.fromArray(gamepad.pose.position).add(localVector2.set(0, 0, -3).applyQuaternion(localQuaternion));
-            moveSpec.snapScene = null;
+            moveSpec.snapSceneMesh = null;
           }
 
           moveMesh.position.copy(localVector);
@@ -4518,33 +4772,31 @@ function animate(time, frame) {
       lastSceneCoords[0] = coords[0];
       lastSceneCoords[1] = coords[1];
 
-      const oldSceneSpec = currentSceneSpec;
-      const newSceneSpec = scenes.find(sceneSpec => sceneSpec.coords.some(coords2 => coords2[0] === coords[0] && coords2[1] === coords[1])) || null;
-      if (oldSceneSpec && oldSceneSpec !== newSceneSpec) {
-        for (let i = 0; i < oldSceneSpec.apps.length; i++) {
-          _removeApp(oldSceneSpec.apps[i]);
+      const oldSceneMesh = sceneMeshes.find(sceneMesh => sceneMesh.token === currentSceneToken) || null;
+      const newSceneMesh = (() => {
+        for (let i = 0; i < sceneMeshes.length; i++) {
+          const sceneMesh = sceneMeshes[i];
+          if (sceneMesh.token.coords.some(coords2 => coords2[0] === coords[0] && coords2[1] === coords[1])) {
+            return sceneMesh;
+          }
+        }
+        return null;
+      })();
+      if (!oldSceneMesh || oldSceneMesh !== newSceneMesh) {
+        const apps = trayMesh.appIconMeshes.children.filter(iconMesh => iconMesh.closeMesh);
+        for (let i = 0; i < apps.length; i++) {
+          _removeApp(apps[i]);
         }
       }
-      if (newSceneSpec && newSceneSpec !== oldSceneSpec) {
-        for (let i = 0; i < newSceneSpec.apps.length; i++) {
-          _addApp(newSceneSpec.apps[i]);
+      if (newSceneMesh && newSceneMesh !== oldSceneMesh) {
+        for (let i = 0; i < newSceneMesh.apps.length; i++) {
+          _addApp(newSceneMesh.apps[i]);
         }
       }
 
-      currentSceneSpec = newSceneSpec;
+      currentSceneToken = newSceneMesh && newSceneMesh.token;
 
       if (trayMesh.visible) {
-        let currentSceneColor;
-        if (currentSceneSpec) {
-          currentSceneColor = 0x9ccc65;
-        } else {
-          currentSceneSpec = {
-            coords: [coords],
-            apps: [],
-          };
-          currentSceneColor = 0xef5350;
-        }
-
         for (let i = 0; i < guardianMeshes.length; i++) {
           const guardianMesh = guardianMeshes[i];
           guardianMesh.destroy();
@@ -4556,52 +4808,60 @@ function animate(time, frame) {
           scene.remove(baseMesh);
         }
 
-        for (let i = 0; i < scenes.length; i++) {
-          const sceneSpec = scenes[i];
-          if (sceneSpec !== currentSceneSpec && sceneSpec !== selectedScene) {
-            const baseMesh = _makeBaseMesh(sceneSpec, 0x5c6bc0);
+        for (let i = 0; i < sceneMeshes.length; i++) {
+          const sceneMesh = sceneMeshes[i];
+          if (sceneMesh.token.id !== 0 && sceneMesh.token !== currentSceneToken && sceneMesh.token !== selectedSceneToken) {
+            const baseMesh = _makeBaseMesh(sceneMesh.token, 0x5c6bc0);
             _insertBefore(baseMesh, floorMesh);
             baseMeshes.push(baseMesh);
           }
         }
 
-        if (currentSceneSpec) {
-          const guardianMesh = _makeGuardianMesh(currentSceneSpec, currentSceneColor);
+        {
+          const sceneToken = currentSceneToken || {
+            id: 0,
+            coords: [coords],
+            apps: [],
+          };
+          const sceneColor = sceneToken.id !== 0 ? 0x9ccc65 : 0xef5350;
+
+          const guardianMesh = _makeGuardianMesh(sceneToken, sceneColor);
           scene.add(guardianMesh);
           guardianMeshes.push(guardianMesh);
-          const baseMesh = _makeBaseMesh(currentSceneSpec, currentSceneColor);
+          const baseMesh = _makeBaseMesh(sceneToken, sceneColor);
           _insertBefore(baseMesh, floorMesh);
           baseMeshes.push(baseMesh);
         }
-        if (selectedScene) {
-          const baseMesh = _makeBaseMesh(selectedScene, 0x808080); // 0x42a5f5
+        if (selectedSceneToken) {
+          const baseMesh = _makeBaseMesh(selectedSceneToken, 0x808080); // 0x42a5f5
           _insertBefore(baseMesh, floorMesh);
           baseMeshes.push(baseMesh);
         }
       }
 
-      if (user) {
+      // if (user) {
         const neededKeys = {};
         for (let dx = coords[0] - 1; dx <= coords[0] + 1; dx++) {
           for (let dz = coords[1] - 1; dz <= coords[1] + 1; dz++) {
-            const key = _getKey(dx, dz);
-            if (!miningMeshes[key]) {
-              const miningChunk = _makeMiningChunk(dx, dz);
-              scene.add(miningChunk);
-              miningMeshes[key] = miningChunk;
+            let sceneMesh = sceneMeshes.find(sceneMesh => sceneMesh.token.coords.some(coord => coord[0] === dx && coord[1] === dz))
+            if (!sceneMesh) {
+              sceneMesh = _loadSceneMeshFromCoords(dx, dz);
+              scene.add(sceneMesh);
+              sceneMeshes.push(sceneMesh);
             }
-            neededKeys[key] = true;
+            neededKeys[_getKey(dx, dz)] = true;
           }
         }
-        for (const k in miningMeshes) {
-          if (!neededKeys[k]) {
-            const miningMesh = miningMeshes[k];
-            miningMesh.destroy();
-            scene.remove(miningMesh);
-            delete miningMeshes[k];
+        for (;;) {
+          const index = sceneMeshes.findIndex(sceneMesh => !sceneMesh.token.coords.some(coord => neededKeys[_getKey(coord[0], coord[1])]));
+          if (index !== -1) {
+            sceneMeshes[index].destroy();
+            sceneMeshes.splice(index, 1);
+          } else {
+            break;
           }
         }
-      }
+      // }
     }
   };
   _updateScene();
@@ -4651,12 +4911,12 @@ function animate(time, frame) {
   };
   _updateIntersections();
 
-  const _updateMiningMeshes = () => {
-    for (const k in miningMeshes) {
-      miningMeshes[k].update();
+  const _updateSceneMeshes = () => {
+    for (const k in sceneMeshes) {
+      sceneMeshes[k].update();
     }
   };
-  _updateMiningMeshes();
+  _updateSceneMeshes();
 
   const _handleTrigger = (gamepad, i, pressed, lastPressed) => {
     const start = pressed && !lastPressed;
@@ -4671,8 +4931,8 @@ function animate(time, frame) {
 
     if (pressed && !lastPressed && moveSpecs[i]) {
       const moveSpec = moveSpecs[i];
-      if (moveSpec.snapScene) {
-        moveSpec.iconMesh.setSceneBinding(moveSpec.snapScene);
+      if (moveSpec.snapSceneMesh) {
+        moveSpec.iconMesh.setSceneBinding(moveSpec.snapSceneMesh);
       }
       moveSpecs[i] = null;
     } else {
@@ -4714,29 +4974,38 @@ function animate(time, frame) {
             const y = Math.floor((intersectionSpec.y + 3 + 0.5)/7);
             const gamepads = navigator.getGamepads();
             const gripped = !!(gamepads[1] && gamepads[1].buttons[2].pressed);
-            const targetScene = scenes.find(scene => scene.coords.some(coord => coord[0] === x && coord[1] === y));
-            const targetScenePartiallySelected = !!(targetScene && selectedScene && targetScene.coords.some(coord => selectedScene.coords.some(coord2 => coord[0] === coord2[0] && coord[1] === coord2[1])));
-            if (selectedScene && !gripped) {
-              selectedScene = null;
+            const targetScene = (() => {
+              for (const k in sceneMeshes) {
+                const sceneMesh = sceneMeshes[k];
+                if (sceneMesh.token.coords.some(coord => coord[0] === x && coord[1] === y)) {
+                  return sceneMesh;
+                }
+              }
+              return null;
+            })();
+            const targetScenePartiallySelected = !!(targetScene && selectedSceneToken && targetScene.token.coords.some(coord => selectedSceneToken.coords.some(coord2 => coord[0] === coord2[0] && coord[1] === coord2[1])));
+            if (selectedSceneToken && !gripped) {
+              selectedSceneToken = null;
             }
-            if (!selectedScene) {
-              selectedScene = {
+            if (!selectedSceneToken) {
+              selectedSceneToken = {
+                id: 0,
                 coords: [],
                 apps: [],
               };
             }
-            const coordsToAdd = (targetScene && !targetScenePartiallySelected) ? targetScene.coords.slice() : [[x, y]];
+            const coordsToAdd = (targetScene && !targetScenePartiallySelected) ? targetScene.token.coords.slice() : [[x, y]];
             for (let i = 0; i < coordsToAdd.length; i++) {
               const coordToAdd = coordsToAdd[i];
-              const index = selectedScene.coords.findIndex(coord => coord[0] === coordToAdd[0] && coord[1] === coordToAdd[1]);
+              const index = selectedSceneToken.coords.findIndex(coord => coord[0] === coordToAdd[0] && coord[1] === coordToAdd[1]);
               if (index !== -1) {
-                selectedScene.coords.splice(index, 1);
+                selectedSceneToken.coords.splice(index, 1);
               } else {
-                selectedScene.coords.push([coordToAdd[0], coordToAdd[1]]);
+                selectedSceneToken.coords.push([coordToAdd[0], coordToAdd[1]]);
               }
             }
-            if (selectedScene.coords.length === 0) {
-              selectedScene = null;
+            if (selectedSceneToken.coords.length === 0) {
+              selectedSceneToken = null;
             }
 
             lastSceneCoords[0] = NaN;
