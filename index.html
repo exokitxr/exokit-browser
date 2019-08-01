@@ -2440,29 +2440,42 @@ const _makeIconMesh = (url, img, type, onclick, oncrosshair, onclose, pagable) =
     mesh.y = newY;
   };
   mesh.scene = null;
-  mesh.setSceneBinding = newSceneMesh => {
+  const _makeSetSceneBinding = (_save = () => Promise.resolve()) => newSceneMesh => {
     if (newSceneMesh) {
-      newSceneMesh.apps.push(mesh);
-      newSceneMesh.token.apps.push({
+      const tokenApps = newSceneMesh.token.apps.concat([{
         appType: mesh.type,
         url: mesh.url,
         position: mesh.moveMesh.position.toArray(),
         orientation: mesh.moveMesh.quaternion.toArray(),
-      });
-      _saveData();
+      }]);
+      const apps = newSceneMesh.apps.concat([mesh]);
+      _save(newSceneMesh.token.id, tokenApps)
+        .then(() => {
+          newSceneMesh.apps = apps;
+          newSceneMesh.token.apps = tokenApps;
 
-      mesh.moveMesh.material.color.setHex(0x9ccc65);
+          mesh.moveMesh.material.color.setHex(0x9ccc65);
+        });
     } else {
       if (mesh.scene) {
         const index = mesh.scene.apps.indexOf(mesh);
-        mesh.scene.apps.splice(index, 1);
-        mesh.scene.token.apps.splice(index, 1);
-        _saveData();
+        const tokenApps = mesh.scene.token.apps.slice();
+        tokenApps.splice(index, 1);
+        const apps = mesh.scene.apps.slice();
+        apps.splice(index, 1);
+        _save(newSceneMesh.token.id, tokenApps)
+          .then(() => {
+            mesh.scene.token.apps = tokenApps;
+            mesh.scene.apps = apps;
+
+            mesh.moveMesh.material.color.setHex(0x333333);
+          });
       }
-      mesh.moveMesh.material.color.setHex(0x333333);
     }
     mesh.scene = newSceneMesh;
   };
+  mesh.setSceneBinding = _makeSetSceneBinding(_setSceneApps);
+  mesh.setSceneBindingRaw = _makeSetSceneBinding();
   mesh.update = page => {
     const _select = () => {
       mesh.material.uniforms.uColor.value = new THREE.Color(0x9ccc65);
