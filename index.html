@@ -1760,13 +1760,33 @@ const _makeMiningMesh = (x, z/*, token*/) => {
           })
           .then(() => {
             console.log('mined', {x, z});
-            /* queue.push(async () => {
-              _unloadScene(_getKey(x, z));
-              lastChunkLoaded[0] = NaN;
-              lastChunkLoaded[1] = NaN;
-              _refresh();
-            });
-            _tick(); */
+
+            for (;;) {
+              const index = sceneMeshes.findIndex(sceneMesh => sceneMesh.token.coords.some(coord => coord[0] === x && coord[1] === z));
+              if (index !== -1) {
+                const sceneMesh = sceneMeshes[index];
+                sceneMesh.destroy();
+                scene.remove(sceneMesh);
+                sceneMeshes.splice(index, 1);
+              } else {
+                break;
+              }
+            }
+
+            const sceneMesh = _makeSceneObjectMesh();
+            sceneMesh.token = {
+              id: 0,
+              coords: [[x, z]],
+              apps: [],
+              owner: _getUserAddress(),
+            };
+            scene.add(sceneMesh);
+            sceneMeshes.push(sceneMesh);
+
+            selectedSceneToken = null;
+
+            lastSceneCoords[0] = NaN;
+            lastSceneCoords[1] = NaN;
           });
       }
     });
