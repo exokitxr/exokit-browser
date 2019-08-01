@@ -1886,26 +1886,28 @@ const _getToken = async (x, z) => {
       },
     });
   } else {
-    return data.tokens[_getKey(x, z)] || {
-      owner: ONE_ADDRESS,
+    const token = data.tokens[_getKey(x, z)] || {
+      owner: NULL_ADDRESS,
       id: 0,
       x,
       y: z,
       lastTimestamp: 0,
-      sceneId: 0,
     };
-  }
-};
-const _getScene = async sceneId => {
-  if (_isInMultiverse()) {
-    return await user.execute({
-      method: 'getScene',
-      data: {
-        sceneId,
-      },
-    });
-  } else {
-    return data.scenes[sceneId];
+    token.scene = (() => {
+      for (const k in data.scenes) {
+        const scene = data.scenes[k];
+        if (scene.coords.some(coord => coord[0] === x && coord[1] === z)) {
+          return scene;
+        }
+      }
+      return {
+        id: 0,
+        coords: [[x, z]],
+        apps: [],
+        owner: NULL_ADDRESS,
+      };
+    })();
+    return token;
   }
 };
 const _setScene = async (coords, apps) => {
@@ -1958,10 +1960,25 @@ const _setScene = async (coords, apps) => {
       id: sceneId,
       coords,
       apps,
+      owner: _getUserAddress(),
     };
     data.scenes[sceneId] = scene;
     _saveData();
     return sceneId;
+  }
+};
+const _setSceneApps = async (sceneId, apps) => {
+  if (_isInMultiverse()) {
+    return await user.execute({
+      method: 'setSceneApps',
+      data: {
+        sceneId,
+        apps,
+      },
+    });
+  } else {
+    data.scenes[sceneId].apps = apps;
+    _saveData();
   }
 };
 const _makeSceneObjectMesh = () => {
@@ -2012,11 +2029,12 @@ const _loadSceneMeshFromCoords = (x, z) => {
     id: 0,
     coords: [[x, z]],
     apps: [],
+    owner: NULL_ADDRESS,
   };
   _getToken(x, z)
     .then(token => {
-      const {sceneId, owner} = token;
-      const _isValid = () => !sceneId || !sceneMeshes.some(sceneMesh => sceneMesh.token.id === sceneId);
+      const {scene: sceneSpec, owner} = token;
+      const _isValid = () => !sceneSpec.id || !sceneMeshes.some(sceneMesh => sceneMesh.token.id === sceneSpec.id);
       if (_isValid()) {
         const _setDefaultSubMesh = () => {
           if (_isInMultiverse() && owner === NULL_ADDRESS) {
@@ -2028,53 +2046,48 @@ const _loadSceneMeshFromCoords = (x, z) => {
           }
         };
 
-        if (sceneId) {
-          object.token.id = sceneId;
-          _getScene(sceneId)
-            .then(token => {
-              object.token = token;
-              const {coords, apps} = token;
-              object.token.apps = []; // re-added below below
+        object.token = sceneSpec;
+        if (sceneSpec.id) {
+          const {coords, apps} = sceneSpec;
+          object.token.apps = []; // re-added below below
 
-              for (let i = 0; i < apps.length; i++) {
-                const app = apps[i];
-                const {appType: type, url, position, orientation} = app;
-                const iconMesh = _makeIconMesh(url, faviconImg, type, () => {
-                  selectedIconCoord.set(iconMesh.x, iconMesh.y);
-                  trayMesh.labelMesh.textMesh.setText(iconMesh.url);
-                }, i => {
-                  _moveApp(iconMesh, i);
-                }, () => {
-                  _removeApp(iconMesh);
-                  _destroyApp(iconMesh)
-                }, true);
-                _addApp(iconMesh);
-                iconMesh.moveMesh.position.fromArray(position);
-                iconMesh.moveMesh.quaternion.fromArray(orientation);
-                iconMesh.iframe.position = position;
-                iconMesh.iframe.orientation = orientation;
-                iconMesh.setSceneBinding(object);
-              }
+          for (let i = 0; i < apps.length; i++) {
+            const app = apps[i];
+            const {appType: type, url, position, orientation} = app;
+            const iconMesh = _makeIconMesh(url, faviconImg, type, () => {
+              selectedIconCoord.set(iconMesh.x, iconMesh.y);
+              trayMesh.labelMesh.textMesh.setText(iconMesh.url);
+            }, i => {
+              _moveApp(iconMesh, i);
+            }, () => {
+              _removeApp(iconMesh);
+              _destroyApp(iconMesh)
+            }, true);
+            _addApp(iconMesh);
+            iconMesh.moveMesh.position.fromArray(position);
+            iconMesh.moveMesh.quaternion.fromArray(orientation);
+            iconMesh.iframe.position = position;
+            iconMesh.iframe.orientation = orientation;
+            iconMesh.setSceneBindingRaw(object);
+            console.log('load app', app, object.apps, object.token.apps);
+          }
 
-              console.log('apps vs', apps.length, object.token.apps.length);
+          if (owner !== NULL_ADDRESS) {
+            for (let i = 0; i < coords.length; i++) {
+              const [x, z] = coords[i];
+              const sceneSubMesh = _makeMiningPlaceholderMesh(x, z, owner);
+              object.add(sceneSubMesh);
+            }
+          } else if (_isInMultiverse()) {
+            for (let i = 0; i < coords.length; i++) {
+              const [x, z] = coords[i];
+              const sceneSubMesh = _makeMiningMesh(x, z);
+              object.add(sceneSubMesh);
+            }
+          }
 
-              if (owner !== NULL_ADDRESS) {
-                for (let i = 0; i < coords.length; i++) {
-                  const [x, z] = coords[i];
-                  const sceneSubMesh = _makeMiningPlaceholderMesh(x, z, owner);
-                  object.add(sceneSubMesh);
-                }
-              } else if (_isInMultiverse()) {
-                for (let i = 0; i < coords.length; i++) {
-                  const [x, z] = coords[i];
-                  const sceneSubMesh = _makeMiningMesh(x, z);
-                  object.add(sceneSubMesh);
-                }
-              }
-
-              lastSceneCoords[0] = NaN;
-              lastSceneCoords[1] = NaN;
-            });
+          lastSceneCoords[0] = NaN;
+          lastSceneCoords[1] = NaN;
         } else {
           _setDefaultSubMesh();
         }
@@ -2833,59 +2846,63 @@ const trayMesh = (() => {
     }],
     [saveImg, 4, 2, () => {
       if (selectedSceneToken) {
-        const {coords} = selectedSceneToken;
+        const coords = selectedSceneToken.coords.slice();
         const tokenApps = [];
         const apps = [];
-        const children = [];
-        for (;;) {
-          const index = sceneMeshes.findIndex(sceneMesh => {
-            for (let i = 0; i < sceneMesh.token.coords.length; i++) {
-              const coord = sceneMesh.token.coords[i];
-              for (let j = 0; j < coords.length; j++) {
-                const coord2 = coords[j];
-                if (coord[0] === coord2[0] && coord[1] === coord2[1]) {
-                  return true;
-                }
+        const selectedSceneMeshes = sceneMeshes.filter(sceneMesh => {
+          for (let i = 0; i < sceneMesh.token.coords.length; i++) {
+            const coord = sceneMesh.token.coords[i];
+            for (let j = 0; j < coords.length; j++) {
+              const coord2 = coords[j];
+              if (coord[0] === coord2[0] && coord[1] === coord2[1]) {
+                return true;
               }
             }
-            return false;
-          });
-          if (index !== -1) {
-            const sceneMesh = sceneMeshes[index];
-            for (let i = 0; i < sceneMesh.apps.length; i++) {
-              const iconMesh = sceneMesh.apps[i];
-              if (coords.some(coord => {
-                const minX = coord[0]*7 - 3 - 0.5;
-                const maxX = (coord[0]+1)*7 - 3 - 0.5;
-                const minY = coord[1]*7 - 3 - 0.5;
-                const maxY = (coord[1]+1)*7 - 3 - 0.5;
-                return iconMesh.moveMesh.position.x >= minX && iconMesh.moveMesh.position.x < maxX && iconMesh.moveMesh.position.z >= minY && iconMesh.moveMesh.position.z < maxY;
-              })) {
-                tokenApps.push(sceneMesh.token.apps[i]);
-                apps.push(iconMesh);
-              } else {
-                _removeApp(iconMesh);
-                _destroyApp(iconMesh);
-              }
+          }
+          return false;
+        });
+        for (let i = 0; i < selectedSceneMeshes.length; i++) {
+          const sceneMesh = selectedSceneMeshes[i];
+          for (let j = 0; j < sceneMesh.apps.length; j++) {
+            const iconMesh = sceneMesh.apps[j];
+            if (coords.some(coord => {
+              const minX = coord[0]*7 - 3 - 0.5;
+              const maxX = (coord[0]+1)*7 - 3 - 0.5;
+              const minY = coord[1]*7 - 3 - 0.5;
+              const maxY = (coord[1]+1)*7 - 3 - 0.5;
+              return iconMesh.moveMesh.position.x >= minX && iconMesh.moveMesh.position.x < maxX && iconMesh.moveMesh.position.z >= minY && iconMesh.moveMesh.position.z < maxY;
+            })) {
+              tokenApps.push(sceneMesh.token.apps[i]);
+              apps.push(iconMesh);
             }
-            children.push.apply(children, sceneMesh.children);
-            sceneMesh.apps = [];
-            sceneMesh.children = [];
-            sceneMesh.destroy();
-            scene.remove(sceneMesh);
-            sceneMeshes.splice(index, 1);
-          } else {
-            break;
           }
         }
 
-        _setScene(coords.slice(), tokenApps)
+        _setScene(coords, tokenApps)
           .then(sceneId => {
+            const children = [];
+            for (let i = 0; i < selectedSceneMeshes.length; i++) {
+              const oldSceneMesh = selectedSceneMeshes[i];
+              for (let j = 0; j < oldSceneMesh.apps.length; j++) {
+                if (apps.indexOf(oldSceneMesh.apps[j]) === -1) {
+                  _removeApp(iconMesh);
+                  _destroyApp(iconMesh);
+                }
+              }
+              children.push.apply(children, oldSceneMesh.children);
+              oldSceneMesh.apps = [];
+              oldSceneMesh.children = [];
+              oldSceneMesh.destroy();
+              scene.remove(oldSceneMesh);
+              sceneMeshes.splice(sceneMeshes.indexOf(oldSceneMesh), 1);
+            }
+
             const sceneMesh = _makeSceneObjectMesh();
             sceneMesh.token = {
               id: sceneId,
-              coords: coords.slice(),
+              coords,
               apps: tokenApps,
+              owner: _getUserAddress(),
             };
             sceneMesh.apps = apps;
             for (let i = 0; i < children.length; i++) {
