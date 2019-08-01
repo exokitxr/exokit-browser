@@ -2067,14 +2067,6 @@ const _loadSceneMeshFromCoords = (x, z) => {
     });
   return object;
 };
-/* const _loadSceneSubMeshFromCoords = (x, z) => _getToken(x, z)
-  .then(token => {
-    // console.log('got token', token, {x, z});
-    return (token && token.id) ?
-      _makeMiningPlaceholderMesh(token.x, token.y, token)
-    :
-      _makeMiningMesh(token.x, token.y, token);
-  }); */
 
 const _makeLabelMesh = s => {
   const width = 2;
