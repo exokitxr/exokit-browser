@@ -2036,16 +2036,6 @@ const _loadSceneMeshFromCoords = (x, z) => {
       const {scene: sceneSpec, owner} = token;
       const _isValid = () => !sceneSpec.id || !sceneMeshes.some(sceneMesh => sceneMesh.token.id === sceneSpec.id);
       if (_isValid()) {
-        const _setDefaultSubMesh = () => {
-          if (_isInMultiverse() && owner === NULL_ADDRESS) {
-            const sceneSubMesh = _makeMiningMesh(token.x, token.y);
-            object.add(sceneSubMesh);
-          } else {
-            const sceneSubMesh = _makeMiningPlaceholderMesh(x, z, owner);
-            object.add(sceneSubMesh);
-          }
-        };
-
         object.token = sceneSpec;
         if (sceneSpec.id) {
           const {coords, apps} = sceneSpec;
@@ -2097,7 +2087,16 @@ const _loadSceneMeshFromCoords = (x, z) => {
           lastSceneCoords[0] = NaN;
           lastSceneCoords[1] = NaN;
         } else {
-          _setDefaultSubMesh();
+          if (_isInMultiverse() && owner === NULL_ADDRESS) {
+            const sceneSubMesh = _makeMiningMesh(x, z);
+            object.add(sceneSubMesh);
+          } else {
+            const sceneSubMesh = _makeMiningPlaceholderMesh(x, z, owner);
+            object.add(sceneSubMesh);
+          }
+
+          lastSceneCoords[0] = NaN;
+          lastSceneCoords[1] = NaN;
         }
       } else { // other scene beat us to it
         object.destroy();
@@ -4929,31 +4928,29 @@ function animate(time, frame) {
         }
       }
 
-      // if (user) {
-        const neededKeys = {};
-        for (let dx = coords[0] - 1; dx <= coords[0] + 1; dx++) {
-          for (let dz = coords[1] - 1; dz <= coords[1] + 1; dz++) {
-            let sceneMesh = sceneMeshes.find(sceneMesh => sceneMesh.token.coords.some(coord => coord[0] === dx && coord[1] === dz))
-            if (!sceneMesh) {
-              sceneMesh = _loadSceneMeshFromCoords(dx, dz);
-              scene.add(sceneMesh);
-              sceneMeshes.push(sceneMesh);
-            }
-            neededKeys[_getKey(dx, dz)] = true;
+      const neededKeys = {};
+      for (let dx = coords[0] - 1; dx <= coords[0] + 1; dx++) {
+        for (let dz = coords[1] - 1; dz <= coords[1] + 1; dz++) {
+          let sceneMesh = sceneMeshes.find(sceneMesh => sceneMesh.token.coords.some(coord => coord[0] === dx && coord[1] === dz))
+          if (!sceneMesh) {
+            sceneMesh = _loadSceneMeshFromCoords(dx, dz);
+            scene.add(sceneMesh);
+            sceneMeshes.push(sceneMesh);
           }
+          neededKeys[_getKey(dx, dz)] = true;
         }
-        for (;;) {
-          const index = sceneMeshes.findIndex(sceneMesh => !sceneMesh.token.coords.some(coord => neededKeys[_getKey(coord[0], coord[1])]));
-          if (index !== -1) {
-            const sceneMesh = sceneMeshes[index];
-            sceneMesh.destroy();
-            scene.remove(sceneMesh);
-            sceneMeshes.splice(index, 1);
-          } else {
-            break;
-          }
+      }
+      for (;;) {
+        const index = sceneMeshes.findIndex(sceneMesh => !sceneMesh.token.coords.some(coord => neededKeys[_getKey(coord[0], coord[1])]));
+        if (index !== -1) {
+          const sceneMesh = sceneMeshes[index];
+          sceneMesh.destroy();
+          scene.remove(sceneMesh);
+          sceneMeshes.splice(index, 1);
+        } else {
+          break;
         }
-      // }
+      }
     }
   };
   _updateScene();
