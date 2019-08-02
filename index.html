@@ -5400,6 +5400,10 @@ function animate(time, frame) {
             baseMesh.material.uniforms.uAnimation.value = menuFactor;
             baseMesh.visible = true;
           }
+          const opening = start.factor < end.factor;
+          for (let i = 0; i < sceneMeshes.length; i++) {
+            sceneMeshes[i].visible = opening;
+          }
 
           if (f >= 1) {
             if (end.factor === 0) {
