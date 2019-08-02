@@ -2060,10 +2060,18 @@ const _loadSceneMeshFromCoords = (x, z) => {
             }, i => {
               _moveApp(iconMesh, i);
             }, () => {
+              if (iconMesh.scene) {
+                const index = iconMesh.scene.apps.indexOf(iconMesh);
+                if (index !== -1) {
+                  iconMesh.scene.token.apps.splice(index, 1);
+                  // XXX save
+                }
+              }
+
               _removeApp(iconMesh);
-              _destroyApp(iconMesh)
+              _destroyApp(iconMesh);
             }, true);
-            _addApp(iconMesh);
+            // _addApp(iconMesh);
             iconMesh.moveMesh.position.fromArray(position);
             iconMesh.moveMesh.quaternion.fromArray(orientation);
             iconMesh.iframe.position = position;
@@ -2453,7 +2461,7 @@ const _makeIconMesh = (url, img, type, onclick, oncrosshair, onclose, pagable) =
     mesh.y = newY;
   };
   mesh.scene = null;
-  const _makeSetSceneBinding = (_save = () => Promise.resolve()) => newSceneMesh => {
+  const _makeSetSceneBinding = _save => async newSceneMesh => {
     if (newSceneMesh) {
       const tokenApps = newSceneMesh.token.apps.concat([{
         appType: mesh.type,
@@ -2462,27 +2470,32 @@ const _makeIconMesh = (url, img, type, onclick, oncrosshair, onclose, pagable) =
         orientation: mesh.moveMesh.quaternion.toArray(),
       }]);
       const apps = newSceneMesh.apps.concat([mesh]);
-      _save(newSceneMesh.token.id, tokenApps)
-        .then(() => {
-          newSceneMesh.apps = apps;
-          newSceneMesh.token.apps = tokenApps;
 
-          mesh.moveMesh.material.color.setHex(0x9ccc65);
-        });
+      if (_save) {
+        await _save(newSceneMesh.token.id, tokenApps);
+      }
+
+      newSceneMesh.apps = apps;
+      newSceneMesh.token.apps = tokenApps;
+
+      mesh.moveMesh.material.color.setHex(0x9ccc65);
     } else {
-      if (mesh.scene) {
-        const index = mesh.scene.apps.indexOf(mesh);
-        const tokenApps = mesh.scene.token.apps.slice();
+      const {scene: oldScene} = mesh;
+      if (oldScene) {
+        const index = oldScene.apps.indexOf(mesh);
+        const tokenApps = oldScene.token.apps.slice();
         tokenApps.splice(index, 1);
-        const apps = mesh.scene.apps.slice();
+        const apps = oldScene.apps.slice();
         apps.splice(index, 1);
-        _save(newSceneMesh.token.id, tokenApps)
-          .then(() => {
-            mesh.scene.token.apps = tokenApps;
-            mesh.scene.apps = apps;
 
-            mesh.moveMesh.material.color.setHex(0x333333);
-          });
+        if (_save) {
+          await _save(oldScene.token.id, tokenApps);
+        }
+
+        oldScene.token.apps = tokenApps;
+        oldScene.apps = apps;
+
+        mesh.moveMesh.material.color.setHex(0x333333);
       }
     }
     mesh.scene = newSceneMesh;
@@ -2605,8 +2618,16 @@ const _addNewApp = (url, img, type, i) => {
   }, i => {
     _moveApp(iconMesh, i);
   }, () => {
+    if (iconMesh.scene) {
+      const index = iconMesh.scene.apps.indexOf(iconMesh);
+      if (index !== -1) {
+        iconMesh.scene.token.apps.splice(index, 1);
+        // XXX save
+      }
+    }
+
     _removeApp(iconMesh);
-    _destroyApp(iconMesh)
+    _destroyApp(iconMesh);
   }, true);
 
   _addApp(iconMesh);
@@ -2663,18 +2684,17 @@ const _removeApp = iconMesh => {
     layers.splice(layers.indexOf(iconMesh.iframe), 1);
   }
   
-  if (!trayMesh.appIconMeshes.children.some(iconMesh => iconMesh.x === selectedIconCoord.x && iconMesh.y === selectedIconCoord.y)) {
+  // if (!trayMesh.appIconMeshes.children.some(iconMesh => iconMesh.x === selectedIconCoord.x && iconMesh.y === selectedIconCoord.y)) {
+  if (selectedIconMesh === trayMesh.appIconMeshes) {
     if (trayMesh.appIconMeshes.children.some(iconMesh => iconMesh.x === 0 && iconMesh.y === 0)) {
       selectedIconCoord.set(0, 0);
     } else {
       selectedIconMesh = trayMesh.actionIconMeshes;
       selectedIconCoord.set(1, 0);
       selectedIconPage = 0;
-      
+
       trayMesh.labelMesh.textMesh.setText(DEFAULT_URL);
       trayMesh.labelMesh.visible = true;
-      trayMesh.actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
-      trayMesh.mapMesh.localVisible = false;
     }
   }
 };
@@ -2687,7 +2707,6 @@ const _destroyApp = iconMesh => {
       const index = sceneMesh.apps.indexOf(iconMesh);
       if (index !== -1) {
         sceneMesh.apps.splice(index, 1);
-        sceneMesh.token.apps.splice(index, 1);
       } else {
         break;
       }
@@ -2820,7 +2839,7 @@ const trayMesh = (() => {
     }],
     [chevronUpImg, 4, 1, () => {
       console.log('up');
-      if (user) {
+      if (user && !_isInMultiverse()) {
         mapMesh.positionOffset.y = 0.1;
         mapMesh.minimapMesh.material.uniforms.uType.value = 1;
 
@@ -2834,15 +2853,17 @@ const trayMesh = (() => {
     }],
     [chevronDownImg, 4, 0, () => {
       console.log('down');
-      mapMesh.positionOffset.y = 0;
-      mapMesh.minimapMesh.material.uniforms.uType.value = 0;
+      if (_isInMultiverse()) {
+        mapMesh.positionOffset.y = 0;
+        mapMesh.minimapMesh.material.uniforms.uType.value = 0;
 
-      for (let i = 0; i < sceneMeshes.length; i++) {
-        const sceneMesh = sceneMeshes[i];
-        sceneMesh.destroy();
-        scene.remove(sceneMesh);
+        for (let i = 0; i < sceneMeshes.length; i++) {
+          const sceneMesh = sceneMeshes[i];
+          sceneMesh.destroy();
+          scene.remove(sceneMesh);
+        }
+        sceneMeshes.length = 0;
       }
-      sceneMeshes.length = 0;
     }],
     [saveImg, 4, 2, () => {
       if (selectedSceneToken) {
@@ -2872,7 +2893,7 @@ const trayMesh = (() => {
               const maxY = (coord[1]+1)*7 - 3 - 0.5;
               return iconMesh.moveMesh.position.x >= minX && iconMesh.moveMesh.position.x < maxX && iconMesh.moveMesh.position.z >= minY && iconMesh.moveMesh.position.z < maxY;
             })) {
-              tokenApps.push(sceneMesh.token.apps[i]);
+              tokenApps.push(sceneMesh.token.apps[j]);
               apps.push(iconMesh);
             }
           }
@@ -2884,7 +2905,7 @@ const trayMesh = (() => {
             for (let i = 0; i < selectedSceneMeshes.length; i++) {
               const oldSceneMesh = selectedSceneMeshes[i];
               for (let j = 0; j < oldSceneMesh.apps.length; j++) {
-                if (apps.indexOf(oldSceneMesh.apps[j]) === -1) {
+                if (!apps.includes(oldSceneMesh.apps[j])) {
                   _removeApp(iconMesh);
                   _destroyApp(iconMesh);
                 }
