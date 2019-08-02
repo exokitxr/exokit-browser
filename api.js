@@ -163,9 +163,9 @@ async function _execute(spec) {
           return [];
         }
       })();
-      if (coords.some(coord => coord[0] === 0 && coord[1] === 0)) {
+      /* if (coords.some(coord => coord[0] === -1 && coord[1] === 0)) {
         console.log('get scene', sceneResult, owner, coords, apps);
-      }
+      } */
       return {
         owner,
         id: parseInt(tokenResult[1], 10),
@@ -210,7 +210,7 @@ async function _execute(spec) {
         return result;
       })();
       const apps = _encodeApps(appsData);
-      console.log('set scene', coords, apps);
+      console.log('set scene', {coordsData, appsData, coords, apps});
       const gas = await this.contracts.webascene.methods.setScene(coords, apps).estimateGas({from: this.eth.defaultAccount});
       const balance = await this.eth.getBalance(this.eth.defaultAccount);
       const {transactionHash} = await this.contracts.webascene.methods.setScene(coords, apps).send({from: this.eth.defaultAccount, gas});
@@ -224,7 +224,7 @@ async function _execute(spec) {
     case 'setSceneApps': {
       const {sceneId, apps: appsData} = data;
       const apps = _encodeApps(appsData);
-      console.log('set scene apps', sceneId, apps);
+      console.log('set scene apps', {sceneId, appsData, apps});
       const gas = await this.contracts.webascene.methods.setSceneApps(sceneId, apps).estimateGas({from: this.eth.defaultAccount});
       const balance = await this.eth.getBalance(this.eth.defaultAccount);
       const {transactionHash} = await this.contracts.webascene.methods.setSceneApps(sceneId, apps).send({from: this.eth.defaultAccount, gas});
