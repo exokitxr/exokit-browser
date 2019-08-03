@@ -2425,7 +2425,9 @@ const _makeMoveMesh = (() => {
   return type => {
     switch (type) {
       case 'browser': return _makeBrowserMesh();
-      case 'volume': return _makeVolumeMesh();
+      case 'volume':
+      case 'model':
+        return _makeVolumeMesh();
       default: return null;
     }
   };
@@ -2504,8 +2506,10 @@ const _makeIconMesh = (url, img, type, onclick, oncrosshair, onclose, pagable) =
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
   mesh.localVisible = true;
+  mesh.iframe = null;
+  mesh.model = null;
 
-  if (url && type) {
+  if (url && ['browser', 'volume'].includes(type)) {
     const iframe = _makeIframe(url, type);
 
     if (type === 'browser' || type === 'volume') {
@@ -2515,8 +2519,42 @@ const _makeIconMesh = (url, img, type, onclick, oncrosshair, onclose, pagable) =
     } else {
       throw new Error(`unknown iframe type ${type}`);
     }
-  } else {
-    mesh.iframe = null;
+  } else if (url && type === 'model') {
+    console.log('load model', url);
+
+    const model = new THREE.Object3D();
+    mesh.model = model;
+
+    mesh.moveMesh = _makeMoveMesh(type);
+
+    const loader = new THREE.GLTFLoader();
+    function onload(object) {
+      object = object.scene;
+
+      model.add(object);
+
+      /* var box = new THREE.Box3();
+      box.setFromObject( object );
+
+      // re-center
+
+      var center = box.getCenter();
+      center.y = box.min.y;
+      object.position.sub( center );
+
+      // scale
+
+      var scaler = new THREE.Group();
+      scaler.add( object );
+      scaler.scale.setScalar( 6 / box.getSize().length() );
+      scene.add( scaler ); */
+    }
+    loader.load(url, onload, xhr => {}, err => {
+      const loader = new THREE.LegacyGLTFLoader();
+      loader.load(url, onload, xhr => {}, err => {
+        console.warn(err.stack);
+      });
+    });
   }
   if (type) {
     const material2 = material.clone();
@@ -2524,6 +2562,7 @@ const _makeIconMesh = (url, img, type, onclick, oncrosshair, onclose, pagable) =
       switch (type) {
         case 'browser': return browserImg;
         case 'volume': return diceImg;
+        case 'model': return dice2Img;
         default: return null;
       }
     })();
@@ -2747,7 +2786,9 @@ const _addNewApp = (url, img, type, i) => {
   }, true);
 
   _addApp(iconMesh);
-  _moveApp(iconMesh, i);
+  if (i !== -1) {
+    _moveApp(iconMesh, i);
+  }
 
   selectedIconMesh = trayMesh.appIconMeshes;
   selectedIconCoord.set(iconMesh.x, 0);
@@ -2770,7 +2811,9 @@ const _addApp = iconMesh => {
   if (iconMesh.iframe) {
     layers.push(iconMesh.iframe);
   }
-
+  if (iconMesh.model) {
+    scene.add(iconMesh.model);
+  }
   if (iconMesh.moveMesh) {
     scene.add(iconMesh.moveMesh);
   }
@@ -2792,12 +2835,14 @@ const _removeApp = iconMesh => {
   }
   trayMesh.appIconMeshes.remove(iconMesh);
 
-  if (iconMesh.moveMesh) {
-    scene.remove(iconMesh.moveMesh);
-  }
-
   if (iconMesh.iframe) {
     layers.splice(layers.indexOf(iconMesh.iframe), 1);
+  }
+  if (iconMesh.model) {
+    scene.remove(iconMesh.model);
+  }
+  if (iconMesh.moveMesh) {
+    scene.remove(iconMesh.moveMesh);
   }
   
   // if (!trayMesh.appIconMeshes.children.some(iconMesh => iconMesh.x === selectedIconCoord.x && iconMesh.y === selectedIconCoord.y)) {
@@ -4896,7 +4941,7 @@ function animate(time, frame) {
         const gamepad = gamepads[i];
         if (gamepad) {
           const {iconMesh} = moveSpec;
-          const {type, iframe, moveMesh} = iconMesh;
+          const {type, iframe, model, moveMesh} = iconMesh;
 
           localVector.fromArray(gamepad.pose.position);
           localQuaternion.fromArray(gamepad.pose.orientation);
@@ -4936,6 +4981,10 @@ function animate(time, frame) {
           if (iframe) {
             iframe.position = localVector.toArray();
             iframe.orientation = localQuaternion.toArray();
+          }
+          if (model) {
+            model.position.copy(localVector);
+            model.quaternion.copy(localQuaternion);
           }
         }
       }
