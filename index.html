@@ -875,8 +875,68 @@ const renderer = new THREE.WebGLRenderer({
   antialias: true,
 });
 renderer.domElement.id = 'canvas';
+renderer.domElement.ondrop = dropHandler;
+renderer.domElement.ondragover = dragOverHandler;
 renderer.sortObjects = false;
 document.body.appendChild(renderer.domElement);
+
+function dropHandler(ev) {
+  ev.preventDefault();
+
+  for (var i = 0; i < ev.dataTransfer.items.length; i++) {
+    if (ev.dataTransfer.items[i].kind === 'file') {
+      var file = ev.dataTransfer.items[i].getAsFile();
+
+      console.log(`file ${i}: ${file.name}`);
+
+      const _loadModel = u => {
+        _addNewApp(u, faviconImg, 'model', -1);
+      };
+      const _loadLocal = () => {
+        console.log('loading', file.name);
+        const reader = new FileReader();
+        reader.onload = async e => {
+          let data = new Uint8Array(reader.result, 0, reader.result.byteLength);
+          const d = '/lol';
+          const p = `${d}/${file.name}`;
+          console.log('writing', p, data.byteLength);
+          await localforage.write(p, data);
+          data = null;
+          data = await localforage.read(p);
+          console.log('got file', data.map(data => data.length));
+          const u = URL.createObjectURL(new Blob(data, {
+            type: 'application/octet-stream',
+          }));
+          _loadModel(u);
+        };
+        reader.readAsArrayBuffer(file);
+      };
+      const _loadRemote = () => {
+        const u = `https://webaverse.s3.amazonaws.com/lol/${file.name}`;
+        fetch(u, {
+          method: 'PUT',
+          body: file,
+          mode: 'cors',
+        })
+          .then(res => res.arrayBuffer())
+          .then(() => {
+            _loadModel(u);
+          })
+          .catch(err => {
+            console.warn(err.stack);
+          });
+      };
+      if (!_isInMultiverse()) {
+        _loadLocal();
+      } else {
+        _loadRemote();
+      }
+    }
+  }
+}
+function dragOverHandler(ev) {
+  ev.preventDefault();
+}
 
 const layers = [renderer.domElement];
 
