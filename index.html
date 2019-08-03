@@ -4864,9 +4864,11 @@ function animate(time, frame) {
         return null;
       })();
       if (!oldSceneMesh || oldSceneMesh !== newSceneMesh) {
-        const apps = trayMesh.appIconMeshes.children.filter(iconMesh => iconMesh.closeMesh);
-        for (let i = 0; i < apps.length; i++) {
-          _removeApp(apps[i]);
+        for (let i = 0; i < sceneMeshes.length; i++) {
+          const sceneMesh = sceneMeshes[i];
+          for (let j = 0; j < sceneMesh.apps.length; j++) {
+            _removeApp(sceneMesh.apps[j]);
+          }
         }
       }
       if (newSceneMesh && newSceneMesh !== oldSceneMesh) {
