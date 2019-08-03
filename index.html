@@ -3806,25 +3806,7 @@ const _makeRoomMesh = (sx, sy, sz, dx, dy, dz, color) => {
     mesh.updateMatrixWorld();
   };
   mesh.update();
-  mesh.getRange = () => [sx, sy, sz, dx, dy, dz];
   mesh.getCenter = () => [(sx+dx)/2 + 0.5, (sy+dy)/2 + 0.5, (sz+dz)/2 + 0.5];
-  mesh.classify = () => {
-    const wx = Math.abs(dx - sx) + 1;
-    const wy = Math.abs(dy - sy) + 1;
-    const wz = Math.abs(dz - sz) + 1;
-    if (wx === 1 && wy === 1 && wz === 1) {
-      return 'point';
-    } else if (wx === 1 && wy === 2 && wz === 1) {
-      return 'portal';
-    } else {
-      const sortedDimensions = [wx, wy, wz].sort((a, b) => a - b);
-      if (sortedDimensions[0] === 1 && sortedDimensions[1] > 1 && sortedDimensions[2] > 1) {
-        return 'plane';
-      } else {
-        return 'volume';
-      }
-    }
-  };
   mesh.setEnd = (newDx, newDy, newDz) => {
     dx = newDx;
     dy = newDy;
@@ -3883,30 +3865,6 @@ const _makePointMesh = (sx, sy, sz, ox, oy, oz, ow) => {
     mesh.quaternion.set(ox, oy, oz, ow);
   };
   mesh.getCenter = () => mesh.position.toArray();
-  /* mesh.intersect = ray => {
-    localMatrix.compose(
-      ray.origin,
-      localQuaternion.setFromUnitVectors(localVector.set(0, 0, -1), ray.direction),
-      localVector2.set(1, 1, 1)
-    ).premultiply(
-      localMatrix2
-        .copy(mesh.matrixWorld)
-        .getInverse(localMatrix2)
-    ).decompose(localRay.origin, localQuaternion, localVector);
-    localRay.direction.set(0, 0, -1).applyQuaternion(localQuaternion);
-    localBox.setFromCenterAndSize(localVector.set(0, 0, 0), localVector2.set(0.1, 0.1, 0.1));
-
-    const intersectionPoint = localRay.intersectBox(localBox, localVector);
-    if (intersectionPoint) {
-      const distance = localRay.origin.distanceTo(intersectionPoint);
-      return {
-        type: 'point',
-        distance,
-      };
-    } else {
-      return null;
-    }
-  }; */
 
   return mesh;
 };
@@ -4070,9 +4028,7 @@ const _makeVolumeMesh = (sx, sy, sz, dx, dy, dz, color) => {
     mesh.updateMatrixWorld();
   };
   mesh.update();
-  mesh.getRange = () => [sx, sy, sz, dx, dy, dz];
   mesh.getCenter = () => [(sx+dx)/2, (sy+dy)/2, (sz+dz)/2];
-  mesh.classify = () => 'volume';
   mesh.setEnd = (newDx, newDy, newDz) => {
     dx = newDx;
     dy = newDy;
@@ -4168,108 +4124,6 @@ const _makeRoomLinkMesh = (index, roomMesh) => {
     mesh.material.uniforms.uTime.value = (Date.now() % 1000) / 1000;
   };
   mesh.update();
-  return mesh;
-};
-const _makeRoomDiagramMesh = (index, type, label, color) => {
-  let wx, wy, wz;
-  if (type === 'point') {
-    wx = 1;
-    wy = 1;
-    wz = 1;
-  } else if (type === 'portal') {
-    wx = 1;
-    wy = 2;
-    wz = 1;
-  } else if (type === 'plane') {
-    wx = 2;
-    wy = 2;
-    wz = 1;
-  } else /* if (type === 'volume') */ {
-    wx = 2;
-    wy = 2;
-    wz = 2;
-  }
-  const geometry = new THREE.BoxBufferGeometry(0.1*wx, 0.1*wy, 0.1*wz, wx, wy, wz)
-    .applyMatrix(localMatrix.makeTranslation(0.1*wx/2, 0.1*wy/2, 0.1*wz/2));
-  /* const uvs = geometry.attributes.uv.array;
-  const baseUvs = Float32Array.from(uvs);
-  const _updateUvs = () => {
-    for (let i = 0; i < uvs.length; i += 2) {
-      uvs[i] = baseUvs[i] * s;
-      uvs[i+1] = baseUvs[i+1] * s;
-    }
-    geometry.attributes.uv.needsUpdate = true;
-  };
-  _updateUvs(); */
-  const roomVsh = `
-    varying vec3 vWorldPos;
-    varying vec3 vNormal;
-    void main() {
-      vWorldPos = position;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
-      vNormal = normal;
-    }
-  `;
-  const roomFsh = `
-    // uniform sampler2D uTex;
-    uniform vec3 uColor;
-    uniform float uHighlight;
-    varying vec3 vWorldPos;
-    varying vec3 vNormal;
-    void main() {
-      // vec2 uv = fract(vUv);
-      vec2 uv;
-      if (vNormal.x != 0.0) {
-        uv = fract(vWorldPos.yz/0.1);
-      } else if (vNormal.y != 0.0) {
-        uv = fract(vWorldPos.xz/0.1);
-      } else /* if (vNormal.z != 0.0) */ {
-        uv = fract(vWorldPos.xy/0.1);
-      }
-      if ((uv.x <= 0.01 || uv.x >= 0.99) || (uv.y <= 0.01 || uv.y >= 0.99)) {
-        gl_FragColor = vec4(uColor, 0.5);
-      } else if (abs(uv.x - uv.y) <= 0.01) {
-        gl_FragColor = vec4(0.2, 0.2, 0.2, 0.5);
-      } else {
-        gl_FragColor = vec4(0.1, 0.1, 0.1, 0.5);
-      }
-
-      // gl_FragColor.rgb += uHighlight;
-    }
-  `;
-  const material = new THREE.ShaderMaterial({
-    uniforms: {
-      uColor: {
-        type: 'c',
-        value: new THREE.Color(color),
-      },
-      /* uHighlight: {
-        type: 'f',
-        value: 0,
-      }, */
-    },
-    vertexShader: roomVsh,
-    fragmentShader: roomFsh,
-    side: THREE.DoubleSide,
-    transparent: true,
-  });
-
-  const mesh = new THREE.Object3D();
-  mesh.label = label;
-  mesh.update = () => {
-    mesh.position
-      .copy(trayMesh.position)
-      .add(localVector.set(-0.8 + index * 0.4, 0.1, 0).applyQuaternion(trayMesh.quaternion));
-    mesh.rotation.y += 0.01;
-    mesh.updateMatrixWorld();
-  };
-  mesh.update();
-
-  const innerMesh = new THREE.Mesh(geometry, material);
-  innerMesh.position.set(-0.1*wx/2, -0.1*wy/2, -0.1*wz/2);
-  innerMesh.frustumCulled = false;
-  mesh.add(innerMesh);
-
   return mesh;
 };
 
@@ -5360,111 +5214,7 @@ function animate(time, frame) {
             console.warn(`unknown intersection type ${type}`);
           }
         }
-      } /* else {
-        if (window.document.pointerLockElement) {
-          if (toolMesh.tool === 'point') {
-            if (start) {
-              const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-              const p = c.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion));
-              const point = _makePointMesh(p.x, p.y, p.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w);
-              scene.add(point);
-              pointMeshes.push(point);
-              pendingRooms[i] = point;
-            } else if (end) {
-              const point = pendingRooms[i];
-              if (point) {
-                pendingRooms[i] = null;
-                const labelMesh = _makeLabelMesh('https://google.com');
-                labelMesh.position.copy(point.position);
-                labelMesh.position.y += 0.1;
-                labelMesh.rotation.setFromQuaternion(point.quaternion, 'YXZ');
-                labelMesh.rotation.x = 0;
-                labelMesh.updateMatrixWorld();
-                labelMesh.update();
-                scene.add(labelMesh);
-                roomLabels.push(labelMesh);
-
-                const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, point);
-                scene.add(roomLinkMesh);
-                roomLinks.push(roomLinkMesh);
-              }
-            } else {
-              const point = pendingRooms[i];
-              if (point) {
-                const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-                const p = c.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion));
-                point.setEnd(p.x, p.y, p.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w);
-                // console.log('update room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
-              }
-            }
-          } else if (toolMesh.tool === 'browser' || toolMesh.tool === 'portal') {
-            if (start) {
-              const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-              const p = c.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion));
-              const browser = _makeBrowserMesh(p.x, p.y, p.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w, 0x9ccc65);
-              scene.add(browser);
-              // rooms.push(browser);
-              pendingRooms[i] = browser;
-            } else if (end) {
-              const browser = pendingRooms[i];
-              if (browser) {
-                pendingRooms[i] = null;
-                const labelMesh = _makeLabelMesh('https://google.com');
-                labelMesh.position.copy(browser.position);
-                labelMesh.position.y += 0.1;
-                labelMesh.rotation.setFromQuaternion(browser.quaternion, 'YXZ');
-                labelMesh.rotation.x = 0;
-                labelMesh.updateMatrixWorld();
-                labelMesh.update();
-                scene.add(labelMesh);
-                roomLabels.push(labelMesh);
-
-                const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, browser);
-                scene.add(roomLinkMesh);
-                roomLinks.push(roomLinkMesh);
-              }
-            } else {
-              const browser = pendingRooms[i];
-              if (browser) {
-                const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-                browser.setEnd(c.position.x, c.position.y, c.position.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w);
-                // console.log('update room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
-              }
-            }
-          } else {
-            if (start) {
-              const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-              const p = c.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion));
-              const room = _makeVolumeMesh(p.x, p.y, p.z, p.x, p.y, p.z, 0x4caf50);
-              scene.add(room);
-              rooms.push(room);
-              pendingRooms[i] = room;
-            } else if (end) {
-              const room = pendingRooms[i];
-              if (room) {
-                // room.setColor(0x5c6bc0);
-                pendingRooms[i] = null;
-                const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, room);
-                scene.add(roomLinkMesh);
-                roomLinks.push(roomLinkMesh);
-                const roomDiagramMesh = _makeRoomDiagramMesh(roomDiagrams.length, room.classify(), 'tutorial.html', 0xffee58);
-                scene.add(roomDiagramMesh);
-                roomDiagrams.push(roomDiagramMesh);
-                _addVolume(room);
-                // console.log('end room', room.classify(), targetMesh.material.uniforms.worldPos.value.toArray().join(','));
-              }
-            } else {
-              const room = pendingRooms[i];
-              if (room) {
-                const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-                const p = c.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion));
-                room.setEnd(p.x, p.y, p.z);
-                // console.log('update room', targetMesh.material.uniforms.worldPos.value.toArray().join(','));
-              }
-            }
-          }
-        }
-      } */
+      }
     }
   };
   const _makeMenuAnimation = spec => {
