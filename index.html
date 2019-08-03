@@ -98,6 +98,58 @@ const localCamera = new THREE.PerspectiveCamera();
 }
 const query = parseQuery(window.location.search); */
 
+localforage.config({driver: localforage.INDEXEDDB});
+const chunkSize = 100 * 1024 * 1024;
+localforage.write = (p, d) => new Promise((accept, reject) => {
+  console.log('write', p, d);
+  const _recurse = (startIndex = 0, index = 0) => {
+    if (startIndex < d.length) {
+      const slice = d.slice(startIndex, startIndex + chunkSize);
+
+      console.log('set item', p + '-' + index);
+      localforage.setItem(p + '-' + index, slice, err => {
+        if (!err) {
+          startIndex += slice.length;
+          index++;
+          _recurse(startIndex, index);
+        } else {
+          reject(err);
+        }
+      });
+    } else {
+      localforage.removeItem(p + '-' + index, err => {
+        if (!err) {
+          accept();
+        } else {
+          reject(err);
+        }
+      });
+    }
+  };
+  _recurse();
+});
+localforage.read = p => new Promise((accept, reject) => {
+  const result = [];
+  const _recurse = (index = 0) => {
+    console.log('get item', p + '-' + index);
+    localforage.getItem(p + '-' + index, (err, data) => {
+      if (!err) {
+        if (data) {
+          result.push(data);
+
+          index++;
+          _recurse(index);
+        } else {
+          accept(result);
+        }
+      } else {
+        reject(err);
+      }
+    });
+  };
+  _recurse();
+});
+
 // helpers
 
 const _getFrontOfCamera = () => {
