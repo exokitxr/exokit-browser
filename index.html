@@ -3,11 +3,252 @@
   <head>
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap" rel="stylesheet">
     <style>
+* {
+  box-sizing: border-box;
+}
 body {
   width: 100vw;
   height: 100vh;
   margin: 0;
+  font-family: 'Open Sans';
+  font-size: 12px;
   overflow: hidden;
+}
+header {
+  position: absolute;
+  display: flex;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 50px;
+  background-color: rgba(33,33,33,1);
+  align-items: center;
+}
+header .logo {
+  display: none;
+  width: 40px;
+  height: 40px;
+  margin: 0 10px;
+}
+header .text {
+  height: 40px;
+  margin: 0 10px;
+}
+header .nav {
+  display: flex;
+  height: 100%;
+  padding: 0 10px;
+  justify-content: center;
+  align-items: center;
+  border-top: 3px solid transparent;
+  border-bottom: 3px solid transparent;
+  color: #FFF;
+  font-size: 14px;
+  text-decoration: none;
+}
+header .nav:hover, header .nav.open {
+  border-bottom-color: #ef5350;
+}
+header .nav i {
+  display: inline-block;
+  padding: 0 7px;
+  padding-top: 2px;
+}
+header > .wrap {
+  display: flex;
+  margin-left: auto;
+}
+.button {
+  display: inline-block;
+  margin-right: 15px;
+  padding: 7px 15px;
+  border-radius: 100px;
+  color: #FFF;
+  background-color: #455a64;
+  text-decoration: none;
+  cursor: pointer;
+}
+.button:hover {
+  background-color: #37474f;
+}
+.button.highlight {
+  background-color: #ef5350;
+}
+.button.highlight:hover {
+  background-color: #d32f2f;
+}
+.button.alt {
+  background-color: #4caf50;
+}
+.button.alt:hover {
+  background-color: #2e7d32;
+}
+.multibutton {
+  display: flex;
+}
+.multibutton > .button {
+  margin-right: 1px;
+}
+.multibutton > .button:not(:first-child) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.multibutton > .button:not(:last-child) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+header .popup {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  top: 60px;
+  right: 20px;
+  width: 500px;
+  padding: 20px;
+  background-color: #444;
+  border: 2px solid rgba(0,0,0,0.5);
+  color: #FFF;
+}
+header .popup::before {
+  position: absolute;
+  top: -20px;
+  right: 150px;
+  border-width: 0 0 20px 20px;
+  border-style: solid;
+  border-color: transparent;
+  border-bottom-color: #444;
+  content: ''
+}
+header .close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 20px;
+  color: #FFF;
+  text-decoration: none;
+}
+header .popup h1 {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  font-size: 50px;
+  line-height: 55px;
+  font-weight: 600;
+  color: rgba(255,255,255,1);
+}
+header .popup strong {
+  font-size: 14px;
+  line-height: 1.1;
+  color: #ef5350;
+  text-transform: uppercase;
+}
+header .popup p {
+  margin-top: 20px;
+  margin-bottom: 40px;
+  font-size: 20px;
+  line-height: 30px;
+  color: rgba(255,255,255,0.5);
+}
+header .popdown {
+  flex-direction: column;
+  padding: 20px;
+  /* border: 2px solid rgba(0,0,0,0.5); */
+  color: #FFF;
+}
+#subscribe-popdown {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  width: 100vw;
+  padding: 30px;
+  background-color: rgba(33,33,33,1);
+  border-top: 2px solid #141414;
+}
+#subscribe-popdown .plans {
+  display: flex;
+  margin-bottom: 20px;
+}
+#subscribe-popdown .plans .plan {
+  display: flex;
+  width: 180px;
+  padding: 30px;
+  margin: 10px;
+  flex-direction: column;
+  border: 2px solid;
+  border-radius: 10px;
+  color: #444;
+  cursor: pointer;
+  align-items: center;
+}
+#subscribe-popdown .plans .plan:hover {
+  color: #666;
+}
+#subscribe-popdown .plans .plan.selected {
+  color: #5c6bc0;
+}
+#subscribe-popdown .plans .plan i {
+  margin-bottom: 10px;
+  font-size: 70px;
+}
+#subscribe-popdown .plans .plan .wrap {
+  display: flex;
+  flex-direction: column;
+}
+#subscribe-popdown .plans h3 {
+  margin: 0;
+  font-size: 30px;
+}
+#subscribe-popdown .plans strong {
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+#subscribe-popdown .plans p {
+  margin: 0;
+  line-height: 1.4;
+}
+#explore-popdown {
+  position: absolute;
+  display: flex;
+  top: 50px;
+  width: 300px;
+  height: calc(100vh - 50px);
+  background-color: rgba(33,33,33,1);
+  border-top: 2px solid #141414;
+}
+#developers-popdown {
+  position: absolute;
+  display: flex;
+  top: 50px;
+  left: 380px;
+  width: 300px;
+  background-color: #444;
+}
+header .popdown:not(.open) {
+  display: none !important;
+}
+ul {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+header .popdown ul {
+  font-size: 14px;
+  line-height: 2;
+}
+header .popdown .explore-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+header .popdown .explore-content h3 {
+}
+header .popdown .explore-content i {
+  font-size: 100px;
+  color: rgba(255, 255, 255, 0.5);
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+}
+header .popdown .explore-content p {
+  line-height: 1.6;
 }
 #canvas {
   width: 100vw;
@@ -19,6 +260,82 @@ iframe, audio {
     </style>
   </head>
   <body>
+    <header>
+      <canvas class=logo id="logo-canvas"></canvas>
+      <img class=text src="webaverse.png"/>
+      <a href="#" class="nav" id="explore-dropdown">Explore</a>
+      <a href="#" class="nav">Download</a>
+      <a href="#" class="nav" id="developers-dropdown">Developers<i class="fal fa-chevron-down"></i></a>
+      <div class=wrap>
+        <nav class="button highlight" id="subscribe-button">Subscribe</nav>
+        <nav class="multibutton">
+          <a href="#sp" class="button">Singleplayer</a>
+          <a href="#mp" class="button">Multiplayer</a>
+          <a href="#map" class="button">Map</a>
+        </nav>
+        <div class="popup" id="popup">
+          <a href="#" class="close" id="close-button">x</a>
+          <h1>
+            <strong>A metaverse on the Web</strong>
+            Deploy &amp; Monetize WebXR apps
+          </h1>
+          <p>Run VR/AR web sites on the blockchain Grid.</br>Subscribe to claim land and get paid with standard APIs.</p>
+        </div>
+      </div>
+      <div class="popdown" id="subscribe-popdown">
+        <div class="plans">
+          <nav class="plan" id="plan-1">
+            <i class="fal fa-hiking"></i>
+            <div class=wrap>
+              <h3>$20</h3>
+              <strong>Enthusiast</strong>
+              <p>2 Parcel credits</p>
+              <p>0.001 Trickle</p>
+            </div>
+          </nav>
+          <nav class="plan selected" id="plan-2">
+            <i class="fal fa-biking-mountain"></i>
+            <div class=wrap>
+              <h3>$25</h3>
+              <strong>Developer</strong>
+              <p>5 Parcel credits</p>
+              <p>0.0012 Trickle</p>
+            </div>
+          </nav>
+          <nav class="plan" id="plan-3">
+            <i class="fal fa-user-astronaut"></i>
+            <div class=wrap>
+              <h3>$50</h3>
+              <strong>Professional</strong>
+              <p>11 Parcel credits</p>
+              <p>0.0013 Trickle</p>
+            </div>
+          </nav>
+        </div>
+        <nav class="button alt">Purchase</nav>
+      </div>
+      <div class="popdown" id="explore-popdown">
+        <div class="explore-content">
+          <h3>Explore new worlds</h3>
+          <i class="fal fa-user-astronaut"></i>
+          <!-- <i class="fal fa-key"></i>
+          <i class="fal fa-pencil-paintbrush"></i>
+          <i class="fal fa-map-marked"></i>
+          <i class="fal fa-chart-network"></i>
+          <i class="fal fa-credit-card-front"></i> -->
+          <p>Run VR/AR web sites on the blockchain Grid.</br>Subscribe to claim land and get paid with standard APIs.</p>
+          <nav class="button alt">Next</nav>
+        </div>
+      </div>
+      <div class="popdown" id="developers-popdown">
+        <ul>
+          <li>CLI</li>
+          <li>SDK</li>
+        </ul>
+      </div>
+    </header>
+    <canvas id="canvas"></canvas>
+    <script src="https://kit.fontawesome.com/0735724151.js"></script>
     <script src="three.js"></script>
     <script src="OrbitControls.js"></script>
     <script src="TransformControls.js"></script>
