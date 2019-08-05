@@ -1653,10 +1653,14 @@ scene.add(gridMesh); */
 
 const _makeMiningPlaceholderMesh = (x, z, owner) => {
   const mesh = new THREE.Object3D();
+  mesh.update = () => {};
+  mesh.intersect = () => null;
   return mesh;
 };
 const _makeMiningMesh = (x, z) => {
   const mesh = new THREE.Object3D();
+  mesh.update = () => {};
+  mesh.intersect = () => null;
   return mesh;
 };
 let data;
