@@ -2597,7 +2597,6 @@ const trayMesh = (() => {
         selectedIconPage = 0;
 
         labelMesh.textMesh.setText(iconMesh.url);
-        settingsMesh.visible = false;
       }
     }],
     [browserImg, 1, 0, () => {
@@ -2606,7 +2605,6 @@ const trayMesh = (() => {
       labelMesh.visible = true;
       actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
       mapMesh.localVisible = false;
-      settingsMesh.visible = false;
     }],
     [diceImg, 2, 0, () => {
       selectedIconCoord.set(2, 0);
@@ -2614,7 +2612,6 @@ const trayMesh = (() => {
       labelMesh.visible = true;
       actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
       mapMesh.localVisible = false;
-      settingsMesh.visible = false;
     }],
     [mapImg, 3, 0, () => {
       selectedIconMesh = mapIconMeshes;
@@ -2622,7 +2619,6 @@ const trayMesh = (() => {
       labelMesh.visible = false;
       actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = false;
       mapMesh.localVisible = true;
-      settingsMesh.visible = false;
     }],
     [cogsImg, 4, 0, () => {
       selectedIconMesh = settingsIconMeshes;
@@ -2631,7 +2627,6 @@ const trayMesh = (() => {
       labelMesh.visible = false;
       actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = false;
       mapMesh.localVisible = false;
-      settingsMesh.visible = true;
     }],
     [plusImg, 5, 1, i => {
       let type = null;
@@ -2816,7 +2811,6 @@ const trayMesh = (() => {
       labelMesh.visible = true;
       actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
       mapMesh.localVisible = false;
-      settingsMesh.visible = false;
     }],
   ].forEach(([img, x, y, onclick]) => {
     const iconMesh = _makeIconMesh(null, img, null, onclick, null, null, false);
@@ -3102,140 +3096,6 @@ const trayMesh = (() => {
   })();
   scene.add(mapMesh);
   mesh.mapMesh = mapMesh;
-
-  const settingsMesh = (() => {
-    const object = new THREE.Object3D();
-    object.position.set(-1, 0.5, 0);
-    object.visible = false;
-    const loginButtonMesh = (() => {
-      const mesh = _makeTextMesh('Log in', 0x000000);
-      mesh.plane = new THREE.Plane();
-      mesh.leftLine = new THREE.Line3();
-      mesh.topLine = new THREE.Line3();
-      const menuWorldWidth = 2;
-      const menuWorldHeight = 0.1;
-      mesh.update = () => {
-        mesh.leftLine.start
-          .set(0, menuWorldHeight/2, 0)
-          .applyMatrix4(object.matrixWorld);
-        mesh.leftLine.end
-          .set(0, -menuWorldHeight/2, 0)
-          .applyMatrix4(object.matrixWorld);
-
-        mesh.topLine.start
-          .set(0, menuWorldHeight/2, 0)
-          .applyMatrix4(object.matrixWorld);
-        mesh.topLine.end
-          .set(menuWorldWidth, menuWorldHeight/2, 0)
-          .applyMatrix4(object.matrixWorld);
-
-        mesh.plane.setFromCoplanarPoints(
-          mesh.leftLine.start,
-          mesh.leftLine.end,
-          mesh.topLine.end
-        );
-      };
-      mesh.intersect = ray => {
-        const intersectionPoint = ray.intersectPlane(mesh.plane, localVector);
-        if (intersectionPoint) {
-          const leftIntersectionPoint = mesh.leftLine.closestPointToPoint(intersectionPoint, true, localVector2);
-          const topIntersectionPoint = mesh.topLine.closestPointToPoint(intersectionPoint, true, localVector3);
-
-          const xFactor = topIntersectionPoint.distanceTo(mesh.topLine.start) / menuWorldWidth;
-          const yFactor = leftIntersectionPoint.distanceTo(mesh.leftLine.start) / menuWorldHeight;
-          const distance = ray.origin.distanceTo(intersectionPoint);
-
-          if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
-            return {
-              type: 'loginButton',
-              distance,
-              cancel: true,
-            };
-          }
-        }
-        return null;
-      };
-      return mesh;
-    })();
-    object.add(loginButtonMesh);
-    object.loginButtonMesh = loginButtonMesh;
-
-    const addressMesh = _makeTextMesh('');
-    addressMesh.visible = false;
-    object.add(addressMesh);
-    object.addressMesh = addressMesh;
-
-    const sendEthMesh = (() => {
-      const mesh = _makeTextMesh('Send ETH', 0x000000);
-      mesh.visible = false;
-      mesh.plane = new THREE.Plane();
-      mesh.leftLine = new THREE.Line3();
-      mesh.topLine = new THREE.Line3();
-      const menuWorldWidth = 2;
-      const menuWorldHeight = 0.1;
-      mesh.update = () => {
-        mesh.leftLine.start
-          .set(0, menuWorldHeight/2, 0)
-          .applyMatrix4(object.matrixWorld);
-        mesh.leftLine.end
-          .set(0, -menuWorldHeight/2, 0)
-          .applyMatrix4(object.matrixWorld);
-
-        mesh.topLine.start
-          .set(0, menuWorldHeight/2, 0)
-          .applyMatrix4(object.matrixWorld);
-        mesh.topLine.end
-          .set(menuWorldWidth, menuWorldHeight/2, 0)
-          .applyMatrix4(object.matrixWorld);
-
-        mesh.plane.setFromCoplanarPoints(
-          mesh.leftLine.start,
-          mesh.leftLine.end,
-          mesh.topLine.end
-        );
-      };
-      mesh.intersect = ray => {
-        const intersectionPoint = ray.intersectPlane(mesh.plane, localVector);
-        if (intersectionPoint) {
-          const leftIntersectionPoint = mesh.leftLine.closestPointToPoint(intersectionPoint, true, localVector2);
-          const topIntersectionPoint = mesh.topLine.closestPointToPoint(intersectionPoint, true, localVector3);
-
-          const xFactor = topIntersectionPoint.distanceTo(mesh.topLine.start) / menuWorldWidth;
-          const yFactor = leftIntersectionPoint.distanceTo(mesh.leftLine.start) / menuWorldHeight;
-          const distance = ray.origin.distanceTo(intersectionPoint);
-
-          if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
-            return {
-              type: 'sendEth',
-              distance,
-              cancel: true,
-            };
-          }
-        }
-        return null;
-      };
-      return mesh;
-    })();
-    object.add(sendEthMesh);
-    object.sendEthMesh = sendEthMesh;
-    object.update = () => {
-      loginButtonMesh.update();
-      sendEthMesh.update();
-    };
-    object.intersect = ray => {
-      let result = null;
-      if (loginButtonMesh.visible && (result = loginButtonMesh.intersect(ray))) {
-        return result;
-      }
-      if (sendEthMesh.visible && (result = sendEthMesh.intersect(ray))) {
-        return result;
-      }
-      return result;
-    };
-    return object;
-  })();
-  mesh.add(settingsMesh);
-  mesh.settingsMesh = settingsMesh;
   
   /* labelMesh.textMesh.addEventListener('update', e => {
     const {url} = e;
@@ -3404,7 +3264,6 @@ const trayMesh = (() => {
     labelMesh.update();
     keyboardMesh.update();
     mapMesh.update();
-    settingsMesh.update();
     [actionIconMeshes, appIconMeshes, mapIconMeshes, settingsIconMeshes].forEach(iconMeshes => {
       for (let i = 0; i < iconMeshes.children.length; i++) {
         iconMeshes.children[i].update(selectedIconPage);
@@ -3412,7 +3271,7 @@ const trayMesh = (() => {
     });
   };
   mesh.getIntersectionCandidates = () => mesh.visible ?
-    [labelMesh, keyboardMesh, mapMesh, settingsMesh, floorMesh]
+    [labelMesh, keyboardMesh, mapMesh, floorMesh]
       .concat(actionIconMeshes.children)
       .concat(appIconMeshes.children)
       .concat(mapIconMeshes.children)
@@ -4829,11 +4688,6 @@ function animate(time, frame) {
                 if (web3) {
                   user = web3;
 
-                  trayMesh.settingsMesh.loginButtonMesh.visible = false;
-                  trayMesh.settingsMesh.addressMesh.setText(web3.eth.defaultAccount);
-                  trayMesh.settingsMesh.addressMesh.visible = true;
-                  trayMesh.settingsMesh.sendEthMesh.visible = true;
-
                   lastSceneCoords[0] = NaN;
                   lastSceneCoords[1] = NaN;
                 } else {
@@ -4879,9 +4733,6 @@ function animate(time, frame) {
               .then(web3 => {
                 user = web3;
 
-                trayMesh.settingsMesh.loginButtonMesh.visible = false;
-                trayMesh.settingsMesh.addressMesh.setText(web3.eth.defaultAccount);
-                trayMesh.settingsMesh.addressMesh.visible = true;
                 scene.add(cameraRig);
 
                 renderScene = scene;
