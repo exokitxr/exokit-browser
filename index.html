@@ -887,48 +887,22 @@ function dropHandler(ev) {
 
       console.log(`file ${i}: ${file.name}`);
 
-      const _loadModel = u => {
+      const reader = new FileReader();
+      reader.onload = async e => {
+        let data = new Uint8Array(reader.result, 0, reader.result.byteLength);
+        const d = '/lol';
+        const p = `${d}/${file.name}`;
+        console.log('writing', p, data.byteLength);
+        await localforage.write(p, data);
+        data = null;
+        data = await localforage.read(p);
+        console.log('got file', data.map(data => data.length));
+        const u = URL.createObjectURL(new Blob(data, {
+          type: 'application/octet-stream',
+        }));
         _addNewApp(u, faviconImg, 'model', -1);
       };
-      const _loadLocal = () => {
-        console.log('loading', file.name);
-        const reader = new FileReader();
-        reader.onload = async e => {
-          let data = new Uint8Array(reader.result, 0, reader.result.byteLength);
-          const d = '/lol';
-          const p = `${d}/${file.name}`;
-          console.log('writing', p, data.byteLength);
-          await localforage.write(p, data);
-          data = null;
-          data = await localforage.read(p);
-          console.log('got file', data.map(data => data.length));
-          const u = URL.createObjectURL(new Blob(data, {
-            type: 'application/octet-stream',
-          }));
-          _loadModel(u);
-        };
-        reader.readAsArrayBuffer(file);
-      };
-      const _loadRemote = () => {
-        const u = `https://webaverse.s3.amazonaws.com/lol/${file.name}`;
-        fetch(u, {
-          method: 'PUT',
-          body: file,
-          mode: 'cors',
-        })
-          .then(res => res.arrayBuffer())
-          .then(() => {
-            _loadModel(u);
-          })
-          .catch(err => {
-            console.warn(err.stack);
-          });
-      };
-      if (!_isInMultiverse()) {
-        _loadLocal();
-      } else {
-        _loadRemote();
-      }
+      reader.readAsArrayBuffer(file);
     }
   }
 }
