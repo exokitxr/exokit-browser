@@ -101,6 +101,20 @@
 		"constant": false,
 		"inputs": [
 			{
+				"name": "oldOwner",
+				"type": "address"
+			}
+		],
+		"name": "removeOwner",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
 				"name": "_to",
 				"type": "address"
 			},

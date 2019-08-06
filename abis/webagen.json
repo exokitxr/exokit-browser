@@ -58,6 +58,20 @@
 		"constant": false,
 		"inputs": [
 			{
+				"name": "oldOwner",
+				"type": "address"
+			}
+		],
+		"name": "removeOwner",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
 				"name": "addr",
 				"type": "address"
 			},
@@ -92,12 +106,16 @@
 			{
 				"name": "addr",
 				"type": "address"
+			},
+			{
+				"name": "planName",
+				"type": "string"
 			}
 		],
 		"name": "subscribe",
 		"outputs": [],
-		"payable": false,
-		"stateMutability": "nonpayable",
+		"payable": true,
+		"stateMutability": "payable",
 		"type": "function"
 	},
 	{
@@ -146,20 +164,6 @@
 				"type": "bool"
 			}
 		],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "addr",
-				"type": "address"
-			}
-		],
-		"name": "unsubscribe",
-		"outputs": [],
 		"payable": false,
 		"stateMutability": "nonpayable",
 		"type": "function"
