@@ -742,44 +742,44 @@ const _makeGuardianMesh = (scene, color) => {
         down: scene.coords.some(coord2 => coord2[0] === coord[0] && coord2[1] === coord[1]+1),
       };
       if (!hasCoords.up) {
-        for (let x = coord[0]*7 - 3; x <= ((coord[0] + 1) * 7) - 3 - 1; x++) {
+        for (let x = coord[0]*PARCEL_SIZE - PARCEL_SIZE/2; x <= ((coord[0] + 1) * PARCEL_SIZE) - PARCEL_SIZE/2 - 1; x++) {
           for (let y = 0; y <= 2; y++) {
-            const z = coord[1]*7 - 3;
+            const z = coord[1]*PARCEL_SIZE - PARCEL_SIZE/2;
             boxGeometries.push(boxGeometry.clone()
-              .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
+              .applyMatrix(new THREE.Matrix4().makeTranslation(x + 0.5, y + 0.5, z + 0.5))
             );
           }
         }
       }
       if (!hasCoords.down) {
-        for (let x = coord[0]*7 - 3; x <= ((coord[0] + 1) * 7) - 3 - 1; x++) {
+        for (let x = coord[0]*PARCEL_SIZE - PARCEL_SIZE/2; x <= ((coord[0] + 1) * PARCEL_SIZE) - PARCEL_SIZE/2 - 1; x++) {
           for (let y = 0; y <= 2; y++) {
-            const z = coord[1]*7 + 3;
+            const z = coord[1]*PARCEL_SIZE + PARCEL_SIZE/2 - 1;
             boxGeometries.push(boxGeometry.clone()
               .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI)))
-              .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
+              .applyMatrix(new THREE.Matrix4().makeTranslation(x + 0.5, y + 0.5, z + 0.5))
             );
           }
         }
       }
       if (!hasCoords.left) {
-        for (let z = coord[1]*7 - 3; z <= ((coord[1] + 1) * 7) - 3 - 1; z++) {
+        for (let z = coord[1]*PARCEL_SIZE - PARCEL_SIZE/2; z <= ((coord[1] + 1) * PARCEL_SIZE) - PARCEL_SIZE/2 - 1; z++) {
           for (let y = 0; y <= 2; y++) {
-            const x = coord[0]*7 - 3;
+            const x = coord[0]*PARCEL_SIZE - PARCEL_SIZE/2;
             boxGeometries.push(boxGeometry.clone()
               .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI/2)))
-              .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
+              .applyMatrix(new THREE.Matrix4().makeTranslation(x + 0.5, y + 0.5, z + 0.5))
             );
           }
         }
       }
       if (!hasCoords.right) {
-        for (let z = coord[1]*7 - 3; z <= ((coord[1] + 1) * 7) - 3 - 1; z++) {
+        for (let z = coord[1]*PARCEL_SIZE - PARCEL_SIZE/2; z <= ((coord[1] + 1) * PARCEL_SIZE) - PARCEL_SIZE/2 - 1; z++) {
           for (let y = 0; y <= 2; y++) {
-            const x = coord[0]*7 + 3;
+            const x = coord[0]*PARCEL_SIZE + PARCEL_SIZE/2 - 1;
             boxGeometries.push(boxGeometry.clone()
               .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI/2)))
-              .applyMatrix(new THREE.Matrix4().makeTranslation(x, y + 0.5, z))
+              .applyMatrix(new THREE.Matrix4().makeTranslation(x + 0.5, y + 0.5, z + 0.5))
             );
           }
         }
@@ -830,12 +830,12 @@ const _makeGuardianMesh = (scene, color) => {
   return mesh;
 };
 const _makeBaseMesh = (scene, color) => {
-  const planeGeometry = new THREE.PlaneBufferGeometry(7, 7)
+  const planeGeometry = new THREE.PlaneBufferGeometry(PARCEL_SIZE, PARCEL_SIZE)
     .applyMatrix(localMatrix.makeRotationFromQuaternion(localQuaternion.setFromAxisAngle(localVector.set(1, 0, 0), -Math.PI/2)))
     .applyMatrix(new THREE.Matrix4().makeTranslation(0, -0.01, 0));
   const _makeGeometry = coords => THREE.BufferGeometryUtils.mergeBufferGeometries(coords.map(coord =>
     planeGeometry.clone()
-      .applyMatrix(new THREE.Matrix4().makeTranslation(coord[0]*7, 0, coord[1]*7))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(coord[0]*PARCEL_SIZE, 0, coord[1]*PARCEL_SIZE))
   ));
   const geometry = _makeGeometry(scene.coords);
   const baseVsh = `
@@ -946,7 +946,7 @@ scene.add(skyboxMesh);
 const floorMesh = (() => {
   const geometry = new THREE.PlaneBufferGeometry(300, 300, 300, 300)
     .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 1))))
-    .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0, -0.5));
+    // .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0, -0.5));
   const floorVsh = `
     uniform float uAnimation;
     // attribute float scene;
@@ -973,9 +973,9 @@ const floorMesh = (() => {
       vec3 c;
       float a;
       c = vec3(0.8 + vDepth);
-      /* vec2 uv = floor(vPosition + 150.5).xz / 300.0;
+      /* vec2 uv = floor(vPosition + 150).xz / 300.0;
       c = texture2D(uTex, uv).rgb; */
-      vec3 f = fract(vPosition + 0.5);
+      vec3 f = fract(vPosition);
       if (f.x <= 0.01 || f.x >= 0.99 || f.z <= 0.01 || f.z >= 0.99) {
         // a = 0.0;
         discard;
@@ -3306,10 +3306,10 @@ const _makeTrayMesh = () => {
           for (let j = 0; j < sceneMesh.apps.length; j++) {
             const iconMesh = sceneMesh.apps[j];
             if (coords.some(coord => {
-              const minX = coord[0]*7 - 3 - 0.5;
-              const maxX = (coord[0]+1)*7 - 3 - 0.5;
-              const minY = coord[1]*7 - 3 - 0.5;
-              const maxY = (coord[1]+1)*7 - 3 - 0.5;
+              const minX = coord[0]*PARCEL_SIZE - PARCEL_SIZE/2 - 0.5;
+              const maxX = (coord[0]+1)*PARCEL_SIZE - PARCEL_SIZE/2 - 0.5;
+              const minY = coord[1]*PARCEL_SIZE - PARCEL_SIZE/2 - 0.5;
+              const maxY = (coord[1]+1)*PARCEL_SIZE - PARCEL_SIZE/2 - 0.5;
               return iconMesh.moveMesh.position.x >= minX && iconMesh.moveMesh.position.x < maxX && iconMesh.moveMesh.position.z >= minY && iconMesh.moveMesh.position.z < maxY;
             })) {
               tokenApps.push(sceneMesh.token.apps[j]);
@@ -5229,7 +5229,7 @@ function animate(time, frame) {
           localRay.set(localVector, localVector2.set(0, 0, -1).applyQuaternion(localQuaternion));
           let intersection = floorMesh.intersect(localRay, i);
           if (intersection) {
-            const coords = [Math.floor((intersection.point.x + 3 + 0.5) / 7), Math.floor((intersection.point.z + 3 + 0.5) / 7)];
+            const coords = [Math.floor((intersection.point.x + PARCEL_SIZE/2 + 0.5) / PARCEL_SIZE), Math.floor((intersection.point.z + PARCEL_SIZE/2 + 0.5) / PARCEL_SIZE)];
             const targetSceneMesh = (() => {
               if (currentSceneToken && currentSceneToken.coords.some(coords2 => coords2[0] === coords[0] && coords2[1] === coords[1])) {
                 return sceneMeshes.find(sceneMesh => sceneMesh.token === currentSceneToken);
@@ -5275,7 +5275,7 @@ function animate(time, frame) {
 
   const _updateScene = () => {
     const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-    const coords = [Math.floor((c.position.x + 3)/PARCEL_SIZE), Math.floor((c.position.z + 3)/PARCEL_SIZE)];
+    const coords = [Math.floor((c.position.x + PARCEL_SIZE/2)/PARCEL_SIZE), Math.floor((c.position.z + PARCEL_SIZE/2)/PARCEL_SIZE)];
     if (coords[0] !== lastSceneCoords[0] || coords[1] !== lastSceneCoords[1]) {
       lastSceneCoords[0] = coords[0];
       lastSceneCoords[1] = coords[1];
@@ -5508,8 +5508,8 @@ function animate(time, frame) {
           } else if (type === 'map-arrow-right') {
             console.log('click map arrow right');
           } else if (type === 'floor') {
-            const x = Math.floor((intersectionSpec.x + 3 + 0.5)/7);
-            const y = Math.floor((intersectionSpec.y + 3 + 0.5)/7);
+            const x = Math.floor((intersectionSpec.x + PARCEL_SIZE/2) / PARCEL_SIZE);
+            const y = Math.floor((intersectionSpec.y + PARCEL_SIZE/2) / PARCEL_SIZE);
             const gamepads = navigator.getGamepads();
             const gripped = !!(gamepads[1] && gamepads[1].buttons[2].pressed);
             const targetScene = (() => {
@@ -5799,19 +5799,11 @@ function animate(time, frame) {
   const _render = () => {
     const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
 
-    c.matrixWorld.decompose(pointerMesh.position, localQuaternion, localVector2);
+    /* c.matrixWorld.decompose(pointerMesh.position, localQuaternion, localVector2);
     pointerMesh.position.add(localVector.set(0, 0, -1).applyQuaternion(c.quaternion));
     pointerMesh.rotation.x += 0.1;
-    pointerMesh.rotation.z += 0.1;
+    pointerMesh.rotation.z += 0.1; */
 
-    // gridMesh.material.uniforms.uTime.value = (gridMesh.material.uniforms.uTime.value + 0.1) % 14;
-    /* targetMesh.material.uniforms.uTime.value = (Date.now() % 1000) / 1000;
-    c.matrixWorld.decompose(targetMesh.material.uniforms.worldPos.value, localQuaternion, localVector2);
-    targetMesh.material.uniforms.worldPos.value
-      .add(localVector2.set(0, 0, -3).applyQuaternion(localQuaternion));
-    targetMesh.material.uniforms.worldPos.value.x = Math.floor(targetMesh.material.uniforms.worldPos.value.x + 0.5);
-    targetMesh.material.uniforms.worldPos.value.y = Math.floor(targetMesh.material.uniforms.worldPos.value.y + 0.5);
-    targetMesh.material.uniforms.worldPos.value.z = Math.floor(targetMesh.material.uniforms.worldPos.value.z + 0.5); */
     for (let i = 0; i < roomLinks.length; i++) {
       roomLinks[i].update();
     }
