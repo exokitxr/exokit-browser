@@ -427,7 +427,7 @@ if (mode === null) {
   const loader = new THREE.GLTFLoader();
   // const loader = new THREE.LegacyGLTFLoader();
   loader.load('model/sketch.gltf', object => {
-    console.log('got object', object);
+    // console.log('got object', object);
     object = object.scene;
 
     scaler = new THREE.Group();
@@ -2785,7 +2785,7 @@ const _makeIconMesh = (url, img, type, onclick, oncrosshair, onclose, pagable) =
 
     const loader = new THREE.GLTFLoader();
     function onload(object) {
-      console.log('got object', object);
+      // console.log('got object', object);
       object = object.scene;
 
       model.add(object);
