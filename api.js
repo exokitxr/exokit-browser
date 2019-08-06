@@ -86,15 +86,18 @@ const _decodeApps = s => {
   return result;
 };
 const _makeContracts = async web3 => {
-  const [webaverseAbi, webaverseAddress, webasceneAbi, webasceneAddress] = await Promise.all([
+  const [webaverseAbi, webaverseAddress, webasceneAbi, webasceneAddress, webagenAbi, webagenAddress] = await Promise.all([
     _fetchJson('./abis/webaverse.json'),
     _fetchJson('./addresses/webaverse.json'),
     _fetchJson('./abis/webascene.json'),
     _fetchJson('./addresses/webascene.json'),
+    _fetchJson('./abis/webagen.json'),
+    _fetchJson('./addresses/webagen.json'),
   ]);
   return {
     webaverse: new web3.eth.Contract(webaverseAbi, webaverseAddress),
     webascene: new web3.eth.Contract(webasceneAbi, webasceneAddress),
+    webagen: new web3.eth.Contract(webagenAbi, webagenAddress),
   };
 };
 async function _execute(spec) {
@@ -228,6 +231,17 @@ async function _execute(spec) {
       const gas = await this.contracts.webascene.methods.setSceneApps(sceneId, apps).estimateGas({from: this.eth.defaultAccount});
       const balance = await this.eth.getBalance(this.eth.defaultAccount);
       const {transactionHash} = await this.contracts.webascene.methods.setSceneApps(sceneId, apps).send({from: this.eth.defaultAccount, gas});
+      console.log('got txid', transactionHash);
+      const rx = await _waitTransaction(transactionHash);
+      console.log('got rx', rx);
+      return rx;
+    }
+    case 'buyToken': {
+      const {x, y} = data;
+      console.log('buy token', data);
+      const gas = await this.contracts.webagen.methods.buyToken(x, y).estimateGas({from: this.eth.defaultAccount});
+      const balance = await this.eth.getBalance(this.eth.defaultAccount);
+      const {transactionHash} = await this.contracts.webagen.methods.buyToken(x, y).send({from: this.eth.defaultAccount, gas});
       console.log('got txid', transactionHash);
       const rx = await _waitTransaction(transactionHash);
       console.log('got rx', rx);
