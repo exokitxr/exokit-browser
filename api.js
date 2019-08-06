@@ -87,10 +87,10 @@ const _decodeApps = s => {
 };
 const _makeContracts = async web3 => {
   const [webaverseAbi, webaverseAddress, webasceneAbi, webasceneAddress] = await Promise.all([
-    _fetchJson('./abis/webaverse.json'),
-    _fetchJson('./addresses/webaverse.json'),
-    _fetchJson('./abis/webascene.json'),
-    _fetchJson('./addresses/webascene.json'),
+    _fetchJson('./webaverse-contracts/abis/webaverse.json'),
+    _fetchJson('./webaverse-contracts/addresses/webaverse.json'),
+    _fetchJson('./webaverse-contracts/abis/webascene.json'),
+    _fetchJson('./webaverse-contracts/addresses/webascene.json'),
   ]);
   return {
     webaverse: new web3.eth.Contract(webaverseAbi, webaverseAddress),
