@@ -4153,9 +4153,14 @@ const _makeTrayMesh = () => {
           const distance = ray.origin.distanceTo(intersectionPoint);
 
           if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
+            const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
+            const x = Math.floor((c.position.x + PARCEL_SIZE/2) / PARCEL_SIZE);
+            const z = Math.floor((c.position.z + PARCEL_SIZE/2) / PARCEL_SIZE);
             return {
               type: 'buyButton',
               distance,
+              x,
+              z,
               cancel: true,
             };
           }
@@ -5554,7 +5559,7 @@ function animate(time, frame) {
 
   const _updateScene = () => {
     const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-    const coords = [Math.floor((c.position.x + 3)/7), Math.floor((c.position.z + 3)/7)];
+    const coords = [Math.floor((c.position.x + 3)/PARCEL_SIZE), Math.floor((c.position.z + 3)/PARCEL_SIZE)];
     if (coords[0] !== lastSceneCoords[0] || coords[1] !== lastSceneCoords[1]) {
       lastSceneCoords[0] = coords[0];
       lastSceneCoords[1] = coords[1];
@@ -5871,7 +5876,16 @@ function animate(time, frame) {
               lastSceneCoords[1] = NaN;
             }
           } else if (type === 'buyButton') {
-            console.log('buy button');
+            const {x, z} = intersectionSpec;
+            if (user) {
+              user.execute({
+                method: 'buyToken',
+                data: {
+                  x,
+                  y: z,
+                },
+              });
+            }
           } else if (type === 'login') {
             const password = loginMesh.labelMesh.textMesh.getText();
             loginMesh.labelMesh.textMesh.setText('');
