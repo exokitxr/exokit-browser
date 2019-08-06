@@ -2498,31 +2498,6 @@ const _makeMiningMesh = (x, z/*, token*/) => {
     }
   };
 
-  // if (x === 1 && z === 0) {
-    /* worker.request({
-      method: 'getGeometry',
-      x,
-      z,
-    }).then(res => {
-      const {positions, faces, attributeRanges, indexRanges} = res;
-      // console.log('add res', res, geometry, attributeRanges[0], attributeRanges[attributeRanges.length-2], indexRanges[0], indexRanges[indexRanges.length-2]);
-      geometry.addAttribute('position', new THREE.BufferAttribute(positions.slice(attributeRanges[0], attributeRanges[attributeRanges.length-2]+attributeRanges[attributeRanges.length-1]), 3));
-      geometry.setIndex(new THREE.BufferAttribute(faces.slice(indexRanges[0], indexRanges[indexRanges.length-2]+indexRanges[indexRanges.length-1]), 1));
-      mesh.visible = true;
-    }); */
-  /* } else {
-    worker.request({
-      method: 'march',
-      dims,
-      potential,
-      shift,
-    }).then(res => {
-      geometry.addAttribute('position', new THREE.BufferAttribute(res.positions, 3));
-      geometry.setIndex(new THREE.BufferAttribute(res.faces, 1));
-      mesh.visible = true;
-    });
-  } */
-
   return mesh;
 };
 let data;
