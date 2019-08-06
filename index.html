@@ -367,6 +367,7 @@ const mouse = {
 
 const DEFAULT_URL = 'https://google.com';
 const PARCEL_SIZE = 8;
+const TOKEN_PRICE = 5e15;
 const DEFAULT_SKIN_URL = 'skin.png';
 const RAY_COLOR = 0x44c2ff;
 const RAY_HIGHLIGHT_COLOR = new THREE.Color(RAY_COLOR).multiplyScalar(0.5).getHex();
@@ -5883,6 +5884,8 @@ function animate(time, frame) {
                 data: {
                   x,
                   y: z,
+                  apps: [],
+                  tokenPrice: TOKEN_PRICE,
                 },
               });
             }
