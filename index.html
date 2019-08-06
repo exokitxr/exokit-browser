@@ -4052,8 +4052,10 @@ const _makeTrayMesh = () => {
       const _update = () => {
         if (user) {
           textMesh.setText(`Parcel\n${0},${0}\nOwned by\n${_getShortUserAddress()}\n\n\nBuy for 1 CRD`);
+          squareMeshes[1].visible = true;
         } else {
           textMesh.setText(`Parcel\n${0},${0}\nOwned by\n${'0x0'}\n\n\nLog in to buy`);
+          squareMeshes[1].visible = false;
         }
       };
       _update();
