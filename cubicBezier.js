@@ -4,7 +4,7 @@
  * by Gaëtan Renaudeau 2014 - 2015 – MIT License
  */
 
-const cubicBezier = (() => {
+window.cubicBezier = (() => {
 
 // These values are established by empiricism with tests (tradeoff: performance VS precision)
 var NEWTON_ITERATIONS = 4;
