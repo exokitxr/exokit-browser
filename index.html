@@ -475,6 +475,7 @@ const LAMBDA_URLS = {
   token: `https://83l02bkydk.execute-api.us-west-1.amazonaws.com/default/token`,
   tokens: `https://83l02bkydk.execute-api.us-west-1.amazonaws.com/default/tokens`,
   coords: `https://83l02bkydk.execute-api.us-west-1.amazonaws.com/default/coords`,
+  presence: `wss://7pqt2xzb54.execute-api.us-west-1.amazonaws.com/default`,
 };
 const DEFAULT_URL = 'https://google.com';
 const PARCEL_SIZE = 8;
@@ -6316,6 +6317,188 @@ window.addEventListener('popstate', _updateCoord);
 
 // renderer.setAnimationLoop(animate);
 // _openRig(new THREE.Vector3(0, 1.5, -1), new THREE.Quaternion());
+
+let connectionId = null;
+const offers = [];
+const peerConnections = [];
+const _makePeerConnection = (peerConnectionId, cleanupOffer) => {
+  const peerConnectionConfig = {
+    iceServers: [
+      {'urls': 'stun:stun.stunprotocol.org:3478'},
+      {'urls': 'stun:stun.l.google.com:19302'},
+    ],
+  };
+  const peerConnection = new RTCPeerConnection(peerConnectionConfig);
+  peerConnection.onicecandidate = e => {
+    console.log('got ice candidate', e);
+  };
+  peerConnection.ontrack = e => {
+    console.log('got track', e);
+  };
+  const sendChannel = peerConnection.createDataChannel('sendChannel');
+  let pingInterval = 0;
+  sendChannel.onopen = () => {
+    console.log('data channel local open');
+
+    pingInterval = setInterval(() => {
+      sendChannel.send(JSON.stringify({
+        method: 'ping',
+      }));
+    }, 1000);
+  };
+  sendChannel.onclose = () => {
+    console.log('data channel local close');
+  };
+  sendChannel.onerror = err => {
+    console.log('data channel local error', err);
+  };
+  let watchdogTimeout = 0;
+  const _kick = () => {
+    if (watchdogTimeout) {
+      clearTimeout(watchdogTimeout);
+      watchdogTimeout = 0;
+    }
+    watchdogTimeout = setTimeout(() => {
+      peerConnection.close();
+    }, 5000);
+  };
+  _kick();
+  peerConnection.ondatachannel = e => {
+    const {channel} = e;
+    console.log('data channel remote open', channel);
+    channel.onclose = () => {
+      console.log('data channel remote close');
+      peerConnection.close();
+      if (pingInterval) {
+        clearInterval(pingInterval);
+      }
+      peerConnections.splice(peerConnections.indexOf(peerConnection), 1);
+    };
+    channel.onerror = err => {
+      console.log('data channel remote error', err);
+    };
+    channel.onmessage = e => {
+      console.log('data channel message', e);
+
+      _kick();
+    };
+
+    cleanupOffer();
+  };
+  peerConnection.connectionId = peerConnectionId;
+  peerConnection.connecting = false;
+  peerConnection.connecting2 = false;
+  peerConnection.pending = true;
+
+  return peerConnection;
+};
+
+let timeout = 0;
+const _query = () => {
+  s.send(JSON.stringify({
+    action: 'query',
+    offers,
+  }));
+  const pending = peerConnections.some(peerConnection => peerConnection.pending);
+  // pending && console.log('pending');
+  timeout = setTimeout(_query, pending ? 500 : 2000);
+};
+const _send = () => {
+  if (timeout) {
+    clearTimeout(timeout);
+    timeout = 0;
+  }
+  _query();
+};
+
+const s = new WebSocket(LAMBDA_URLS.presence);
+s.onopen = () => {
+  console.log('socket open');
+
+  _send();
+};
+s.onmessage = e => {
+  const data = JSON.parse(e.data);
+  const action = data && data.action;
+  if (action === 'query') {
+    let {connectionId, peers} = data;
+    // console.log('got query', connectionId, peers);
+
+    peers.forEach(peer => {
+      if (peer.connectionId === connectionId) {
+        return;
+      }
+
+      let localOffer = offers.find(offer => offer.connectionId === peer.connectionId);
+      let peerConnection = peerConnections.find(peerConnection => peerConnection.connectionId === peer.connectionId);
+      if (!localOffer && !peerConnection) {
+        // console.log('new local offer', peer.connectionId, peerConnections.map(peerConnection => peerConnection.connectionId));
+        localOffer = {
+          connectionId: peer.connectionId,
+          offer: null,
+          answer: null,
+          iceCandidates: [],
+        };
+        offers.push(localOffer);
+
+        peerConnection = _makePeerConnection(peer.connectionId, () => {
+          offers.splice(offers.indexOf(localOffer), 1);
+
+          _send();
+        });
+        peerConnection.onicecandidate = e => {
+          const {candidate} = e;
+          localOffer.iceCandidates.push(candidate);
+
+          _send();
+        };
+        peerConnections.push(peerConnection);
+
+        _send();
+      };
+
+      if (localOffer) {
+        const remoteOffer = peer.offers.find(offer => offer.connectionId === connectionId);
+        const shouldInitiateConnection = connectionId.localeCompare(peer.connectionId) < 0;
+        if (shouldInitiateConnection && !peerConnection.connecting) {
+          console.log('phase 1');
+          peerConnection.connecting = true;
+          peerConnection
+            .createOffer()
+            .then(offer => {
+              peerConnection.setLocalDescription(offer)
+              localOffer.offer = offer;
+
+              _send();
+            });
+        } else if (!shouldInitiateConnection && remoteOffer && remoteOffer.offer && !peerConnection.connecting) {
+          console.log('phase 2');
+          peerConnection.connecting = true;
+          peerConnection.connecting2 = true;
+          peerConnection.pending = false;
+          peerConnection.setRemoteDescription(remoteOffer.offer)
+            .then(() => peerConnection.createAnswer())
+            .then(answer => {
+              peerConnection.setLocalDescription(answer);
+              localOffer.answer = answer;
+
+              _send();
+            });
+        } else if (shouldInitiateConnection && remoteOffer && remoteOffer.answer && !peerConnection.connecting2) {
+          console.log('phase 3');
+          peerConnection.connecting2 = true;
+          peerConnection.pending = false;
+          peerConnection.setRemoteDescription(remoteOffer.answer);
+        }
+
+        remoteOffer && remoteOffer.iceCandidates.forEach(candidate => {
+          peerConnection.addIceCandidate(candidate).catch(() => {});
+        });
+      }
+    });
+  }
+};
+
 })();
     </script>
     <!-- <audio src="background.mp3" autoplay loop></audio> -->
