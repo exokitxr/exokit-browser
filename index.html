@@ -1472,7 +1472,7 @@ scene.add(targetMesh); */
 
 const _addOrbitControls = () => {
   const orbitCamera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
-  orbitControls = new THREE.OrbitControls(orbitCamera);
+  orbitControls = new THREE.OrbitControls(orbitCamera, renderer.domElement);
   orbitCamera.position.copy(fakeXrDisplay.position);
   orbitCamera.quaternion.copy(fakeXrDisplay.quaternion);
   scene.add(orbitCamera);
