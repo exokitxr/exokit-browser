@@ -166,6 +166,21 @@ header .popdown {
   /* border: 2px solid rgba(0,0,0,0.5); */
   color: #FFF;
 }
+#login-popdown {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  width: 100vw;
+  padding: 30px;
+  background-color: rgba(33,33,33,1);
+  border-top: 2px solid #141414;
+}
+#login-popdown > form:not(.phase-1) > .phase-1-content {
+  display: none;
+}
+#login-popdown > form:not(.phase-2) > .phase-2-content {
+  display: none;
+}
 #subscribe-popdown {
   position: absolute;
   top: 50px;
@@ -273,6 +288,7 @@ iframe, audio {
       <a class="nav">Download</a>
       <a class="nav" id="developers-dropdown">Developers<i class="fal fa-chevron-down"></i></a>
       <div class=wrap>
+        <nav class="button highlight" id="login-button">Login</nav>
         <nav class="button highlight" id="subscribe-button">Subscribe</nav>
         <nav class="multibutton">
           <a href="#sp" class="button">Singleplayer</a>
@@ -287,6 +303,18 @@ iframe, audio {
           </h1>
           <p>Run VR/AR web sites on the blockchain Grid.</br>Subscribe to claim land and get paid with standard APIs.</p>
         </div>
+      </div>
+      <div class="popdown" id="login-popdown">
+        <form class="phase-1" id="login-form">
+          <div class="phase-1-content">
+            <input type=email placeholder="your@email.com" id="login-email">
+            <input type="submit" value="Log in">
+          </div>
+          <div class="phase-2-content">
+            <input type=text placeholder="Verification code" id="login-verification-code">
+            <input type="submit" value="Verify">
+          </div>
+        </form>
       </div>
       <div class="popdown" id="subscribe-popdown">
         <div class="plans">
@@ -365,6 +393,9 @@ const mouse = {
 };
 // window.sceneMeshes = sceneMeshes;
 
+const LAMBDA_URLS = {
+  login: `https://h2b42dkblh.execute-api.us-west-1.amazonaws.com/default/login`,
+};
 const DEFAULT_URL = 'https://google.com';
 const PARCEL_SIZE = 8;
 const TOKEN_PRICE = 5e15;
@@ -564,6 +595,58 @@ if (mode === null) {
   const skinMesh = _makeSkinMesh();
   skinMesh.setSkinUrl(DEFAULT_SKIN_URL);
 }
+
+const loginButton = document.getElementById('login-button');
+const loginPopdown = document.getElementById('login-popdown');
+const loginForm = document.getElementById('login-form');
+const loginEmail = document.getElementById('login-email');
+const loginVerificationCode = document.getElementById('login-verification-code');
+loginButton.onclick = () => {
+  loginPopdown.classList.toggle('open');
+};
+loginForm.onsubmit = e => {
+  e.preventDefault();
+
+  if (loginForm.classList.contains('phase-1')) {
+    console.log('login 1', loginEmail.value);
+
+    loginForm.classList.remove('phase-1');
+
+    fetch(LAMBDA_URLS.login + `?email=${encodeURIComponent(loginEmail.value)}`, {
+      method: 'POST',
+    })
+      .then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          console.log('login 2', loginEmail.value);
+
+          loginForm.classList.add('phase-2');
+        } else {
+          throw new Error(`invalid status code: ${res.status}`);
+        }
+      })
+      .catch(err => {
+        console.warn(err);
+      });
+  } else if (loginForm.classList.contains('phase-2')) {
+    console.log('login 3', loginVerificationCode.value);
+
+    fetch(LAMBDA_URLS.login + `?code=${encodeURIComponent(loginVerificationCode.value)}`, {
+      method: 'POST',
+    })
+      .then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          console.log('login 4', loginVerificationCode.value);
+
+          loginPopdown.classList.remove('open');
+        } else {
+          throw new Error(`invalid status code: ${res.status}`);
+        }
+      })
+      .catch(err => {
+        console.warn(err);
+      });
+  }
+};
 
 const subscribeButton = document.getElementById('subscribe-button');
 const subscribePopdown = document.getElementById('subscribe-popdown');
