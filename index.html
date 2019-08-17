@@ -402,6 +402,8 @@ const mouse = {
 
 const LAMBDA_URLS = {
   login: `https://h2b42dkblh.execute-api.us-west-1.amazonaws.com/default/login`,
+  content: `https://webaverse.s3-us-west-1.amazonaws.com/`,
+  upload: `https://1ue2mwq213.execute-api.us-west-1.amazonaws.com/default/content`,
 };
 const DEFAULT_URL = 'https://google.com';
 const PARCEL_SIZE = 8;
@@ -1393,7 +1395,7 @@ function dropHandler(ev) {
     if (ev.dataTransfer.items[i].kind === 'file') {
       var file = ev.dataTransfer.items[i].getAsFile();
 
-      console.log(`file ${i}: ${file.name}`);
+      console.log(`file ${i}: ${file.name} ${file.type}`);
 
       const _loadModel = u => {
         _addNewApp(u, faviconImg, 'model', -1);
@@ -1418,25 +1420,35 @@ function dropHandler(ev) {
         reader.readAsArrayBuffer(file);
       };
       const _loadRemote = () => {
-        const u = `https://webaverse.s3.amazonaws.com/lol/${file.name}`;
+        const tokenId = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
+        const u = `${LAMBDA_URLS.upload}?tokenId=${encodeURIComponent(tokenId)}&path=${encodeURIComponent(file.name)}`;
+
         fetch(u, {
-          method: 'PUT',
-          body: file,
-          mode: 'cors',
+          method: 'POST',
+          headers: {
+            'Content-Type': file.type,
+          },
         })
+          .then(res => res.json())
+          .then(u => fetch(u, {
+            method: 'PUT',
+            body: file,
+            mode: 'cors',
+          }))
           .then(res => res.arrayBuffer())
           .then(() => {
+            const u = `${LAMBDA_URLS.content}${encodeURIComponent(tokenId)}/${encodeURIComponent(file.name)}`;
             _loadModel(u);
           })
           .catch(err => {
             console.warn(err.stack);
           });
       };
-      if (!_isInMultiverse()) {
+      /* if (!_isInMultiverse()) {
         _loadLocal();
-      } else {
+      } else { */
         _loadRemote();
-      }
+      // }
     }
   }
 }
