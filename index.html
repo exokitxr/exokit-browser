@@ -166,6 +166,12 @@ header .popdown {
   /* border: 2px solid rgba(0,0,0,0.5); */
   color: #FFF;
 }
+header.logged-in #login-button {
+  display: none;
+}
+header:not(.logged-in) #logout-button {
+  display: none;
+}
 #login-popdown {
   position: absolute;
   top: 50px;
@@ -289,6 +295,7 @@ iframe, audio {
       <a class="nav" id="developers-dropdown">Developers<i class="fal fa-chevron-down"></i></a>
       <div class=wrap>
         <nav class="button highlight" id="login-button">Login</nav>
+        <nav class="button highlight" id="logout-button">Log out</nav>
         <nav class="button highlight" id="subscribe-button">Subscribe</nav>
         <nav class="multibutton">
           <a href="#sp" class="button">Singleplayer</a>
@@ -601,8 +608,14 @@ const loginPopdown = document.getElementById('login-popdown');
 const loginForm = document.getElementById('login-form');
 const loginEmail = document.getElementById('login-email');
 const loginVerificationCode = document.getElementById('login-verification-code');
+const logoutButton = document.getElementById('logout-button');
 loginButton.onclick = () => {
   loginPopdown.classList.toggle('open');
+};
+logoutButton.onclick = () => {
+  localStorage.removeItem('loginToken');
+
+  header.classList.remove('logged-in');
 };
 loginForm.onsubmit = e => {
   e.preventDefault();
@@ -647,6 +660,7 @@ loginForm.onsubmit = e => {
 
         localStorage.setItem('loginToken', JSON.stringify(loginSpec));
 
+        header.classList.add('logged-in');
         loginPopdown.classList.remove('open');
       })
       .catch(err => {
@@ -673,6 +687,8 @@ loginForm.onsubmit = e => {
       })
       .then(() => {
         console.log('login token 2');
+
+        header.classList.add('logged-in');
       })
       .catch(err => {
         console.warn(err);
