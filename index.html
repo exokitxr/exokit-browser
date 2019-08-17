@@ -630,7 +630,7 @@ loginForm.onsubmit = e => {
   } else if (loginForm.classList.contains('phase-2')) {
     console.log('login 3', loginVerificationCode.value);
 
-    fetch(LAMBDA_URLS.login + `?code=${encodeURIComponent(loginVerificationCode.value)}`, {
+    fetch(LAMBDA_URLS.login + `?email=${loginEmail.value}&code=${encodeURIComponent(loginVerificationCode.value)}`, {
       method: 'POST',
     })
       .then(res => {
