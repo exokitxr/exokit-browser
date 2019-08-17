@@ -402,9 +402,7 @@ const mouse = {
 
 const LAMBDA_URLS = {
   login: `https://h2b42dkblh.execute-api.us-west-1.amazonaws.com/default/login`,
-  content: `https://content.webaverse.com/`,
   token: `https://83l02bkydk.execute-api.us-west-1.amazonaws.com/default/token`,
-  // upload: `https://1ue2mwq213.execute-api.us-west-1.amazonaws.com/default/content`,
 };
 const DEFAULT_URL = 'https://google.com';
 const PARCEL_SIZE = 8;
@@ -1441,6 +1439,7 @@ function dropHandler(ev) {
           })
           .then(j => {
             const tokenId = j && j.tokenId;
+            const url = j && j.url;
             const uploadUrl = j && j.uploadUrl;
             console.log('got token', {tokenId, uploadUrl});
 
@@ -1449,11 +1448,8 @@ function dropHandler(ev) {
               body: file,
               mode: 'cors',
             })
-            .then(res => res.arrayBuffer())
-            .then(() => {
-              const u = `${LAMBDA_URLS.content}${encodeURIComponent(tokenId)}`;
-              _loadModel(u);
-            });
+            .then(res => res.blob())
+            .then(() => _loadModel(url));
           })
           .catch(err => {
             console.warn(err.stack);
