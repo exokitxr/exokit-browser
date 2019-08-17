@@ -620,6 +620,8 @@ loginForm.onsubmit = e => {
           console.log('login 2', loginEmail.value);
 
           loginForm.classList.add('phase-2');
+
+          return res.blob();
         } else {
           throw new Error(`invalid status code: ${res.status}`);
         }
