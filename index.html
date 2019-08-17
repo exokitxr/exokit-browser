@@ -403,6 +403,7 @@ const mouse = {
 const LAMBDA_URLS = {
   login: `https://h2b42dkblh.execute-api.us-west-1.amazonaws.com/default/login`,
   content: `https://webaverse.s3-us-west-1.amazonaws.com/`,
+  token: `https://83l02bkydk.execute-api.us-west-1.amazonaws.com/default/token`,
   upload: `https://1ue2mwq213.execute-api.us-west-1.amazonaws.com/default/content`,
 };
 const DEFAULT_URL = 'https://google.com';
@@ -670,8 +671,9 @@ loginForm.onsubmit = e => {
       });
   }
 };
+let loginToken;
 (() => {
-  let loginToken = localStorage.getItem('loginToken');
+  loginToken = localStorage.getItem('loginToken');
   if (loginToken) {
     loginToken = JSON.parse(loginToken);
 
@@ -695,6 +697,7 @@ loginForm.onsubmit = e => {
       .catch(err => {
         console.warn(err);
 
+        loginToken = undefined;
         localStorage.removeItem('loginToken');
       });
   }
@@ -1420,25 +1423,46 @@ function dropHandler(ev) {
         reader.readAsArrayBuffer(file);
       };
       const _loadRemote = () => {
-        const tokenId = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
-        const u = `${LAMBDA_URLS.upload}?tokenId=${encodeURIComponent(tokenId)}&path=${encodeURIComponent(file.name)}`;
+        const postfix = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
+        const u = `${LAMBDA_URLS.token}?email=${encodeURIComponent(loginToken.email)}&token=${encodeURIComponent(loginToken.token)}&name=${encodeURIComponent(file.name + '-' + postfix)}`;
 
         fetch(u, {
           method: 'POST',
-          headers: {
-            'Content-Type': file.type,
-          },
         })
-          .then(res => res.json())
-          .then(u => fetch(u, {
-            method: 'PUT',
-            body: file,
-            mode: 'cors',
-          }))
-          .then(res => res.arrayBuffer())
-          .then(() => {
-            const u = `${LAMBDA_URLS.content}${encodeURIComponent(tokenId)}/${encodeURIComponent(file.name)}`;
-            _loadModel(u);
+          .then(res => {
+            if (res.status >= 200 && res.status < 300) {
+              return res.json();
+            } else {
+              throw new Error(`invalid status code: ${res.status}`);
+            }
+          })
+          .then(j => {
+            const tokenId = j && j.tokenId;
+
+            console.log('got token', tokenId);
+
+            const u = `${LAMBDA_URLS.upload}?tokenId=${encodeURIComponent(tokenId)}&path=${encodeURIComponent(file.name)}`;
+            return fetch(u, {
+              method: 'POST',
+              headers: {
+                'Content-Type': file.type,
+              },
+            })
+            .then(res => res.json())
+            .then(u => {
+              console.log('got signed url', u);
+
+              return fetch(u, {
+                method: 'PUT',
+                body: file,
+                mode: 'cors',
+              })
+              .then(res => res.arrayBuffer())
+              .then(() => {
+                const u = `${LAMBDA_URLS.content}${encodeURIComponent(tokenId)}/${encodeURIComponent(file.name)}`;
+                _loadModel(u);
+              });
+            });
           })
           .catch(err => {
             console.warn(err.stack);
