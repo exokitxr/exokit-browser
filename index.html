@@ -637,18 +637,50 @@ loginForm.onsubmit = e => {
     })
       .then(res => {
         if (res.status >= 200 && res.status < 300) {
-          console.log('login 4', loginVerificationCode.value);
-
-          loginPopdown.classList.remove('open');
+          return res.json();
         } else {
           throw new Error(`invalid status code: ${res.status}`);
         }
+      })
+      .then(loginSpec => {
+        console.log('login 4', loginSpec);
+
+        localStorage.setItem('loginToken', JSON.stringify(loginSpec));
+
+        loginPopdown.classList.remove('open');
       })
       .catch(err => {
         console.warn(err);
       });
   }
 };
+(() => {
+  let loginToken = localStorage.getItem('loginToken');
+  if (loginToken) {
+    loginToken = JSON.parse(loginToken);
+
+    console.log('login token 1');
+
+    fetch(LAMBDA_URLS.login + `?email=${encodeURIComponent(loginToken.email)}&token=${encodeURIComponent(loginToken.token)}`, {
+      method: 'POST',
+    })
+      .then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          return res.json();
+        } else {
+          throw new Error(`invalid status code: ${res.status}`);
+        }
+      })
+      .then(() => {
+        console.log('login token 2');
+      })
+      .catch(err => {
+        console.warn(err);
+
+        localStorage.removeItem('loginToken');
+      });
+  }
+})();
 
 const subscribeButton = document.getElementById('subscribe-button');
 const subscribePopdown = document.getElementById('subscribe-popdown');
