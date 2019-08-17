@@ -402,7 +402,7 @@ const mouse = {
 
 const LAMBDA_URLS = {
   login: `https://h2b42dkblh.execute-api.us-west-1.amazonaws.com/default/login`,
-  content: `https://webaverse.s3-us-west-1.amazonaws.com/`,
+  content: `https://content.webaverse.com/`,
   token: `https://83l02bkydk.execute-api.us-west-1.amazonaws.com/default/token`,
   // upload: `https://1ue2mwq213.execute-api.us-west-1.amazonaws.com/default/content`,
 };
@@ -1441,10 +1441,10 @@ function dropHandler(ev) {
           })
           .then(j => {
             const tokenId = j && j.tokenId;
-            const u = j && j.url;
-            console.log('got token', {tokenId, u});
+            const uploadUrl = j && j.uploadUrl;
+            console.log('got token', {tokenId, uploadUrl});
 
-            return fetch(u, {
+            return fetch(uploadUrl, {
               method: 'PUT',
               body: file,
               mode: 'cors',
