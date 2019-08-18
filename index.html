@@ -169,7 +169,7 @@ header .popdown {
 header.logged-in #login-button {
   display: none;
 }
-header:not(.logged-in) #logout-button {
+header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
   display: none;
 }
 #login-popdown {
@@ -294,6 +294,10 @@ iframe, audio {
       <a class="nav">Download</a>
       <a class="nav" id="developers-dropdown">Developers<i class="fal fa-chevron-down"></i></a>
       <div class=wrap>
+        <form class=url-form id=url-form>
+          <input type=text placeholder="https://" id=url-input>
+          <input type=submit value="Go">
+        </form>
         <nav class="button highlight" id="login-button">Login</nav>
         <nav class="button highlight" id="logout-button">Log out</nav>
         <nav class="button highlight" id="subscribe-button">Subscribe</nav>
@@ -450,6 +454,9 @@ const localCamera = new THREE.PerspectiveCamera();
   return query;
 }
 const query = parseQuery(window.location.search); */
+function _randomString() {
+  return Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
+}
 
 const header = document.getElementById('header');
 const mode = (() => {
@@ -700,6 +707,34 @@ let loginToken;
       });
   }
 })();
+
+const urlForm = document.getElementById('url-form');
+const urlInput = document.getElementById('url-input');
+urlForm.addEventListener('submit', e => {
+  e.preventDefault();
+
+  const u = `${LAMBDA_URLS.token}?email=${encodeURIComponent(loginToken.email)}&token=${encodeURIComponent(loginToken.token)}&url=${encodeURIComponent(urlInput.value)}`;
+  console.log('open url', u);
+  fetch(u, {
+    method: 'POST',
+  })
+    .then(res => {
+      if (res.status >= 200 && res.status < 300) {
+        return res.json();
+      } else {
+        throw new Error(`invalid status code: ${res.status}`);
+      }
+    })
+    .then(j => {
+      const tokenId = j && j.tokenId;
+      const name = j && j.name;
+      const url = j && j.url;
+      console.log('got token', {tokenId, name, url});
+    })
+    .catch(err => {
+      console.warn(err);
+    });
+});
 
 const subscribeButton = document.getElementById('subscribe-button');
 const subscribePopdown = document.getElementById('subscribe-popdown');
@@ -1421,7 +1456,7 @@ function dropHandler(ev) {
         reader.readAsArrayBuffer(file);
       };
       const _loadRemote = () => {
-        const postfix = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
+        const postfix = _randomString();
         const u = `${LAMBDA_URLS.token}?email=${encodeURIComponent(loginToken.email)}&token=${encodeURIComponent(loginToken.token)}&name=${encodeURIComponent(file.name + '-' + postfix)}&type=${encodeURIComponent(file.type)}`;
 
         fetch(u, {
@@ -1439,9 +1474,10 @@ function dropHandler(ev) {
           })
           .then(j => {
             const tokenId = j && j.tokenId;
+            const name = j && j.name;
             const url = j && j.url;
             const uploadUrl = j && j.uploadUrl;
-            console.log('got token', {tokenId, uploadUrl});
+            console.log('got token', {tokenId, name, url, uploadUrl});
 
             return fetch(uploadUrl, {
               method: 'PUT',
