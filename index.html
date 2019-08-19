@@ -238,7 +238,7 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
   margin: 0;
   line-height: 1.4;
 }
-#explore-popdown {
+/* #explore-popdown {
   position: absolute;
   display: flex;
   top: 50px;
@@ -246,6 +246,47 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
   height: calc(100vh - 50px);
   background-color: rgba(33,33,33,1);
   border-top: 2px solid #141414;
+} */
+#explore-popdown {
+  position: absolute;
+  display: flex;
+  top: 50px;
+  width: 800px;
+  height: 400px;
+  padding: 0;
+  background-color: #FFF;
+  color: #000;
+}
+#explore-popdown .tabs {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  border-left: 3px solid #000;
+}
+#explore-popdown .tabs .tab {
+  display: flex;
+  width: 50px;
+  height: 50px;
+  margin-left: -3px;
+  padding: 10px;
+  padding-left: 13px;
+  // background-color: #FFF;
+  justify-content: center;
+  align-items: center;
+  /* border-top-color: transparent;
+  border-bottom-color: transparent;
+  border-right-color: transparent; */
+  font-size: 30px;
+}
+#explore-popdown .tabs .tab.selected {
+  background-color: #FFF;
+  border-left: 0;
+  border-right: 3px solid #000;
+  border-bottom: 3px solid #000;
+  color: #66bb6a;
+}
+#explore-popdown .tabs .tab.selected:not(:first-child) {
+  border-top: 3px solid #000;
 }
 #developers-popdown {
   position: absolute;
@@ -262,7 +303,7 @@ header .popdown ul {
   font-size: 14px;
   line-height: 2;
 }
-header .popdown .explore-content {
+/* header .popdown .explore-content {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -276,7 +317,7 @@ header .popdown .explore-content i {
 }
 header .popdown .explore-content p {
   line-height: 1.6;
-}
+} */
 #canvas {
   width: 100vw;
   height: 100vh;
@@ -360,12 +401,23 @@ iframe, audio {
         <nav class="button alt">Purchase</nav>
       </div>
       <div class="popdown" id="explore-popdown">
-        <div class="explore-content">
+        <div class=tabs>
+          <div class="tab selected" id=explore-tab-1>
+            <i class="fal fa-expand-wide"></i>
+          </div>
+          <div class=tab id=explore-tab-2>
+            <i class="fal fa-backpack"></i>
+          </div>
+          <div class=tab id=explore-tab-3>
+            <i class="fal fa-plus-square"></i>
+          </div>
+        </div>
+        <!-- <div class="explore-content">
           <h3>Explore new worlds</h3>
           <i class="fal fa-user-astronaut"></i>
           <p>Run VR/AR web sites on the blockchain Grid.</br>Subscribe to claim land and get paid with standard APIs.</p>
           <nav class="button alt">Next</nav>
-        </div>
+        </div> -->
       </div>
       <div class="popdown" id="developers-popdown">
         <ul>
@@ -738,15 +790,27 @@ subscribeButton.onclick = () => {
   subscribePopdown.classList.toggle('open'); 
 };
 for (let i = 1; i <= 3; i++) {
-  const plan = document.getElementById(`plan-${i}`)
+  const plan = document.getElementById(`plan-${i}`);
   plan.onclick = () => {
     for (let i = 1; i <= 3; i++) {
-      const plan = document.getElementById(`plan-${i}`)
+      const plan = document.getElementById(`plan-${i}`);
       plan.classList.remove('selected');
     }
     plan.classList.add('selected');
   };
 }
+
+for (let i = 1; i <= 3; i++) {
+  const exploreTab = document.getElementById(`explore-tab-${i}`);
+  exploreTab.onclick = () => {
+    for (let i = 1; i <= 3; i++) {
+      const exploreTab = document.getElementById(`explore-tab-${i}`);
+      exploreTab.classList.remove('selected');
+    }
+    exploreTab.classList.add('selected');
+  };
+}
+
 const popup = document.getElementById('popup');
 const closeButton = document.getElementById('close-button');
 closeButton.onclick = () => {
