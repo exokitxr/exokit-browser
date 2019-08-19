@@ -256,6 +256,7 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
   padding: 0;
   background-color: #FFF;
   color: #000;
+  flex-direction: row;
 }
 #explore-popdown .tabs {
   display: flex;
@@ -287,6 +288,31 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
 }
 #explore-popdown .tabs .tab.selected:not(:first-child) {
   border-top: 3px solid #000;
+}
+#explore-popdown .content {
+  padding-left: 20px;
+  flex: 1;
+}
+#explore-popdown .content h1 {
+  margin: 10px;
+}
+#explore-popdown .content h3, #explore-popdown .content p {
+  margin: 0;
+}
+#explore-popdown .content ul {
+}
+#explore-popdown .content ul li {
+  display: flex;
+  padding: 15px 0;
+  border-bottom: 1px solid #f8f8f8;
+}
+#explore-popdown .content ul li img {
+  margin-right: 10px;
+}
+#explore-popdown .content ul li .wrap {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
 }
 #developers-popdown {
   position: absolute;
@@ -411,6 +437,53 @@ iframe, audio {
           <div class=tab id=explore-tab-3>
             <i class="fal fa-plus-square"></i>
           </div>
+        </div>
+        <div class=content>
+          <h1>Nearby content</h1>
+          <ul>
+            <li>
+              <img src="skin.png">
+              <div class=wrap>
+                <h3 class>My app</h3>
+                <p>By 0x0000000000000000000000000000000000000000 at 1,2</p>
+              </div>
+            </li>
+            <li>
+              <img src="skin.png">
+              <div class=wrap>
+                <h3 class>My app</h3>
+                <p>By 0x0000000000000000000000000000000000000000 at 1,2</p>
+              </div>
+            </li>
+            <li>
+              <img src="skin.png">
+              <div class=wrap>
+                <h3 class>My app</h3>
+                <p>By 0x0000000000000000000000000000000000000000 at 1,2</p>
+              </div>
+            </li>
+            <li>
+              <img src="skin.png">
+              <div class=wrap>
+                <h3 class>My app</h3>
+                <p>By 0x0000000000000000000000000000000000000000 at 1,2</p>
+              </div>
+            </li>
+            <li>
+              <img src="skin.png">
+              <div class=wrap>
+                <h3 class>My app</h3>
+                <p>By 0x0000000000000000000000000000000000000000 at 1,2</p>
+              </div>
+            </li>
+            <li>
+              <img src="skin.png">
+              <div class=wrap>
+                <h3 class>My app</h3>
+                <p>By 0x0000000000000000000000000000000000000000 at 1,2</p>
+              </div>
+            </li>
+          </ul>
         </div>
         <!-- <div class="explore-content">
           <h3>Explore new worlds</h3>
