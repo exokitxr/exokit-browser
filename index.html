@@ -663,10 +663,11 @@ loginForm.onsubmit = e => {
           throw new Error(`invalid status code: ${res.status}`);
         }
       })
-      .then(loginSpec => {
-        console.log('login 4', loginSpec);
+      .then(newLoginToken => {
+        console.log('login 4', newLoginToken);
 
-        localStorage.setItem('loginToken', JSON.stringify(loginSpec));
+        loginToken = newLoginToken;
+        localStorage.setItem('loginToken', JSON.stringify(newLoginToken));
 
         header.classList.add('logged-in');
         loginPopdown.classList.remove('open');
