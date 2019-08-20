@@ -705,19 +705,35 @@ const _getCoordsFromBindingUrl = bindingUrl => {
     return null;
   }
 };
+const _makeElement = html => {
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  return div.children[0];
+};
 const _renderItems = items => {
-  return `<ul>
+  const el = _makeElement(`<ul>
     ${items.map(item => {
       const coords = _getCoordsFromBindingUrl(item.bindingUrl);
       return `<li>
         <img src="skin.png">
         <div class=wrap>
-        <h3 class><a href="${item.url}">${item.name}</a><span class=light>${coords ? `<a href="/?c=${coords.join(',')}">at ${coords.join(',')}</a>` : 'not bound'}</span></h3>
+        <h3 class><a class="a-content" href="${item.url}">${item.name}</a><span class=light>${coords ? `<a class="a-binding" href="/?c=${coords.join(',')}">at ${coords.join(',')}</a>` : 'not bound'}</span></h3>
         <p>owner ${item.addr}</p>
         </div>
       </li>`;
     }).join('')}
-  </ul>`;
+  </ul>`);
+  const aBindings = el.querySelectorAll('.a-binding');
+  for (let i = 0; i < aBindings.length; i++) {
+    const a = aBindings[i];
+    a.onclick = e => {
+      e.preventDefault();
+
+      history.pushState({}, a.href, a.href);
+      _updateCoord();
+    };
+  }
+  return el;
 };
 const _updateTabs = async () => {
   if (currentExploreTab === 1) {
@@ -734,7 +750,8 @@ const _updateTabs = async () => {
       });
 
     exploreLabel.innerText = 'Nearby';
-    exploreContent.innerHTML = _renderItems(items);
+    exploreContent.innerHTML = '';
+    exploreContent.appendChild(_renderItems(items));
     explorePopdown.classList.remove('loading');
 
     console.log('got nearby items', items);
@@ -750,7 +767,8 @@ const _updateTabs = async () => {
       });
 
     exploreLabel.innerText = 'Inventory';
-    exploreContent.innerHTML = _renderItems(items);
+    exploreContent.innerHTML = '';
+    exploreContent.appendChild(_renderItems(items));
     explorePopdown.classList.remove('loading');
 
     console.log('got inventory items', items);
@@ -6279,9 +6297,8 @@ function _updateCoord() {
     const x = parseFloat(match[1]);
     const z = parseFloat(match[2]);
     if (isFinite(x) && isFinite(z)) {
-      console.log('got x z', {x, z});
-      window.document.xrOffset.position[0] = x;
-      window.document.xrOffset.position[2] = z;
+      window.document.xrOffset.position[0] += x - camera.position.x;
+      window.document.xrOffset.position[2] += z - camera.position.z;
       window.document.xrOffset.pushUpdate();
     }
   }
