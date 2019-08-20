@@ -6326,9 +6326,6 @@ const _makePeerConnection = peerConnectionId => {
     ],
   };
   const peerConnection = new RTCPeerConnection(peerConnectionConfig);
-  peerConnection.onicecandidate = e => {
-    console.log('got ice candidate', e);
-  };
   peerConnection.ontrack = e => {
     console.log('got track', e);
   };
@@ -6432,6 +6429,8 @@ const _rtcConnect = () => {
       if (!peerConnection) {
         peerConnection = _makePeerConnection(peerConnectionId);
         peerConnection.onicecandidate = e => {
+          // console.log('ice candidate', e.candidate);
+
           s.send(JSON.stringify({
             dst: peerConnectionId,
             src: connectionId,
@@ -6490,7 +6489,10 @@ const _rtcConnect = () => {
 
       const peerConnection = peerConnections.find(peerConnection => peerConnection.connectionId === peerConnectionId);
       if (peerConnection) {
-        peerConnection.addIceCandidate(candidate).catch(() => {});
+        peerConnection.addIceCandidate(candidate)
+          .catch(err => {
+            // console.warn(err);
+          });
       } else {
         console.warn('no such peer connection', peerConnectionId, peerConnections.map(peerConnection => peerConnection.connectionId));
       }
