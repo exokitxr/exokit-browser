@@ -856,7 +856,7 @@ const _renderItems = items => {
       return `<li>
         <img src="skin.png">
         <div class=wrap>
-        <h3 class><a href="${item.url}">${item.name}</a><span class=light>${coords ? `at ${coords.join(',')}` : 'not bound'}</span></h3>
+        <h3 class><a href="${item.url}">${item.name}</a><span class=light>${coords ? `<a href="/?c=${coords.join(',')}">at ${coords.join(',')}</a>` : 'not bound'}</span></h3>
         <p>owner ${item.addr}</p>
         </div>
       </li>`;
