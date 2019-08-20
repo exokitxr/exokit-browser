@@ -238,15 +238,6 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
   margin: 0;
   line-height: 1.4;
 }
-/* #explore-popdown {
-  position: absolute;
-  display: flex;
-  top: 50px;
-  width: 300px;
-  height: calc(100vh - 50px);
-  background-color: rgba(33,33,33,1);
-  border-top: 2px solid #141414;
-} */
 #explore-popdown {
   position: absolute;
   display: flex;
@@ -271,12 +262,8 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
   margin-left: -3px;
   padding: 10px;
   padding-left: 13px;
-  // background-color: #FFF;
   justify-content: center;
   align-items: center;
-  /* border-top-color: transparent;
-  border-bottom-color: transparent;
-  border-right-color: transparent; */
   font-size: 30px;
 }
 #explore-popdown .tabs .tab.selected {
@@ -289,30 +276,41 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
 #explore-popdown .tabs .tab.selected:not(:first-child) {
   border-top: 3px solid #000;
 }
-#explore-popdown .content {
+#explore-popdown .content-loaded, #explore-popdown .content-loading {
+  display: none;
   padding-left: 20px;
   flex: 1;
 }
-#explore-popdown .content h1 {
-  margin: 10px;
+#explore-popdown.loading .content-loading, #explore-popdown:not(.loading) .content-loaded {
+  display: block;
 }
-#explore-popdown .content h3, #explore-popdown .content p {
+#explore-popdown h1 {
+  margin: 0;
+  margin-top: 10px;
+}
+#explore-popdown h3, #explore-popdown p {
   margin: 0;
 }
-#explore-popdown .content ul {
-}
-#explore-popdown .content ul li {
+#explore-popdown ul {}
+#explore-popdown ul li {
   display: flex;
   padding: 15px 0;
+  padding-right: 15px;
   border-bottom: 1px solid #f8f8f8;
 }
-#explore-popdown .content ul li img {
+#explore-popdown ul li img {
   margin-right: 10px;
 }
-#explore-popdown .content ul li .wrap {
+#explore-popdown ul li .wrap {
   display: flex;
   flex: 1;
   flex-direction: column;
+}
+#explore-popdown ul li .light {
+  float: right;
+  color: #AAA;
+  font-weight: 400;
+  font-style: italic;
 }
 #developers-popdown {
   position: absolute;
@@ -329,21 +327,6 @@ header .popdown ul {
   font-size: 14px;
   line-height: 2;
 }
-/* header .popdown .explore-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-header .popdown .explore-content h3 {
-}
-header .popdown .explore-content i {
-  font-size: 100px;
-  color: rgba(255, 255, 255, 0.5);
-  text-shadow: 2px 2px 0 rgba(0,0,0,0.5);
-}
-header .popdown .explore-content p {
-  line-height: 1.6;
-} */
 #canvas {
   width: 100vw;
   height: 100vh;
@@ -426,7 +409,7 @@ iframe, audio {
         </div>
         <nav class="button alt">Purchase</nav>
       </div>
-      <div class="popdown" id="explore-popdown">
+      <div class="popdown" id=explore-popdown>
         <div class=tabs>
           <div class="tab selected" id=explore-tab-1>
             <i class="fal fa-expand-wide"></i>
@@ -438,59 +421,13 @@ iframe, audio {
             <i class="fal fa-plus-square"></i>
           </div>
         </div>
-        <div class=content>
-          <h1>Nearby content</h1>
-          <ul>
-            <li>
-              <img src="skin.png">
-              <div class=wrap>
-                <h3 class>My app</h3>
-                <p>By 0x0000000000000000000000000000000000000000 at 1,2</p>
-              </div>
-            </li>
-            <li>
-              <img src="skin.png">
-              <div class=wrap>
-                <h3 class>My app</h3>
-                <p>By 0x0000000000000000000000000000000000000000 at 1,2</p>
-              </div>
-            </li>
-            <li>
-              <img src="skin.png">
-              <div class=wrap>
-                <h3 class>My app</h3>
-                <p>By 0x0000000000000000000000000000000000000000 at 1,2</p>
-              </div>
-            </li>
-            <li>
-              <img src="skin.png">
-              <div class=wrap>
-                <h3 class>My app</h3>
-                <p>By 0x0000000000000000000000000000000000000000 at 1,2</p>
-              </div>
-            </li>
-            <li>
-              <img src="skin.png">
-              <div class=wrap>
-                <h3 class>My app</h3>
-                <p>By 0x0000000000000000000000000000000000000000 at 1,2</p>
-              </div>
-            </li>
-            <li>
-              <img src="skin.png">
-              <div class=wrap>
-                <h3 class>My app</h3>
-                <p>By 0x0000000000000000000000000000000000000000 at 1,2</p>
-              </div>
-            </li>
-          </ul>
+        <div class=content-loaded>
+          <h1 id=explore-label></h1>
+          <div class=explore-content id=explore-content></div>
         </div>
-        <!-- <div class="explore-content">
-          <h3>Explore new worlds</h3>
-          <i class="fal fa-user-astronaut"></i>
-          <p>Run VR/AR web sites on the blockchain Grid.</br>Subscribe to claim land and get paid with standard APIs.</p>
-          <nav class="button alt">Next</nav>
-        </div> -->
+        <div class=content-loading>
+          <h1>Loading...</h1>
+        </div>
       </div>
       <div class="popdown" id="developers-popdown">
         <ul>
@@ -525,7 +462,7 @@ const mouse = {
 // window.sceneMeshes = sceneMeshes;
 
 const LAMBDA_URLS = {
-  login: `https://h2b42dkblh.execute-api.us-west-1.amazonaws.com/default/login`,
+  login: `https://83l02bkydk.execute-api.us-west-1.amazonaws.com/default/login`,
   token: `https://83l02bkydk.execute-api.us-west-1.amazonaws.com/default/token`,
   tokens: `https://83l02bkydk.execute-api.us-west-1.amazonaws.com/default/tokens`,
   coords: `https://83l02bkydk.execute-api.us-west-1.amazonaws.com/default/coords`,
@@ -889,26 +826,70 @@ for (let i = 1; i <= 3; i++) {
     exploreTab.classList.add('selected');
   };
 }
+const exploreLabel = document.getElementById('explore-label');
+const exploreContent = document.getElementById('explore-content');
+const _getCoordsFromBindingUrl = bindingUrl => {
+  const match = bindingUrl.match(/^https:\/\/webaverse.com\/\?c=(-?[0-9\.]+),(-?[0-9\.]+)$/);
+  if (match) {
+    const x = parseFloat(match[1]);
+    const z = parseFloat(match[2]);
+    if (isFinite(x) && isFinite(z)) {
+      return [x, z];
+    } else {
+      return null;
+    }
+  } else {
+    return null;
+  }
+};
+const _renderItems = items => {
+  return `<ul>
+    ${items.map(item => {
+      const coords = _getCoordsFromBindingUrl(item.bindingUrl);
+      return `<li>
+        <img src="skin.png">
+        <div class=wrap>
+        <h3 class>${item.name}<span class=light>${coords ? `at ${coords.join(',')}` : 'not bound'}</span></h3>
+        <p>owner ${item.addr}</p>
+        </div>
+      </li>`;
+    }).join('')}
+  </ul>`;
+};
 const _updateTabs = async () => {
   if (currentExploreTab === 1) {
     const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
     const coords = [Math.floor((c.position.x + PARCEL_SIZE/2)/PARCEL_SIZE), Math.floor((c.position.z + PARCEL_SIZE/2)/PARCEL_SIZE)];
     const u = `${LAMBDA_URLS.coords}/${coords[0]}/${coords[1]}`;
-    console.log('update u', u);
+
+    explorePopdown.classList.add('loading');
+
     const items = await fetch(u)
       .then(res => res.json())
       .catch(err => {
         console.warn(err.stack);
       });
+
+    exploreLabel.innerText = 'Nearby';
+    exploreContent.innerHTML = _renderItems(items);
+    explorePopdown.classList.remove('loading');
+
     console.log('got nearby items', items);
   } else if (currentExploreTab === 2) {
     const u = `${LAMBDA_URLS.tokens}/${encodeURIComponent(loginToken.addr)}`;
-    console.log('update u', u);
+
+    explorePopdown.classList.add('loading');
+
     const items = await fetch(u)
       .then(res => res.json())
       .catch(err => {
         console.warn(err.stack);
       });
+
+    exploreLabel.innerText = 'Inventory';
+    exploreContent.innerHTML = _renderItems(items);
+    explorePopdown.classList.remove('loading');
+
     console.log('got inventory items', items);
   } else {
     // nothing
