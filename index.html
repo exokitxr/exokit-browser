@@ -527,6 +527,8 @@ const mouse = {
 const LAMBDA_URLS = {
   login: `https://h2b42dkblh.execute-api.us-west-1.amazonaws.com/default/login`,
   token: `https://83l02bkydk.execute-api.us-west-1.amazonaws.com/default/token`,
+  tokens: `https://83l02bkydk.execute-api.us-west-1.amazonaws.com/default/tokens`,
+  coords: `https://83l02bkydk.execute-api.us-west-1.amazonaws.com/default/coords`,
 };
 const DEFAULT_URL = 'https://google.com';
 const PARCEL_SIZE = 8;
@@ -873,9 +875,13 @@ for (let i = 1; i <= 3; i++) {
   };
 }
 
+let currentExploreTab = 1;
 for (let i = 1; i <= 3; i++) {
   const exploreTab = document.getElementById(`explore-tab-${i}`);
   exploreTab.onclick = () => {
+    currentExploreTab = i;
+    _updateTabs();
+
     for (let i = 1; i <= 3; i++) {
       const exploreTab = document.getElementById(`explore-tab-${i}`);
       exploreTab.classList.remove('selected');
@@ -883,6 +889,31 @@ for (let i = 1; i <= 3; i++) {
     exploreTab.classList.add('selected');
   };
 }
+const _updateTabs = async () => {
+  if (currentExploreTab === 1) {
+    const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
+    const coords = [Math.floor((c.position.x + PARCEL_SIZE/2)/PARCEL_SIZE), Math.floor((c.position.z + PARCEL_SIZE/2)/PARCEL_SIZE)];
+    const u = `${LAMBDA_URLS.coords}/${coords[0]}/${coords[1]}`;
+    console.log('update u', u);
+    const items = await fetch(u)
+      .then(res => res.json())
+      .catch(err => {
+        console.warn(err.stack);
+      });
+    console.log('got nearby items', items);
+  } else if (currentExploreTab === 2) {
+    const u = `${LAMBDA_URLS.tokens}/${encodeURIComponent(loginToken.addr)}`;
+    console.log('update u', u);
+    const items = await fetch(u)
+      .then(res => res.json())
+      .catch(err => {
+        console.warn(err.stack);
+      });
+    console.log('got inventory items', items);
+  } else {
+    // nothing
+  }
+};
 
 const popup = document.getElementById('popup');
 const closeButton = document.getElementById('close-button');
@@ -894,6 +925,10 @@ const explorePopdown = document.getElementById('explore-popdown');
 exploreDropdown.onclick = () => {
   exploreDropdown.classList.toggle('open');
   explorePopdown.classList.toggle('open');
+
+  if (explorePopdown.classList.contains('open')) {
+    _updateTabs();
+  }
 };
 const developersDropdown = document.getElementById('developers-dropdown');
 const developersPopdown = document.getElementById('developers-popdown');
