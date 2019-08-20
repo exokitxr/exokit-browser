@@ -291,6 +291,13 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
 #explore-popdown h3, #explore-popdown p {
   margin: 0;
 }
+#explore-popdown a {
+  color: inherit;
+  text-decoration: none;
+}
+#explore-popdown a:hover {
+  color: #66bb6a;
+}
 #explore-popdown ul {}
 #explore-popdown ul li {
   display: flex;
@@ -849,7 +856,7 @@ const _renderItems = items => {
       return `<li>
         <img src="skin.png">
         <div class=wrap>
-        <h3 class>${item.name}<span class=light>${coords ? `at ${coords.join(',')}` : 'not bound'}</span></h3>
+        <h3 class><a href="${item.url}">${item.name}</a><span class=light>${coords ? `at ${coords.join(',')}` : 'not bound'}</span></h3>
         <p>owner ${item.addr}</p>
         </div>
       </li>`;
