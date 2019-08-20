@@ -6337,6 +6337,8 @@ const _makePeerConnection = peerConnectionId => {
   sendChannel.onopen = () => {
     console.log('data channel local open');
 
+    peerConnection.open = true;
+
     pingInterval = setInterval(() => {
       sendChannel.send(JSON.stringify({
         method: 'ping',
@@ -6345,6 +6347,8 @@ const _makePeerConnection = peerConnectionId => {
   };
   sendChannel.onclose = () => {
     console.log('data channel local close');
+
+    _cleanup();
   };
   sendChannel.onerror = err => {
     console.log('data channel local error', err);
@@ -6366,10 +6370,6 @@ const _makePeerConnection = peerConnectionId => {
     channel.onclose = () => {
       console.log('data channel remote close');
       peerConnection.close();
-      if (pingInterval) {
-        clearInterval(pingInterval);
-      }
-      peerConnections.splice(peerConnections.indexOf(peerConnection), 1);
     };
     channel.onerror = err => {
       console.log('data channel remote error', err);
@@ -6380,100 +6380,139 @@ const _makePeerConnection = peerConnectionId => {
       _kick();
     };
   };
+  peerConnection.close = (close => function() {
+    _cleanup();
+
+    return close.apply(this, arguments);
+  })(peerConnection.close);
+  const _cleanup = () => {
+    if (peerConnection.open) {
+      peerConnection.open = false;
+    }
+    if (pingInterval) {
+      clearInterval(pingInterval);
+      pingInterval = 0;
+    }
+    const index = peerConnections.indexOf(peerConnection);
+    if (index !== -1) {
+      peerConnections.splice(index, 1);
+    }
+  };
   peerConnection.connectionId = peerConnectionId;
+  peerConnection.open = false;
 
   return peerConnection;
 };
 
-let connectionId = null;
+const connectionId = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
 const peerConnections = [];
-const s = new WebSocket(LAMBDA_URLS.presence);
-s.onopen = () => {
-  console.log('socket open');
-};
-s.onmessage = e => {
-  // console.log('got message', e.data);
-  
-  const data = JSON.parse(e.data);
-  const {method} = data;
-  if (method === 'init') {
-    connectionId = data.connectionId;
-  } else if (method === 'join') {
-    const {connectionId: peerConnectionId} = data;
-   
-    const peerConnection = _makePeerConnection(peerConnectionId);
-    peerConnection.onicecandidate = e => {
-      s.send(JSON.stringify({
-        dst: peerConnectionId,
-        src: connectionId,
-        method: 'iceCandidate',
-        candidate: e.candidate,
-      }));
-    };
-    peerConnections.push(peerConnection);
+const _rtcConnect = () => {
+  const s = new WebSocket(LAMBDA_URLS.presence);
+  s.onopen = () => {
+    console.log('presence socket open');
 
-    if (connectionId < peerConnectionId) {
-      peerConnection
-        .createOffer()
-        .then(offer => {
-          peerConnection.setLocalDescription(offer);
-
+    s.send(JSON.stringify({
+      method: 'init',
+      connectionId,
+    }));
+  };
+  s.onmessage = e => {
+    // console.log('got message', e.data);
+    
+    const data = JSON.parse(e.data);
+    const {method} = data;
+    if (method === 'join') {
+      const {connectionId: peerConnectionId} = data;
+     
+      let peerConnection = peerConnections.find(peerConnection => peerConnection.connectionId === peerConnectionId);
+      if (peerConnection && !peerConnection.open) {
+        peerConnection.close();
+        peerConnection = null;
+      }
+      if (!peerConnection) {
+        peerConnection = _makePeerConnection(peerConnectionId);
+        peerConnection.onicecandidate = e => {
           s.send(JSON.stringify({
             dst: peerConnectionId,
             src: connectionId,
-            method: 'offer',
-            offer,
+            method: 'iceCandidate',
+            candidate: e.candidate,
           }));
-        });
-    }
-  } else if (method === 'offer') {
-    const {src: peerConnectionId, offer} = data;
+        };
+        peerConnections.push(peerConnection);
 
-    const peerConnection = peerConnections.find(peerConnection => peerConnection.connectionId === peerConnectionId);
-    if (peerConnection) {
-      peerConnection.setRemoteDescription(offer)
-        .then(() => peerConnection.createAnswer())
-        .then(answer => {
-          peerConnection.setLocalDescription(answer);
+        if (connectionId < peerConnectionId) {
+          peerConnection
+            .createOffer()
+            .then(offer => {
+              peerConnection.setLocalDescription(offer);
 
-          s.send(JSON.stringify({
-            dst: peerConnectionId,
-            src: connectionId,
-            method: 'answer',
-            answer,
-          }));
-        });
-    } else {
-      console.warn('no such peer connection', peerConnectionId, peerConnections.map(peerConnection => peerConnection.connectionId));
-    }
-  } else if (method === 'answer') {
-    const {src: peerConnectionId, answer} = data;
+              s.send(JSON.stringify({
+                dst: peerConnectionId,
+                src: connectionId,
+                method: 'offer',
+                offer,
+              }));
+            });
+        }
+      }
+    } else if (method === 'offer') {
+      const {src: peerConnectionId, offer} = data;
 
-    const peerConnection = peerConnections.find(peerConnection => peerConnection.connectionId === peerConnectionId);
-    if (peerConnection) {
-      peerConnection.setRemoteDescription(answer);
-    } else {
-      console.warn('no such peer connection', peerConnectionId, peerConnections.map(peerConnection => peerConnection.connectionId));
-    }
-  } else if (method === 'iceCandidate') {
-    const {src: peerConnectionId, candidate} = data;
+      const peerConnection = peerConnections.find(peerConnection => peerConnection.connectionId === peerConnectionId);
+      if (peerConnection) {
+        peerConnection.setRemoteDescription(offer)
+          .then(() => peerConnection.createAnswer())
+          .then(answer => {
+            peerConnection.setLocalDescription(answer);
 
-    const peerConnection = peerConnections.find(peerConnection => peerConnection.connectionId === peerConnectionId);
-    if (peerConnection) {
-      peerConnection.addIceCandidate(candidate).catch(() => {});
-    } else {
-      console.warn('no such peer connection', peerConnectionId, peerConnections.map(peerConnection => peerConnection.connectionId));
+            s.send(JSON.stringify({
+              dst: peerConnectionId,
+              src: connectionId,
+              method: 'answer',
+              answer,
+            }));
+          });
+      } else {
+        console.warn('no such peer connection', peerConnectionId, peerConnections.map(peerConnection => peerConnection.connectionId));
+      }
+    } else if (method === 'answer') {
+      const {src: peerConnectionId, answer} = data;
+
+      const peerConnection = peerConnections.find(peerConnection => peerConnection.connectionId === peerConnectionId);
+      if (peerConnection) {
+        peerConnection.setRemoteDescription(answer);
+      } else {
+        console.warn('no such peer connection', peerConnectionId, peerConnections.map(peerConnection => peerConnection.connectionId));
+      }
+    } else if (method === 'iceCandidate') {
+      const {src: peerConnectionId, candidate} = data;
+
+      const peerConnection = peerConnections.find(peerConnection => peerConnection.connectionId === peerConnectionId);
+      if (peerConnection) {
+        peerConnection.addIceCandidate(candidate).catch(() => {});
+      } else {
+        console.warn('no such peer connection', peerConnectionId, peerConnections.map(peerConnection => peerConnection.connectionId));
+      }
+    } else if (method === 'leave') {
+      const {connectionId: peerConnectionId} = data;
+      const index = peerConnections.findIndex(peerConnection => peerConnection.connectionId === peerConnectionId);
+      if (index !== -1) {
+        peerConnections.splice(index, 1)[0].close();
+      } else {
+        console.warn('no such peer connection', peerConnectionId, peerConnections.map(peerConnection => peerConnection.connectionId));
+      }
     }
-  } else if (method === 'leave') {
-    const {connectionId: peerConnectionId} = data;
-    const index = peerConnections.findIndex(peerConnection => peerConnection.connectionId === peerConnectionId);
-    if (index !== -1) {
-      peerConnections.splice(index, 1)[0].close();
-    } else {
-      console.warn('no such peer connection', peerConnectionId, peerConnections.map(peerConnection => peerConnection.connectionId));
-    }
-  }
+  };
+  s.onclose = () => {
+    setTimeout(_rtcConnect, 5000);
+  };
+  s.onerror = err => {
+    console.warn(err);
+    setTimeout(_rtcConnect, 5000);
+  };
 };
+_rtcConnect();
 
 })();
     </script>
