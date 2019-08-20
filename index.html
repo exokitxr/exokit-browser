@@ -6507,12 +6507,19 @@ const _rtcConnect = () => {
     }
   };
   s.onclose = () => {
+    clearInterval(pingInterval);
     setTimeout(_rtcConnect, 5000);
   };
   s.onerror = err => {
     console.warn(err);
+    clearInterval(pingInterval);
     setTimeout(_rtcConnect, 5000);
   };
+  const pingInterval = setInterval(() => {
+    s.send(JSON.stringify({
+      method: 'ping',
+    }));
+  }, 30*1000);
 };
 _rtcConnect();
 
