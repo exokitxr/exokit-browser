@@ -1791,8 +1791,14 @@ const _bindEventTarget = target => {
           localRaycaster.setFromCamera(localVector2D, localCamera);
 
           // console.log('set mouse', localVector2D.toArray(), localRaycaster.ray.origin.toArray(), localRaycaster.ray.direction.toArray());
-          mouse.position.copy(localRaycaster.ray.origin);
-          mouse.quaternion.setFromUnitVectors(localVector.set(0, 0, -1), localRaycaster.ray.direction);
+          mouse.quaternion.setFromRotationMatrix(
+            localMatrix.lookAt(
+              localRaycaster.ray.origin,
+              localVector.copy(localRaycaster.ray.origin).add(localRaycaster.ray.direction),
+              localVector2.set(0, 1, 0)
+            )
+          );
+          mouse.position.copy(localRaycaster.ray.origin).add(localVector.set(0, 0, -0.5).applyQuaternion(mouse.quaternion));
         }
       },
       /* mousemove(e) {
