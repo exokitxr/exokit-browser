@@ -891,6 +891,10 @@ const _updateTabs = async () => {
     explorePopdown.classList.remove('loading');
 
     console.log('got inventory items', items);
+  } else if (currentExploreTab === 3) {
+    exploreLabel.innerHTML = '';
+    exploreContent.innerHTML = '';
+    explorePopdown.classList.remove('loading');
   } else {
     // nothing
   }
