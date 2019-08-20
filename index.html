@@ -6375,7 +6375,7 @@ const _makePeerConnection = peerConnectionId => {
       console.log('data channel remote error', err);
     };
     channel.onmessage = e => {
-      console.log('data channel message', e);
+      // console.log('data channel message', e);
 
       _kick();
     };
