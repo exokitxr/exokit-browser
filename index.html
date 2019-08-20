@@ -757,7 +757,7 @@ const _updateTabs = async () => {
     exploreContent.appendChild(_renderItems(items));
     explorePopdown.classList.remove('loading');
 
-    console.log('got nearby items', items);
+    // console.log('got nearby items', items);
   } else if (currentExploreTab === 2) {
     const u = `${LAMBDA_URLS.tokens}/${encodeURIComponent(loginToken.addr)}`;
 
@@ -774,7 +774,7 @@ const _updateTabs = async () => {
     exploreContent.appendChild(_renderItems(items));
     explorePopdown.classList.remove('loading');
 
-    console.log('got inventory items', items);
+    // console.log('got inventory items', items);
   } else if (currentExploreTab === 3) {
     exploreLabel.innerHTML = '';
     exploreContent.innerHTML = '';
@@ -6318,10 +6318,7 @@ window.addEventListener('popstate', _updateCoord);
 // renderer.setAnimationLoop(animate);
 // _openRig(new THREE.Vector3(0, 1.5, -1), new THREE.Quaternion());
 
-let connectionId = null;
-const offers = [];
-const peerConnections = [];
-const _makePeerConnection = (peerConnectionId, cleanupOffer) => {
+const _makePeerConnection = peerConnectionId => {
   const peerConnectionConfig = {
     iceServers: [
       {'urls': 'stun:stun.stunprotocol.org:3478'},
@@ -6382,120 +6379,99 @@ const _makePeerConnection = (peerConnectionId, cleanupOffer) => {
 
       _kick();
     };
-
-    cleanupOffer();
   };
   peerConnection.connectionId = peerConnectionId;
-  peerConnection.connecting = false;
-  peerConnection.connecting2 = false;
-  peerConnection.pending = true;
 
   return peerConnection;
 };
 
-let timeout = 0;
-const _query = () => {
-  s.send(JSON.stringify({
-    action: 'query',
-    offers,
-  }));
-  const pending = peerConnections.some(peerConnection => peerConnection.pending);
-  // pending && console.log('pending');
-  timeout = setTimeout(_query, pending ? 500 : 2000);
-};
-const _send = () => {
-  if (timeout) {
-    clearTimeout(timeout);
-    timeout = 0;
-  }
-  _query();
-};
-
+let connectionId = null;
+const peerConnections = [];
 const s = new WebSocket(LAMBDA_URLS.presence);
 s.onopen = () => {
   console.log('socket open');
-
-  _send();
 };
 s.onmessage = e => {
+  // console.log('got message', e.data);
+  
   const data = JSON.parse(e.data);
-  const action = data && data.action;
-  if (action === 'query') {
-    let {connectionId, peers} = data;
-    // console.log('got query', connectionId, peers);
+  const {method} = data;
+  if (method === 'init') {
+    connectionId = data.connectionId;
+  } else if (method === 'join') {
+    const {connectionId: peerConnectionId} = data;
+   
+    const peerConnection = _makePeerConnection(peerConnectionId);
+    peerConnection.onicecandidate = e => {
+      s.send(JSON.stringify({
+        dst: peerConnectionId,
+        src: connectionId,
+        method: 'iceCandidate',
+        candidate: e.candidate,
+      }));
+    };
+    peerConnections.push(peerConnection);
 
-    peers.forEach(peer => {
-      if (peer.connectionId === connectionId) {
-        return;
-      }
+    if (connectionId < peerConnectionId) {
+      peerConnection
+        .createOffer()
+        .then(offer => {
+          peerConnection.setLocalDescription(offer);
 
-      let localOffer = offers.find(offer => offer.connectionId === peer.connectionId);
-      let peerConnection = peerConnections.find(peerConnection => peerConnection.connectionId === peer.connectionId);
-      if (!localOffer && !peerConnection) {
-        // console.log('new local offer', peer.connectionId, peerConnections.map(peerConnection => peerConnection.connectionId));
-        localOffer = {
-          connectionId: peer.connectionId,
-          offer: null,
-          answer: null,
-          iceCandidates: [],
-        };
-        offers.push(localOffer);
-
-        peerConnection = _makePeerConnection(peer.connectionId, () => {
-          offers.splice(offers.indexOf(localOffer), 1);
-
-          _send();
+          s.send(JSON.stringify({
+            dst: peerConnectionId,
+            src: connectionId,
+            method: 'offer',
+            offer,
+          }));
         });
-        peerConnection.onicecandidate = e => {
-          const {candidate} = e;
-          localOffer.iceCandidates.push(candidate);
+    }
+  } else if (method === 'offer') {
+    const {src: peerConnectionId, offer} = data;
 
-          _send();
-        };
-        peerConnections.push(peerConnection);
+    const peerConnection = peerConnections.find(peerConnection => peerConnection.connectionId === peerConnectionId);
+    if (peerConnection) {
+      peerConnection.setRemoteDescription(offer)
+        .then(() => peerConnection.createAnswer())
+        .then(answer => {
+          peerConnection.setLocalDescription(answer);
 
-        _send();
-      };
-
-      if (localOffer) {
-        const remoteOffer = peer.offers.find(offer => offer.connectionId === connectionId);
-        const shouldInitiateConnection = connectionId.localeCompare(peer.connectionId) < 0;
-        if (shouldInitiateConnection && !peerConnection.connecting) {
-          console.log('phase 1');
-          peerConnection.connecting = true;
-          peerConnection
-            .createOffer()
-            .then(offer => {
-              peerConnection.setLocalDescription(offer)
-              localOffer.offer = offer;
-
-              _send();
-            });
-        } else if (!shouldInitiateConnection && remoteOffer && remoteOffer.offer && !peerConnection.connecting) {
-          console.log('phase 2');
-          peerConnection.connecting = true;
-          peerConnection.connecting2 = true;
-          peerConnection.pending = false;
-          peerConnection.setRemoteDescription(remoteOffer.offer)
-            .then(() => peerConnection.createAnswer())
-            .then(answer => {
-              peerConnection.setLocalDescription(answer);
-              localOffer.answer = answer;
-
-              _send();
-            });
-        } else if (shouldInitiateConnection && remoteOffer && remoteOffer.answer && !peerConnection.connecting2) {
-          console.log('phase 3');
-          peerConnection.connecting2 = true;
-          peerConnection.pending = false;
-          peerConnection.setRemoteDescription(remoteOffer.answer);
-        }
-
-        remoteOffer && remoteOffer.iceCandidates.forEach(candidate => {
-          peerConnection.addIceCandidate(candidate).catch(() => {});
+          s.send(JSON.stringify({
+            dst: peerConnectionId,
+            src: connectionId,
+            method: 'answer',
+            answer,
+          }));
         });
-      }
-    });
+    } else {
+      console.warn('no such peer connection', peerConnectionId, peerConnections.map(peerConnection => peerConnection.connectionId));
+    }
+  } else if (method === 'answer') {
+    const {src: peerConnectionId, answer} = data;
+
+    const peerConnection = peerConnections.find(peerConnection => peerConnection.connectionId === peerConnectionId);
+    if (peerConnection) {
+      peerConnection.setRemoteDescription(answer);
+    } else {
+      console.warn('no such peer connection', peerConnectionId, peerConnections.map(peerConnection => peerConnection.connectionId));
+    }
+  } else if (method === 'iceCandidate') {
+    const {src: peerConnectionId, candidate} = data;
+
+    const peerConnection = peerConnections.find(peerConnection => peerConnection.connectionId === peerConnectionId);
+    if (peerConnection) {
+      peerConnection.addIceCandidate(candidate).catch(() => {});
+    } else {
+      console.warn('no such peer connection', peerConnectionId, peerConnections.map(peerConnection => peerConnection.connectionId));
+    }
+  } else if (method === 'leave') {
+    const {connectionId: peerConnectionId} = data;
+    const index = peerConnections.findIndex(peerConnection => peerConnection.connectionId === peerConnectionId);
+    if (index !== -1) {
+      peerConnections.splice(index, 1)[0].close();
+    } else {
+      console.warn('no such peer connection', peerConnectionId, peerConnections.map(peerConnection => peerConnection.connectionId));
+    }
   }
 };
 
