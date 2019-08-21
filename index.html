@@ -6603,7 +6603,6 @@ const _makePeerConnection = peerConnectionId => {
       {'urls': 'stun:stun.l.google.com:19302'},
     ],
   };
-
   const peerConnection = new RTCPeerConnection(peerConnectionConfig);
   peerConnection.ontrack = e => {
     console.log('got track', e);
@@ -6736,6 +6735,7 @@ const _makePeerConnection = peerConnectionId => {
 
 const connectionId = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
 const peerConnections = [];
+let browserPeerConnection = null;
 const _rtcConnect = () => {
   const s = new WebSocket(LAMBDA_URLS.presence);
   s.onopen = () => {
@@ -6745,9 +6745,34 @@ const _rtcConnect = () => {
       method: 'init',
       connectionId,
     }));
+
+    const peerConnectionConfig = {
+      iceServers: [
+        {'urls': 'stun:stun.stunprotocol.org:3478'},
+        {'urls': 'stun:stun.l.google.com:19302'},
+      ],
+    };
+    browserPeerConnection = new RTCPeerConnection(peerConnectionConfig);
+    browserPeerConnection.ontrack = e => {
+      console.log('got browser track', e, e.streams.length);
+
+      const video = document.createElement('video');
+      video.style.width = '100%';
+      video.srcObject = e.streams[0];
+      video.play();
+      document.body.querySelector('header').style.display = 'none';
+      document.body.querySelector('#canvas').style.display = 'none';
+      document.body.appendChild(video);
+    };
+    s.send(JSON.stringify({
+      method: 'requestBrowser',
+      url: 'https://google.com/',
+      connectionId,
+    }));
+    peerConnections.push(browserPeerConnection);
   };
   s.onmessage = e => {
-    // console.log('got message', e.data);
+    console.log('got message', e.data);
     
     const data = JSON.parse(e.data);
     const {method} = data;
@@ -6837,6 +6862,29 @@ const _rtcConnect = () => {
       } else {
         console.warn('no such peer connection', peerConnectionId, peerConnections.map(peerConnection => peerConnection.connectionId));
       }
+    } else if (method === 'respondBrowser') {
+      const {src: peerConnectionId, offer} = data;
+      browserPeerConnection.connectionId = peerConnectionId;
+      browserPeerConnection.onicecandidate = e => {
+        s.send(JSON.stringify({
+          dst: peerConnectionId,
+          src: connectionId,
+          method: 'iceCandidate',
+          candidate: e.candidate,
+        }));
+      };
+      browserPeerConnection.setRemoteDescription(offer);
+      browserPeerConnection.createAnswer()
+        .then(answer => {
+          browserPeerConnection.setLocalDescription(answer);
+
+          s.send(JSON.stringify({
+            dst: peerConnectionId,
+            src: connectionId,
+            method: 'answer',
+            answer,
+          }));
+        });
     }
   };
   s.onclose = () => {
