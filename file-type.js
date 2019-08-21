@@ -1,3 +1,5 @@
+(() => {
+
 const exports = {};
 const module = {exports};
 
@@ -36,4 +38,96 @@ var Buffer=require("buffer").Buffer;function _toConsumableArray(e){return _array
   })(module.exports);
 }
 
-window.fileType = module.exports;
+function _getBaseUrl(u, currentBaseUrl = '') {
+  let result;
+  if (/^file:\/\//.test(u)) {
+    result = u;
+  } else if (/^(?:data|blob):/.test(u)) {
+    result = currentBaseUrl;
+  } else {
+    const parsedUrl = new URL(u);
+    result = (parsedUrl.protocol || 'http:') + '//' + (parsedUrl.host || '127.0.0.1') + (parsedUrl.pathname.replace(/\/[^\/]*\.[^\/]*$/, '') || '/');
+    /* const parsedUrl = url.parse(u);
+    result = url.format({
+      protocol: parsedUrl.protocol || 'http:',
+      host: parsedUrl.host || '127.0.0.1',
+      pathname: parsedUrl.pathname.replace(/\/[^\/]*\.[^\/]*$/, '') || '/',
+    }); */
+  }
+  if (!/\/$/.test(result) && !/\/[^\/]*?\.[^\/]*?$/.test(result)) {
+    result += '/';
+  }
+  return result;
+}
+function _normalizeUrl(src, baseUrl) {
+  if (/^\/\//.test(src)) {
+    src = new url.URL(baseUrl).protocol + src;
+  }
+  if (!/^(?:https?|data|blob):/.test(src)) {
+    return new URL(src, baseUrl).href
+      .replace(/^(file:\/\/)\/([a-z]:.*)$/i, '$1$2');
+  } else {
+    return src;
+  }
+}
+function _findAll(el, fn) {
+  const result = [];
+  const _recurse = el => {
+    if (fn(el)) {
+      result.push(el);
+    }
+    const {childNodes} = el;
+    if (childNodes) {
+      for (let i = 0; i < childNodes.length; i++) {
+        const childNode = childNodes[i];
+        _recurse(childNode);
+      }
+    }
+  };
+  _recurse(el);
+  return result;
+}
+
+module.exports = (fileType => async function(u) {
+  const baseUrl = _getBaseUrl(u);
+
+  const res = await fetch(u, {
+    /* headers: {
+      'Range': `bytes=0-${5*1024*1024}`,
+    }, */
+  });
+  const ab = await res.arrayBuffer();
+  const ui = new Uint8Array(ab);
+  const type = fileType(ui);
+  if (type && type.mime === 'text/html') {
+    // const s = new TextEncoder().encode(ui);
+    const s = new TextDecoder().decode(ui);
+    const el = parse5.parseFragment(s);
+    const scripts = _findAll(el, el => el.tagName === 'script');
+    window.s = s;
+    window.el = el;
+    window.scripts = scripts;
+
+    const scriptsSrc = scripts.filter(script => script.attrs.some(attr => attr.name === 'src'));
+    const srcs = scriptsSrc.map(script => script.attrs.find(attr => attr.name === 'src').value);
+
+    const scriptsInnerHTML = scripts.filter(script => script.childNodes.length > 0 && script.childNodes[0].nodeName === '#text');
+    const innerHTMLs = scriptsInnerHTML.map(script => script.childNodes[0].value)
+      .concat(await Promise.all(srcs.map(src =>
+        fetch(_normalizeUrl(src, baseUrl))
+          .then(res => res.text())
+      )));
+
+    const hasWebgl = innerHTMLs.some(innerHTML => /['"](?:experimental-)?webgl2?['"]/.test(innerHTML));
+    const hasDraw = innerHTMLs.some(innerHTML => /(?:drawElements|drawArrays)/.test(innerHTML));
+    if (hasWebgl && hasDraw) {
+      type.mime += '+webgl';
+    }
+  }
+  ab.type = type;
+  return ab;
+})(module.exports);
+
+window.fetchType = module.exports;
+
+})();
