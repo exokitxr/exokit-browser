@@ -1,5 +1,5 @@
 window.fetch = (_fetch => function fetch(u, init) {
-  if (!/^https?:\/\//.test(u) || /^https:\/\/(?:.+?\.)?webaverse.com$/.test(u)) {
+  if (!/^https?:\/\//.test(u) || /^https:\/\/(?:.+?\.)?webaverse.com/.test(u)) {
     // nothing
   } else {
     const oldUrl = u;
