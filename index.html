@@ -244,12 +244,13 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
   position: absolute;
   display: flex;
   top: 50px;
-  width: 800px;
-  height: 400px;
+  width: 4096px;
+  height: 4096px;
   padding: 0;
   background-color: #FFF;
   color: #000;
   flex-direction: row;
+  transform-origin: 0 0;
 }
 #explore-popdown .tabs {
   display: flex;
@@ -901,6 +902,7 @@ exploreDropdown.onclick = () => {
   explorePopdown.classList.toggle('open');
 
   if (explorePopdown.classList.contains('open')) {
+    explorePopdown.style.transform = `scale(${window.innerWidth / 4096})`;
     _updateTabs();
   }
 };
