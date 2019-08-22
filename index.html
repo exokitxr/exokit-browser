@@ -228,7 +228,7 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
   display: flex;
   flex-direction: column;
 }
-#subscribe-popdown .plans h3 {
+/* #subscribe-popdown .plans h3 {
   margin: 0;
   font-size: 30px;
 }
@@ -239,7 +239,7 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
 #subscribe-popdown .plans p {
   margin: 0;
   line-height: 1.4;
-}
+} */
 #explore-popdown {
   position: absolute;
   display: flex;
@@ -307,6 +307,18 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
   padding-right: 15px;
   border-bottom: 1px solid #f8f8f8;
 }
+#explore-popdown ul li .tag {
+  display: flex;
+  position: absolute;
+  /*left: calc(64px - 20px);*/
+  width: 20px;
+  height: 20px;
+  justify-content: center;
+  align-items: center;
+  background-color: #000;
+  color: #FFF;
+  font-size: 10px;
+}
 #explore-popdown ul li img {
   margin-right: 10px;
 }
@@ -314,12 +326,6 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
   display: flex;
   flex: 1;
   flex-direction: column;
-}
-#explore-popdown ul li .light {
-  float: right;
-  color: #AAA;
-  font-weight: 400;
-  font-style: italic;
 }
 #developers-popdown {
   position: absolute;
@@ -359,12 +365,12 @@ iframe, audio {
         </form>
         <nav class="button highlight" id="login-button">Login</nav>
         <nav class="button highlight" id="logout-button">Log out</nav>
-        <nav class="button highlight" id="subscribe-button">Subscribe</nav>
-        <nav class="multibutton">
+        <!-- <nav class="button highlight" id="subscribe-button">Subscribe</nav> -->
+        <!-- <nav class="multibutton">
           <a href="#sp" class="button">Singleplayer</a>
           <a href="#mp" class="button">Multiplayer</a>
           <a href="#map" class="button">Map</a>
-        </nav>
+        </nav> -->
         <div class="popup" id="popup">
           <a class="close" id="close-button">x</a>
           <h1>
@@ -386,7 +392,7 @@ iframe, audio {
           </div>
         </form>
       </div>
-      <div class="popdown" id="subscribe-popdown">
+      <!-- <div class="popdown" id="subscribe-popdown">
         <div class="plans">
           <nav class="plan" id="plan-1">
             <i class="fal fa-hiking"></i>
@@ -417,7 +423,7 @@ iframe, audio {
           </nav>
         </div>
         <nav class="button alt">Purchase</nav>
-      </div>
+      </div> -->
       <div class="popdown" id=explore-popdown>
         <div class=tabs>
           <div class="tab selected" id=explore-tab-1>
@@ -666,7 +672,7 @@ urlForm.addEventListener('submit', e => {
     });
 });
 
-const subscribeButton = document.getElementById('subscribe-button');
+/* const subscribeButton = document.getElementById('subscribe-button');
 const subscribePopdown = document.getElementById('subscribe-popdown');
 subscribeButton.onclick = () => {
   subscribePopdown.classList.toggle('open'); 
@@ -680,7 +686,7 @@ for (let i = 1; i <= 3; i++) {
     }
     plan.classList.add('selected');
   };
-}
+} */
 
 let currentExploreTab = 1;
 for (let i = 1; i <= 3; i++) {
@@ -720,12 +726,34 @@ const _makeElement = html => {
 const _renderItems = items => {
   const el = _makeElement(`<ul>
     ${items.map(item => {
+      const {type} = item;
       const coords = _getCoordsFromBindingUrl(item.bindingUrl);
       return `<li>
         <img src="skin.png">
+        <div class=tag>
+          ${(() => {
+            console.log('try item', type);
+            if (/^img\//.test(type)) {
+              return `<i class="fal fa-image"></i>`;
+            } else if (/^audio\//.test(type)) {
+              return `<i class="fal fa-volume-up"></i>`;
+            } else if (/^video\//.test(type)) {
+              return `<i class="fal fa-film"></i>`;
+            } else if (/^model\//.test(type)) {
+              return `<i class="fal fa-dice-d4"></i>`;
+            } else if (/^text\/html\+webgl$/.test(type)) {
+              return `<i class="fal fa-gamepad"></i>`;
+            } else if (/^text\/html$/.test(type)) {
+              return `<i class="fal fa-link"></i>`;
+            }
+          })()}
+        </div>
         <div class=wrap>
-        <h3 class><a class="a-content" href="${item.url}">${item.name}</a><span class=light>${coords ? `<a class="a-binding" href="/?c=${coords.join(',')}">at ${coords.join(',')}</a>` : 'not bound'}</span></h3>
-        <p>owner ${item.addr}</p>
+          <h3>
+            <a class="a-content" href="${item.url}">${item.name}</a>
+            <div class=controls></div>
+          </h3>
+          <p><span><i class="fas fa-user"></i> ${item.addr.slice(0, 12)}</span> <span><i class="fas fa-map-marker"></i> ${coords ? `<a class="a-binding" href="/?c=${coords.join(',')}">at ${coords.join(',')}</a>` : 'not bound'}</span></p>
         </div>
       </li>`;
     }).join('')}
