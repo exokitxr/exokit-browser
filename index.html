@@ -4184,6 +4184,24 @@ const _makeTrayMesh = () => {
 const trayMesh = _makeTrayMesh();
 scene.add(trayMesh);
 
+const _makeScreenMesh = () => {
+  const radius = 1;
+  const height = 1;
+  const geometry = new THREE.CylinderBufferGeometry(radius, radius, height, 10, 10, true, Math.PI*3/2+Math.PI/4, Math.PI/2)
+    .applyMatrix(new THREE.Matrix4().makeScale(-1, -1, -1));
+  const material = new THREE.MeshPhongMaterial({
+    color: 0xFF0000,
+    side: THREE.DoubleSide,
+    flatShading: true,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  return mesh;
+};
+const screenMesh = _makeScreenMesh();
+screenMesh.position.set(4, 1.6, 0);
+scene.add(screenMesh);
+
 const _makeParcelMesh = () => {
   const mesh = new THREE.Object3D();
   mesh.visible = false;
