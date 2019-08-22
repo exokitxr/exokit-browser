@@ -4332,7 +4332,6 @@ const _makeScreenMesh = () => {
   mesh.update = () => {
     // nothing
   };
-  window.screenJson = screenJson;
   mesh.intersect = ray => {
     localRaycaster.ray.copy(ray);
     const intersection = localRaycaster.intersectObject(mesh)[0];
