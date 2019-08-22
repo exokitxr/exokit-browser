@@ -383,7 +383,7 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
   width: 80px;
   display: flex;
   flex-direction: column;
-  background-color: #EEE;
+  background-color: #f8f8f8;
 }
 #explore-popdown .content-loaded .chevron, #explore-popdown .content-loaded .bar {
   height: 80px;
@@ -398,7 +398,7 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
 }
 #explore-popdown .content-loaded .bar {
   margin-bottom: auto;
-  background-color: #808080;
+  background-color: #CCC;
 }
 #developers-popdown {
   position: absolute;
@@ -959,8 +959,8 @@ exploreDropdown.onclick = () => {
   explorePopdown.classList.toggle('open');
 
   if (explorePopdown.classList.contains('open')) {
-    explorePopdown.style.transform = `scale(${window.innerWidth / 4096})`;
-    // explorePopdown.style.top = '0';
+    // explorePopdown.style.transform = `scale(${window.innerWidth / 4096})`;
+    explorePopdown.style.top = '0';
     _updateTabs();
   }
 };
