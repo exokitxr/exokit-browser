@@ -780,7 +780,7 @@ const _renderItems = items => {
       const {type} = item;
       const coords = _getCoordsFromBindingUrl(item.bindingUrl);
       return `<li>
-        <img src="skin.png">
+        <a id=img><img src="skin.png"></a>
         <div class=tag>
           ${(() => {
             if (/^img\//.test(type)) {
@@ -829,7 +829,7 @@ const _renderGamers = gamers => {
     ${gamers.map(gamer => {
       const {coords} = gamer;
       return `<li>
-        <img src="skin.png">
+        <a id=img><img src="skin.png"></a>
         <div class=wrap>
           <h3>
             <a class="a-content" href="${gamer.name}" id=name>${gamer.name}</a>
