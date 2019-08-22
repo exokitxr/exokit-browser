@@ -465,6 +465,9 @@ iframe, audio {
             <i class="fal fa-backpack"></i>
           </div>
           <div class=tab id=explore-tab-3>
+            <i class="fal fa-user-astronaut"></i>
+          </div>
+          <div class=tab id=explore-tab-4>
             <i class="fal fa-plus-square"></i>
           </div>
         </div>
@@ -721,13 +724,13 @@ for (let i = 1; i <= 3; i++) {
 } */
 
 let currentExploreTab = 1;
-for (let i = 1; i <= 3; i++) {
+for (let i = 1; i <= 4; i++) {
   const exploreTab = document.getElementById(`explore-tab-${i}`);
   exploreTab.onclick = () => {
     currentExploreTab = i;
     _updateTabs();
 
-    for (let i = 1; i <= 3; i++) {
+    for (let i = 1; i <= 4; i++) {
       const exploreTab = document.getElementById(`explore-tab-${i}`);
       exploreTab.classList.remove('selected');
     }
@@ -823,8 +826,6 @@ const _updateTabs = async () => {
     exploreContent.innerHTML = '';
     exploreContent.appendChild(_renderItems(items));
     explorePopdown.classList.remove('loading');
-
-    // console.log('got nearby items', items);
   } else if (currentExploreTab === 2) {
     const u = `${LAMBDA_URLS.tokens}/${encodeURIComponent(loginToken.addr)}`;
 
@@ -840,9 +841,12 @@ const _updateTabs = async () => {
     exploreContent.innerHTML = '';
     exploreContent.appendChild(_renderItems(items));
     explorePopdown.classList.remove('loading');
-
-    // console.log('got inventory items', items);
   } else if (currentExploreTab === 3) {
+    exploreLabel.innerText = 'Gamers';
+    exploreContent.innerHTML = '';
+    // exploreContent.appendChild('');
+    explorePopdown.classList.remove('loading');
+  } else if (currentExploreTab === 4) {
     exploreLabel.innerText = '';
     exploreContent.innerHTML = '';
     exploreContent.appendChild(_makeElement(`<div class=url>
@@ -850,8 +854,6 @@ const _updateTabs = async () => {
       <i class="fal fa-plus-square"></i>
     </div>`));
     explorePopdown.classList.remove('loading');
-
-    // console.log('got inventory items', items);
   } else {
     // nothing
   }
