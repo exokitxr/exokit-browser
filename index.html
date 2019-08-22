@@ -746,7 +746,6 @@ const _renderItems = items => {
         <img src="skin.png">
         <div class=tag>
           ${(() => {
-            console.log('try item', type);
             if (/^img\//.test(type)) {
               return `<i class="fal fa-image"></i>`;
             } else if (/^audio\//.test(type)) {
