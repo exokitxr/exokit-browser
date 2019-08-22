@@ -305,28 +305,6 @@
     "anchors": [
       {
         "x": -2,
-        "y": -500,
-        "width": 250,
-        "height": 250,
-        "top": -500,
-        "right": 248,
-        "bottom": -250,
-        "left": -2,
-        "id": "explore-tab-1"
-      },
-      {
-        "x": -2,
-        "y": -250,
-        "width": 250,
-        "height": 250,
-        "top": -250,
-        "right": 248,
-        "bottom": 0,
-        "left": -2,
-        "id": "explore-tab-2"
-      },
-      {
-        "x": -2,
         "y": 0,
         "width": 250,
         "height": 250,
@@ -334,7 +312,7 @@
         "right": 248,
         "bottom": 250,
         "left": -2,
-        "id": "explore-tab-3"
+        "id": "explore-tab-1"
       },
       {
         "x": -2,
@@ -345,27 +323,49 @@
         "right": 248,
         "bottom": 500,
         "left": -2,
+        "id": "explore-tab-2"
+      },
+      {
+        "x": -2,
+        "y": 500,
+        "width": 250,
+        "height": 250,
+        "top": 500,
+        "right": 248,
+        "bottom": 750,
+        "left": -2,
+        "id": "explore-tab-3"
+      },
+      {
+        "x": -2,
+        "y": 750,
+        "width": 250,
+        "height": 250,
+        "top": 750,
+        "right": 248,
+        "bottom": 1000,
+        "left": -2,
         "id": "explore-tab-4"
       },
       {
         "x": 3926,
-        "y": -406.5,
+        "y": 93.5,
         "width": 70,
         "height": 80,
-        "top": -406.5,
+        "top": 93.5,
         "right": 3996,
-        "bottom": -326.5,
+        "bottom": 173.5,
         "left": 3926,
         "id": "go"
       },
       {
         "x": 348,
-        "y": -450,
+        "y": 50,
         "width": 3528,
         "height": 167,
-        "top": -450,
+        "top": 50,
         "right": 3876,
-        "bottom": -283,
+        "bottom": 217,
         "left": 348,
         "id": "url-input"
       }

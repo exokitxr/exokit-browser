@@ -402,7 +402,7 @@ iframe, audio {
   <body>
     <header id=header>
       <canvas class=logo id="logo-canvas"></canvas>
-      <img class=icon src="icon.svg"/>
+      <img class=icon src="icon2.svg"/>
       <a class="nav" id="explore-dropdown">Explore</a>
       <a class="nav">Download</a>
       <a class="nav" id="developers-dropdown">Developers<i class="fal fa-chevron-down"></i></a>
@@ -803,8 +803,8 @@ const _renderItems = items => {
             <a class="a-content" href="${item.url}" id=name>${item.name}</a>
             <div class=controls>
               <a id=control-edit><i class="fal fa-pencil"></i></a>
-              <a id=control-edit><i class="fal fa-crosshairs"></i></a>
-              <a id=control-edit><i class="fal fa-trash-alt"></i></a>
+              <a id=control-move><i class="fal fa-crosshairs"></i></a>
+              <a id=control-delete><i class="fal fa-trash-alt"></i></a>
             </div>
           </h3>
           <p><a id=owner><i class="fas fa-user"></i> ${item.addr.slice(0, 12)}</a> ${coords ? `<a class="a-binding" href="/?c=${coords.join(',')}" id=binding>at ${coords.join(',')}</a>` : `<a class="a-binding" id=binding><i class="fas fa-map-marker"></i> not bound</a>`}</p>
@@ -4297,8 +4297,17 @@ const _makeScreenMesh = () => {
   img.onerror = err => {
     console.warn(err.stack);
   }; */
-  const texture = new THREE.Texture(
+
+  const screenImgs = [
     screen1Img,
+    screen2Img,
+    screen3Img,
+    screen4Img,
+  ];
+  let screenIndex = 0;
+
+  const texture = new THREE.Texture(
+    screenImgs[screenIndex],
     THREE.UVMapping,
     THREE.RepeatWrapping,
     THREE.RepeatWrapping,
@@ -4323,16 +4332,38 @@ const _makeScreenMesh = () => {
   mesh.update = () => {
     // nothing
   };
+  window.screenJson = screenJson;
   mesh.intersect = ray => {
     localRaycaster.ray.copy(ray);
     const intersection = localRaycaster.intersectObject(mesh)[0];
     if (intersection) {
-      const {uv} = intersection;
+      const {uv, distance} = intersection;
       uv.y = 1-uv.y;
       uv.multiplyScalar(4096);
-      const {anchors} = screenJson[0];
+      const {anchors} = screenJson[screenIndex];
       const anchor = anchors.find(anchor => uv.x >= anchor.left && uv.x <= anchor.right && uv.y >= anchor.top && uv.y <= anchor.bottom);
-      console.log('intersection', uv.toArray().join(','), anchor && anchor.id); // XXX
+      if (anchor) {
+        return {
+          type: 'screen',
+          id: anchor.id,
+          distance,
+          cancel: true,
+        };
+      } else {
+        return null;
+      }
+    } else {
+      return null;
+    }
+  };
+  mesh.click = id => {
+    const match = id.match(/^explore-tab-([0-9]+)$/);
+    if (match) {
+      screenIndex = parseInt(match[1], 10) - 1;
+      texture.image = screenImgs[screenIndex];
+      texture.needsUpdate = true;
+    } else {
+      console.log('no match', {id});
     }
   };
   return mesh;
@@ -5738,6 +5769,8 @@ function animate(time, frame) {
             intersectionSpec.oncrosshair(i);
           } else if (type === 'icon-close') {
             intersectionSpec.onclose(i);
+          } else if (type === 'screen') {
+            screenMesh.click(intersectionSpec.id);
           } else if (type === 'map') {
             window.document.xrOffset.position[0] += intersectionSpec.x*7 - camera.position.x;
             window.document.xrOffset.position[2] += intersectionSpec.y*7 - camera.position.z;
