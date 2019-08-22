@@ -310,7 +310,6 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
 #explore-popdown ul li .tag {
   display: flex;
   position: absolute;
-  /*left: calc(64px - 20px);*/
   width: 20px;
   height: 20px;
   justify-content: center;
@@ -326,6 +325,21 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
   display: flex;
   flex: 1;
   flex-direction: column;
+}
+#explore-popdown ul li .wrap .controls {
+  display: flex;
+  float: right;
+}
+#explore-popdown ul li .wrap .controls nav {
+  display: flex;
+  width: 30px;
+  height: 30px;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+#explore-popdown ul li .wrap .controls nav:hover, #explore-popdown ul li .wrap .controls nav.selected {
+  color: #66bb6a;
 }
 #developers-popdown {
   position: absolute;
@@ -751,7 +765,11 @@ const _renderItems = items => {
         <div class=wrap>
           <h3>
             <a class="a-content" href="${item.url}">${item.name}</a>
-            <div class=controls></div>
+            <div class=controls>
+              <nav><i class="fal fa-pencil"></i></nav>
+              <nav><i class="fal fa-crosshairs"></i></nav>
+              <nav><i class="fal fa-trash-alt"></i></nav>
+            </div>
           </h3>
           <p><span><i class="fas fa-user"></i> ${item.addr.slice(0, 12)}</span> <span><i class="fas fa-map-marker"></i> ${coords ? `<a class="a-binding" href="/?c=${coords.join(',')}">at ${coords.join(',')}</a>` : 'not bound'}</span></p>
         </div>
