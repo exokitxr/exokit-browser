@@ -109,9 +109,6 @@ module.exports = (fileType => async function(u) {
     const s = new TextDecoder().decode(ui);
     const el = parse5.parseFragment(s);
     const scripts = _findAll(el, el => el.tagName === 'script');
-    window.s = s;
-    window.el = el;
-    window.scripts = scripts;
 
     const scriptsSrc = scripts.filter(script => script.attrs.some(attr => attr.name === 'src'));
     const srcs = scriptsSrc.map(script => script.attrs.find(attr => attr.name === 'src').value);
