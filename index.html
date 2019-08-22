@@ -800,14 +800,14 @@ const _renderItems = items => {
         </div>
         <div class=wrap>
           <h3>
-            <a class="a-content" href="${item.url}">${item.name}</a>
+            <a class="a-content" href="${item.url}" id=name>${item.name}</a>
             <div class=controls>
-              <a><i class="fal fa-pencil"></i></a>
-              <a><i class="fal fa-crosshairs"></i></a>
-              <a><i class="fal fa-trash-alt"></i></a>
+              <a id=control-edit><i class="fal fa-pencil"></i></a>
+              <a id=control-edit><i class="fal fa-crosshairs"></i></a>
+              <a id=control-edit><i class="fal fa-trash-alt"></i></a>
             </div>
           </h3>
-          <p><a><i class="fas fa-user"></i> ${item.addr.slice(0, 12)}</a> <a><i class="fas fa-map-marker"></i> ${coords ? `<a class="a-binding" href="/?c=${coords.join(',')}">at ${coords.join(',')}</a>` : 'not bound'}</a></p>
+          <p><a id=owner><i class="fas fa-user"></i> ${item.addr.slice(0, 12)}</a> ${coords ? `<a class="a-binding" href="/?c=${coords.join(',')}" id=binding>at ${coords.join(',')}</a>` : `<a class="a-binding" id=binding><i class="fas fa-map-marker"></i> not bound</a>`}</p>
         </div>
       </li>`;
     }).join('')}
@@ -832,9 +832,9 @@ const _renderGamers = gamers => {
         <img src="skin.png">
         <div class=wrap>
           <h3>
-            <a class="a-content" href="${gamer.name}">${gamer.name}</a>
+            <a class="a-content" href="${gamer.name}" id=name>${gamer.name}</a>
           </h3>
-          <p><i class="fas fa-map-marker"></i> <a class="a-binding" href="/?c=${coords.join(',')}">at ${coords.join(',')}</a></p>
+          <p><a class="a-binding" href="/?c=${coords.join(',')}" id=coord><i class="fas fa-map-marker"></i> at ${coords.join(',')}</a></p>
         </div>
       </li>`;
     }).join('')}
@@ -896,13 +896,25 @@ const _updateTabs = async () => {
     exploreLabel.innerText = '';
     exploreContent.innerHTML = '';
     exploreContent.appendChild(_makeElement(`<div class=url>
-      <input type="text" placeholder="https://">
-      <a><i class="fal fa-plus-square"></i></a>
+      <input type="text" placeholder="https://" id=url-input>
+      <a id=go><i class="fal fa-plus-square"></i></a>
     </div>`));
     explorePopdown.classList.remove('loading');
   } else {
     // nothing
   }
+};
+window.getTabAnchors = () => { // XXX
+  return ['a', 'input']
+    .flatMap(q => Array.from(explorePopdown.querySelectorAll(q)))
+    .map(el => {
+      const {id} = el;
+      if (!id) {
+        console.warn('missing id', el);
+      }
+      const rect = JSON.parse(JSON.stringify(el.getBoundingClientRect()));
+      return Object.assign(rect, {id});
+    });
 };
 
 const popup = document.getElementById('popup');
@@ -917,7 +929,8 @@ exploreDropdown.onclick = () => {
   explorePopdown.classList.toggle('open');
 
   if (explorePopdown.classList.contains('open')) {
-    explorePopdown.style.transform = `scale(${window.innerWidth / 4096})`;
+    // explorePopdown.style.transform = `scale(${window.innerWidth / 4096})`;
+    explorePopdown.style.top = '0';
     _updateTabs();
   }
 };
