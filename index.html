@@ -4267,13 +4267,13 @@ const _makeTrayMesh = () => {
     });
   };
   mesh.getIntersectionCandidates = () => mesh.visible ?
-    [labelMesh, keyboardMesh, mapMesh, settingsMesh, floorMesh]
+    [labelMesh, keyboardMesh, mapMesh, settingsMesh, floorMesh, screenMesh]
       .concat(actionIconMeshes.children)
       .concat(appIconMeshes.children)
       .concat(mapIconMeshes.children)
       .concat(settingsIconMeshes.children)
       .filter(mesh => mesh.visible)
-    : [];
+    : [screenMesh];
 
   return mesh;
 };
@@ -4320,6 +4320,21 @@ const _makeScreenMesh = () => {
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
+  mesh.update = () => {
+    // nothing
+  };
+  mesh.intersect = ray => {
+    localRaycaster.ray.copy(ray);
+    const intersection = localRaycaster.intersectObject(mesh)[0];
+    if (intersection) {
+      const {uv} = intersection;
+      uv.y = 1-uv.y;
+      uv.multiplyScalar(4096);
+      const {anchors} = screenJson[0];
+      const anchor = anchors.find(anchor => uv.x >= anchor.left && uv.x <= anchor.right && uv.y >= anchor.top && uv.y <= anchor.bottom);
+      console.log('intersection', uv.toArray().join(','), anchor && anchor.id); // XXX
+    }
+  };
   return mesh;
 };
 const screenMesh = _makeScreenMesh();
