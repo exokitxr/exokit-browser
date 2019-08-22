@@ -461,7 +461,7 @@ iframe, audio {
     <script src="cubicBezier.js"></script>
     <!-- <script src="sprite3d.js"></script> -->
     <script src="skin.js"></script>
-    <script src="fetch-proxy.js"></script>
+    <!-- <script src="fetch-proxy.js"></script> -->
     <script src="parse5.js"></script>
     <script src="file-type.js"></script>
     <script>
@@ -669,7 +669,7 @@ urlForm.addEventListener('submit', e => {
 const subscribeButton = document.getElementById('subscribe-button');
 const subscribePopdown = document.getElementById('subscribe-popdown');
 subscribeButton.onclick = () => {
-  subscribePopdown.classList.toggle('open'); 
+  subscribePopdown.classList.toggle('open');
 };
 for (let i = 1; i <= 3; i++) {
   const plan = document.getElementById(`plan-${i}`);
@@ -1376,7 +1376,7 @@ const fontSpec = await Promise.all([
 const _makeTextMesh = (s = '', color = 0x000000, size = 1) => {
   const {font, texture} = fontSpec;
 
-  // create a geometry of packed bitmap glyphs, 
+  // create a geometry of packed bitmap glyphs,
   // word wrapped to 300px and right-aligned
   var geometry = createTextGeometry({
     width: Infinity,
@@ -3087,7 +3087,7 @@ const _removeApp = iconMesh => {
   if (iconMesh.moveMesh) {
     scene.remove(iconMesh.moveMesh);
   }
-  
+
   // if (!trayMesh.appIconMeshes.children.some(iconMesh => iconMesh.x === selectedIconCoord.x && iconMesh.y === selectedIconCoord.y)) {
   if (selectedIconMesh === trayMesh.appIconMeshes) {
     if (trayMesh.appIconMeshes.children.some(iconMesh => iconMesh.x === 0 && iconMesh.y === 0)) {
@@ -3206,7 +3206,7 @@ const _makeTrayMesh = () => {
       selectedIconMesh = actionIconMeshes;
       selectedIconCoord.set(1, 0);
       selectedIconPage = 0;
-      
+
       labelMesh.textMesh.setText(DEFAULT_URL);
       labelMesh.visible = true;
       actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
@@ -3949,7 +3949,7 @@ const _makeTrayMesh = () => {
   })();
   mesh.add(settingsMesh);
   mesh.settingsMesh = settingsMesh;
-  
+
   /* labelMesh.textMesh.addEventListener('update', e => {
     const {url} = e;
     if (selectedIconMesh === appIconMeshes) {
@@ -4681,7 +4681,7 @@ const portalFsh = `
       }
       gl_FragDepth = gl_FragCoord.z;
     } */
-    
+
     gl_FragColor.rgb += vec3(texCoordFull, 1.0) * 0.2;
   }
 `;
@@ -5089,11 +5089,54 @@ const _handleSingleKey = c => {
   const index = keyboardFocus.caretMesh.getValue();
   keyboardFocus.textMesh.setText(s.slice(0, index) + c + s.slice(index));
   keyboardFocus.caretMesh.setValue(index + 1);
+
+  _autoCompleteSearch(keyboardFocus.textMesh.getText());
 };
+const _autoCompleteSearch = s => {
+  const url = 'http://13.56.80.83:9200/voxel/_search?q=' + s + '&pretty=true';
+  // console.log("s = " + s);
+  fetch(url)
+  .then((resp) => resp.json())
+  .then(function(data) {
+    if(data.hits){
+      let results = data.hits.hits;
+      return results.map(function(hit) {
+        let source = hit._source;
+        console.log("description: " + source.description);
+        console.log("url: " + source.url);
+        const geometry = new THREE.PlaneBufferGeometry(2, 0.3)
+          .applyMatrix(localMatrix.makeRotationFromQuaternion(localQuaternion.setFromAxisAngle(localVector.set(1, 0, 0), -Math.PI/2)));
+        const material = new THREE.MeshBasicMaterial({
+          color: 0x333333,
+          side: THREE.DoubleSide,
+        });
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.position
+          .copy(camera.position)
+          .add(new THREE.Vector3(0, -0.5, -1 + 0.2/2));
+        mesh.frustumCulled = false;
+        const urlLabelMesh = _makeLabelMesh(source.url);
+        urlLabelMesh.position.y = 0.6;
+        mesh.add(urlLabelMesh);
+        const nameLabelMesh = _makeLabelMesh(source.description);
+        nameLabelMesh.position.y = 0.8;
+        mesh.add(nameLabelMesh);
+        // mesh.labelMesh = labelMesh;
+        scene.add(mesh);
+      })
+    }
+  })
+  .catch(function(error) {
+    console.log("error 1 " + JSON.stringify(error));
+    console.log("error 2 " + error);
+  });
+}
 const _handleKey = (code, shiftKey) => {
   // console.log('handle key', code, shiftKey, new Error().stack);
   const s = keyboardFocus.textMesh.getText();
   const index = keyboardFocus.caretMesh.getValue();
+
+  _autoCompleteSearch(s);
 
   if (code === 8) { // backspace
     if (index > 0) {
@@ -6062,7 +6105,7 @@ const _startFakeVrDisplay = async (width, height) => {
   window.addEventListener('popstate', () => {
     window.location.reload();
   });
-  
+
   renderer.setAnimationLoop(animate);
 };
 const _endFakeVrDisplay = async () => {
@@ -6490,12 +6533,12 @@ const _rtcConnect = () => {
   };
   s.onmessage = e => {
     // console.log('got message', e.data);
-    
+
     const data = JSON.parse(e.data);
     const {method} = data;
     if (method === 'join') {
       const {connectionId: peerConnectionId} = data;
-     
+
       let peerConnection = peerConnections.find(peerConnection => peerConnection.connectionId === peerConnectionId);
       if (peerConnection && !peerConnection.open) {
         peerConnection.close();
