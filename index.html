@@ -4307,7 +4307,7 @@ const _makeScreenMesh = () => {
   let screenIndex = 0;
 
   const texture = new THREE.Texture(
-    screenImgs[screenIndex],
+    null,
     THREE.UVMapping,
     THREE.RepeatWrapping,
     THREE.RepeatWrapping,
@@ -4319,7 +4319,85 @@ const _makeScreenMesh = () => {
     THREE.UnsignedByteType,
     16
   );
-  texture.needsUpdate = true;
+
+  const _updateTexture = async () => {
+    const img = screenImgs[screenIndex];
+
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+
+    if (screenIndex === 1) {
+      const {anchors} = screenJson[screenIndex];
+
+      const imgAnchor = anchors.find(anchor => anchor.id === 'img');
+      const controlDeleteAnchor = anchors.find(anchor => anchor.id === 'control-delete');
+      const rect = {
+        x: imgAnchor.left,
+        y: imgAnchor.top - 50,
+        width: controlDeleteAnchor.right - imgAnchor.left,
+        height: imgAnchor.height + 50*2,
+      };
+      const imageData = ctx.getImageData(rect.x, rect.y, rect.width, rect.height);
+
+      const nameAnchor = anchors.find(anchor => anchor.id === 'name');
+      const ownerAnchor = anchors.find(anchor => anchor.id === 'owner');
+      const bindingAnchor = anchors.find(anchor => anchor.id === 'binding');
+
+      for (let i = 0; i < 2; i++) { // XXX
+        ctx.fillStyle = 'white';
+        ctx.fillRect(rect.x, rect.y + i*rect.height, rect.width, rect.height);
+      }
+
+      const u = `${LAMBDA_URLS.tokens}/${encodeURIComponent(loginToken.addr)}`;
+      const items = await fetch(u)
+        .then(res => res.json())
+        .catch(err => {
+          console.warn(err.stack);
+        });
+      items.forEach((item, i) => {
+        ctx.putImageData(imageData, rect.x, rect.y + i*rect.height);
+
+        ctx.fillStyle = 'white';
+        ctx.fillRect(nameAnchor.x, nameAnchor.y + i*rect.height, nameAnchor.width, nameAnchor.height);
+        ctx.font = "700 50px Open Sans";
+        ctx.fillStyle = 'black';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText('https://google.com/', nameAnchor.x, nameAnchor.bottom + i*rect.height);
+
+        ctx.fillStyle = 'white';
+        ctx.fillRect(ownerAnchor.x, ownerAnchor.y + i*rect.height, ownerAnchor.width, ownerAnchor.height);
+        ctx.font = "40px Open Sans";
+        ctx.fillStyle = 'black';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText('0x123456789', ownerAnchor.x, ownerAnchor.bottom + i*rect.height);
+
+        ctx.fillStyle = 'white';
+        ctx.fillRect(bindingAnchor.x, bindingAnchor.y + i*rect.height, bindingAnchor.width, bindingAnchor.height);
+        ctx.font = "40px Open Sans";
+        ctx.fillStyle = 'black';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText('1.234,2.567', bindingAnchor.x, bindingAnchor.bottom + i*rect.height);
+      });
+      
+      /* ctx.fillStyle = 'red';
+      ctx.fillRect(rect.x, rect.y, rect.width, rect.height); */
+
+      createImageBitmap(canvas, {
+        imageOrientation: 'flipY',
+      })
+        .then(imageBitmap => {
+          texture.image = imageBitmap;
+          texture.needsUpdate = true;
+        });
+    } else {
+      texture.image = canvas;
+      texture.needsUpdate = true;
+    }
+  };
+  _updateTexture();
 
   const material = new THREE.MeshBasicMaterial({
     map: texture,
@@ -4359,8 +4437,7 @@ const _makeScreenMesh = () => {
     const match = id.match(/^explore-tab-([0-9]+)$/);
     if (match) {
       screenIndex = parseInt(match[1], 10) - 1;
-      texture.image = screenImgs[screenIndex];
-      texture.needsUpdate = true;
+      _updateTexture();
     } else {
       console.log('no match', {id});
     }
