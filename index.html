@@ -29,7 +29,7 @@ header {
   left: 0;
   width: 100vw;
   height: 50px;
-  background-color: rgba(33,33,33,1);
+  background-color: #000;
   align-items: center;
 }
 header:not(.open) {
@@ -260,28 +260,28 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
 }
 #explore-popdown .tabs .tab {
   display: flex;
-  width: 50px;
-  height: 50px;
-  margin-left: -3px;
-  padding: 10px;
-  padding-left: 13px;
+  width: 250px;
+  height: 250px;
+  margin-left: -5px;
+  padding: 50px;
+  padding-left: 65px;
   justify-content: center;
   align-items: center;
-  font-size: 24px;
+  font-size: 120px;
 }
 #explore-popdown .tabs .tab.selected {
   background-color: #FFF;
   border-left: 0;
-  border-right: 3px solid #000;
-  border-bottom: 3px solid #000;
+  border-right: 5px solid #000;
+  border-bottom: 5px solid #000;
   color: #66bb6a;
 }
 #explore-popdown .tabs .tab.selected:not(:first-child) {
-  border-top: 3px solid #000;
+  border-top: 5px solid #000;
 }
 #explore-popdown .content-loaded, #explore-popdown .content-loading {
   display: none;
-  padding-left: 20px;
+  padding-left: 100px;
   flex: 1;
 }
 #explore-popdown.loading .content-loading, #explore-popdown:not(.loading) .content-loaded {
@@ -289,10 +289,22 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
 }
 #explore-popdown h1 {
   margin: 0;
-  margin-top: 10px;
+  margin-top: 50px;
+  font-size: 100px;
 }
 #explore-popdown h3, #explore-popdown p {
   margin: 0;
+}
+#explore-popdown h3 {
+  display: flex;
+  font-size: 50px;
+  align-items: center;
+}
+#explore-popdown p {
+  font-size: 40px;
+}
+#explore-popdown .a-content {
+  margin-right: auto;
 }
 #explore-popdown a {
   color: inherit;
@@ -304,9 +316,9 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
 #explore-popdown ul {}
 #explore-popdown ul li {
   display: flex;
-  padding: 15px 0;
-  padding-right: 15px;
-  border-bottom: 1px solid #f8f8f8;
+  padding: 50px 0;
+  padding-right: 100px;
+  border-bottom: 5px solid #f8f8f8;
 }
 #explore-popdown ul li .tag {
   display: flex;
@@ -320,7 +332,10 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
   font-size: 10px;
 }
 #explore-popdown ul li img {
-  margin-right: 10px;
+  width: 250px;
+  height: 250px;
+  margin-right: 50px;
+  image-rendering: pixelated;
 }
 #explore-popdown ul li .wrap {
   display: flex;
@@ -333,8 +348,8 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
 }
 #explore-popdown ul li .wrap .controls nav {
   display: flex;
-  width: 30px;
-  height: 30px;
+  width: 100px;
+  font-size: 60px;
   justify-content: center;
   align-items: center;
   cursor: pointer;
@@ -345,20 +360,20 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
 #explore-popdown .url {
   display: flex;
   align-items: center;
-  padding-right: 15px;
+  padding-right: 100px;
 }
 #explore-popdown .url input {
   width: 100%;
-  margin-right: 15px;
+  margin-right: 50px;
   border: 0;
-  border-bottom: 1px solid #f8f8f8;
+  border-bottom: 5px solid #f8f8f8;
   font-family: 'Open Sans';
-  font-size: 20px;
+  font-size: 80px;
   line-height: 2;
   outline: none;
 }
 #explore-popdown .url i {
-  font-size: 30px;
+  font-size: 80px;
 }
 #developers-popdown {
   position: absolute;
