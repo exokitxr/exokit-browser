@@ -41,7 +41,7 @@ header .logo {
   height: 40px;
   margin: 0 10px;
 }
-header .text {
+header .icon {
   height: 40px;
   margin: 0 10px;
 }
@@ -266,7 +266,7 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
   padding-left: 13px;
   justify-content: center;
   align-items: center;
-  font-size: 30px;
+  font-size: 24px;
 }
 #explore-popdown .tabs .tab.selected {
   background-color: #FFF;
@@ -386,7 +386,7 @@ iframe, audio {
   <body>
     <header id=header>
       <canvas class=logo id="logo-canvas"></canvas>
-      <img class=text src="webaverse.png"/>
+      <img class=icon src="icon.svg"/>
       <a class="nav" id="explore-dropdown">Explore</a>
       <a class="nav">Download</a>
       <a class="nav" id="developers-dropdown">Developers<i class="fal fa-chevron-down"></i></a>
@@ -459,7 +459,7 @@ iframe, audio {
       <div class="popdown" id=explore-popdown>
         <div class=tabs>
           <div class="tab selected" id=explore-tab-1>
-            <i class="fal fa-map"></i>
+            <i class="fal fa-map-marker"></i>
           </div>
           <div class=tab id=explore-tab-2>
             <i class="fal fa-backpack"></i>
