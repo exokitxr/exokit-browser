@@ -346,7 +346,7 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
   display: flex;
   float: right;
 }
-#explore-popdown ul li .wrap .controls nav {
+#explore-popdown ul li .wrap .controls a {
   display: flex;
   width: 100px;
   font-size: 60px;
@@ -354,7 +354,7 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
   align-items: center;
   cursor: pointer;
 }
-#explore-popdown ul li .wrap .controls nav:hover, #explore-popdown ul li .wrap .controls nav.selected {
+#explore-popdown ul li .wrap .controls a:hover, #explore-popdown ul li .wrap .controls a.selected {
   color: #66bb6a;
 }
 #explore-popdown .url {
@@ -474,18 +474,18 @@ iframe, audio {
       </div> -->
       <div class="popdown" id=explore-popdown>
         <div class=tabs>
-          <div class="tab selected" id=explore-tab-1>
+          <a class="tab selected" id=explore-tab-1>
             <i class="fal fa-map-marker"></i>
-          </div>
-          <div class=tab id=explore-tab-2>
+          </a>
+          <a class=tab id=explore-tab-2>
             <i class="fal fa-backpack"></i>
-          </div>
-          <div class=tab id=explore-tab-3>
+          </a>
+          <a class=tab id=explore-tab-3>
             <i class="fal fa-user-astronaut"></i>
-          </div>
-          <div class=tab id=explore-tab-4>
+          </a>
+          <a class=tab id=explore-tab-4>
             <i class="fal fa-plus-square"></i>
-          </div>
+          </a>
         </div>
         <div class=content-loaded>
           <h1 id=explore-label></h1>
@@ -802,12 +802,12 @@ const _renderItems = items => {
           <h3>
             <a class="a-content" href="${item.url}">${item.name}</a>
             <div class=controls>
-              <nav><i class="fal fa-pencil"></i></nav>
-              <nav><i class="fal fa-crosshairs"></i></nav>
-              <nav><i class="fal fa-trash-alt"></i></nav>
+              <a><i class="fal fa-pencil"></i></a>
+              <a><i class="fal fa-crosshairs"></i></a>
+              <a><i class="fal fa-trash-alt"></i></a>
             </div>
           </h3>
-          <p><span><i class="fas fa-user"></i> ${item.addr.slice(0, 12)}</span> <span><i class="fas fa-map-marker"></i> ${coords ? `<a class="a-binding" href="/?c=${coords.join(',')}">at ${coords.join(',')}</a>` : 'not bound'}</span></p>
+          <p><a><i class="fas fa-user"></i> ${item.addr.slice(0, 12)}</a> <a><i class="fas fa-map-marker"></i> ${coords ? `<a class="a-binding" href="/?c=${coords.join(',')}">at ${coords.join(',')}</a>` : 'not bound'}</a></p>
         </div>
       </li>`;
     }).join('')}
@@ -897,7 +897,7 @@ const _updateTabs = async () => {
     exploreContent.innerHTML = '';
     exploreContent.appendChild(_makeElement(`<div class=url>
       <input type="text" placeholder="https://">
-      <i class="fal fa-plus-square"></i>
+      <a><i class="fal fa-plus-square"></i></a>
     </div>`));
     explorePopdown.classList.remove('loading');
   } else {
