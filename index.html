@@ -341,6 +341,24 @@ header:not(.logged-in) #logout-button, header:not(.logged-in) .url-form {
 #explore-popdown ul li .wrap .controls nav:hover, #explore-popdown ul li .wrap .controls nav.selected {
   color: #66bb6a;
 }
+#explore-popdown .url {
+  display: flex;
+  align-items: center;
+  padding-right: 15px;
+}
+#explore-popdown .url input {
+  width: 100%;
+  margin-right: 15px;
+  border: 0;
+  border-bottom: 1px solid #f8f8f8;
+  font-family: 'Open Sans';
+  font-size: 20px;
+  line-height: 2;
+  outline: none;
+}
+#explore-popdown .url i {
+  font-size: 30px;
+}
 #developers-popdown {
   position: absolute;
   display: flex;
@@ -441,7 +459,7 @@ iframe, audio {
       <div class="popdown" id=explore-popdown>
         <div class=tabs>
           <div class="tab selected" id=explore-tab-1>
-            <i class="fal fa-expand-wide"></i>
+            <i class="fal fa-map"></i>
           </div>
           <div class=tab id=explore-tab-2>
             <i class="fal fa-backpack"></i>
@@ -825,9 +843,15 @@ const _updateTabs = async () => {
 
     // console.log('got inventory items', items);
   } else if (currentExploreTab === 3) {
-    exploreLabel.innerHTML = '';
+    exploreLabel.innerText = '';
     exploreContent.innerHTML = '';
+    exploreContent.appendChild(_makeElement(`<div class=url>
+      <input type="text" placeholder="https://">
+      <i class="fal fa-plus-square"></i>
+    </div>`));
     explorePopdown.classList.remove('loading');
+
+    // console.log('got inventory items', items);
   } else {
     // nothing
   }
@@ -4184,14 +4208,58 @@ const trayMesh = _makeTrayMesh();
 scene.add(trayMesh);
 
 const _makeScreenMesh = () => {
-  const radius = 1;
-  const height = 1;
-  const geometry = new THREE.CylinderBufferGeometry(radius, radius, height, 10, 10, true, Math.PI*3/2+Math.PI/4, Math.PI/2)
-    .applyMatrix(new THREE.Matrix4().makeScale(-1, -1, -1));
-  const material = new THREE.MeshPhongMaterial({
-    color: 0xFF0000,
+  const geometry = new THREE.CylinderBufferGeometry(1, 1, 1, 10, 10, true, Math.PI*3/2+Math.PI/4, Math.PI/2)
+    .applyMatrix(new THREE.Matrix4().makeScale(1, 1, -1));
+
+  const img = new Image();
+  const width = 2048;
+  const height = 2048;
+  setInterval(() => {
+    img.crossOrigin = 'Anonymous';
+    img.src = window.src = `data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
+      <rect width="100%" height="100%" fill="white"/>
+      <foreignObject width="100%" height="100%" x="0" y="0">
+        <style>
+          * {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+          }
+          h1 {
+            font-size: 50px;
+          }
+        </style>
+        ${new XMLSerializer().serializeToString(explorePopdown)}
+      </foreignObject>
+    </svg>`.replace(/\n/g, '');
+  }, 1000);
+  img.onload = () => {
+    /* createImageBitmap(img)
+      .then(imageBitmap => { */
+        texture.image = img;
+        texture.needsUpdate = true;
+      // });
+  };
+  img.onerror = err => {
+    console.warn(err.stack);
+  };
+  const texture = new THREE.Texture(
+    null,
+    THREE.UVMapping,
+    THREE.RepeatWrapping,
+    THREE.RepeatWrapping,
+    THREE.NearestFilter,
+    THREE.NearestFilter,
+    /* THREE.LinearFilter,
+    THREE.LinearFilter, */
+    THREE.RGBAFormat,
+    THREE.UnsignedByteType,
+    16
+  );
+
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    // color: 0xFF0000,
     side: THREE.DoubleSide,
-    flatShading: true,
+    // flatShading: true,
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
