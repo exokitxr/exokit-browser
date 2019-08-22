@@ -1,0 +1,374 @@
+[
+  {
+    "src": "cap1.png",
+    "anchors": [
+      {
+        "x": -2,
+        "y": 0,
+        "width": 250,
+        "height": 250,
+        "top": 0,
+        "right": 248,
+        "bottom": 250,
+        "left": -2,
+        "id": "explore-tab-1"
+      },
+      {
+        "x": -2,
+        "y": 250,
+        "width": 250,
+        "height": 250,
+        "top": 250,
+        "right": 248,
+        "bottom": 500,
+        "left": -2,
+        "id": "explore-tab-2"
+      },
+      {
+        "x": -2,
+        "y": 500,
+        "width": 250,
+        "height": 250,
+        "top": 500,
+        "right": 248,
+        "bottom": 750,
+        "left": -2,
+        "id": "explore-tab-3"
+      },
+      {
+        "x": -2,
+        "y": 750,
+        "width": 250,
+        "height": 250,
+        "top": 750,
+        "right": 248,
+        "bottom": 1000,
+        "left": -2,
+        "id": "explore-tab-4"
+      }
+    ]
+  },
+  {
+    "src": "cap2.png",
+    "anchors": [
+      {
+        "x": -2,
+        "y": 0,
+        "width": 250,
+        "height": 250,
+        "top": 0,
+        "right": 248,
+        "bottom": 250,
+        "left": -2,
+        "id": "explore-tab-1"
+      },
+      {
+        "x": -2,
+        "y": 250,
+        "width": 250,
+        "height": 250,
+        "top": 250,
+        "right": 248,
+        "bottom": 500,
+        "left": -2,
+        "id": "explore-tab-2"
+      },
+      {
+        "x": -2,
+        "y": 500,
+        "width": 250,
+        "height": 250,
+        "top": 500,
+        "right": 248,
+        "bottom": 750,
+        "left": -2,
+        "id": "explore-tab-3"
+      },
+      {
+        "x": -2,
+        "y": 750,
+        "width": 250,
+        "height": 250,
+        "top": 750,
+        "right": 248,
+        "bottom": 1000,
+        "left": -2,
+        "id": "explore-tab-4"
+      },
+      {
+        "x": 648,
+        "y": 236,
+        "width": 640.2374877929688,
+        "height": 100,
+        "top": 236,
+        "right": 1288.2374877929688,
+        "bottom": 336,
+        "left": 648,
+        "id": "name"
+      },
+      {
+        "x": 3696,
+        "y": 256,
+        "width": 100,
+        "height": 60,
+        "top": 256,
+        "right": 3796,
+        "bottom": 316,
+        "left": 3696,
+        "id": "control-edit"
+      },
+      {
+        "x": 3796,
+        "y": 256,
+        "width": 100,
+        "height": 60,
+        "top": 256,
+        "right": 3896,
+        "bottom": 316,
+        "left": 3796,
+        "id": "control-edit"
+      },
+      {
+        "x": 3896,
+        "y": 256,
+        "width": 100,
+        "height": 60,
+        "top": 256,
+        "right": 3996,
+        "bottom": 316,
+        "left": 3896,
+        "id": "control-edit"
+      },
+      {
+        "x": 648,
+        "y": 348.8000183105469,
+        "width": 313.4750061035156,
+        "height": 54.400001525878906,
+        "top": 348.8000183105469,
+        "right": 961.4750061035156,
+        "bottom": 403.2000198364258,
+        "left": 648,
+        "id": "owner"
+      },
+      {
+        "x": 971.8624877929688,
+        "y": 348.8000183105469,
+        "width": 235.8937530517578,
+        "height": 54.400001525878906,
+        "top": 348.8000183105469,
+        "right": 1207.7562408447266,
+        "bottom": 403.2000198364258,
+        "left": 971.8624877929688,
+        "id": "binding"
+      },
+      {
+        "x": 648,
+        "y": 591,
+        "width": 387.625,
+        "height": 100,
+        "top": 591,
+        "right": 1035.625,
+        "bottom": 691,
+        "left": 648,
+        "id": "name"
+      },
+      {
+        "x": 3696,
+        "y": 611,
+        "width": 100,
+        "height": 60,
+        "top": 611,
+        "right": 3796,
+        "bottom": 671,
+        "left": 3696,
+        "id": "control-edit"
+      },
+      {
+        "x": 3796,
+        "y": 611,
+        "width": 100,
+        "height": 60,
+        "top": 611,
+        "right": 3896,
+        "bottom": 671,
+        "left": 3796,
+        "id": "control-edit"
+      },
+      {
+        "x": 3896,
+        "y": 611,
+        "width": 100,
+        "height": 60,
+        "top": 611,
+        "right": 3996,
+        "bottom": 671,
+        "left": 3896,
+        "id": "control-edit"
+      },
+      {
+        "x": 648,
+        "y": 703.7999877929688,
+        "width": 313.4750061035156,
+        "height": 54.400001525878906,
+        "top": 703.7999877929688,
+        "right": 961.4750061035156,
+        "bottom": 758.1999893188477,
+        "left": 648,
+        "id": "owner"
+      },
+      {
+        "x": 971.8624877929688,
+        "y": 703.7999877929688,
+        "width": 235.8937530517578,
+        "height": 54.400001525878906,
+        "top": 703.7999877929688,
+        "right": 1207.7562408447266,
+        "bottom": 758.1999893188477,
+        "left": 971.8624877929688,
+        "id": "binding"
+      }
+    ]
+  },
+  {
+    "src": "cap3.png",
+    "anchors": [
+      {
+        "x": -2,
+        "y": 0,
+        "width": 250,
+        "height": 250,
+        "top": 0,
+        "right": 248,
+        "bottom": 250,
+        "left": -2,
+        "id": "explore-tab-1"
+      },
+      {
+        "x": -2,
+        "y": 250,
+        "width": 250,
+        "height": 250,
+        "top": 250,
+        "right": 248,
+        "bottom": 500,
+        "left": -2,
+        "id": "explore-tab-2"
+      },
+      {
+        "x": -2,
+        "y": 500,
+        "width": 250,
+        "height": 250,
+        "top": 500,
+        "right": 248,
+        "bottom": 750,
+        "left": -2,
+        "id": "explore-tab-3"
+      },
+      {
+        "x": -2,
+        "y": 750,
+        "width": 250,
+        "height": 250,
+        "top": 750,
+        "right": 248,
+        "bottom": 1000,
+        "left": -2,
+        "id": "explore-tab-4"
+      },
+      {
+        "x": 648,
+        "y": 236,
+        "width": 145.3874969482422,
+        "height": 100,
+        "top": 236,
+        "right": 793.3874969482422,
+        "bottom": 336,
+        "left": 648,
+        "id": "name"
+      },
+      {
+        "x": 648,
+        "y": 348.8000183105469,
+        "width": 301.2062683105469,
+        "height": 54.400001525878906,
+        "top": 348.8000183105469,
+        "right": 949.2062683105469,
+        "bottom": 403.2000198364258,
+        "left": 648,
+        "id": "coord"
+      }
+    ]
+  },
+  {
+    "src": "cap4.png",
+    "anchors": [
+      {
+        "x": -2,
+        "y": -500,
+        "width": 250,
+        "height": 250,
+        "top": -500,
+        "right": 248,
+        "bottom": -250,
+        "left": -2,
+        "id": "explore-tab-1"
+      },
+      {
+        "x": -2,
+        "y": -250,
+        "width": 250,
+        "height": 250,
+        "top": -250,
+        "right": 248,
+        "bottom": 0,
+        "left": -2,
+        "id": "explore-tab-2"
+      },
+      {
+        "x": -2,
+        "y": 0,
+        "width": 250,
+        "height": 250,
+        "top": 0,
+        "right": 248,
+        "bottom": 250,
+        "left": -2,
+        "id": "explore-tab-3"
+      },
+      {
+        "x": -2,
+        "y": 250,
+        "width": 250,
+        "height": 250,
+        "top": 250,
+        "right": 248,
+        "bottom": 500,
+        "left": -2,
+        "id": "explore-tab-4"
+      },
+      {
+        "x": 3926,
+        "y": -406.5,
+        "width": 70,
+        "height": 80,
+        "top": -406.5,
+        "right": 3996,
+        "bottom": -326.5,
+        "left": 3926,
+        "id": "go"
+      },
+      {
+        "x": 348,
+        "y": -450,
+        "width": 3528,
+        "height": 167,
+        "top": -450,
+        "right": 3876,
+        "bottom": -283,
+        "left": 348,
+        "id": "url-input"
+      }
+    ]
+  }
+]

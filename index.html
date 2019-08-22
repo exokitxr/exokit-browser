@@ -1415,6 +1415,11 @@ const [
   xImg,
   faviconImg,
   keyboardImg,
+  screen1Img,
+  screen2Img,
+  screen3Img,
+  screen4Img,
+  screenJson,
   keyboardHighlightCanvasCtx,
   keyMap,
 ] = await Promise.all(
@@ -1441,6 +1446,10 @@ const [
     'x.png',
     'favicon.ico',
     'keyboard.png',
+    'screen1.png',
+    'screen2.png',
+    'screen3.png',
+    'screen4.png',
   ].map(src => new Promise((accept, reject) => {
     const img = new Image();
     img.onload = () => {
@@ -1452,6 +1461,8 @@ const [
     img.crossOrigin = 'Anonymous';
     img.src = src;
   })).concat([
+    fetch('screen.json').then(res => res.json()),
+  ]).concat([
     new Promise((accept, reject) => {
       const img = new Image();
       img.crossOrigin = 'Anonymous';
@@ -4270,41 +4281,24 @@ const trayMesh = _makeTrayMesh();
 scene.add(trayMesh);
 
 const _makeScreenMesh = () => {
-  const geometry = new THREE.CylinderBufferGeometry(1, 1, 1, 10, 10, true, Math.PI*3/2+Math.PI/4, Math.PI/2)
+  const geometry = new THREE.CylinderBufferGeometry(2*4/(2*Math.PI), 2*4/(2*Math.PI), 2, 10, 10, true, Math.PI*3/2+Math.PI/4, Math.PI/2)
     .applyMatrix(new THREE.Matrix4().makeScale(1, 1, -1));
 
-  const img = new Image();
-  const width = 2048;
-  const height = 2048;
-  setInterval(() => {
-    img.crossOrigin = 'Anonymous';
-    img.src = window.src = `data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
-      <rect width="100%" height="100%" fill="white"/>
-      <foreignObject width="100%" height="100%" x="0" y="0">
-        <style>
-          * {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-          }
-          h1 {
-            font-size: 50px;
-          }
-        </style>
-        ${new XMLSerializer().serializeToString(explorePopdown)}
-      </foreignObject>
-    </svg>`.replace(/\n/g, '');
-  }, 1000);
+  /* const img = new Image();
+  const screen = screens[0];
+  img.src = screen.src;
   img.onload = () => {
-    /* createImageBitmap(img)
-      .then(imageBitmap => { */
+    createImageBitmap(img)
+      .then(imageBitmap => {
         texture.image = img;
         texture.needsUpdate = true;
-      // });
+      });
   };
   img.onerror = err => {
     console.warn(err.stack);
-  };
+  }; */
   const texture = new THREE.Texture(
-    null,
+    screen1Img,
     THREE.UVMapping,
     THREE.RepeatWrapping,
     THREE.RepeatWrapping,
@@ -4316,6 +4310,7 @@ const _makeScreenMesh = () => {
     THREE.UnsignedByteType,
     16
   );
+  texture.needsUpdate = true;
 
   const material = new THREE.MeshBasicMaterial({
     map: texture,
