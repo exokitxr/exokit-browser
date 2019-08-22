@@ -92,20 +92,31 @@ function _findAll(el, fn) {
   _recurse(el);
   return result;
 }
+async function _fetchData(u) {
+  if (typeof u === 'string') {
+    const res = await fetch(u);
+    const arrayBuffer = await res.arrayBuffer();
+    const baseUrl = _getBaseUrl(u);
+    return {
+      arrayBuffer,
+      baseUrl,
+    };
+  } else if (u && u instanceof ArrayBuffer) {
+    return {
+      arrayBuffer: u,
+      baseUrl: 'https://content.webaverse.com/',
+    };
+  } else {
+    throw new Error(`could not fetch data`);
+  }
+}
 
 module.exports = (fileType => async function(u) {
-  const baseUrl = _getBaseUrl(u);
+  const {arrayBuffer, baseUrl} = await _fetchData(u);
 
-  const res = await fetch(u, {
-    /* headers: {
-      'Range': `bytes=0-${5*1024*1024}`,
-    }, */
-  });
-  const ab = await res.arrayBuffer();
-  const ui = new Uint8Array(ab);
+  const ui = new Uint8Array(arrayBuffer);
   const type = fileType(ui);
   if (type && type.mime === 'text/html') {
-    // const s = new TextEncoder().encode(ui);
     const s = new TextDecoder().decode(ui);
     const el = parse5.parseFragment(s);
     const scripts = _findAll(el, el => el.tagName === 'script');
@@ -126,8 +137,8 @@ module.exports = (fileType => async function(u) {
       type.mime += '+webgl';
     }
   }
-  ab.type = type;
-  return ab;
+  arrayBuffer.type = type;
+  return arrayBuffer;
 })(module.exports);
 
 window.fetchType = module.exports;
