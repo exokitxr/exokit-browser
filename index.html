@@ -808,6 +808,33 @@ const _renderItems = items => {
   }
   return el;
 };
+const _renderGamers = gamers => {
+  const el = _makeElement(`<ul>
+    ${gamers.map(gamer => {
+      const {coords} = gamer;
+      return `<li>
+        <img src="skin.png">
+        <div class=wrap>
+          <h3>
+            <a class="a-content" href="${gamer.name}">${gamer.name}</a>
+          </h3>
+          <p><i class="fas fa-map-marker"></i> <a class="a-binding" href="/?c=${coords.join(',')}">at ${coords.join(',')}</a></p>
+        </div>
+      </li>`;
+    }).join('')}
+  </ul>`);
+  const aBindings = el.querySelectorAll('.a-binding');
+  for (let i = 0; i < aBindings.length; i++) {
+    const a = aBindings[i];
+    a.onclick = e => {
+      e.preventDefault();
+
+      history.pushState({}, a.href, a.href);
+      _updateCoord();
+    };
+  }
+  return el;
+};
 const _updateTabs = async () => {
   if (currentExploreTab === 1) {
     const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
@@ -844,7 +871,10 @@ const _updateTabs = async () => {
   } else if (currentExploreTab === 3) {
     exploreLabel.innerText = 'Gamers';
     exploreContent.innerHTML = '';
-    // exploreContent.appendChild('');
+    exploreContent.appendChild(_renderGamers([{
+      name: 'Avaer',
+      coords: [1.234, 2.567],
+    }]));
     explorePopdown.classList.remove('loading');
   } else if (currentExploreTab === 4) {
     exploreLabel.innerText = '';
