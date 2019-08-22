@@ -24,16 +24,21 @@ var Buffer=require("buffer").Buffer;function _toConsumableArray(e){return _array
   const htmlBuffer = new TextEncoder().encode('<html');
   module.exports = (fileType => b => {
     const result = fileType(b);
-    for (let i = 0; i < b.length; i++) {
-      let j;
-      for (j = 0; j < htmlBuffer.length; j++) {
-        if (b[i + j] !== htmlBuffer[j]) {
-          break;
+    if (result) {
+      return result;
+    } else {
+      for (let i = 0; i < b.length; i++) {
+        let j;
+        for (j = 0; j < htmlBuffer.length; j++) {
+          if (b[i + j] !== htmlBuffer[j]) {
+            break;
+          }
+        }
+        if (j === htmlBuffer.length) {
+          return {ext: 'html', mime: 'text/html'};
         }
       }
-      if (j === htmlBuffer.length) {
-        return {ext: 'html', mime: 'text/html'};
-      }
+      return {ext: '', mime: 'application/octet-stream'};
     }
   })(module.exports);
 }
