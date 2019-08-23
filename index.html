@@ -4350,18 +4350,32 @@ const _makeScreenMesh = () => {
     16
   );
 
+  let text = 'https://';
+  const measures = [];
+  let cursor = text.length;
+  const canvas = document.createElement('canvas');
+  canvas.width = 4096;
+  canvas.height = 4096;
+  const ctx = canvas.getContext('2d');
+  const _updateMeasures = () => {
+    ctx.font = '80px Open Sans';
+    measures.length = 0;
+    measures.push(0);
+    const {width: barWidth} = ctx.measureText('[');
+    for (let i = 1; i <= text.length; i++) {
+      const {width} = ctx.measureText('[' + text.slice(0, i) + ']');
+      measures.push(width - barWidth*2);
+    }
+  };
+  _updateMeasures();
+
   const _updateTexture = async () => {
     const img = screenImgs[screenIndex];
-
-    const canvas = document.createElement('canvas');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    const ctx = canvas.getContext('2d');
     ctx.drawImage(img, 0, 0);
 
-    if (screenIndex === 1) {
-      const {anchors} = screenJson[screenIndex];
+    const {anchors} = screenJson[screenIndex];
 
+    if (screenIndex === 1) {
       const imgAnchor = anchors.find(anchor => anchor.id === 'img');
       const controlDeleteAnchor = anchors.find(anchor => anchor.id === 'control-delete');
       const rect = {
@@ -4392,21 +4406,21 @@ const _makeScreenMesh = () => {
 
         ctx.fillStyle = 'white';
         ctx.fillRect(nameAnchor.x, nameAnchor.y + i*rect.height, nameAnchor.width, nameAnchor.height);
-        ctx.font = "700 50px Open Sans";
+        ctx.font = '700 50px Open Sans';
         ctx.fillStyle = 'black';
         ctx.textBaseline = 'bottom';
         ctx.fillText('https://google.com/', nameAnchor.x, nameAnchor.bottom + i*rect.height);
 
         ctx.fillStyle = 'white';
         ctx.fillRect(ownerAnchor.x, ownerAnchor.y + i*rect.height, ownerAnchor.width, ownerAnchor.height);
-        ctx.font = "40px Open Sans";
+        ctx.font = '40px Open Sans';
         ctx.fillStyle = 'black';
         ctx.textBaseline = 'bottom';
         ctx.fillText('0x123456789', ownerAnchor.x, ownerAnchor.bottom + i*rect.height);
 
         ctx.fillStyle = 'white';
         ctx.fillRect(bindingAnchor.x, bindingAnchor.y + i*rect.height, bindingAnchor.width, bindingAnchor.height);
-        ctx.font = "40px Open Sans";
+        ctx.font = '40px Open Sans';
         ctx.fillStyle = 'black';
         ctx.textBaseline = 'bottom';
         ctx.fillText('1.234,2.567', bindingAnchor.x, bindingAnchor.bottom + i*rect.height);
@@ -4414,6 +4428,27 @@ const _makeScreenMesh = () => {
       
       /* ctx.fillStyle = 'red';
       ctx.fillRect(rect.x, rect.y, rect.width, rect.height); */
+
+      createImageBitmap(canvas, {
+        imageOrientation: 'flipY',
+      })
+        .then(imageBitmap => {
+          texture.image = imageBitmap;
+          texture.needsUpdate = true;
+        });
+    } else if (screenIndex === 3) {
+      const urlInputAnchor = anchors.find(anchor => anchor.id === 'url-input');
+      // const imageData = ctx.getImageData(urlInputAnchor.x, urlInputAnchor.y, urlInputAnchor.width, urlInputAnchor.height - 5);
+
+      ctx.fillStyle = 'white';
+      ctx.fillRect(urlInputAnchor.x, urlInputAnchor.y, urlInputAnchor.width, urlInputAnchor.height - 5);
+      ctx.font = '80px Open Sans';
+      ctx.fillStyle = 'black';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(text, urlInputAnchor.x, urlInputAnchor.bottom);
+
+      ctx.fillStyle = 'black';
+      ctx.fillRect(urlInputAnchor.x + measures[cursor] - 4, urlInputAnchor.y + urlInputAnchor.height*0.2, 6, urlInputAnchor.height*0.8);
 
       createImageBitmap(canvas, {
         imageOrientation: 'flipY',
@@ -4453,6 +4488,8 @@ const _makeScreenMesh = () => {
         return {
           type: 'screen',
           id: anchor.id,
+          x: uv.x,
+          y: uv.y,
           distance,
           cancel: true,
         };
@@ -4463,10 +4500,19 @@ const _makeScreenMesh = () => {
       return null;
     }
   };
-  mesh.click = id => {
+  mesh.click = intersectionSpec => {
+    const {id} = intersectionSpec;
     const match = id.match(/^explore-tab-([0-9]+)$/);
     if (match) {
       screenIndex = parseInt(match[1], 10) - 1;
+      _updateTexture();
+    } else if (id === 'url-input') {
+      const {x, y} = intersectionSpec;
+      const {anchors} = screenJson[screenIndex];
+      const urlInputAnchor = anchors.find(anchor => anchor.id === 'url-input');
+      const xOffset = x - urlInputAnchor.x;
+
+      cursor = measures.map((measure, index) => [Math.abs(xOffset - measure), index]).sort((a, b) => a[0] - b[0])[0][1];
       _updateTexture();
     } else {
       console.log('no match', {id});
@@ -5876,7 +5922,7 @@ function animate(time, frame) {
           } else if (type === 'icon-close') {
             intersectionSpec.onclose(i);
           } else if (type === 'screen') {
-            screenMesh.click(intersectionSpec.id);
+            screenMesh.click(intersectionSpec);
           } else if (type === 'map') {
             window.document.xrOffset.position[0] += intersectionSpec.x*7 - camera.position.x;
             window.document.xrOffset.position[2] += intersectionSpec.y*7 - camera.position.z;
