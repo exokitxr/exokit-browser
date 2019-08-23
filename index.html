@@ -4393,10 +4393,12 @@ const _makeScreenMesh = () => {
       const ownerAnchor = anchors.find(anchor => anchor.id === 'owner');
       const bindingAnchor = anchors.find(anchor => anchor.id === 'binding');
 
-      for (let i = 0; i < 2; i++) { // XXX
+      ctx.fillStyle = 'white';
+      ctx.fillRect(rect.x, rect.y, rect.width, rect.height*5);
+      /* for (let i = 0; i < 2; i++) { // XXX
         ctx.fillStyle = 'white';
         ctx.fillRect(rect.x, rect.y + i*rect.height, rect.width, rect.height);
-      }
+      } */
 
       const u = `${LAMBDA_URLS.tokens}/${encodeURIComponent(loginToken.addr)}`;
       const items = await fetch(u)
@@ -4412,21 +4414,21 @@ const _makeScreenMesh = () => {
         ctx.font = '700 50px Open Sans';
         ctx.fillStyle = 'black';
         ctx.textBaseline = 'bottom';
-        ctx.fillText('https://google.com/', nameAnchor.x, nameAnchor.bottom + i*rect.height);
+        ctx.fillText(item.name, nameAnchor.x, nameAnchor.bottom + i*rect.height);
 
         ctx.fillStyle = 'white';
         ctx.fillRect(ownerAnchor.x, ownerAnchor.y + i*rect.height, ownerAnchor.width, ownerAnchor.height);
         ctx.font = '40px Open Sans';
         ctx.fillStyle = 'black';
         ctx.textBaseline = 'bottom';
-        ctx.fillText('0x123456789', ownerAnchor.x, ownerAnchor.bottom + i*rect.height);
+        ctx.fillText(item.addr.slice(0, 12), ownerAnchor.x, ownerAnchor.bottom + i*rect.height);
 
         ctx.fillStyle = 'white';
         ctx.fillRect(bindingAnchor.x, bindingAnchor.y + i*rect.height, bindingAnchor.width, bindingAnchor.height);
         ctx.font = '40px Open Sans';
         ctx.fillStyle = 'black';
         ctx.textBaseline = 'bottom';
-        ctx.fillText('1.234,2.567', bindingAnchor.x, bindingAnchor.bottom + i*rect.height);
+        ctx.fillText(item.bindingUrl || 'not bound', bindingAnchor.x, bindingAnchor.bottom + i*rect.height);
       });
       
       /* ctx.fillStyle = 'red';
