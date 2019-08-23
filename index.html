@@ -804,27 +804,41 @@ const _makeElement = html => {
   div.innerHTML = html;
   return div.children[0];
 };
+const _getAppType = mimeType => {
+  if (/^img\//.test(mimeType)) {
+    return 'image';
+  } else if (/^audio\//.test(mimeType)) {
+    return 'audio';
+  } else if (/^video\//.test(mimeType)) {
+    return 'video';
+  } else if (/^model\//.test(mimeType)) {
+    return 'model';
+  } else if (/^text\/html\+webgl$/.test(mimeType)) {
+    return 'webgl';
+  } else if (/^text\/html$/.test(mimeType)) {
+    return 'html';
+  } else {
+    return null;
+  }
+};
 const _renderItems = items => {
   const el = _makeElement(`<ul>
     ${items.map((item, index) => {
       const {type} = item;
       const coords = _getCoordsFromBindingUrl(item.bindingUrl);
       return `<li>
+        
         <a id=img-${index+1}><img src="skin.png"></a>
         <div class=tag>
-          ${(() => {
-            if (/^img\//.test(type)) {
-              return `<i class="fal fa-image"></i>`;
-            } else if (/^audio\//.test(type)) {
-              return `<i class="fal fa-volume-up"></i>`;
-            } else if (/^video\//.test(type)) {
-              return `<i class="fal fa-film"></i>`;
-            } else if (/^model\//.test(type)) {
-              return `<i class="fal fa-dice-d4"></i>`;
-            } else if (/^text\/html\+webgl$/.test(type)) {
-              return `<i class="fal fa-gamepad"></i>`;
-            } else if (/^text\/html$/.test(type)) {
-              return `<i class="fal fa-link"></i>`;
+        ${(() => {
+            switch (_getAppType(item.type)) {
+              case 'image': return `<i class="fal fa-image"></i>`;
+              case 'audio': return `<i class="fal fa-volume-up"></i>`;
+              case 'video': return `<i class="fal fa-film"></i>`;
+              case 'model': return `<i class="fal fa-dice-d4"></i>`;
+              case 'webgl': return `<i class="fal fa-gamepad"></i>`;
+              case 'html':
+              default: return `<i class="fal fa-link"></i>`;
             }
           })()}
         </div>
@@ -2815,12 +2829,10 @@ const _makeMoveMesh = (() => {
   };
 
   return type => {
-    switch (type) {
-      case 'browser': return _makeBrowserMesh();
-      case 'volume':
-      case 'model':
-        return _makeVolumeMesh();
-      default: return null;
+    if (type === 'html') {
+      return _makeBrowserMesh()
+    } else {
+      return _makeVolumeMesh();
     }
   };
 })();
@@ -2841,77 +2853,17 @@ const _makeIframe = (url, type) => {
   return iframe;
 };
 const _makeIconMesh = (url, type, onclose) => {
-  const iconSize = 0.2;
-  const subIconSize = 0.4;
-  const geometry = new THREE.PlaneBufferGeometry(iconSize, iconSize);
-  const texture = new THREE.Texture(img);
-  if (img) {
-    texture.needsUpdate = true;
-  }
-  const iconVsh = `
-    uniform float uTime;
-    varying vec2 vUv;
-    const float PI = 3.1415926535897932384626433832795;
-    void main() {
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position + vec3(0., sin(pow(uTime, 0.5) * PI) * 0.1, 0.), 1.);
-      vUv = uv;
-    }
-  `;
-  const iconFsh = `
-    uniform sampler2D uTex;
-    uniform vec3 uColor;
-    uniform float uTime;
-    varying vec2 vUv;
-    void main() {
-      gl_FragColor = texture2D(uTex, vUv);
-      if (gl_FragColor.a >= 0.01) {
-        gl_FragColor.rgb += uColor;
-        if (uColor.r > 0. || uColor.g > 0. || uColor.b > 0.) {
-          gl_FragColor.rgb += (1.0 - pow(uTime, 0.5)) * 0.8;
-        }
-      } else {
-        discard;
-      }
-    }
-  `;
-  const color = 0x66bb6a;
-  const material = new THREE.ShaderMaterial({
-    uniforms: {
-      uTex: {
-        type: 't',
-        value: texture,
-      },
-      uColor: {
-        type: 'c',
-        value: new THREE.Color(0),
-      },
-      uTime: {
-        type: 'f',
-        value: 0,
-      },
-    },
-    vertexShader: iconVsh,
-    fragmentShader: iconFsh,
-    side: THREE.DoubleSide,
-    transparent: true,
-  });
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.frustumCulled = false;
+  const mesh = new THREE.Object3D();
   mesh.localVisible = true;
   mesh.iframe = null;
   mesh.model = null;
 
-  if (url && ['browser', 'volume'].includes(type)) {
-    const iframe = _makeIframe(url, type);
+  console.log('make icon mesh', {type});
+  if (type === 'html') {
+    mesh.iframe = _makeIframe(url, type);
 
-    if (type === 'browser' || type === 'volume') {
-      mesh.iframe = iframe;
-
-      mesh.moveMesh = _makeMoveMesh(type);
-    } else {
-      throw new Error(`unknown iframe type ${type}`);
-    }
-  } else if (url && type === 'model') {
+    mesh.moveMesh = _makeMoveMesh(type);
+  } else if (type === 'model') {
     console.log('load model', url);
 
     const model = new THREE.Object3D();
@@ -2948,52 +2900,6 @@ const _makeIconMesh = (url, type, onclose) => {
         console.warn(err.stack);
       });
     });
-  }
-  if (type) {
-    const material2 = material.clone();
-    const typeImg = (() => {
-      switch (type) {
-        case 'browser': return browserImg;
-        case 'volume': return diceImg;
-        case 'model': return dice2Img;
-        default: return null;
-      }
-    })();
-    const texture = new THREE.Texture(typeImg);
-    texture.needsUpdate = true;
-    material2.uniforms.uTex.value = texture;
-    const typeMesh = new THREE.Mesh(geometry, material2);
-    typeMesh.frustumCulled = false;
-    typeMesh.position.set(-0.15, 0.15, 0);
-    typeMesh.scale.set(subIconSize, subIconSize, subIconSize);
-    mesh.add(typeMesh);
-    mesh.typeMesh = typeMesh;
-  }
-  if (oncrosshair) {
-    const material2 = material.clone();
-    const texture = new THREE.Texture(crosshairImg);
-    texture.needsUpdate = true;
-    material2.uniforms.uTex.value = texture;
-    const crosshairMesh = new THREE.Mesh(geometry, material2);
-    crosshairMesh.visible = false;
-    crosshairMesh.frustumCulled = false;
-    crosshairMesh.position.set(0, 0.15, 0);
-    crosshairMesh.scale.set(subIconSize, subIconSize, subIconSize);
-    mesh.add(crosshairMesh);
-    mesh.crosshairMesh = crosshairMesh;
-  }
-  if (onclose) {
-    const material2 = material.clone();
-    const texture = new THREE.Texture(timesImg);
-    texture.needsUpdate = true;
-    material2.uniforms.uTex.value = texture;
-    const closeMesh = new THREE.Mesh(geometry, material2);
-    closeMesh.visible = false;
-    closeMesh.frustumCulled = false;
-    closeMesh.position.set(0.15, 0.15, 0);
-    closeMesh.scale.set(subIconSize, subIconSize, subIconSize);
-    mesh.add(closeMesh);
-    mesh.closeMesh = closeMesh;
   }
 
   mesh.url = url;
@@ -3174,19 +3080,19 @@ const _addNewApp = (url, type) => {
   });
 
   _addApp(iconMesh);
-  _moveApp(iconMesh, 0); // XXX use the correct controller index
+  _moveApp(iconMesh, 1); // XXX use the correct controller index
 };
 const _addApp = iconMesh => {
   const x = (() => {
     for (let x = 0;; x++) {
-      if (trayMesh.appIconMeshes.children.findIndex(mesh => mesh.x === x) === -1) {
+      if (screenMesh.appIconMeshes.children.findIndex(mesh => mesh.x === x) === -1) {
         return x;
       }
     }
     return -1;
   })();
   iconMesh.setPosition(x, 0);
-  trayMesh.appIconMeshes.add(iconMesh);
+  screenMesh.appIconMeshes.add(iconMesh);
 
   if (iconMesh.iframe) {
     layers.push(iconMesh.iframe);
@@ -3207,13 +3113,13 @@ const _moveApp = (iconMesh, i) => {
   };
 };
 const _removeApp = iconMesh => {
-  for (let i = 0; i < trayMesh.appIconMeshes.children.length; i++) {
-    const child = trayMesh.appIconMeshes.children[i];
+  for (let i = 0; i < screenMesh.appIconMeshes.children.length; i++) {
+    const child = screenMesh.appIconMeshes.children[i];
     if (child.closeMesh && child.x > iconMesh.x) {
       child.setPosition(child.x - 1, child.y);
     }
   }
-  trayMesh.appIconMeshes.remove(iconMesh);
+  screenMesh.appIconMeshes.remove(iconMesh);
 
   if (iconMesh.iframe) {
     layers.splice(layers.indexOf(iconMesh.iframe), 1);
@@ -3225,17 +3131,17 @@ const _removeApp = iconMesh => {
     scene.remove(iconMesh.moveMesh);
   }
   
-  // if (!trayMesh.appIconMeshes.children.some(iconMesh => iconMesh.x === selectedIconCoord.x && iconMesh.y === selectedIconCoord.y)) {
-  if (selectedIconMesh === trayMesh.appIconMeshes) {
-    if (trayMesh.appIconMeshes.children.some(iconMesh => iconMesh.x === 0 && iconMesh.y === 0)) {
+  // if (!screenMesh.appIconMeshes.children.some(iconMesh => iconMesh.x === selectedIconCoord.x && iconMesh.y === selectedIconCoord.y)) {
+  if (selectedIconMesh === screenMesh.appIconMeshes) {
+    if (screenMesh.appIconMeshes.children.some(iconMesh => iconMesh.x === 0 && iconMesh.y === 0)) {
       selectedIconCoord.set(0, 0);
     } else {
-      selectedIconMesh = trayMesh.actionIconMeshes;
+      selectedIconMesh = screenMesh.actionIconMeshes;
       selectedIconCoord.set(1, 0);
       selectedIconPage = 0;
 
-      trayMesh.labelMesh.textMesh.setText(DEFAULT_URL);
-      trayMesh.labelMesh.visible = true;
+      screenMesh.labelMesh.textMesh.setText(DEFAULT_URL);
+      screenMesh.labelMesh.visible = true;
     }
   }
 };
@@ -4325,7 +4231,7 @@ const _makeScreenMesh = () => {
       const item = items[itemIndex];
 
       console.log('move item', item); // XXX
-      _addNewApp(item.url, item.type);
+      _addNewApp(item.url, _getAppType(item.type));
     } else {
       console.log('no match', {id});
     }
@@ -4498,15 +4404,19 @@ const _makeScreenMesh = () => {
   })();
   mesh.add(keyboardMesh);
 
+  const appIconMeshes = new THREE.Object3D();
+  scene.add(appIconMeshes);
+  mesh.appIconMeshes = appIconMeshes;
+
   mesh.update = () => {
     keyboardMesh.update();
-    /* for (let i = 0; i < appIconMeshes.length; i++) {
-      appIconMeshes[i].update();
-    } */
+    for (let i = 0; i < appIconMeshes.children.length; i++) {
+      appIconMeshes.children[i].update();
+    }
   };
 
   mesh.getIntersectionCandidates = () => [mesh, keyboardMesh]
-    // .concat(appIconMeshes.children)
+    .concat(appIconMeshes.children)
     .filter(mesh => mesh.visible);
   return mesh;
 };
@@ -5494,7 +5404,7 @@ const _handleKey = (code, shiftKey) => {
     _openUrl(u, position, quaternion, scale, optionsMesh.d);
     _updateRigLists(); */
   } else if (code === 27) { // esc
-    trayMesh.labelMesh.caretMesh.visible = false;
+    // trayMesh.labelMesh.caretMesh.visible = false;
     keyboardFocus = null;
   } else if (
     code === 9 || // tab
