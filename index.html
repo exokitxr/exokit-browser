@@ -4504,6 +4504,8 @@ const _makeScreenMesh = () => {
     }
   };
   mesh.click = intersectionSpec => {
+    keyboardFocus = null;
+
     const {id} = intersectionSpec;
     const match = id.match(/^explore-tab-([0-9]+)$/);
     if (match) {
@@ -4517,9 +4519,25 @@ const _makeScreenMesh = () => {
 
       cursor = measures.map((measure, index) => [Math.abs(xOffset - measure), index]).sort((a, b) => a[0] - b[0])[0][1];
       _updateTexture();
+
+      keyboardFocus = {
+        textMesh: mesh,
+        caretMesh: mesh,
+      };
     } else {
       console.log('no match', {id});
     }
+  };
+  mesh.getText = () => text;
+  mesh.setText = newText => {
+    text = newText;
+    _updateMeasures();
+    _updateTexture();
+  };
+  mesh.getValue = () => cursor;
+  mesh.setValue = newValue => {
+    cursor = newValue;
+    _updateTexture();
   };
   return mesh;
 };
