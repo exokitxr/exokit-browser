@@ -2401,7 +2401,7 @@ const _saveData = () => {
 };
 const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
 const ONE_ADDRESS  = '0x0000000000000000000000000000000000000001';
-const _isInMultiverse = () => trayMesh.mapMesh.minimapMesh.material.uniforms.uType.value === 1;
+const _isInMultiverse = () => true; // trayMesh.mapMesh.minimapMesh.material.uniforms.uType.value === 1;
 const _getUserAddress = () => _isInMultiverse() ? user.eth.defaultAccount : ONE_ADDRESS;
 const _getShortUserAddress = () => {
   const match = _getUserAddress().match(/^(0x)[a-zA-Z0-9]{26}([a-zA-Z0-9]{14})$/);
@@ -2563,7 +2563,7 @@ const _loadSceneMeshFromCoords = (x, z) => {
     apps: [],
     owner: NULL_ADDRESS,
   };
-  _getToken(x, z)
+  /* _getToken(x, z)
     .then(token => {
       const {scene: sceneSpec, owner} = token;
       const _isValid = () => !sceneSpec.id || !sceneMeshes.some(sceneMesh => sceneMesh.token.id === sceneSpec.id);
@@ -2601,28 +2601,6 @@ const _loadSceneMeshFromCoords = (x, z) => {
             iconMesh.setSceneBindingRaw(object);
             console.log('load app', app, object.apps, object.token.apps);
           }
-
-          /* if (owner !== NULL_ADDRESS) {
-            for (let i = 0; i < coords.length; i++) {
-              const [x, z] = coords[i];
-              const sceneSubMesh = _makeMiningPlaceholderMesh(x, z, owner);
-              object.add(sceneSubMesh);
-            }
-          } else if (_isInMultiverse()) {
-            for (let i = 0; i < coords.length; i++) {
-              const [x, z] = coords[i];
-              const sceneSubMesh = _makeMiningMesh(x, z);
-              object.add(sceneSubMesh);
-            }
-          } */
-        } else {
-          /* if (_isInMultiverse() && owner === NULL_ADDRESS) {
-            const sceneSubMesh = _makeMiningMesh(x, z);
-            object.add(sceneSubMesh);
-          } else {
-            const sceneSubMesh = _makeMiningPlaceholderMesh(x, z, owner);
-            object.add(sceneSubMesh);
-          } */
         }
 
         lastSceneCoords[0] = NaN;
@@ -2633,7 +2611,7 @@ const _loadSceneMeshFromCoords = (x, z) => {
         scene.remove(object);
         sceneMeshes.splice(sceneMeshes.indexOf(object), 1);
       }
-    });
+    }); */
   return object;
 };
 
@@ -2862,7 +2840,7 @@ const _makeIframe = (url, type) => {
   iframe.src = url;
   return iframe;
 };
-const _makeIconMesh = (url, img, type, onclick, oncrosshair, onclose, pagable) => {
+const _makeIconMesh = (url, type, onclose) => {
   const iconSize = 0.2;
   const subIconSize = 0.4;
   const geometry = new THREE.PlaneBufferGeometry(iconSize, iconSize);
@@ -3181,13 +3159,8 @@ const _makeIconMesh = (url, img, type, onclick, oncrosshair, onclose, pagable) =
   };
   return mesh;
 };
-const _addNewApp = (url, img, type, i) => {
-  const iconMesh = _makeIconMesh(url, img, type, () => {
-    selectedIconCoord.set(iconMesh.x, iconMesh.y);
-    trayMesh.labelMesh.textMesh.setText(iconMesh.url);
-  }, i => {
-    _moveApp(iconMesh, i);
-  }, () => {
+const _addNewApp = (url, type) => {
+  const iconMesh = _makeIconMesh(url, type, () => {
     if (iconMesh.scene) {
       const index = iconMesh.scene.apps.indexOf(iconMesh);
       if (index !== -1) {
@@ -3198,18 +3171,10 @@ const _addNewApp = (url, img, type, i) => {
 
     _removeApp(iconMesh);
     _destroyApp(iconMesh);
-  }, true);
+  });
 
   _addApp(iconMesh);
-  if (i !== -1) {
-    _moveApp(iconMesh, i);
-  }
-
-  selectedIconMesh = trayMesh.appIconMeshes;
-  selectedIconCoord.set(iconMesh.x, 0);
-  selectedIconPage = 0;
-
-  trayMesh.labelMesh.textMesh.setText(iconMesh.url);
+  _moveApp(iconMesh, 0); // XXX use the correct controller index
 };
 const _addApp = iconMesh => {
   const x = (() => {
@@ -4130,6 +4095,254 @@ const _makeTrayMesh = () => {
     }
   }); */
 
+  mesh.getIntersectionCandidates = () => mesh.visible ?
+    [labelMesh, keyboardMesh, mapMesh, settingsMesh, floorMesh]
+      .concat(actionIconMeshes.children)
+      .concat(appIconMeshes.children)
+      .concat(mapIconMeshes.children)
+      .concat(settingsIconMeshes.children)
+      .filter(mesh => mesh.visible)
+    : [];
+
+  return mesh;
+};
+// const trayMesh = _makeTrayMesh();
+// scene.add(trayMesh);
+
+const _makeScreenMesh = () => {
+  const s = 2;
+  const r = s*4/(2*Math.PI);
+  const geometry = new THREE.CylinderBufferGeometry(r, r, s, 10, 10, true, Math.PI*3/2+Math.PI/4, Math.PI/2)
+    .applyMatrix(new THREE.Matrix4().makeScale(1, 1, -1))
+    .applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, r));
+
+  /* const img = new Image();
+  const screen = screens[0];
+  img.src = screen.src;
+  img.onload = () => {
+    createImageBitmap(img)
+      .then(imageBitmap => {
+        texture.image = img;
+        texture.needsUpdate = true;
+      });
+  };
+  img.onerror = err => {
+    console.warn(err.stack);
+  }; */
+
+  const screenImgs = [
+    screen1Img,
+    screen2Img,
+    screen3Img,
+    screen4Img,
+  ];
+  let screenIndex = 0;
+
+  const texture = new THREE.Texture(
+    null,
+    THREE.UVMapping,
+    THREE.RepeatWrapping,
+    THREE.RepeatWrapping,
+    THREE.NearestFilter,
+    THREE.NearestFilter,
+    /* THREE.LinearFilter,
+    THREE.LinearFilter, */
+    THREE.RGBAFormat,
+    THREE.UnsignedByteType,
+    16
+  );
+
+  let items = [];
+  let text = 'https://';
+  const measures = [];
+  let cursor = text.length;
+  const canvas = document.createElement('canvas');
+  canvas.width = 4096;
+  canvas.height = 4096;
+  const ctx = canvas.getContext('2d');
+  const _updateMeasures = () => {
+    ctx.font = '80px Open Sans';
+    measures.length = 0;
+    measures.push(0);
+    const {width: barWidth} = ctx.measureText('[');
+    for (let i = 1; i <= text.length; i++) {
+      const {width} = ctx.measureText('[' + text.slice(0, i) + ']');
+      measures.push(width - barWidth*2);
+    }
+  };
+  _updateMeasures();
+
+  const _updateTexture = async () => {
+    const img = screenImgs[screenIndex];
+    ctx.drawImage(img, 0, 0);
+
+    const {anchors} = screenJson[screenIndex];
+
+    if (screenIndex === 1) {
+      const imgAnchor = anchors.find(anchor => anchor.id === 'img-1');
+      const controlDeleteAnchor = anchors.find(anchor => anchor.id === 'control-delete-1');
+      const rect = {
+        x: imgAnchor.left,
+        y: imgAnchor.top - 50,
+        width: controlDeleteAnchor.right - imgAnchor.left,
+        height: imgAnchor.height + 50*2,
+      };
+      const imageData = ctx.getImageData(rect.x, rect.y, rect.width, rect.height);
+
+      const nameAnchor = anchors.find(anchor => anchor.id === 'name-1');
+      const ownerAnchor = anchors.find(anchor => anchor.id === 'owner-1');
+      const bindingAnchor = anchors.find(anchor => anchor.id === 'binding-1');
+
+      ctx.fillStyle = 'white';
+      ctx.fillRect(rect.x, rect.y, rect.width, rect.height*5);
+
+      const u = `${LAMBDA_URLS.tokens}/${encodeURIComponent(loginToken.addr)}`;
+      items = await fetch(u)
+        .then(res => res.json())
+        .catch(err => {
+          console.warn(err.stack);
+        });
+      items.forEach((item, i) => {
+        ctx.putImageData(imageData, rect.x, rect.y + i*rect.height);
+
+        ctx.fillStyle = 'white';
+        ctx.fillRect(nameAnchor.x, nameAnchor.y + i*rect.height, nameAnchor.width, nameAnchor.height);
+        ctx.font = '700 50px Open Sans';
+        ctx.fillStyle = 'black';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(item.name, nameAnchor.x, nameAnchor.bottom + i*rect.height);
+
+        ctx.fillStyle = 'white';
+        ctx.fillRect(ownerAnchor.x, ownerAnchor.y + i*rect.height, ownerAnchor.width, ownerAnchor.height);
+        ctx.font = '40px Open Sans';
+        ctx.fillStyle = 'black';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(item.addr.slice(0, 12), ownerAnchor.x, ownerAnchor.bottom + i*rect.height);
+
+        ctx.fillStyle = 'white';
+        ctx.fillRect(bindingAnchor.x, bindingAnchor.y + i*rect.height, bindingAnchor.width, bindingAnchor.height);
+        ctx.font = '40px Open Sans';
+        ctx.fillStyle = 'black';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(item.bindingUrl || 'not bound', bindingAnchor.x, bindingAnchor.bottom + i*rect.height);
+      });
+      
+      /* ctx.fillStyle = 'red';
+      ctx.fillRect(rect.x, rect.y, rect.width, rect.height); */
+
+      createImageBitmap(canvas, {
+        imageOrientation: 'flipY',
+      })
+        .then(imageBitmap => {
+          texture.image = imageBitmap;
+          texture.needsUpdate = true;
+        });
+    } else if (screenIndex === 3) {
+      const urlInputAnchor = anchors.find(anchor => anchor.id === 'url-input');
+      // const imageData = ctx.getImageData(urlInputAnchor.x, urlInputAnchor.y, urlInputAnchor.width, urlInputAnchor.height - 5);
+
+      ctx.fillStyle = 'white';
+      ctx.fillRect(urlInputAnchor.x, urlInputAnchor.y, urlInputAnchor.width, urlInputAnchor.height - 5);
+      ctx.font = '80px Open Sans';
+      ctx.fillStyle = 'black';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(text, urlInputAnchor.x, urlInputAnchor.bottom);
+
+      ctx.fillStyle = 'black';
+      ctx.fillRect(urlInputAnchor.x + measures[cursor] - 4, urlInputAnchor.y + urlInputAnchor.height*0.2, 6, urlInputAnchor.height*0.8);
+
+      createImageBitmap(canvas, {
+        imageOrientation: 'flipY',
+      })
+        .then(imageBitmap => {
+          texture.image = imageBitmap;
+          texture.needsUpdate = true;
+        });
+    } else {
+      texture.image = canvas;
+      texture.needsUpdate = true;
+    }
+  };
+  _updateTexture();
+
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    // color: 0xFF0000,
+    side: THREE.DoubleSide,
+    // flatShading: true,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+
+  mesh.intersect = ray => {
+    localRaycaster.ray.copy(ray);
+    const intersection = localRaycaster.intersectObject(mesh)[0];
+    if (intersection) {
+      const {uv, distance} = intersection;
+      uv.y = 1-uv.y;
+      uv.multiplyScalar(4096);
+      const {anchors} = screenJson[screenIndex];
+      const anchor = anchors.find(anchor => uv.x >= anchor.left && uv.x <= anchor.right && uv.y >= anchor.top && uv.y <= anchor.bottom);
+      if (anchor) {
+        return {
+          type: 'screen',
+          id: anchor.id,
+          x: uv.x,
+          y: uv.y,
+          distance,
+          cancel: true,
+        };
+      } else {
+        return null;
+      }
+    } else {
+      return null;
+    }
+  };
+  mesh.click = intersectionSpec => {
+    keyboardFocus = null;
+
+    const {id} = intersectionSpec;
+    let match;
+    if (match = id.match(/^explore-tab-([0-9]+)$/)) {
+      screenIndex = parseInt(match[1], 10) - 1;
+      _updateTexture();
+    } else if (id === 'url-input') {
+      const {x, y} = intersectionSpec;
+      const {anchors} = screenJson[screenIndex];
+      const urlInputAnchor = anchors.find(anchor => anchor.id === 'url-input');
+      const xOffset = x - urlInputAnchor.x;
+
+      cursor = measures.map((measure, index) => [Math.abs(xOffset - measure), index]).sort((a, b) => a[0] - b[0])[0][1];
+      _updateTexture();
+
+      keyboardFocus = {
+        textMesh: mesh,
+        caretMesh: mesh,
+      };
+    } else if (match = id.match(/^control-move-([0-9]+)$/)) {
+      const itemIndex = parseInt(match[1], 10) - 1;
+      const item = items[itemIndex];
+
+      console.log('move item', item); // XXX
+      _addNewApp(item.url, item.type);
+    } else {
+      console.log('no match', {id});
+    }
+  };
+
+  mesh.getText = () => text;
+  mesh.setText = newText => {
+    text = newText;
+    _updateMeasures();
+    _updateTexture();
+  };
+  mesh.getValue = () => cursor;
+  mesh.setValue = newValue => {
+    cursor = newValue;
+    _updateTexture();
+  };
+
   const keyboardMesh = (() => {
     const object = new THREE.Object3D();
 
@@ -4286,266 +4499,15 @@ const _makeTrayMesh = () => {
   mesh.add(keyboardMesh);
 
   mesh.update = () => {
-    labelMesh.update();
     keyboardMesh.update();
-    mapMesh.update();
-    settingsMesh.update();
-    [actionIconMeshes, appIconMeshes, mapIconMeshes, settingsIconMeshes].forEach(iconMeshes => {
-      for (let i = 0; i < iconMeshes.children.length; i++) {
-        iconMeshes.children[i].update(selectedIconPage);
-      }
-    });
+    /* for (let i = 0; i < appIconMeshes.length; i++) {
+      appIconMeshes[i].update();
+    } */
   };
-  mesh.getIntersectionCandidates = () => mesh.visible ?
-    [labelMesh, keyboardMesh, mapMesh, settingsMesh, floorMesh, screenMesh]
-      .concat(actionIconMeshes.children)
-      .concat(appIconMeshes.children)
-      .concat(mapIconMeshes.children)
-      .concat(settingsIconMeshes.children)
-      .filter(mesh => mesh.visible)
-    : [screenMesh];
 
-  return mesh;
-};
-const trayMesh = _makeTrayMesh();
-scene.add(trayMesh);
-
-const _makeScreenMesh = () => {
-  const s = 2;
-  const r = s*4/(2*Math.PI);
-  const geometry = new THREE.CylinderBufferGeometry(r, r, s, 10, 10, true, Math.PI*3/2+Math.PI/4, Math.PI/2)
-    .applyMatrix(new THREE.Matrix4().makeScale(1, 1, -1))
-    .applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, r));
-
-  /* const img = new Image();
-  const screen = screens[0];
-  img.src = screen.src;
-  img.onload = () => {
-    createImageBitmap(img)
-      .then(imageBitmap => {
-        texture.image = img;
-        texture.needsUpdate = true;
-      });
-  };
-  img.onerror = err => {
-    console.warn(err.stack);
-  }; */
-
-  const screenImgs = [
-    screen1Img,
-    screen2Img,
-    screen3Img,
-    screen4Img,
-  ];
-  let screenIndex = 0;
-
-  const texture = new THREE.Texture(
-    null,
-    THREE.UVMapping,
-    THREE.RepeatWrapping,
-    THREE.RepeatWrapping,
-    THREE.NearestFilter,
-    THREE.NearestFilter,
-    /* THREE.LinearFilter,
-    THREE.LinearFilter, */
-    THREE.RGBAFormat,
-    THREE.UnsignedByteType,
-    16
-  );
-
-  let items = [];
-  let text = 'https://';
-  const measures = [];
-  let cursor = text.length;
-  const canvas = document.createElement('canvas');
-  canvas.width = 4096;
-  canvas.height = 4096;
-  const ctx = canvas.getContext('2d');
-  const _updateMeasures = () => {
-    ctx.font = '80px Open Sans';
-    measures.length = 0;
-    measures.push(0);
-    const {width: barWidth} = ctx.measureText('[');
-    for (let i = 1; i <= text.length; i++) {
-      const {width} = ctx.measureText('[' + text.slice(0, i) + ']');
-      measures.push(width - barWidth*2);
-    }
-  };
-  _updateMeasures();
-
-  const _updateTexture = async () => {
-    const img = screenImgs[screenIndex];
-    ctx.drawImage(img, 0, 0);
-
-    const {anchors} = screenJson[screenIndex];
-
-    if (screenIndex === 1) {
-      const imgAnchor = anchors.find(anchor => anchor.id === 'img-1');
-      const controlDeleteAnchor = anchors.find(anchor => anchor.id === 'control-delete-1');
-      const rect = {
-        x: imgAnchor.left,
-        y: imgAnchor.top - 50,
-        width: controlDeleteAnchor.right - imgAnchor.left,
-        height: imgAnchor.height + 50*2,
-      };
-      const imageData = ctx.getImageData(rect.x, rect.y, rect.width, rect.height);
-
-      const nameAnchor = anchors.find(anchor => anchor.id === 'name-1');
-      const ownerAnchor = anchors.find(anchor => anchor.id === 'owner-1');
-      const bindingAnchor = anchors.find(anchor => anchor.id === 'binding-1');
-
-      ctx.fillStyle = 'white';
-      ctx.fillRect(rect.x, rect.y, rect.width, rect.height*5);
-      /* for (let i = 0; i < 2; i++) { // XXX
-        ctx.fillStyle = 'white';
-        ctx.fillRect(rect.x, rect.y + i*rect.height, rect.width, rect.height);
-      } */
-
-      const u = `${LAMBDA_URLS.tokens}/${encodeURIComponent(loginToken.addr)}`;
-      items = await fetch(u)
-        .then(res => res.json())
-        .catch(err => {
-          console.warn(err.stack);
-        });
-      items.forEach((item, i) => {
-        ctx.putImageData(imageData, rect.x, rect.y + i*rect.height);
-
-        ctx.fillStyle = 'white';
-        ctx.fillRect(nameAnchor.x, nameAnchor.y + i*rect.height, nameAnchor.width, nameAnchor.height);
-        ctx.font = '700 50px Open Sans';
-        ctx.fillStyle = 'black';
-        ctx.textBaseline = 'bottom';
-        ctx.fillText(item.name, nameAnchor.x, nameAnchor.bottom + i*rect.height);
-
-        ctx.fillStyle = 'white';
-        ctx.fillRect(ownerAnchor.x, ownerAnchor.y + i*rect.height, ownerAnchor.width, ownerAnchor.height);
-        ctx.font = '40px Open Sans';
-        ctx.fillStyle = 'black';
-        ctx.textBaseline = 'bottom';
-        ctx.fillText(item.addr.slice(0, 12), ownerAnchor.x, ownerAnchor.bottom + i*rect.height);
-
-        ctx.fillStyle = 'white';
-        ctx.fillRect(bindingAnchor.x, bindingAnchor.y + i*rect.height, bindingAnchor.width, bindingAnchor.height);
-        ctx.font = '40px Open Sans';
-        ctx.fillStyle = 'black';
-        ctx.textBaseline = 'bottom';
-        ctx.fillText(item.bindingUrl || 'not bound', bindingAnchor.x, bindingAnchor.bottom + i*rect.height);
-      });
-      
-      /* ctx.fillStyle = 'red';
-      ctx.fillRect(rect.x, rect.y, rect.width, rect.height); */
-
-      createImageBitmap(canvas, {
-        imageOrientation: 'flipY',
-      })
-        .then(imageBitmap => {
-          texture.image = imageBitmap;
-          texture.needsUpdate = true;
-        });
-    } else if (screenIndex === 3) {
-      const urlInputAnchor = anchors.find(anchor => anchor.id === 'url-input');
-      // const imageData = ctx.getImageData(urlInputAnchor.x, urlInputAnchor.y, urlInputAnchor.width, urlInputAnchor.height - 5);
-
-      ctx.fillStyle = 'white';
-      ctx.fillRect(urlInputAnchor.x, urlInputAnchor.y, urlInputAnchor.width, urlInputAnchor.height - 5);
-      ctx.font = '80px Open Sans';
-      ctx.fillStyle = 'black';
-      ctx.textBaseline = 'bottom';
-      ctx.fillText(text, urlInputAnchor.x, urlInputAnchor.bottom);
-
-      ctx.fillStyle = 'black';
-      ctx.fillRect(urlInputAnchor.x + measures[cursor] - 4, urlInputAnchor.y + urlInputAnchor.height*0.2, 6, urlInputAnchor.height*0.8);
-
-      createImageBitmap(canvas, {
-        imageOrientation: 'flipY',
-      })
-        .then(imageBitmap => {
-          texture.image = imageBitmap;
-          texture.needsUpdate = true;
-        });
-    } else {
-      texture.image = canvas;
-      texture.needsUpdate = true;
-    }
-  };
-  _updateTexture();
-
-  const material = new THREE.MeshBasicMaterial({
-    map: texture,
-    // color: 0xFF0000,
-    side: THREE.DoubleSide,
-    // flatShading: true,
-  });
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.frustumCulled = false;
-  mesh.update = () => {
-    // nothing
-  };
-  mesh.intersect = ray => {
-    localRaycaster.ray.copy(ray);
-    const intersection = localRaycaster.intersectObject(mesh)[0];
-    if (intersection) {
-      const {uv, distance} = intersection;
-      uv.y = 1-uv.y;
-      uv.multiplyScalar(4096);
-      const {anchors} = screenJson[screenIndex];
-      const anchor = anchors.find(anchor => uv.x >= anchor.left && uv.x <= anchor.right && uv.y >= anchor.top && uv.y <= anchor.bottom);
-      if (anchor) {
-        return {
-          type: 'screen',
-          id: anchor.id,
-          x: uv.x,
-          y: uv.y,
-          distance,
-          cancel: true,
-        };
-      } else {
-        return null;
-      }
-    } else {
-      return null;
-    }
-  };
-  mesh.click = intersectionSpec => {
-    keyboardFocus = null;
-
-    const {id} = intersectionSpec;
-    let match;
-    if (match = id.match(/^explore-tab-([0-9]+)$/)) {
-      screenIndex = parseInt(match[1], 10) - 1;
-      _updateTexture();
-    } else if (id === 'url-input') {
-      const {x, y} = intersectionSpec;
-      const {anchors} = screenJson[screenIndex];
-      const urlInputAnchor = anchors.find(anchor => anchor.id === 'url-input');
-      const xOffset = x - urlInputAnchor.x;
-
-      cursor = measures.map((measure, index) => [Math.abs(xOffset - measure), index]).sort((a, b) => a[0] - b[0])[0][1];
-      _updateTexture();
-
-      keyboardFocus = {
-        textMesh: mesh,
-        caretMesh: mesh,
-      };
-    } else if (match = id.match(/^control-move-([0-9]+)$/)) {
-      const itemIndex = parseInt(match[1], 10) - 1;
-      const item = items[itemIndex];
-      console.log('move item', item); // XXX
-    } else {
-      console.log('no match', {id});
-    }
-  };
-  mesh.getText = () => text;
-  mesh.setText = newText => {
-    text = newText;
-    _updateMeasures();
-    _updateTexture();
-  };
-  mesh.getValue = () => cursor;
-  mesh.setValue = newValue => {
-    cursor = newValue;
-    _updateTexture();
-  };
+  mesh.getIntersectionCandidates = () => [mesh, keyboardMesh]
+    // .concat(appIconMeshes.children)
+    .filter(mesh => mesh.visible);
   return mesh;
 };
 const screenMesh = _makeScreenMesh();
@@ -4736,7 +4698,7 @@ const _makePointMesh = (sx, sy, sz, ox, oy, oz, ow) => {
   return mesh;
 };
 const _getIntersectionCandidates = () => renderScene === scene ?
-    trayMesh.getIntersectionCandidates()
+    screenMesh.getIntersectionCandidates()
       .concat(sceneMeshes)
   :
     [loginMesh, paymentMesh].flatMap(mesh => mesh.getIntersectionCandidates());
@@ -5649,10 +5611,15 @@ function animate(time, frame) {
   };
   _updateOrbitControls();
 
-  const _updateTrayMesh = () => {
+  /* const _updateTrayMesh = () => {
     trayMesh.update();
   };
-  _updateTrayMesh();
+  _updateTrayMesh(); */
+
+  const _updateScreenMesh = () => {
+    screenMesh.update();
+  };
+  _updateScreenMesh();
 
   const _updateMoves = () => {
     for (let i = 0; i < moveSpecs.length; i++) {
@@ -5746,7 +5713,7 @@ function animate(time, frame) {
 
       currentSceneToken = newSceneMesh && newSceneMesh.token;
 
-      if (trayMesh.visible) {
+      if (screenMesh.visible) {
         const _getCurrentTokenColor = token => {
           if (token.owner !== NULL_ADDRESS) {
             if (token.owner === _getUserAddress()) {
