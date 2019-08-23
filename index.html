@@ -4311,8 +4311,11 @@ const trayMesh = _makeTrayMesh();
 scene.add(trayMesh);
 
 const _makeScreenMesh = () => {
-  const geometry = new THREE.CylinderBufferGeometry(2*4/(2*Math.PI), 2*4/(2*Math.PI), 2, 10, 10, true, Math.PI*3/2+Math.PI/4, Math.PI/2)
-    .applyMatrix(new THREE.Matrix4().makeScale(1, 1, -1));
+  const s = 2;
+  const r = s*4/(2*Math.PI);
+  const geometry = new THREE.CylinderBufferGeometry(r, r, s, 10, 10, true, Math.PI*3/2+Math.PI/4, Math.PI/2)
+    .applyMatrix(new THREE.Matrix4().makeScale(1, 1, -1))
+    .applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, r));
 
   /* const img = new Image();
   const screen = screens[0];
@@ -6125,7 +6128,7 @@ function animate(time, frame) {
         if (menu && !lastMenu) {
           const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
           c.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-          localVector.add(localVector2.set(0, -0.5, -1 + 0.2/2).applyQuaternion(localQuaternion));
+          localVector.add(localVector2.set(0, -0.2, -1.3).applyQuaternion(localQuaternion));
 
           if (menuFactor < 0.5) {
             menuAnimation = _makeMenuAnimation({
@@ -6143,17 +6146,22 @@ function animate(time, frame) {
               },
             });
           } else {
+            // console.log('end position', screenMesh.position.clone().toArray().join(','));
             menuAnimation = _makeMenuAnimation({
               start: {
                 factor: menuFactor,
-                position: trayMesh.position.clone(),
-                quaternion: trayMesh.quaternion.clone(),
+                position: screenMesh.position.clone(),
+                quaternion: screenMesh.quaternion.clone(),
+                /* position: trayMesh.position.clone(),
+                quaternion: trayMesh.quaternion.clone(), */
                 scale: new THREE.Vector3(1, 1, 1),
               },
               end: {
                 factor: 0,
-                position: trayMesh.position.clone(),
-                quaternion: trayMesh.quaternion.clone(),
+                /* position: trayMesh.position.clone(),
+                quaternion: trayMesh.quaternion.clone(), */
+                position: screenMesh.position.clone(),
+                quaternion: screenMesh.quaternion.clone(),
                 scale: new THREE.Vector3(0.001, 0.001, 0.001),
               },
             });
@@ -6166,19 +6174,24 @@ function animate(time, frame) {
           const f = menuAnimation.getValue();
           menuFactor = start.factor + (end.factor - start.factor) * f;
 
-          trayMesh.quaternion.copy(start.quaternion).slerp(end.quaternion, f);
+          screenMesh.quaternion.copy(start.quaternion).slerp(end.quaternion, f);
+          screenMesh.position.copy(start.position).lerp(localVector.copy(end.position), f);
+          screenMesh.scale.copy(start.scale).lerp(end.scale, f);
+          screenMesh.updateMatrixWorld();
+          screenMesh.visible = true;
+          /* trayMesh.quaternion.copy(start.quaternion).slerp(end.quaternion, f);
           trayMesh.position.copy(start.position).lerp(localVector.copy(end.position), f);
           trayMesh.scale.copy(start.scale).lerp(end.scale, f);
           trayMesh.updateMatrixWorld();
-          trayMesh.visible = true;
-          for (let i = 0; i < trayMesh.appIconMeshes.children.length; i++) {
+          trayMesh.visible = true; */
+          /* for (let i = 0; i < trayMesh.appIconMeshes.children.length; i++) {
             const {moveMesh} = trayMesh.appIconMeshes.children[i];
             if (moveMesh) {
               moveMesh.scale.set(menuFactor, menuFactor, menuFactor);
               moveMesh.updateMatrixWorld();
               moveMesh.visible = true;
             }
-          }
+          } */
           skyboxMesh.material.uniforms.uAnimation.value = menuFactor;
           skyboxMesh.visible = true;
           floorMesh.material.uniforms.uAnimation.value = menuFactor;
@@ -6200,13 +6213,14 @@ function animate(time, frame) {
 
           if (f >= 1) {
             if (end.factor === 0) {
-              trayMesh.visible = false;
+              screenMesh.visible = false;
+              /* trayMesh.visible = false;
               for (let i = 0; i < trayMesh.appIconMeshes.children.length; i++) {
                 const {moveMesh} = trayMesh.appIconMeshes.children[i];
                 if (moveMesh) {
                   moveMesh.visible = false;
                 }
-              }
+              } */
               skyboxMesh.visible = false;
               floorMesh.visible = false;
               for (let i = 0; i < guardianMeshes.length; i++) {
