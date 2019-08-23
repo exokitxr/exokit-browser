@@ -806,11 +806,11 @@ const _makeElement = html => {
 };
 const _renderItems = items => {
   const el = _makeElement(`<ul>
-    ${items.map(item => {
+    ${items.map((item, index) => {
       const {type} = item;
       const coords = _getCoordsFromBindingUrl(item.bindingUrl);
       return `<li>
-        <a id=img><img src="skin.png"></a>
+        <a id=img-${index+1}><img src="skin.png"></a>
         <div class=tag>
           ${(() => {
             if (/^img\//.test(type)) {
@@ -830,14 +830,14 @@ const _renderItems = items => {
         </div>
         <div class=wrap>
           <h3>
-            <a class="a-content" href="${item.url}" id=name>${item.name}</a>
+            <a class="a-content" href="${item.url}" id=name-${index+1}>${item.name}</a>
             <div class=controls>
-              <a id=control-edit><i class="fal fa-pencil"></i></a>
-              <a id=control-move><i class="fal fa-crosshairs"></i></a>
-              <a id=control-delete><i class="fal fa-trash-alt"></i></a>
+              <a id=control-edit-${index+1}><i class="fal fa-pencil"></i></a>
+              <a id=control-move-${index+1}><i class="fal fa-crosshairs"></i></a>
+              <a id=control-delete-${index+1}><i class="fal fa-trash-alt"></i></a>
             </div>
           </h3>
-          <p><a id=owner><i class="fas fa-user"></i> ${item.addr.slice(0, 12)}</a> ${coords ? `<a class="a-binding" href="/?c=${coords.join(',')}" id=binding>at ${coords.join(',')}</a>` : `<a class="a-binding" id=binding><i class="fas fa-map-marker"></i> not bound</a>`}</p>
+          <p><a id=owner-${index+1}><i class="fas fa-user"></i> ${item.addr.slice(0, 12)}</a> ${coords ? `<a class="a-binding" href="/?c=${coords.join(',')}" id=binding-${index+1}>at ${coords.join(',')}</a>` : `<a class="a-binding" id=binding-${index+1}><i class="fas fa-map-marker"></i> not bound</a>`}</p>
         </div>
       </li>`;
     }).join('')}
@@ -4353,6 +4353,7 @@ const _makeScreenMesh = () => {
     16
   );
 
+  let items = [];
   let text = 'https://';
   const measures = [];
   let cursor = text.length;
@@ -4379,8 +4380,8 @@ const _makeScreenMesh = () => {
     const {anchors} = screenJson[screenIndex];
 
     if (screenIndex === 1) {
-      const imgAnchor = anchors.find(anchor => anchor.id === 'img');
-      const controlDeleteAnchor = anchors.find(anchor => anchor.id === 'control-delete');
+      const imgAnchor = anchors.find(anchor => anchor.id === 'img-1');
+      const controlDeleteAnchor = anchors.find(anchor => anchor.id === 'control-delete-1');
       const rect = {
         x: imgAnchor.left,
         y: imgAnchor.top - 50,
@@ -4389,9 +4390,9 @@ const _makeScreenMesh = () => {
       };
       const imageData = ctx.getImageData(rect.x, rect.y, rect.width, rect.height);
 
-      const nameAnchor = anchors.find(anchor => anchor.id === 'name');
-      const ownerAnchor = anchors.find(anchor => anchor.id === 'owner');
-      const bindingAnchor = anchors.find(anchor => anchor.id === 'binding');
+      const nameAnchor = anchors.find(anchor => anchor.id === 'name-1');
+      const ownerAnchor = anchors.find(anchor => anchor.id === 'owner-1');
+      const bindingAnchor = anchors.find(anchor => anchor.id === 'binding-1');
 
       ctx.fillStyle = 'white';
       ctx.fillRect(rect.x, rect.y, rect.width, rect.height*5);
@@ -4401,7 +4402,7 @@ const _makeScreenMesh = () => {
       } */
 
       const u = `${LAMBDA_URLS.tokens}/${encodeURIComponent(loginToken.addr)}`;
-      const items = await fetch(u)
+      items = await fetch(u)
         .then(res => res.json())
         .catch(err => {
           console.warn(err.stack);
@@ -4509,8 +4510,8 @@ const _makeScreenMesh = () => {
     keyboardFocus = null;
 
     const {id} = intersectionSpec;
-    const match = id.match(/^explore-tab-([0-9]+)$/);
-    if (match) {
+    let match;
+    if (match = id.match(/^explore-tab-([0-9]+)$/)) {
       screenIndex = parseInt(match[1], 10) - 1;
       _updateTexture();
     } else if (id === 'url-input') {
@@ -4526,6 +4527,10 @@ const _makeScreenMesh = () => {
         textMesh: mesh,
         caretMesh: mesh,
       };
+    } else if (match = id.match(/^control-move-([0-9]+)$/)) {
+      const itemIndex = parseInt(match[1], 10) - 1;
+      const item = items[itemIndex];
+      console.log('move item', item); // XXX
     } else {
       console.log('no match', {id});
     }
