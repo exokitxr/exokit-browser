@@ -540,7 +540,7 @@ var vox = {};
      */
     vox.MeshBuilder.prototype.build = function() {
         this.geometry = new THREE.Geometry();
-        this.material = new THREE.MeshPhongMaterial();
+        this.material = new THREE.MeshLambertMaterial();
 
         // 隣接ボクセル検索用ハッシュテーブル
         this.hashTable = createHashTable(this.voxelData.voxels);
