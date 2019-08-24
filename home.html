@@ -21,18 +21,20 @@ body {
   display: flex;
   top: 0;
   left: 0;
-  width: 50%;
+  width: 40%;
   flex-direction: column;
   z-index: 1;
 }
 .hero .page {
+  display: flex;
   position: relative;
   width: 100%;
   height: 100vh;
+  align-items: center;
 }
 .hero .wrap {
-  width: 410px;
-  margin: 100px;
+  width: 400px;
+  margin: 20px auto;
   font-family: 'Open Sans';
 }
 .hero .wrap h1 {
@@ -193,6 +195,29 @@ canvas {
           </div>
         </div>
       </div>
+      <div class=page>
+        <div class=wrap>
+          <h1>
+            <options>
+              <option>Upload</option>
+              <option>Download</option>
+              <option>Jack in to</option>
+            </options> the shared<br/>
+            <options>
+              <option>3D</option>
+              <option>VR</option>
+              <option>AR</option>
+            </options> web<br/>
+          </h1>
+          <p>
+            A multiplayer WebXR grid in your browser.<br/>
+            Drop in any 3D site. Support creators on the blockchain.
+          </p>
+          <div class=buttons>
+            <input type=button class=highlight value="Request Access"> <input type=button value="Learn more">
+          </div>
+        </div>
+      </div>
     </div>
     <canvas id=canvas></canvas>
     <script src="https://kit.fontawesome.com/0735724151.js"></script>
@@ -229,7 +254,7 @@ camera.position.set(-119.32842134594114, 57.23872267212144, -22.968761332644423)
 // const camera = new THREE.OrthographicCamera();
 // camera.position.set(-119.32842134594114, 57.23872267212144, -22.968761332644423);
 // camera.quaternion.set(-0.1248035130924295, -0.6969980023064662, -0.12517204166320742, 0.6949459172384909);
-camera.lookAt(new THREE.Vector3(0, 0, -25));
+camera.lookAt(new THREE.Vector3(0, 20, -25));
 // camera.lookAt(new THREE.Vector3());
 // camera.updateMatrixWorld();
 // camera.rotation.order = 'YXZ';
@@ -272,9 +297,12 @@ window.addEventListener('resize', () => {
 });
 const positions = [
   [camera.position.toArray(), camera.quaternion.toArray()],
-  [[20, 30, 20], [0, 0, 0, 1]],
-  [[-20, 15, 50], [0, 0, 0, 1]],
-  [[-40, 10, -40], [0, 0, 0, 1]],
+  [[-72, 15, -20], new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI*0.1, -Math.PI/2*0.75, 0, 'YXZ')).toArray()],
+  [[-40, 10, 5], new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI, 0, 'YXZ')).toArray()],
+  [[-35, 50, 0], new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI*0.2, Math.PI*1.5, 0, 'YXZ')).toArray()],
+  [[00, 200, 0], new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI/2, 0, -Math.PI/2, 'YXZ')).toArray()],
+  // [[0, 30, -35], new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI*0.15, -Math.PI/2, 0, 'YXZ')).toArray()],
+  // [[-20, 15, 50], [0, 0, 0, 1]],
 ];
 /* window.addEventListener('scroll', e => {
   const index = Math.floor(window.scrollY / window.innerHeight + 0.5);
@@ -315,7 +343,7 @@ const floorMesh = (() => {
       gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.);
       vPosition = position;
       // vScene = scene;
-      vDepth = gl_Position.z / 1000.0;
+      vDepth = gl_Position.z / 2000.0;
     }
   `;
   const floorFsh = `
