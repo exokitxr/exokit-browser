@@ -2,6 +2,9 @@
 <html>
   <head>
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,600,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,600,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,600,700&display=swap" rel="stylesheet">
     <style>
 * {
   box-sizing: border-box;
@@ -10,18 +13,95 @@ body {
   width: 100vw;
   height: 100vh;
   margin: 0;
-  font-family: 'Open Sans';
+  font-family: 'Raleway';
   font-size: 12px;
   overflow: hidden;
 }
+.hero {
+  position: absolute;
+  display: flex;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  // justify-content: center;
+  align-items: center;
+}
+.hero .wrap {
+  width: 410px;
+  margin: 100px;
+}
+.hero .wrap h1 {
+  font-family: 'Raleway';
+  font-size: 30px;
+  font-weight: 400;
+}
+.hero .wrap p {
+  font-family: 'Open Sans';
+  font-size: 16px;
+  line-height: 1.4;
+}
+.hero input[type=button] {
+  margin-right: 15px;
+  padding: 7px 15px;
+  background-color: #ef5350;
+  border: 0;
+  border-radius: 100px;
+  font-family: inherit;
+  color: #FFF;
+  cursor: pointer;
+  outline: none;
+}
+.hero input[type=button]:hover {
+  background-color: #d32f2f;
+}
+options {
+  display: inline-block;
+  padding: 3px 7px;
+  // background-color: #29b6f6;
+  // background-color: #000;
+  // color: #FFF;
+  border-bottom: 2px solid #000;
+  // background-color: #eceff1;
+  // border: 2px solid #000;
+}
+options option {
+  display: none;
+}
+options option:first-child {
+  display: inline;
+}
+options option {
 #canvas {
   width: 100vw;
   height: 100vh;
-  background-color: #000;
+  // background-color: #000;
 }
     </style>
   </head>
   <body>
+    <div class=hero>
+      <div class=wrap>
+        <h1>
+          <options>
+            <option>Upload</option>
+            <option>Download</option>
+            <option>Jack in to</option>
+          </options> the shared <options>
+            <option>3D</option>
+            <option>VR</option>
+            <option>AR</option>
+          </options> web<br/>
+        </h1>
+        <p>
+          A multiplayer WebXR grid in your browser.<br/>
+          Drop into any 3D site together. Support creators on the blockchain.
+        </p>
+        <div c:lass=buttons>
+          <input type=button value="Request Access"> <input type=button value="Learn more">
+        </div>
+      </div>
+    </div>
     <canvas id=canvas></canvas>
     <script src="https://kit.fontawesome.com/0735724151.js"></script>
     <script src="three.js"></script>
@@ -67,24 +147,25 @@ ssaoPass.maxDistance = 1;
 
 composer.addPass(ssaoPass);
 
-const ambientLight = new THREE.AmbientLight(0x808080);
+const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.5);
 scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
-directionalLight.position.set(-200, 100, -100);
-directionalLight.shadow.mapSize.width = 2048;  // default
-directionalLight.shadow.mapSize.height = 2048; // default
-directionalLight.shadow.camera.left = -100;    // default
-directionalLight.shadow.camera.right = 100;    // default
-directionalLight.shadow.camera.top = 100;    // default
-directionalLight.shadow.camera.bottom = -100;    // default
-directionalLight.shadow.camera.near = 100;    // default
-directionalLight.shadow.camera.far = 500;     // default
+const directionalLight = new THREE.DirectionalLight(0x808080, 1);
+directionalLight.position.set(100, 150, 100);
+directionalLight.shadow.mapSize.width = 1024;
+directionalLight.shadow.mapSize.height = 1024;
+directionalLight.shadow.camera = new THREE.PerspectiveCamera(90);
+/* directionalLight.shadow.camera.left = -100; 
+directionalLight.shadow.camera.right = 100;
+directionalLight.shadow.camera.top = 100;
+directionalLight.shadow.camera.bottom = -100;
+directionalLight.shadow.camera.near = 100;
+directionalLight.shadow.camera.far = 500; */
 directionalLight.castShadow = true;
 scene.add(directionalLight);
 
-// const cameraHelper = new THREE.CameraHelper( directionalLight.shadow.camera );
-// scene.add(cameraHelper);
+const cameraHelper = new THREE.CameraHelper(directionalLight.shadow.camera);
+scene.add(cameraHelper);
 
 function animate() {
   composer.render();
@@ -93,6 +174,66 @@ function animate() {
 renderer.setAnimationLoop(animate);
 
 new THREE.OrbitControls(camera, renderer.domElement);
+
+const floorMesh = (() => {
+  const geometry = new THREE.PlaneBufferGeometry(2000, 2000)
+    .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 1))))
+    // .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0, -0.5));
+  const floorVsh = `
+    uniform float uAnimation;
+    // attribute float scene;
+    varying vec3 vPosition;
+    // varying float vScene;
+    varying float vDepth;
+    void main() {
+      float radius = sqrt(position.x*position.x + position.z*position.z);
+      // vec3 p = vec3(position.x, position.y - (1.0 - uAnimation * radius), position.z);
+      vec3 p = vec3(position.x, position.y - (1.0 - uAnimation) * radius, position.z);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.);
+      vPosition = position;
+      // vScene = scene;
+      vDepth = gl_Position.z / 1000.0;
+    }
+  `;
+  const floorFsh = `
+    uniform float uAnimation;
+    // uniform sampler2D uTex;
+    varying vec3 vPosition;
+    // varying float vScene;
+    varying float vDepth;
+    void main() {
+      vec3 c;
+      float a;
+      c = vec3(0.8 + vDepth);
+      vec3 f = fract(vPosition / 64.0);
+      if (f.x <= 0.01 || f.x >= 0.99 || f.z <= 0.01 || f.z >= 0.99) {
+        discard;
+      } else {
+        a = uAnimation*0.5;
+      }
+      gl_FragColor = vec4(c, a);
+    }
+  `;
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      /* uTex: {
+        type: 't',
+        value: new THREE.Texture(),
+      }, */
+      uAnimation: {
+        type: 'f',
+        value: 1,
+      },
+    },
+    vertexShader: floorVsh,
+    fragmentShader: floorFsh,
+    transparent: true,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  return mesh;
+})();
+scene.add(floorMesh);
 
 console.log('parsing 2');
 const parser = new vox.Parser();
@@ -109,6 +250,7 @@ parser.parse('webaverse.vox').then(voxelData => {
   };
   const builder = new vox.MeshBuilder(voxelData, param);
   const mesh = builder.createMesh();
+  mesh.position.y = -2;
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   scene.add(mesh);
