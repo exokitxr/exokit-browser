@@ -13,7 +13,6 @@ body {
   width: 100vw;
   height: 100vh;
   margin: 0;
-  font-family: 'Raleway';
   font-size: 12px;
   overflow: hidden;
 }
@@ -30,29 +29,36 @@ body {
 .hero .wrap {
   width: 410px;
   margin: 100px;
+  font-family: 'Open Sans';
 }
 .hero .wrap h1 {
   font-family: 'Raleway';
-  font-size: 30px;
+  font-size: 36px;
   font-weight: 400;
 }
 .hero .wrap p {
-  font-family: 'Open Sans';
-  font-size: 16px;
+  font-size: 20px;
   line-height: 1.4;
 }
 .hero input[type=button] {
   margin-right: 15px;
   padding: 7px 15px;
-  background-color: #ef5350;
+  background-color: #666;
   border: 0;
   border-radius: 100px;
   font-family: inherit;
+  font-size: inherit;
   color: #FFF;
   cursor: pointer;
   outline: none;
 }
 .hero input[type=button]:hover {
+  background-color: #444;
+}
+.hero input[type=button].highlight {
+  background-color: #ef5350;
+}
+.hero input[type=button].highlight:hover {
   background-color: #d32f2f;
 }
 options {
@@ -87,7 +93,8 @@ options option {
             <option>Upload</option>
             <option>Download</option>
             <option>Jack in to</option>
-          </options> the shared <options>
+          </options> the shared<br/>
+          <options>
             <option>3D</option>
             <option>VR</option>
             <option>AR</option>
@@ -95,10 +102,10 @@ options option {
         </h1>
         <p>
           A multiplayer WebXR grid in your browser.<br/>
-          Drop into any 3D site together. Support creators on the blockchain.
+          Drop in any 3D site. Support creators on the blockchain.
         </p>
-        <div c:lass=buttons>
-          <input type=button value="Request Access"> <input type=button value="Learn more">
+        <div class=buttons>
+          <input type=button class=highlight value="Request Access"> <input type=button value="Learn more">
         </div>
       </div>
     </div>
@@ -132,10 +139,16 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 1, 500);
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 500);
+camera.position.set(-119.32842134594114, 57.23872267212144, -22.968761332644423);
 // const camera = new THREE.OrthographicCamera();
-camera.position.set(-80, 80, -80);
-camera.lookAt(new THREE.Vector3());
+// camera.position.set(-119.32842134594114, 57.23872267212144, -22.968761332644423);
+// camera.quaternion.set(-0.1248035130924295, -0.6969980023064662, -0.12517204166320742, 0.6949459172384909);
+camera.lookAt(new THREE.Vector3(0, 0, -25));
+// camera.lookAt(new THREE.Vector3());
+// camera.updateMatrixWorld();
+// camera.rotation.order = 'YXZ';
+// camera.rotation.y = Math.PI;
 
 const composer = new THREE.EffectComposer(renderer);
 composer.setSize(window.innerWidth, window.innerHeight);
@@ -164,8 +177,8 @@ directionalLight.shadow.camera.far = 500; */
 directionalLight.castShadow = true;
 scene.add(directionalLight);
 
-const cameraHelper = new THREE.CameraHelper(directionalLight.shadow.camera);
-scene.add(cameraHelper);
+// const cameraHelper = new THREE.CameraHelper(directionalLight.shadow.camera);
+// scene.add(cameraHelper);
 
 function animate() {
   composer.render();
@@ -173,7 +186,9 @@ function animate() {
 }
 renderer.setAnimationLoop(animate);
 
-new THREE.OrbitControls(camera, renderer.domElement);
+/* const orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+orbitControls.target.set(0, 0, -25);
+orbitControls.screenSpacePanning = true; */
 
 const floorMesh = (() => {
   const geometry = new THREE.PlaneBufferGeometry(2000, 2000)
@@ -251,6 +266,9 @@ parser.parse('webaverse.vox').then(voxelData => {
   const builder = new vox.MeshBuilder(voxelData, param);
   const mesh = builder.createMesh();
   mesh.position.y = -2;
+  /* mesh.position.z = -50;
+  mesh.rotation.order = 'YXZ';
+  mesh.rotation.y = Math.PI; */
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   scene.add(mesh);
