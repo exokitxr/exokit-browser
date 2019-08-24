@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+  <head>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap" rel="stylesheet">
+    <style>
+* {
+  box-sizing: border-box;
+}
+body {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  font-family: 'Open Sans';
+  font-size: 12px;
+  overflow: hidden;
+}
+#canvas {
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+}
+    </style>
+  </head>
+  <body>
+    <canvas id=canvas></canvas>
+    <script src="https://kit.fontawesome.com/0735724151.js"></script>
+    <script src="three.js"></script>
+    <script src="OrbitControls.js"></script>
+    <script src="TransformControls.js"></script>
+    <script src="BufferGeometryUtils.js"></script>
+    <script src="GLTFLoader.js"></script>
+    <script src="LegacyGLTFLoader.js"></script>
+    <script src="EffectComposer.js"></script>
+    <script src="CopyShader.js"></script>
+    <script src="SSAOShader.js"></script>
+    <script src="SimplexNoise.js"></script>
+    <script src="ShaderPass.js"></script>
+    <script src="SSAOPass.js"></script>
+    <script src="skin.js"></script>
+    <script src="vox.js"></script>
+    <script>
+console.log('parsing 1');
+const canvas = document.getElementById('canvas');
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  antialias: true,
+  alpha: true,
+});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 1, 500);
+// const camera = new THREE.OrthographicCamera();
+camera.position.set(-80, 80, -80);
+camera.lookAt(new THREE.Vector3());
+
+const composer = new THREE.EffectComposer(renderer);
+composer.setSize(window.innerWidth, window.innerHeight);
+const ssaoPass = new THREE.SSAOPass(scene, camera, window.innerWidth, window.innerHeight);
+ssaoPass.kernelRadius = 1;
+ssaoPass.kernelSize = 256;
+ssaoPass.minDistance = 0.001;
+ssaoPass.maxDistance = 1;
+
+composer.addPass(ssaoPass);
+
+const ambientLight = new THREE.AmbientLight(0x808080);
+scene.add(ambientLight);
+
+const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
+directionalLight.position.set(-200, 100, -100);
+directionalLight.shadow.mapSize.width = 2048;  // default
+directionalLight.shadow.mapSize.height = 2048; // default
+directionalLight.shadow.camera.left = -100;    // default
+directionalLight.shadow.camera.right = 100;    // default
+directionalLight.shadow.camera.top = 100;    // default
+directionalLight.shadow.camera.bottom = -100;    // default
+directionalLight.shadow.camera.near = 100;    // default
+directionalLight.shadow.camera.far = 500;     // default
+directionalLight.castShadow = true;
+scene.add(directionalLight);
+
+// const cameraHelper = new THREE.CameraHelper( directionalLight.shadow.camera );
+// scene.add(cameraHelper);
+
+function animate() {
+  composer.render();
+  // renderer.render(scene, camera);
+}
+renderer.setAnimationLoop(animate);
+
+new THREE.OrbitControls(camera, renderer.domElement);
+
+console.log('parsing 2');
+const parser = new vox.Parser();
+console.log('parsing 3');
+parser.parse('webaverse.vox').then(voxelData => {
+  console.log('got data', voxelData);
+
+  // voxelData.voxels; // voxel position and color data
+  // voxelData.size; // model size
+  // voxelData.palette; // palette data
+
+  const param = {
+    voxelSize: 1,
+  };
+  const builder = new vox.MeshBuilder(voxelData, param);
+  const mesh = builder.createMesh();
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  scene.add(mesh);
+});
+console.log('parsing 4');
+    </script>
+  </body>
+</html>
