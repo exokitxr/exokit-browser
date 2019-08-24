@@ -14,7 +14,7 @@ body {
   height: 100vh;
   margin: 0;
   font-size: 12px;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 .hero {
   position: absolute;
@@ -22,9 +22,13 @@ body {
   top: 0;
   left: 0;
   width: 50%;
-  height: 100%;
-  // justify-content: center;
-  align-items: center;
+  flex-direction: column;
+  z-index: 1;
+}
+.hero .page {
+  position: relative;
+  width: 100%;
+  height: 100vh;
 }
 .hero .wrap {
   width: 410px;
@@ -61,6 +65,11 @@ body {
 .hero input[type=button].highlight:hover {
   background-color: #d32f2f;
 }
+.hero .wrap .chevron {
+  width: 100%;
+  margin: 20px 45px;
+  font-size: 30px;
+}
 options {
   display: inline-block;
   padding: 3px 7px;
@@ -78,7 +87,11 @@ options option:first-child {
   display: inline;
 }
 options option {
-#canvas {
+}
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100vw;
   height: 100vh;
   // background-color: #000;
@@ -87,25 +100,97 @@ options option {
   </head>
   <body>
     <div class=hero>
-      <div class=wrap>
-        <h1>
-          <options>
-            <option>Upload</option>
-            <option>Download</option>
-            <option>Jack in to</option>
-          </options> the shared<br/>
-          <options>
-            <option>3D</option>
-            <option>VR</option>
-            <option>AR</option>
-          </options> web<br/>
-        </h1>
-        <p>
-          A multiplayer WebXR grid in your browser.<br/>
-          Drop in any 3D site. Support creators on the blockchain.
-        </p>
-        <div class=buttons>
-          <input type=button class=highlight value="Request Access"> <input type=button value="Learn more">
+      <div class=page>
+        <div class=wrap>
+          <h1>
+            <options>
+              <option>Upload</option>
+              <option>Download</option>
+              <option>Jack in to</option>
+            </options> the shared<br/>
+            <options>
+              <option>3D</option>
+              <option>VR</option>
+              <option>AR</option>
+            </options> web<br/>
+          </h1>
+          <p>
+            A multiplayer WebXR grid in your browser.<br/>
+            Drop in any 3D site. Support creators on the blockchain.
+          </p>
+          <div class=buttons>
+            <input type=button class=highlight value="Request Access"> <input type=button value="Learn more">
+          </div>
+          <div class=chevron><i class="fal fa-chevron-down"></i></div>
+        </div>
+      </div>
+      <div class=page>
+        <div class=wrap>
+          <h1>
+            <options>
+              <option>Upload</option>
+              <option>Download</option>
+              <option>Jack in to</option>
+            </options> the shared<br/>
+            <options>
+              <option>3D</option>
+              <option>VR</option>
+              <option>AR</option>
+            </options> web<br/>
+          </h1>
+          <p>
+            A multiplayer WebXR grid in your browser.<br/>
+            Drop in any 3D site. Support creators on the blockchain.
+          </p>
+          <div class=buttons>
+            <input type=button class=highlight value="Request Access"> <input type=button value="Learn more">
+          </div>
+        </div>
+      </div>
+      <div class=page>
+        <div class=wrap>
+          <h1>
+            <options>
+              <option>Upload</option>
+              <option>Download</option>
+              <option>Jack in to</option>
+            </options> the shared<br/>
+            <options>
+              <option>3D</option>
+              <option>VR</option>
+              <option>AR</option>
+            </options> web<br/>
+          </h1>
+          <p>
+            A multiplayer WebXR grid in your browser.<br/>
+            Drop in any 3D site. Support creators on the blockchain.
+          </p>
+          <div class=buttons>
+            <input type=button class=highlight value="Request Access"> <input type=button value="Learn more">
+          </div>
+        </div>
+      </div>
+      <div class=page>
+        <div class=wrap>
+          <h1>
+            <options>
+              <option>Upload</option>
+              <option>Download</option>
+              <option>Jack in to</option>
+            </options> the shared<br/>
+            <options>
+              <option>3D</option>
+              <option>VR</option>
+              <option>AR</option>
+            </options> web<br/>
+          </h1>
+          <p>
+            A multiplayer WebXR grid in your browser.<br/>
+            Drop in any 3D site. Support creators on the blockchain.
+          </p>
+          <div class=buttons>
+            <input type=button class=highlight value="Request Access"> <input type=button value="Learn more">
+          </div>
         </div>
       </div>
     </div>
@@ -180,7 +265,30 @@ scene.add(directionalLight);
 // const cameraHelper = new THREE.CameraHelper(directionalLight.shadow.camera);
 // scene.add(cameraHelper);
 
+window.addEventListener('resize', () => {
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  composer.setSize(window.innerWidth, window.innerHeight);
+});
+const positions = [
+  [camera.position.toArray(), camera.quaternion.toArray()],
+  [[20, 30, 20], [0, 0, 0, 1]],
+  [[-20, 15, 50], [0, 0, 0, 1]],
+  [[-40, 10, -40], [0, 0, 0, 1]],
+];
+/* window.addEventListener('scroll', e => {
+  const index = Math.floor(window.scrollY / window.innerHeight + 0.5);
+  const [position, quaternion] = positions[index];
+  camera.position.lerp(new THREE.Vector3().fromArray(position), 0.5);
+  camera.quaternion.slerp(new THREE.Quaternion().fromArray(quaternion), 0.5);
+}); */
+
 function animate() {
+  const index = Math.floor(window.scrollY / window.innerHeight + 0.5);
+  const [position, quaternion] = positions[index];
+  camera.position.lerp(new THREE.Vector3().fromArray(position), 0.5);
+  camera.quaternion.slerp(new THREE.Quaternion().fromArray(quaternion), 0.5);
+
   composer.render();
   // renderer.render(scene, camera);
 }
