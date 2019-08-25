@@ -349,7 +349,7 @@ const positions = [
   // [[-20, 15, 50], [0, 0, 0, 1]],
 ];
 const _getScrollIndex = () => Math.floor(window.scrollY / window.innerHeight + 0.5);
-window.addEventListener('scroll', e => {
+const _updateScroll = () => {
   const index = _getScrollIndex();
 
   const heroEl = document.querySelector('.hero');
@@ -357,7 +357,9 @@ window.addEventListener('scroll', e => {
     heroEl.classList.remove(`open-page-${i}`);
   }
   heroEl.classList.add(`open-page-${index+1}`);
-});
+};
+_updateScroll();
+window.addEventListener('scroll', _updateScroll);
 function animate() {
   const index = _getScrollIndex();
   const [position, quaternion] = positions[index];
