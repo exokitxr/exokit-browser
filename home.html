@@ -561,6 +561,16 @@ parser.parse('webaverse.vox').then(voxelData => {
   mesh.receiveShadow = true;
   scene.add(mesh);
 });
+
+{
+  const loader = new THREE.GLTFLoader();
+  loader.load('space.gltf', gltf => {
+    gltf = gltf.scene;
+    gltf.position.set(-46, 7, -23);
+    gltf.scale.set(0.1, 0.1, 0.1);
+    scene.add(gltf);
+  });
+}
 console.log('parsing 4');
     </script>
   </body>
