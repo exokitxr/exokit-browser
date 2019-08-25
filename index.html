@@ -427,7 +427,6 @@ iframe, audio {
   </head>
   <body>
     <header id=header>
-      <!-- <canvas class=logo id="logo-canvas"></canvas> -->
       <img class=icon src="icon.svg"/>
       <a class="nav" id="explore-dropdown">Explore</a>
       <a class="nav">Download</a>
@@ -439,20 +438,6 @@ iframe, audio {
         </form>
         <nav class="button highlight" id="login-button">Login</nav>
         <nav class="button highlight" id="logout-button">Log out</nav>
-        <!-- <nav class="button highlight" id="subscribe-button">Subscribe</nav> -->
-        <!-- <nav class="multibutton">
-          <a href="#sp" class="button">Singleplayer</a>
-          <a href="#mp" class="button">Multiplayer</a>
-          <a href="#map" class="button">Map</a>
-        </nav> -->
-        <div class="popup" id="popup">
-          <a class="close" id="close-button">x</a>
-          <h1>
-            <strong>A metaverse on the Web</strong>
-            Deploy &amp; Monetize WebXR apps
-          </h1>
-          <p>Run VR/AR web sites on the blockchain Grid.</br>Subscribe to claim land and get paid with standard APIs.</p>
-        </div>
       </div>
       <div class="popdown" id="login-popdown">
         <form class="phase-1" id="login-form">
@@ -466,38 +451,6 @@ iframe, audio {
           </div>
         </form>
       </div>
-      <!-- <div class="popdown" id="subscribe-popdown">
-        <div class="plans">
-          <nav class="plan" id="plan-1">
-            <i class="fal fa-hiking"></i>
-            <div class=wrap>
-              <h3>$20</h3>
-              <strong>Enthusiast</strong>
-              <p>2 Parcel credits</p>
-              <p>0.001 Trickle</p>
-            </div>
-          </nav>
-          <nav class="plan selected" id="plan-2">
-            <i class="fal fa-biking-mountain"></i>
-            <div class=wrap>
-              <h3>$25</h3>
-              <strong>Developer</strong>
-              <p>5 Parcel credits</p>
-              <p>0.0012 Trickle</p>
-            </div>
-          </nav>
-          <nav class="plan" id="plan-3">
-            <i class="fal fa-user-astronaut"></i>
-            <div class=wrap>
-              <h3>$50</h3>
-              <strong>Professional</strong>
-              <p>11 Parcel credits</p>
-              <p>0.0013 Trickle</p>
-            </div>
-          </nav>
-        </div>
-        <nav class="button alt">Purchase</nav>
-      </div> -->
       <div class="popdown" id=explore-popdown>
         <div class=tabs>
           <a class="tab selected" id=explore-tab-1>
@@ -963,10 +916,10 @@ window.getTabAnchors = () => { // XXX
 };
 
 const popup = document.getElementById('popup');
-const closeButton = document.getElementById('close-button');
+/* const closeButton = document.getElementById('close-button');
 closeButton.onclick = () => {
   popup.style.display = 'none';
-};
+}; */
 const exploreDropdown = document.getElementById('explore-dropdown');
 const explorePopdown = document.getElementById('explore-popdown');
 exploreDropdown.onclick = () => {
@@ -2819,7 +2772,7 @@ const _makeMoveMesh = (() => {
     new THREE.BoxBufferGeometry(0.2, 0.03, 0.03),
     new THREE.BoxBufferGeometry(0.03, 0.1, 0.03).applyMatrix(new THREE.Matrix4().makeTranslation(0, 0.1/2, 0)),
     new THREE.BoxBufferGeometry(0.03, 0.03, 0.1).applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, -0.1/2)),
-  ])
+  ]);
   const _makeVolumeMesh = () => {
     const material = new THREE.MeshBasicMaterial({
       color: new THREE.Color(0x333333),
