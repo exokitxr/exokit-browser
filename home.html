@@ -1,0 +1,577 @@
+<!doctype html>
+<html>
+  <head>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,600,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,600,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,600,700&display=swap" rel="stylesheet">
+    <style>
+* {
+  box-sizing: border-box;
+}
+body {
+  width: 100vw;
+  margin: 0;
+  font-size: 12px;
+  overflow-x: hidden;
+}
+header {
+  position: fixed;
+  display: flex;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  background-color: #000;
+  font-family: 'Open Sans';
+  align-items: center;
+  z-index: 2;
+}
+header .icon {
+  height: 40px;
+  margin: 0 10px;
+}
+header .nav {
+  display: flex;
+  height: 100%;
+  padding: 0 10px;
+  justify-content: center;
+  align-items: center;
+  border-top: 3px solid transparent;
+  border-bottom: 3px solid transparent;
+  color: #FFF;
+  font-size: 14px;
+  text-decoration: none;
+}
+header .nav:hover, header .nav.open {
+  border-bottom-color: #ef5350;
+}
+header .nav i {
+  display: inline-block;
+  padding: 0 7px;
+  padding-top: 2px;
+}
+header .enter-button {
+  display: flex;
+  height: 100%;
+  margin-left: auto;
+  padding: 0 20px;
+  justify-content: center;
+  align-items: center;
+  background-color: #ef5350;
+  color: #FFF;
+  font-size: 14px;
+  text-decoration: none;
+}
+header .enter-button:hover {
+  background-color: #d32f2f;
+}
+header .enter-button i {
+  padding-left: 10px;
+  font-size: 12px;
+}
+header > .wrap {
+  display: flex;
+  margin-left: auto;
+}
+.hero-placeholder {
+  width: 100%;
+  height: 500vh;
+}
+.hero {
+  position: fixed;
+  display: flex;
+  top: 0;
+  left: 0;
+  width: 40%;
+  flex-direction: column;
+  z-index: 1;
+  transition: all 0.3s cubic-bezier(0, 1, 0, 1);
+}
+.hero.open-page-1 {
+  top: 0;
+}
+.hero.open-page-2 {
+  top: -100vh;
+}
+.hero.open-page-3 {
+  top: -200vh;
+}
+.hero.open-page-4 {
+  top: -300vh;
+}
+.hero.open-page-5 {
+  top: -400vh;
+}
+.hero .page {
+  display: flex;
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  align-items: center;
+}
+.hero .page-2, .hero .page-3, .hero .page-4, .hero .page-5 {
+  width: 80%;
+  background-color: #000;
+  color: #FFF;
+}
+.hero .page.open {
+
+}
+.hero .wrap {
+  width: 400px;
+  margin: 20px auto;
+  font-family: 'Open Sans';
+}
+.hero .wrap h1 {
+  font-family: 'Raleway';
+  font-size: 36px;
+  font-weight: 400;
+}
+.hero .wrap p {
+  font-size: 20px;
+  line-height: 1.4;
+}
+.hero input[type=button] {
+  margin-right: 15px;
+  padding: 7px 15px;
+  background-color: #666;
+  border: 0;
+  border-radius: 100px;
+  font-family: inherit;
+  font-size: inherit;
+  color: #FFF;
+  cursor: pointer;
+  outline: none;
+}
+.hero input[type=button]:hover {
+  background-color: #444;
+}
+.hero input[type=button].highlight {
+  background-color: #ef5350;
+}
+.hero input[type=button].highlight:hover {
+  background-color: #d32f2f;
+}
+.hero .wrap .chevron {
+  width: 100%;
+  margin: 20px 45px;
+  font-size: 30px;
+}
+options {
+  display: inline-block;
+  padding: 3px 7px;
+  // background-color: #29b6f6;
+  // background-color: #000;
+  // color: #FFF;
+  border-bottom: 2px solid #000;
+  // background-color: #eceff1;
+  // border: 2px solid #000;
+}
+options option {
+  display: none;
+}
+options option:first-child {
+  display: inline;
+}
+options option {
+}
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  // background-color: #000;
+}
+    </style>
+  </head>
+  <body>
+    <header id=header>
+      <img class=icon src="icon.svg"/>
+      <a class="nav" id="explore-dropdown">Explore</a>
+      <a class="nav">Download</a>
+      <a class="nav" id="developers-dropdown">Developers<i class="fal fa-chevron-down"></i></a>
+      <a class=enter-button href="#">Get started <i class="fal fa-arrow-right"></i></a>
+    </header>
+    <div class=hero-placeholder></div>
+    <div class=hero>
+      <div class="page page-1">
+        <div class=wrap>
+          <h1>
+            <options>
+              <option>Today, </option>
+            </options><br/>
+            <options>
+              <option>more than ever, </option>
+            </options>it takes a lot of work just to find your core group of fans<br/>
+          </h1>
+          <p>
+            The grid enables you to make an income  <br/>
+            directly from connecting with fans.
+          </p>
+          <div class=buttons>
+            <input type=button class=highlight value="Get started"> <input type=button value="Learn more">
+          </div>
+          <div class=chevron><i class="fal fa-chevron-down"></i></div>
+        </div>
+      </div>
+      <div class="page page-2">
+        <div class=wrap>
+          <h1>
+             Easy as drag and drop<br/>
+          </h1>
+          <p>
+             Simply drop your creations onto the grid to share your work, <br/>
+             all at the low cost of <b>free</b>.
+          </p>
+        </div>
+      </div>
+      <div class="page page-3">
+        <div class=wrap>
+          <h1>
+            Supporters pay <i>you</i> money<br/>
+          </h1>
+          <p>
+            Your supporters, instead of literally throwing money at the screen, <br/>
+            send you money for creating stuff they love.
+          </p>
+        </div>
+      </div>
+      <div class="page page-4">
+        <div class=wrap>
+          <h1>
+            Money directly into <i>your</i> wallet<br/>
+          </h1>
+          <p>
+            Money from supporters go directly to you, <br/>
+            and you get paid for creating the things you've already been creating.
+          </p>
+        </div>
+      </div>
+      <div class="page page-5">
+        <div class=wrap>
+          <h1>
+            Join the creators using Webaverse<br/>
+          </h1>
+          <div class=buttons>
+            <input type=button class=highlight value="Get started"> <input type=button value="Learn more">
+          </div>
+        </div>
+      </div>
+    </div>
+    <canvas id=canvas></canvas>
+    <script src="https://kit.fontawesome.com/0735724151.js"></script>
+    <script src="three.js"></script>
+    <script src="OrbitControls.js"></script>
+    <script src="TransformControls.js"></script>
+    <script src="BufferGeometryUtils.js"></script>
+    <script src="GLTFLoader.js"></script>
+    <script src="LegacyGLTFLoader.js"></script>
+    <script src="EffectComposer.js"></script>
+    <script src="CopyShader.js"></script>
+    <script src="SSAOShader.js"></script>
+    <script src="SimplexNoise.js"></script>
+    <script src="ShaderPass.js"></script>
+    <script src="SSAOPass.js"></script>
+    <script src="skin.js"></script>
+    <script src="vox.js"></script>
+    <script>
+console.log('parsing 1');
+const canvas = document.getElementById('canvas');
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  antialias: true,
+  alpha: true,
+});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 400);
+camera.position.set(-119.32842134594114, 57.23872267212144, -22.968761332644423);
+// const camera = new THREE.OrthographicCamera();
+// camera.position.set(-119.32842134594114, 57.23872267212144, -22.968761332644423);
+// camera.quaternion.set(-0.1248035130924295, -0.6969980023064662, -0.12517204166320742, 0.6949459172384909);
+camera.lookAt(new THREE.Vector3(0, 20, -25));
+// camera.lookAt(new THREE.Vector3());
+// camera.updateMatrixWorld();
+// camera.rotation.order = 'YXZ';
+// camera.rotation.y = Math.PI;
+
+const composer = new THREE.EffectComposer(renderer);
+composer.setSize(window.innerWidth, window.innerHeight);
+const ssaoPass = new THREE.SSAOPass(scene, camera, window.innerWidth, window.innerHeight);
+ssaoPass.kernelRadius = 1;
+ssaoPass.kernelSize = 256;
+ssaoPass.minDistance = 0.001;
+ssaoPass.maxDistance = 1;
+
+composer.addPass(ssaoPass);
+
+const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.5);
+scene.add(ambientLight);
+
+const directionalLight = new THREE.DirectionalLight(0x808080, 1);
+directionalLight.position.set(100, 150, 100);
+directionalLight.shadow.mapSize.width = 1024;
+directionalLight.shadow.mapSize.height = 1024;
+directionalLight.shadow.camera = new THREE.PerspectiveCamera(90);
+/* directionalLight.shadow.camera.left = -100;
+directionalLight.shadow.camera.right = 100;
+directionalLight.shadow.camera.top = 100;
+directionalLight.shadow.camera.bottom = -100;
+directionalLight.shadow.camera.near = 100;
+directionalLight.shadow.camera.far = 500; */
+directionalLight.castShadow = true;
+scene.add(directionalLight);
+
+// const cameraHelper = new THREE.CameraHelper(directionalLight.shadow.camera);
+// scene.add(cameraHelper);
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  composer.setSize(window.innerWidth, window.innerHeight);
+});
+const positions = [
+  [camera.position.toArray(), camera.quaternion.toArray()],
+  [[-72, 15, -20], new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI*0.1, -Math.PI/2*0.75, 0, 'YXZ')).toArray()],
+  [[-30, 10, 5], new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI, 0, 'YXZ')).toArray()],
+  [[-35, 50, -10], new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI*0.2, Math.PI*1.5, 0, 'YXZ')).toArray()],
+  [[00, 250, 0], new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI/2, 0, -Math.PI/2, 'YXZ')).toArray()],
+  // [[0, 30, -35], new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI*0.15, -Math.PI/2, 0, 'YXZ')).toArray()],
+  // [[-20, 15, 50], [0, 0, 0, 1]],
+];
+const _getScrollIndex = () => Math.floor(window.scrollY / window.innerHeight + 0.5);
+const _updateScroll = () => {
+  const index = _getScrollIndex();
+
+  const heroEl = document.querySelector('.hero');
+  for (let i = 1; i <= 5; i++) {
+    heroEl.classList.remove(`open-page-${i}`);
+  }
+  heroEl.classList.add(`open-page-${index+1}`);
+};
+_updateScroll();
+window.addEventListener('scroll', _updateScroll);
+function animate() {
+  const index = _getScrollIndex();
+  const [position, quaternion] = positions[index];
+  camera.position.lerp(new THREE.Vector3().fromArray(position), 0.2);
+  camera.quaternion.slerp(new THREE.Quaternion().fromArray(quaternion), 0.2);
+
+  composer.render();
+  // renderer.render(scene, camera);
+}
+renderer.setAnimationLoop(animate);
+
+/* const orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+orbitControls.target.set(0, 0, -25);
+orbitControls.screenSpacePanning = true; */
+
+const floorMesh = (() => {
+  const geometry = new THREE.PlaneBufferGeometry(2000, 2000)
+    .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 1))))
+    // .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0, -0.5));
+  const floorVsh = `
+    uniform float uAnimation;
+    // attribute float scene;
+    varying vec3 vPosition;
+    // varying float vScene;
+    varying float vDepth;
+    void main() {
+      float radius = sqrt(position.x*position.x + position.z*position.z);
+      // vec3 p = vec3(position.x, position.y - (1.0 - uAnimation * radius), position.z);
+      vec3 p = vec3(position.x, position.y - (1.0 - uAnimation) * radius, position.z);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.);
+      vPosition = position;
+      // vScene = scene;
+      vDepth = gl_Position.z / 2000.0;
+    }
+  `;
+  const floorFsh = `
+    uniform float uAnimation;
+    // uniform sampler2D uTex;
+    varying vec3 vPosition;
+    // varying float vScene;
+    varying float vDepth;
+    void main() {
+      vec3 c;
+      float a;
+      c = vec3(0.8 + vDepth);
+      vec3 f = fract(vPosition / 64.0);
+      if (f.x <= 0.01 || f.x >= 0.99 || f.z <= 0.01 || f.z >= 0.99) {
+        discard;
+      } else {
+        a = uAnimation*0.5;
+      }
+      gl_FragColor = vec4(c, a);
+    }
+  `;
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      uAnimation: {
+        type: 'f',
+        value: 1,
+      },
+    },
+    vertexShader: floorVsh,
+    fragmentShader: floorFsh,
+    transparent: true,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  return mesh;
+})();
+scene.add(floorMesh);
+
+const _makeMoveMesh = () => {
+  const edgeGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
+    new THREE.BoxBufferGeometry(0.03, 0.2, 0.03)
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0, -0.1, 0)),
+    new THREE.BoxBufferGeometry(0.03, 0.2, 0.03)
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 1))))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, 0.1)),
+    new THREE.BoxBufferGeometry(0.03, 0.2, 0.03)
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(1, 0, 0))))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0.1, 0, 0)),
+  ]);
+  const portalTargetGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
+    edgeGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0.5, 0)),
+    edgeGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, -1, 0))))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, -0.5, 0)),
+    edgeGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, 0.5, 1)),
+    edgeGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0.5, 0)),
+    edgeGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))))
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0.5, 1)),
+    edgeGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))))
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0, -1, 0))))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(-0.5, -0.5, 1)),
+    edgeGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))))
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, -1, 0))))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0)),
+    edgeGeometry.clone()
+      .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(-1, 1, 0).normalize(), new THREE.Vector3(1, -1, 0).normalize())))
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.5, 1)),
+  ]);
+  const volumeTargetGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
+    portalTargetGeometry
+      .clone()
+      .applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, -0.5)),
+    new THREE.BoxBufferGeometry(0.2, 0.03, 0.03),
+    new THREE.BoxBufferGeometry(0.03, 0.1, 0.03).applyMatrix(new THREE.Matrix4().makeTranslation(0, 0.1/2, 0)),
+    new THREE.BoxBufferGeometry(0.03, 0.03, 0.1).applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, -0.1/2)),
+  ]);
+
+  const material = new THREE.MeshBasicMaterial({
+    color: new THREE.Color(0x333333),
+  });
+  const mesh = new THREE.Mesh(volumeTargetGeometry, material);
+  mesh.frustumCulled = false;
+  return mesh;
+};
+const moveMesh = _makeMoveMesh();
+moveMesh.position.set(-46, 7, -23);
+moveMesh.scale.set(10, 10, 10);
+scene.add(moveMesh);
+
+const _makeScreenMesh = () => {
+  const s = 2;
+  const r = s*4/(2*Math.PI);
+  const geometry = new THREE.CylinderBufferGeometry(r, r, s, 10, 10, true, Math.PI*3/2+Math.PI/4, Math.PI/2)
+    .applyMatrix(new THREE.Matrix4().makeScale(1, 1, -1))
+    .applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, r));
+
+  const img = new Image();
+  img.onload = () => {
+    texture.needsUpdate = true;
+  };
+  img.onerror = err => {
+    console.warn(err.stack);
+  };
+  img.src = 'google.png';
+
+  const texture = new THREE.Texture(
+    img,
+    THREE.UVMapping,
+    THREE.RepeatWrapping,
+    THREE.RepeatWrapping,
+    THREE.NearestFilter,
+    THREE.NearestFilter,
+    /* THREE.LinearFilter,
+    THREE.LinearFilter, */
+    THREE.RGBAFormat,
+    THREE.UnsignedByteType,
+    16
+  );
+
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    // color: 0xFF0000,
+    side: THREE.DoubleSide,
+    // flatShading: true,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  return mesh;
+};
+const screenMesh = _makeScreenMesh();
+screenMesh.position.set(-30, 12, -24);
+screenMesh.scale.set(10, 10, 10);
+screenMesh.rotation.order = 'YXZ';
+screenMesh.rotation.y = -Math.PI/2;
+scene.add(screenMesh);
+
+console.log('parsing 2');
+const parser = new vox.Parser();
+console.log('parsing 3');
+parser.parse('webaverse.vox').then(voxelData => {
+  console.log('got data', voxelData);
+
+  // voxelData.voxels; // voxel position and color data
+  // voxelData.size; // model size
+  // voxelData.palette; // palette data
+
+  const param = {
+    voxelSize: 1,
+  };
+  const builder = new vox.MeshBuilder(voxelData, param);
+  const mesh = builder.createMesh();
+  mesh.position.y = -2;
+  /* mesh.position.z = -50;
+  mesh.rotation.order = 'YXZ';
+  mesh.rotation.y = Math.PI; */
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  scene.add(mesh);
+});
+
+{
+  const loader = new THREE.GLTFLoader();
+  loader.load('space.gltf', gltf => {
+    gltf = gltf.scene;
+    gltf.position.set(-46, 7, -23);
+    gltf.scale.set(0.1, 0.1, 0.1);
+    scene.add(gltf);
+  });
+}
+console.log('parsing 4');
+    </script>
+  </body>
+</html>
