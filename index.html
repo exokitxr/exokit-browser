@@ -475,19 +475,440 @@ iframe, audio {
         </ul>
       </div>
     </header>
-    <!-- <canvas id="canvas"></canvas> -->
     <script src="https://kit.fontawesome.com/0735724151.js"></script>
-    <script src="keycode.js"></script>
     <script src="fetch-proxy.js"></script>
     <script src="parse5.js"></script>
     <script src="file-type.js"></script>
     <script type=module>
 import exokit from './exokit-web/src/index.js';
 
-{
+const LAMBDA_URLS = {
+  login: `https://login.webaverse.com/`,
+  token: `https://token.webaverse.com/token`,
+  tokens: `https://token.webaverse.com/tokens`,
+  coords: `https://token.webaverse.com/coords`,
+  presence: `wss://presence.webaverse.com/`,
+};
+
+function parseQuery(s) {
+  var query = {};
+  var pairs = (s[0] === '?' ? s.substr(1) : s).split('&');
+  for (var i = 0; i < pairs.length; i++) {
+    var pair = pairs[i].split('=');
+    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+  }
+  return query;
+}
+function _randomString() {
+  return Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
+}
+
+const header = document.getElementById('header');
+const mode = (() => {
+  switch (window.location.hash) {
+    case '#sp': return 'sp';
+    case '#mp': return 'mp';
+    case '#map': return 'map';
+    default: return null;
+  }
+})();
+
+const loginButton = document.getElementById('login-button');
+const loginPopdown = document.getElementById('login-popdown');
+const loginForm = document.getElementById('login-form');
+const loginEmail = document.getElementById('login-email');
+const loginVerificationCode = document.getElementById('login-verification-code');
+const logoutButton = document.getElementById('logout-button');
+loginButton.onclick = () => {
+  loginPopdown.classList.toggle('open');
+};
+logoutButton.onclick = () => {
+  localStorage.removeItem('loginToken');
+
+  header.classList.remove('logged-in');
+};
+loginForm.onsubmit = e => {
+  e.preventDefault();
+
+  if (loginForm.classList.contains('phase-1')) {
+    console.log('login 1', loginEmail.value);
+
+    loginForm.classList.remove('phase-1');
+
+    fetch(LAMBDA_URLS.login + `?email=${encodeURIComponent(loginEmail.value)}`, {
+      method: 'POST',
+    })
+      .then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          console.log('login 2', loginEmail.value);
+
+          loginForm.classList.add('phase-2');
+
+          return res.blob();
+        } else {
+          throw new Error(`invalid status code: ${res.status}`);
+        }
+      })
+      .catch(err => {
+        console.warn(err);
+      });
+  } else if (loginForm.classList.contains('phase-2')) {
+    console.log('login 3', loginVerificationCode.value);
+
+    fetch(LAMBDA_URLS.login + `?email=${loginEmail.value}&code=${encodeURIComponent(loginVerificationCode.value)}`, {
+      method: 'POST',
+    })
+      .then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          return res.json();
+        } else {
+          throw new Error(`invalid status code: ${res.status}`);
+        }
+      })
+      .then(newLoginToken => {
+        console.log('login 4', newLoginToken);
+
+        loginToken = newLoginToken;
+        localStorage.setItem('loginToken', JSON.stringify(newLoginToken));
+
+        header.classList.add('logged-in');
+        loginPopdown.classList.remove('open');
+      })
+      .catch(err => {
+        console.warn(err);
+      });
+  }
+};
+let loginToken;
+(() => {
+  loginToken = localStorage.getItem('loginToken');
+  if (loginToken) {
+    loginToken = JSON.parse(loginToken);
+
+    console.log('login token 1');
+
+    fetch(LAMBDA_URLS.login + `?email=${encodeURIComponent(loginToken.email)}&token=${encodeURIComponent(loginToken.token)}`, {
+      method: 'POST',
+    })
+      .then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          return res.json();
+        } else {
+          throw new Error(`invalid status code: ${res.status}`);
+        }
+      })
+      .then(() => {
+        console.log('login token 2');
+
+        header.classList.add('logged-in');
+      })
+      .catch(err => {
+        console.warn(err);
+
+        loginToken = undefined;
+        localStorage.removeItem('loginToken');
+      });
+  }
+})();
+
+/* const urlForm = document.getElementById('url-form');
+const urlInput = document.getElementById('url-input');
+urlForm.addEventListener('submit', e => {
+  e.preventDefault();
+
+  const u = `${LAMBDA_URLS.token}?email=${encodeURIComponent(loginToken.email)}&token=${encodeURIComponent(loginToken.token)}&url=${encodeURIComponent(urlInput.value)}`;
+  console.log('open url', u);
+  fetch(u, {
+    method: 'POST',
+  })
+    .then(res => {
+      if (res.status >= 200 && res.status < 300) {
+        return res.json();
+      } else {
+        throw new Error(`invalid status code: ${res.status}`);
+      }
+    })
+    .then(j => {
+      const tokenId = j && j.tokenId;
+      const name = j && j.name;
+      const url = j && j.url;
+      console.log('got token', {tokenId, name, url});
+    })
+    .catch(err => {
+      console.warn(err);
+    });
+}); */
+
+let currentExploreTab = 1;
+for (let i = 1; i <= 4; i++) {
+  const exploreTab = document.getElementById(`explore-tab-${i}`);
+  exploreTab.onclick = () => {
+    currentExploreTab = i;
+    _updateTabs();
+
+    for (let i = 1; i <= 4; i++) {
+      const exploreTab = document.getElementById(`explore-tab-${i}`);
+      exploreTab.classList.remove('selected');
+    }
+    exploreTab.classList.add('selected');
+  };
+}
+const exploreLabel = document.getElementById('explore-label');
+const exploreContent = document.getElementById('explore-content');
+const _getCoordsFromBindingUrl = bindingUrl => {
+  const match = bindingUrl.match(/^\/\?c=(-?[0-9\.]+),(-?[0-9\.]+)$/);
+  if (match) {
+    const x = parseFloat(match[1]);
+    const z = parseFloat(match[2]);
+    if (isFinite(x) && isFinite(z)) {
+      return [x, z];
+    } else {
+      return null;
+    }
+  } else {
+    return null;
+  }
+};
+const _makeElement = html => {
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  return div.children[0];
+};
+const _getAppType = mimeType => {
+  if (/^img\//.test(mimeType)) {
+    return 'image';
+  } else if (/^audio\//.test(mimeType)) {
+    return 'audio';
+  } else if (/^video\//.test(mimeType)) {
+    return 'video';
+  } else if (/^model\//.test(mimeType)) {
+    return 'model';
+  } else if (/^text\/html\+webgl$/.test(mimeType)) {
+    return 'webgl';
+  } else if (/^text\/html$/.test(mimeType)) {
+    return 'html';
+  } else {
+    return null;
+  }
+};
+const _renderItems = items => {
+  const el = _makeElement(`<ul>
+    ${items.map((item, index) => {
+      const {type} = item;
+      const coords = _getCoordsFromBindingUrl(item.bindingUrl);
+      return `<li>
+        
+        <a id=img-${index+1}><img src="skin.png"></a>
+        <div class=tag>
+        ${(() => {
+            switch (_getAppType(item.type)) {
+              case 'image': return `<i class="fal fa-image"></i>`;
+              case 'audio': return `<i class="fal fa-volume-up"></i>`;
+              case 'video': return `<i class="fal fa-film"></i>`;
+              case 'model': return `<i class="fal fa-dice-d4"></i>`;
+              case 'webgl': return `<i class="fal fa-gamepad"></i>`;
+              case 'html':
+              default: return `<i class="fal fa-link"></i>`;
+            }
+          })()}
+        </div>
+        <div class=wrap>
+          <h3>
+            <a class="a-content" href="${item.url}" id=name-${index+1}>${item.name}</a>
+            <div class=controls>
+              <a id=control-edit-${index+1}><i class="fal fa-pencil"></i></a>
+              <a id=control-move-${index+1}><i class="fal fa-crosshairs"></i></a>
+              <a id=control-delete-${index+1}><i class="fal fa-trash-alt"></i></a>
+            </div>
+          </h3>
+          <p><a id=owner-${index+1}><i class="fas fa-user"></i> ${item.addr.slice(0, 12)}</a> ${coords ? `<a class="a-binding" href="/?c=${coords.join(',')}" id=binding-${index+1}>at ${coords.join(',')}</a>` : `<a class="a-binding" id=binding-${index+1}><i class="fas fa-map-marker"></i> not bound</a>`}</p>
+        </div>
+      </li>`;
+    }).join('')}
+  </ul>`);
+  const aBindings = el.querySelectorAll('.a-binding');
+  for (let i = 0; i < aBindings.length; i++) {
+    const a = aBindings[i];
+    a.onclick = e => {
+      e.preventDefault();
+
+      history.pushState({}, a.href, a.href);
+      _updateCoord();
+    };
+  }
+  return el;
+};
+const _renderGamers = gamers => {
+  const el = _makeElement(`<ul>
+    ${gamers.map(gamer => {
+      const {coords} = gamer;
+      return `<li>
+        <a id=img><img src="skin.png"></a>
+        <div class=wrap>
+          <h3>
+            <a class="a-content" href="${gamer.name}" id=name>${gamer.name}</a>
+          </h3>
+          <p><a class="a-binding" href="/?c=${coords.join(',')}" id=coord><i class="fas fa-map-marker"></i> at ${coords.join(',')}</a></p>
+        </div>
+      </li>`;
+    }).join('')}
+  </ul>`);
+  const aBindings = el.querySelectorAll('.a-binding');
+  for (let i = 0; i < aBindings.length; i++) {
+    const a = aBindings[i];
+    a.onclick = e => {
+      e.preventDefault();
+
+      history.pushState({}, a.href, a.href);
+      _updateCoord();
+    };
+  }
+  return el;
+};
+const _updateTabs = async () => {
+  if (currentExploreTab === 1) {
+    const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
+    const coords = [Math.floor((c.position.x + PARCEL_SIZE/2)/PARCEL_SIZE), Math.floor((c.position.z + PARCEL_SIZE/2)/PARCEL_SIZE)];
+    const u = `${LAMBDA_URLS.coords}/${coords[0]}/${coords[1]}`;
+
+    explorePopdown.classList.add('loading');
+
+    const items = await fetch(u)
+      .then(res => res.json())
+      .catch(err => {
+        console.warn(err.stack);
+      });
+
+    exploreLabel.innerText = 'Nearby';
+    exploreContent.innerHTML = '';
+    exploreContent.appendChild(_renderItems(items));
+    explorePopdown.classList.remove('loading');
+  } else if (currentExploreTab === 2) {
+    const u = `${LAMBDA_URLS.tokens}/${encodeURIComponent(loginToken.addr)}`;
+
+    explorePopdown.classList.add('loading');
+
+    const items = await fetch(u)
+      .then(res => res.json())
+      .catch(err => {
+        console.warn(err.stack);
+      });
+
+    exploreLabel.innerText = 'Inventory';
+    exploreContent.innerHTML = '';
+    exploreContent.appendChild(_renderItems(items));
+    explorePopdown.classList.remove('loading');
+  } else if (currentExploreTab === 3) {
+    exploreLabel.innerText = 'Gamers';
+    exploreContent.innerHTML = '';
+    exploreContent.appendChild(_renderGamers([{
+      name: 'Avaer',
+      coords: [1.234, 2.567],
+    }]));
+    explorePopdown.classList.remove('loading');
+  } else if (currentExploreTab === 4) {
+    exploreLabel.innerText = '';
+    exploreContent.innerHTML = '';
+    exploreContent.appendChild(_makeElement(`<div class=url>
+      <input type="text" placeholder="https://" id=url-input>
+      <a id=go><i class="fal fa-plus-square"></i></a>
+    </div>`));
+    explorePopdown.classList.remove('loading');
+  } else {
+    // nothing
+  }
+};
+window.getTabAnchors = () => { // XXX
+  return ['a', 'input']
+    .flatMap(q => Array.from(explorePopdown.querySelectorAll(q)))
+    .map(el => {
+      const {id} = el;
+      if (!id) {
+        console.warn('missing id', el);
+      }
+      const rect = JSON.parse(JSON.stringify(el.getBoundingClientRect()));
+      return Object.assign(rect, {id});
+    });
+};
+
+const popup = document.getElementById('popup');
+/* const closeButton = document.getElementById('close-button');
+closeButton.onclick = () => {
+  popup.style.display = 'none';
+}; */
+const exploreDropdown = document.getElementById('explore-dropdown');
+const explorePopdown = document.getElementById('explore-popdown');
+exploreDropdown.onclick = () => {
+  exploreDropdown.classList.toggle('open');
+  explorePopdown.classList.toggle('open');
+
+  if (explorePopdown.classList.contains('open')) {
+    // explorePopdown.style.transform = `scale(${window.innerWidth / 4096})`;
+    explorePopdown.style.top = '0';
+    _updateTabs();
+  }
+};
+const developersDropdown = document.getElementById('developers-dropdown');
+const developersPopdown = document.getElementById('developers-popdown');
+developersDropdown.onclick = () => {
+  developersDropdown.classList.toggle('open');
+  developersPopdown.classList.toggle('open');
+};
+
+/* localforage.config({driver: localforage.INDEXEDDB});
+const chunkSize = 100 * 1024 * 1024;
+localforage.write = (p, d) => new Promise((accept, reject) => {
+  console.log('write', p, d);
+  const _recurse = (startIndex = 0, index = 0) => {
+    if (startIndex < d.length) {
+      const slice = d.slice(startIndex, startIndex + chunkSize);
+
+      console.log('set item', p + '-' + index);
+      localforage.setItem(p + '-' + index, slice, err => {
+        if (!err) {
+          startIndex += slice.length;
+          index++;
+          _recurse(startIndex, index);
+        } else {
+          reject(err);
+        }
+      });
+    } else {
+      localforage.removeItem(p + '-' + index, err => {
+        if (!err) {
+          accept();
+        } else {
+          reject(err);
+        }
+      });
+    }
+  };
+  _recurse();
+});
+localforage.read = p => new Promise((accept, reject) => {
+  const result = [];
+  const _recurse = (index = 0) => {
+    console.log('get item', p + '-' + index);
+    localforage.getItem(p + '-' + index, (err, data) => {
+      if (!err) {
+        if (data) {
+          result.push(data);
+
+          index++;
+          _recurse(index);
+        } else {
+          accept(result);
+        }
+      } else {
+        reject(err);
+      }
+    });
+  };
+  _recurse();
+}); */
+
 const appWindow = exokit.load('app.html');
 console.log('app window', appWindow);
-}
     </script>
   </body>
 </html>
