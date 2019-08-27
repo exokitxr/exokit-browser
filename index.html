@@ -524,6 +524,7 @@ const LAMBDA_URLS = {
 };
 const DEFAULT_URL = 'https://google.com';
 const PARCEL_SIZE = 8;
+const BROWSER_SIZE = 1920;
 const TOKEN_PRICE = 5e15;
 const DEFAULT_SKIN_URL = 'skin.png';
 const RAY_COLOR = 0x44c2ff;
@@ -6614,7 +6615,7 @@ const _makePeerConnection = peerConnectionId => {
   };
 
   let skinMesh = null;
-  const sendChannel = peerConnection.createDataChannel('sendChannel');
+  const sendChannel = peerConnection.createDataChannel('pose');
   let pingInterval = 0;
   let updateInterval = 0;
   sendChannel.onopen = () => {
@@ -6760,6 +6761,11 @@ const _rtcConnect = () => {
       ],
     };
     browserPeerConnection = new RTCPeerConnection(peerConnectionConfig);
+    const dataChannel = browserPeerConnection.createDataChannel('browser', {id: 0, negotiated: true});
+    dataChannel.onopen = () => {
+      console.log('got browser data channel', dataChannel);
+    };
+    browserDataChannel = dataChannel;
     browserPeerConnection.ontrack = e => {
       console.log('got browser track', e, e.streams.length);
 
@@ -6768,11 +6774,13 @@ const _rtcConnect = () => {
       video.srcObject = e.streams[0];
       video.play();
 
+      const s = 2;
+      const r = s*4/(2*Math.PI);
       const geometry = new THREE.CylinderBufferGeometry(r, r, s, 10, 10, true, Math.PI*3/2+Math.PI/4, Math.PI/2)
         .applyMatrix(new THREE.Matrix4().makeScale(1, 1, -1))
         .applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, r));
 
-      cost texture = new THREE.VideoTexture(video);
+      const texture = new THREE.VideoTexture(video);
       texture.minFilter = THREE.LinearFilter;
       texture.magFilter = THREE.LinearFilter;
       texture.format = THREE.RGBFormat;
@@ -6784,35 +6792,62 @@ const _rtcConnect = () => {
 
       const mesh = new THREE.Mesh(geometry, material);
       mesh.frustumCulled = false;
+      const lastCoords = [NaN, NaN];
       mesh.intersect = ray => {
         localRaycaster.ray.copy(ray);
         const intersection = localRaycaster.intersectObject(mesh)[0];
         if (intersection) {
           const {uv, distance} = intersection;
           uv.y = 1-uv.y;
-          uv.x *= 1920;
-          uv.y *= 1080;
+          uv.x *= BROWSER_SIZE;
+          uv.y *= BROWSER_SIZE;
+          const {x, y} = uv;
+          if (x !== lastCoords[0] || y !== lastCoords[1]) {
+            mesh.mousemove(x, y);
+
+            lastCoords[0] = x;
+            lastCoords[1] = y;
+          }
           return {
             type: 'browser',
-            x: uv.x,
-            y: uv.y,
+            x,
+            y,
             distance,
+            mesh,
             cancel: true,
           };
         } else {
           return null;
         }
       };
+      mesh.mousemove = (x, y) => {
+        console.log('mouse move', x, y, dataChannel && dataChannel.readyState);
+        if (dataChannel && dataChannel.readyState === 'open') {
+          dataChannel.send(JSON.stringify({
+            method: 'mousemove',
+            x,
+            y: y + 160*(1 - y/BROWSER_SIZE),
+          }));
+        }
+      };
+      mesh.click = () => {
+        if (dataChannel && dataChannel.readyState === 'open') {
+          dataChannel.send(JSON.stringify({
+            method: 'click',
+          }));
+        }
+      };
+      mesh.position.y = 2;
       scene.add(mesh);
       browserMesh = mesh;
+
+      e.track.onended = () => {
+        console.log('track ended!!!!!!!!!!!!!!!!!!!!!!!!!', e.track);
+      };
 
       /* document.body.querySelector('header').style.display = 'none';
       document.body.querySelector('#canvas').style.display = 'none';
       document.body.appendChild(video); */
-    };
-    const dataChannel = browserPeerConnection.createDataChannel();
-    dataChannel.onopen = () => {
-      browserDataChannel = dataChannel;
     };
     s.send(JSON.stringify({
       method: 'requestBrowser',
