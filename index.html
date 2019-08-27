@@ -5787,7 +5787,8 @@ function animate(time, frame) {
           } else if (type === 'screen') {
             screenMesh.click(intersectionSpec);
           } else if (type === 'browser') {
-            console.log('click browser'); // XXX
+            const {mesh: browserMesh} = intersectionSpec;
+            browserMesh.click();
           } else if (type === 'map') {
             window.document.xrOffset.position[0] += intersectionSpec.x*7 - camera.position.x;
             window.document.xrOffset.position[2] += intersectionSpec.y*7 - camera.position.z;
