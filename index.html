@@ -4370,7 +4370,9 @@ const _makeScreenMesh = () => {
   };
 
   mesh.getIntersectionCandidates = () => mesh.visible ?
-    [mesh, keyboardMesh].concat(appIconMeshes.children)
+    [mesh, keyboardMesh]
+      .concat(appIconMeshes.children)
+      .concat(browserMesh || [])
   : [];
   return mesh;
 };
@@ -5782,6 +5784,8 @@ function animate(time, frame) {
             intersectionSpec.onclose(i);
           } else if (type === 'screen') {
             screenMesh.click(intersectionSpec);
+          } else if (type === 'browser') {
+            console.log('click browser'); // XXX
           } else if (type === 'map') {
             window.document.xrOffset.position[0] += intersectionSpec.x*7 - camera.position.x;
             window.document.xrOffset.position[2] += intersectionSpec.y*7 - camera.position.z;
@@ -6736,6 +6740,8 @@ const _makePeerConnection = peerConnectionId => {
 const connectionId = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
 const peerConnections = [];
 let browserPeerConnection = null;
+let browserDataChannel = null;
+let browserMesh = null;
 const _rtcConnect = () => {
   const s = new WebSocket(LAMBDA_URLS.presence);
   s.onopen = () => {
@@ -6760,9 +6766,52 @@ const _rtcConnect = () => {
       video.style.width = '100%';
       video.srcObject = e.streams[0];
       video.play();
-      document.body.querySelector('header').style.display = 'none';
+
+      const geometry = new THREE.CylinderBufferGeometry(r, r, s, 10, 10, true, Math.PI*3/2+Math.PI/4, Math.PI/2)
+        .applyMatrix(new THREE.Matrix4().makeScale(1, 1, -1))
+        .applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, r));
+
+      cost texture = new THREE.VideoTexture(video);
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.format = THREE.RGBFormat;
+
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        side: THREE.DoubleSide,
+      });
+
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.frustumCulled = false;
+      mesh.intersect = ray => {
+        localRaycaster.ray.copy(ray);
+        const intersection = localRaycaster.intersectObject(mesh)[0];
+        if (intersection) {
+          const {uv, distance} = intersection;
+          uv.y = 1-uv.y;
+          uv.x *= 1920;
+          uv.y *= 1080;
+          return {
+            type: 'browser',
+            x: uv.x,
+            y: uv.y,
+            distance,
+            cancel: true,
+          };
+        } else {
+          return null;
+        }
+      };
+      scene.add(mesh);
+      browserMesh = mesh;
+
+      /* document.body.querySelector('header').style.display = 'none';
       document.body.querySelector('#canvas').style.display = 'none';
-      document.body.appendChild(video);
+      document.body.appendChild(video); */
+    };
+    const dataChannel = browserPeerConnection.createDataChannel();
+    dataChannel.onopen = () => {
+      browserDataChannel = dataChannel;
     };
     s.send(JSON.stringify({
       method: 'requestBrowser',
