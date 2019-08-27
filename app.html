@@ -3475,9 +3475,9 @@ const _makeScreenMesh = () => {
     }
   };
 
-  mesh.getIntersectionCandidates = () => [mesh, keyboardMesh]
-    .concat(appIconMeshes.children)
-    .filter(mesh => mesh.visible);
+  mesh.getIntersectionCandidates = () => mesh.visible ?
+    [mesh, keyboardMesh].concat(appIconMeshes.children)
+  : [];
 
   mesh.go = () => {
     const u = `${LAMBDA_URLS.token}?email=${encodeURIComponent(loginToken.email)}&token=${encodeURIComponent(loginToken.token)}&url=${encodeURIComponent(urlInput.value)}`;
