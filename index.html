@@ -4369,9 +4369,9 @@ const _makeScreenMesh = () => {
     }
   };
 
-  mesh.getIntersectionCandidates = () => [mesh, keyboardMesh]
-    .concat(appIconMeshes.children)
-    .filter(mesh => mesh.visible);
+  mesh.getIntersectionCandidates = () => mesh.visible ?
+    [mesh, keyboardMesh].concat(appIconMeshes.children)
+  : [];
   return mesh;
 };
 const screenMesh = _makeScreenMesh();
