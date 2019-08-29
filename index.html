@@ -476,11 +476,13 @@ iframe, audio {
       </div>
     </header>
     <script src="https://kit.fontawesome.com/0735724151.js"></script>
-    <script src="fetch-proxy.js"></script>
+    <!-- <script src="fetch-proxy.js"></script>
     <script src="parse5.js"></script>
-    <script src="file-type.js"></script>
+    <script src="file-type.js"></script> -->
     <script type=module>
 import * as exokit from './exokit-web/src/index.js';
+
+const swPromise = navigator.serviceWorker.register('sw.js');
 
 const LAMBDA_URLS = {
   login: `https://login.webaverse.com/`,
@@ -1015,13 +1017,15 @@ const xrNode = document.createElement('xr-node');
 xrNode.setAttribute('src', 'https://google.com');
 document.body.appendChild(xrNode); */
 
-exokit.setOptions({
+/* exokit.setOptions({
   onbeforeload: window.location.protocol + '//' + window.location.host + '/fetch-proxy.js',
-});
+}); */
 
-const xrIframe = document.createElement('xr-iframe');
-xrIframe.src = 'app.html';
-document.body.appendChild(xrIframe);
+swPromise.then(() => {
+  const xrIframe = document.createElement('xr-iframe');
+  xrIframe.src = 'p/app.html';
+  document.body.appendChild(xrIframe);
+});
 
     </script>
   </body>
