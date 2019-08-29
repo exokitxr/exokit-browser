@@ -491,7 +491,7 @@ const LAMBDA_URLS = {
   browser: `https://browser.webaverse.com/`,
 };
 
-function parseQuery(s) {
+/* function parseQuery(s) {
   var query = {};
   var pairs = (s[0] === '?' ? s.substr(1) : s).split('&');
   for (var i = 0; i < pairs.length; i++) {
@@ -512,7 +512,7 @@ const mode = (() => {
     case '#map': return 'map';
     default: return null;
   }
-})();
+})(); */
 
 const loginButton = document.getElementById('login-button');
 const loginPopdown = document.getElementById('login-popdown');
