@@ -1,7 +1,7 @@
 {
-  "name": "exoland",
+  "name": "webaverse",
   "version": "0.0.1",
-  "description": "Exoland",
+  "description": "Webaverse",
   "main": "index.js",
   "dependencies": {
     "react": "^16.8.6",
