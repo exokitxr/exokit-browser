@@ -483,6 +483,7 @@ new Promise(r => {
   navigator.serviceWorker.addEventListener('controllerchange', e => r());
 })
   .then(() => import('/d/https://web.exokit.org/src/index.js'))
+  // .then(() => import('./exokit-web/src/index.js'))
   .then(() => {
     const xrIframe = document.createElement('xr-iframe');
     xrIframe.src = 'p/app.html';
