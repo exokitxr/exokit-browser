@@ -53,8 +53,8 @@ self.addEventListener('fetch', event => {
 
   let match = event.request.url.match(/^[a-z]+:\/\/[a-zA-Z0-9\-\.:]+(.+)$/);
   if (match) {
-    const match2 = match[1].match(/^\/p\/(.+)$/);
-    if (match2) {
+    let match2;
+    if (match2 = match[1].match(/^\/p\/(.+)$/)) {
       const u = _rewriteUrlToProxy(match2[1]);
       event.respondWith(
         fetch(u)
@@ -71,6 +71,8 @@ self.addEventListener('fetch', event => {
             }
           })
       );
+    } else if (match2 = match[1].match(/^\/d\/(.+)$/)) {
+      event.respondWith(fetch(match2[1]));
     } else {
       event.respondWith(fetch(event.request));
     }
