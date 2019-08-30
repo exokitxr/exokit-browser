@@ -477,13 +477,16 @@ iframe, audio {
     </header>
     <script src="https://kit.fontawesome.com/0735724151.js"></script>
     <script type=module>
-navigator.serviceWorker.register('sw.js');
-new Promise(r => {
-  if (navigator.serviceWorker.controller) return r();
-  navigator.serviceWorker.addEventListener('controllerchange', e => r());
-})
-  .then(() => import('/d/https://web.exokit.org/src/index.js'))
-  // .then(() => import('./exokit-web/src/index.js'))
+navigator.serviceWorker.register('sw.js')
+  .then(() => {
+    if (navigator.serviceWorker.controller) {
+      // nothing
+    } else {
+      window.location.reload();
+    }
+  })
+  // .then(() => import('/d/https://web.exokit.org/src/index.js'))
+  .then(() => import('./exokit-web/src/index.js'))
   .then(() => {
     const xrIframe = document.createElement('xr-iframe');
     xrIframe.src = 'p/app.html';
