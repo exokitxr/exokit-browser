@@ -477,9 +477,17 @@ iframe, audio {
     </header>
     <script src="https://kit.fontawesome.com/0735724151.js"></script>
     <script type=module>
-import * as exokit from './exokit-web/src/index.js';
-
-const swPromise = navigator.serviceWorker.register('sw.js');
+navigator.serviceWorker.register('sw.js');
+new Promise(r => {
+  if (navigator.serviceWorker.controller) return r();
+  navigator.serviceWorker.addEventListener('controllerchange', e => r());
+})
+  .then(() => import('/d/https://web.exokit.org/src/index.js'))
+  .then(() => {
+    const xrIframe = document.createElement('xr-iframe');
+    xrIframe.src = 'p/app.html';
+    document.body.appendChild(xrIframe);
+  });
 
 const LAMBDA_URLS = {
   login: `https://login.webaverse.com/`,
@@ -854,13 +862,6 @@ developersDropdown.onclick = () => {
   developersDropdown.classList.toggle('open');
   developersPopdown.classList.toggle('open');
 };
-
-swPromise.then(() => {
-  const xrIframe = document.createElement('xr-iframe');
-  xrIframe.src = 'p/app.html';
-  document.body.appendChild(xrIframe);
-});
-
     </script>
   </body>
 </html>
