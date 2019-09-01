@@ -4487,11 +4487,26 @@ const _handleKey = (code, shiftKey) => {
     keyboardFocus.textMesh.setText(s.slice(0, index) + ' ' + s.slice(index));
     keyboardFocus.caretMesh.setValue(index + 1);
   } else if (code === 13) { // enter
-    console.log('enter', s);
-
     const xrIframe = document.createElement('xr-iframe');
     xrIframe.src = s;
     layers.push(xrIframe);
+
+    /* const src = window.location.origin + s.replace(/^[a-z]+:\/\/[a-zA-Z0-9\-\.]+(?:[0-9]+)?/, '');
+    const dst = /^[a-z]+:/.test(s) ? (window.location.origin + '/p/' + s) : s;
+
+    console.log('enter', {s, src, dst});
+
+    const mc = new MessageChannel();
+    navigator.serviceWorker.controller.postMessage({ // XXX
+      method: 'redirect',
+      src,
+      dst,
+    }, [mc.port2]);
+    mc.port1.onmessage = () => {
+      const xrIframe = document.createElement('xr-iframe');
+      xrIframe.src = src;
+      layers.push(xrIframe);
+    }; */
   } else if (code === 27) { // esc
     // trayMesh.labelMesh.caretMesh.visible = false;
     keyboardFocus = null;

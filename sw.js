@@ -27,10 +27,8 @@ const _insertBefore = (htmlString, match, s) => {
 const _addHtmlBase = (htmlString, u) => {
   let match;
   if (match = htmlString.match(/<[\s]*head[\s>]/i)) {
-    // console.log('rebase 1', u);
     return _insertAfter(htmlString, match, `<base href="${encodeURI(u)}" target="_blank">`);
   } else if (match = htmlString.match(/<[\s]*body[\s>]/i)) {
-    // console.log('rebase 2', u);
     return _insertBefore(htmlString, match, `<head><base href="${encodeURI(u)}" target="_blank"></head>`);
   } else {
     throw new Error(`no head or body tag: ${htmlString}`);
