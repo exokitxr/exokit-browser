@@ -48,7 +48,7 @@ const _addHtmlBase = (htmlString, u) => {
     throw new Error(`no head or body tag: ${htmlString}`);
   }
 };
-const _proxyHtmlScripts = (htmlString, originalUrl) => htmlString.replace(/(src=")([^"]+)(")/g, (all, pre, src, post) => {
+const _proxyHtmlScripts = (htmlString, originalUrl) => htmlString.replace(/(src=["'])([^"']+)(["'])/g, (all, pre, src, post) => {
   if (/^[a-z]+:\/\//.test(src)) {
     return pre + location.origin + '/p/' + src + post;
   } else {
