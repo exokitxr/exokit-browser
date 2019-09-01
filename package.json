@@ -3,9 +3,11 @@
   "version": "0.0.1",
   "description": "Webaverse",
   "main": "index.js",
-  "dependencies": {},
+  "dependencies": {
+    "express": "^4.17.1"
+  },
   "scripts": {
-    "start": "node index.js",
+    "start": "sudo $(which node) index.js",
     "build": "cd menu && react-scripts build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
