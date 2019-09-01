@@ -64,17 +64,23 @@ const _rewriteResText = (res, rewriteFn) => res.text()
 const _rewriteRes = res => {
   const {url, headers, originalUrl} = res;
 
-  if (originalUrl && /^text\/html(?:;|$)/.test(headers.get('Content-Type'))) {
+  if (/^https:\/\/assets-prod\.reticulum\.io\/hubs\/assets\/js\/hub-[a-zA-Z0-9]+\.js$/.test(originalUrl)) {
+    return _rewriteResText(res, jsString => jsString.replace('window.top', 'window.self'));
+  } else if (/^https:\/\/assets-prod\.reticulum\.io\/hubs\/assets\/js\/engine-[a-zA-Z0-9]+\.js$/.test(originalUrl)) {
+    return _rewriteResText(res, jsString => jsString.replace(`powerPreference:"default"}`, 'powerPreference:"default",xrCompatible:!0}'));
+  } else if (originalUrl && /^text\/html(?:;|$)/.test(headers.get('Content-Type'))) {
     return _rewriteResText(res, htmlString => {
       htmlString = _addHtmlBase(htmlString, _getBaseUrl(url));
       htmlString = _proxyHtmlScripts(htmlString, originalUrl);
       htmlString = _removeHtmlManifest(htmlString);
       return htmlString;
     });
-  } else if (/^https:\/\/assets-prod\.reticulum\.io\/hubs\/assets\/js\/hub-[a-zA-Z0-9]+\.js$/.test(originalUrl)) {
-    return _rewriteResText(res, jsString => jsString.replace('window.top', 'window.self'));
-  } else if (/^https:\/\/assets-prod\.reticulum\.io\/hubs\/assets\/js\/engine-[a-zA-Z0-9]+\.js$/.test(originalUrl)) {
-    return _rewriteResText(res, jsString => jsString.replace(`powerPreference:"default"}`, 'powerPreference:"default",xrCompatible:!0}'));
+  } else if (originalUrl && /^application\/javascript(?:;|$)/.test(headers.get('Content-Type'))) {
+    return res.blob()
+      .then(blob => new Response(blob, {
+        status: res.status,
+        headers: res.headers,
+      }));
   } else {
     return res;
   }
