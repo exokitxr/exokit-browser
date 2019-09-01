@@ -84,9 +84,9 @@ self.addEventListener('fetch', event => {
     let match2;
     if (match2 = match[1].match(/^\/p\/(.+)$/)) {
       const originalUrl = match2[1];
-      const u = _rewriteUrlToProxy(originalUrl);
+      const proxyUrl = _rewriteUrlToProxy(originalUrl);
       event.respondWith(
-        fetch(u).then(res => {
+        fetch(proxyUrl).then(res => {
           res.originalUrl = originalUrl;
           return _rewriteRes(res);
         })
