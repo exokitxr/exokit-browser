@@ -107,6 +107,14 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   // console.log('got request', event.request.url);
 
+  const permanentRedirect = permanentRedirects[event.request.url];
+  if (permanentRedirect) {
+    event.respondWith(
+      fetch(permanentRedirect)
+    );
+    return;
+  }
+
   if (event.request.method === 'HEAD' && event.request.url === event.request.referrer) {
     event.respondWith(new Response('', {
       headers: {
