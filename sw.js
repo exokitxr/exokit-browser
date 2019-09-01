@@ -56,7 +56,7 @@ const _rewriteRes = res => {
       return htmlString;
     });
   } else if (/^https:\/\/assets-prod\.reticulum\.io\/hubs\/assets\/js\/hub-[a-zA-Z0-9]+\.js$/.test(originalUrl)) {
-    return _rewriteResText(res, jsString => jsString.replace(`throw new Error("no embed token");`, ''));
+    return _rewriteResText(res, jsString => jsString.replace('window.top', 'window.self'));
   } else {
     return res;
   }
