@@ -38,7 +38,7 @@ const _insertAfter = (htmlString, match, s) => {
 const _insertBefore = (htmlString, match, s) => {
   return htmlString.slice(0, match.index) + s + match[0] + htmlString.slice();
 };
-/* const _addHtmlBase = (htmlString, u) => {
+const _addHtmlBase = (htmlString, u) => {
   let match;
   if (match = htmlString.match(/<[\s]*head[\s>]/i)) {
     return _insertAfter(htmlString, match, `<base href="${encodeURI(u)}" target="_blank">`);
@@ -47,8 +47,8 @@ const _insertBefore = (htmlString, match, s) => {
   } else {
     throw new Error(`no head or body tag: ${htmlString}`);
   }
-}; */
-const _proxyHtmlScripts = htmlString => htmlString.replace(/(src=")([^"]+)(")/g, (all, pre, src, post) => {
+};
+const _proxyHtmlScripts = (htmlString, originalUrl) => htmlString.replace(/(src=")([^"]+)(")/g, (all, pre, src, post) => {
   if (/^[a-z]+:\/\//.test(src)) {
     return pre + location.origin + '/p/' + src + post;
   } else {
@@ -66,8 +66,8 @@ const _rewriteRes = res => {
 
   if (originalUrl && /^text\/html(?:;|$)/.test(headers.get('Content-Type'))) {
     return _rewriteResText(res, htmlString => {
-      // htmlString = _addHtmlBase(htmlString, _getBaseUrl(url));
-      htmlString = _proxyHtmlScripts(htmlString);
+      htmlString = _addHtmlBase(htmlString, _getBaseUrl(url));
+      htmlString = _proxyHtmlScripts(htmlString, originalUrl);
       htmlString = _removeHtmlManifest(htmlString);
       return htmlString;
     });
