@@ -73,6 +73,8 @@ const _rewriteRes = res => {
     });
   } else if (/^https:\/\/assets-prod\.reticulum\.io\/hubs\/assets\/js\/hub-[a-zA-Z0-9]+\.js$/.test(originalUrl)) {
     return _rewriteResText(res, jsString => jsString.replace('window.top', 'window.self'));
+  } else if (/^https:\/\/assets-prod\.reticulum\.io\/hubs\/assets\/js\/engine-[a-zA-Z0-9]+\.js$/.test(originalUrl)) {
+    return _rewriteResText(res, jsString => jsString.replace(`powerPreference:"default"}`, 'powerPreference:"default",xrCompatible:!0}'));
   } else {
     return res;
   }
