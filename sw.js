@@ -55,6 +55,7 @@ const _proxyHtmlScripts = htmlString => htmlString.replace(/(src=")([^"]+)(")/g,
     return all;
   }
 });
+const _removeHtmlManifest = htmlString => htmlString.replace(/<link\s+rel="?manifest"?[^>]*>/, '');
 const _rewriteResText = (res, rewriteFn) => res.text()
   .then(text => new Response(rewriteFn(text), {
     status: res.status,
@@ -67,6 +68,7 @@ const _rewriteRes = res => {
     return _rewriteResText(res, htmlString => {
       // htmlString = _addHtmlBase(htmlString, _getBaseUrl(url));
       htmlString = _proxyHtmlScripts(htmlString);
+      htmlString = _removeHtmlManifest(htmlString);
       return htmlString;
     });
   } else if (/^https:\/\/assets-prod\.reticulum\.io\/hubs\/assets\/js\/hub-[a-zA-Z0-9]+\.js$/.test(originalUrl)) {
