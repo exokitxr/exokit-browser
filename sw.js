@@ -1,4 +1,10 @@
 const redirects = new Map();
+const permanentRedirects = {
+  /* 'https://assets-prod.reticulum.io/hubs/assets/js/vendor-64ef06ca9a87923873c0.js': './vendor-64ef06ca9a87923873c0.js',
+  'https://assets-prod.reticulum.io/hubs/assets/js/hub-67b8da18c0bbd358dd06.js': './hub-67b8da18c0bbd358dd06.js',
+  'https://assets-prod.reticulum.io/hubs/assets/js/engine-23a00b5ddcc04ff719cd.js': './engine-23a00b5ddcc04ff719cd.js',
+  'https://uploads-prod.reticulum.io/files/128e210e-2f20-4dab-846d-a4282333e77b.bin': 'https://https-uploads--prod-reticulum-io.proxy.webaverse.com/files/128e210e-2f20-4dab-846d-a4282333e77b.bin', */
+};
 
 self.addEventListener('message', e => {
   const {data} = e;
@@ -103,13 +109,20 @@ self.addEventListener('fetch', event => {
     let match2;
     if (match2 = match[1].match(/^\/p\/(.+)$/)) {
       const originalUrl = match2[1];
-      const proxyUrl = _rewriteUrlToProxy(originalUrl);
-      event.respondWith(
-        fetch(proxyUrl).then(res => {
-          res.originalUrl = originalUrl;
-          return _rewriteRes(res);
-        })
-      );
+      const permanentRedirect = permanentRedirects[originalUrl];
+      if (permanentRedirect) {
+        event.respondWith(
+          fetch(permanentRedirect)
+        );
+      } else {
+        const proxyUrl = _rewriteUrlToProxy(originalUrl);
+        event.respondWith(
+          fetch(proxyUrl).then(res => {
+            res.originalUrl = originalUrl;
+            return _rewriteRes(res);
+          })
+        );
+      }
     } else if (match2 = match[1].match(/^\/d\/(.+)$/)) {
       event.respondWith(fetch(match2[1]));
     } else {
