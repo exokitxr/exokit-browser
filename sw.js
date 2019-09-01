@@ -108,47 +108,56 @@ self.addEventListener('fetch', event => {
     let u = event.request.url;
     const dst = redirects.get(u);
     if (dst) {
-      u = dst;
       redirects.delete(event.request.url);
-    }
 
-    let match = u.match(/^[a-z]+:\/\/[a-zA-Z0-9\-\.:]+(.+)$/);
-    if (match) {
-      let match2;
-      if (match2 = match[1].match(/^\/p\/(.+)$/)) {
-        const originalUrl = match2[1];
-        const permanentRedirect = permanentRedirects[originalUrl];
-        if (permanentRedirect) {
-          event.respondWith(
-            fetch(permanentRedirect)
-          );
-        } else {
-          const proxyUrl = _rewriteUrlToProxy(originalUrl);
-          event.respondWith(
-            fetch(proxyUrl).then(res => {
-              res.originalUrl = originalUrl;
-              return _rewriteRes(res);
-            })
-          );
-        }
-      } else if (match2 = match[1].match(/^\/d\/(.+)$/)) {
-        event.respondWith(fetch(match2[1]));
-      } else {
-        if (event.request.url === u) {
-          event.respondWith(fetch(event.request));
-        } else {
-          event.respondWith(
-            fetch(u).then(res => {
-              res.originalUrl = u;
-              return _rewriteRes(res);
-            })
-          );
-        }
-      }
-    } else {
-      event.respondWith(new Response('invalid url', {
-        status: 500,
+      event.respondWith(new Response(dst, {
+        headers: {
+          'Content-Type': 'text/html',
+        },
       }));
+    } else {
+      let match = u.match(/^[a-z]+:\/\/[a-zA-Z0-9\-\.:]+(.+)$/);
+      if (match) {
+        let match2;
+        if (match2 = match[1].match(/^\/p\/(.+)$/)) {
+          const originalUrl = match2[1];
+          const permanentRedirect = permanentRedirects[originalUrl];
+          if (permanentRedirect) {
+            event.respondWith(
+              fetch(permanentRedirect)
+            );
+          } else {
+            const proxyUrl = _rewriteUrlToProxy(originalUrl);
+            event.respondWith(
+              fetch(proxyUrl).then(res => {
+                res.originalUrl = originalUrl;
+                return _rewriteRes(res);
+              })
+            );
+          }
+        } else if (match2 = match[1].match(/^\/d\/(.+)$/)) {
+          event.respondWith(fetch(match2[1]));
+        } else {
+          event.respondWith(
+            fetch(event.request)
+              .then(res => {
+                if (res.type === 'opaque') {
+                  const proxyUrl = _rewriteUrlToProxy(u);
+                  return fetch(proxyUrl).then(res => {
+                    res.originalUrl = u;
+                    return _rewriteRes(res);
+                  })
+                } else {
+                  return res;
+                }
+              })
+          );
+        }
+      } else {
+        event.respondWith(new Response('invalid url', {
+          status: 500,
+        }));
+      }
     }
   }
 });
