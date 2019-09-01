@@ -17,9 +17,6 @@ self.addEventListener('message', e => {
 });
 
 const _rewriteUrlToProxy = u => {
-  /* if (!/^https:\/\//.test(u) || /^https:\/\/(?:.+?\.)?webaverse.com/.test(u)) {
-    return u;
-  } else { */
   if (/^[a-z]+:/.test(u) && u.indexOf(self.location.origin) !== 0) {
     const parsedUrl = new URL(u);
     parsedUrl.host = parsedUrl.host.replace(/-/g, '--');
@@ -27,7 +24,6 @@ const _rewriteUrlToProxy = u => {
   } else {
     return u;
   }
-  // }
 };
 const _getBaseUrl = u => {
   if (!/^(?:[a-z]+:|\/)/.test(u)) {
