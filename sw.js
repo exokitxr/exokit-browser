@@ -1,3 +1,15 @@
+const redirects = new Map();
+
+self.addEventListener('message', e => {
+  const {data} = e;
+  const {method} = data;
+  if (method === 'redirect') {
+    const {src, dst} = data;
+    redirects.set(src, dst);
+  }
+  e.ports[0].postMessage({});
+});
+
 const _rewriteUrlToProxy = u => {
   /* if (!/^https:\/\//.test(u) || /^https:\/\/(?:.+?\.)?webaverse.com/.test(u)) {
     return u;
@@ -79,7 +91,14 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   // console.log('got request', event.request.url);
 
-  let match = event.request.url.match(/^[a-z]+:\/\/[a-zA-Z0-9\-\.:]+(.+)$/);
+  let u = event.request.url;
+  const dst = redirects.get(u);
+  if (dst) {
+    u = dst;
+    redirects.delete(event.request.url);
+  }
+
+  let match = u.match(/^[a-z]+:\/\/[a-zA-Z0-9\-\.:]+(.+)$/);
   if (match) {
     let match2;
     if (match2 = match[1].match(/^\/p\/(.+)$/)) {
@@ -94,7 +113,16 @@ self.addEventListener('fetch', event => {
     } else if (match2 = match[1].match(/^\/d\/(.+)$/)) {
       event.respondWith(fetch(match2[1]));
     } else {
-      event.respondWith(fetch(event.request));
+      if (event.request.url === u) {
+        event.respondWith(fetch(event.request));
+      } else {
+        event.respondWith(
+          fetch(u).then(res => {
+            res.originalUrl = u;
+            return _rewriteRes(res);
+          })
+        );
+      }
     }
   } else {
     event.respondWith(new Response('invalid url', {
