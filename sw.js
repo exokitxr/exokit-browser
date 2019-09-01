@@ -68,6 +68,10 @@ const _rewriteRes = res => {
     return _rewriteResText(res, jsString => jsString.replace('window.top', 'window.self'));
   } else if (/^https:\/\/assets-prod\.reticulum\.io\/hubs\/assets\/js\/engine-[a-zA-Z0-9]+\.js$/.test(originalUrl)) {
     return _rewriteResText(res, jsString => jsString.replace(`powerPreference:"default"}`, 'powerPreference:"default",xrCompatible:!0}'));
+  } else if (originalUrl === 'https://https-moonrider-xyz.proxy.webaverse.com/build/build.js') {
+    return _rewriteResText(res, jsString => jsString.replace('getDistance:function(){var e=this.axis;', 'getDistance:function(){if (!this.axis)this.axis=[0,0,0];var e=this.axis;'));
+  } else if (originalUrl === 'https://https-moonrider-xyz.proxy.webaverse.com/vendor/aframe-master.min.js') {
+    return _rewriteResText(res, jsString => 'delete navigator.xr;' + jsString);
   } else if (originalUrl && /^text\/html(?:;|$)/.test(headers.get('Content-Type'))) {
     return _rewriteResText(res, htmlString => {
       htmlString = _addHtmlBase(htmlString, _getBaseUrl(url));
