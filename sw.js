@@ -20,7 +20,7 @@ const _rewriteUrlToProxy = u => {
   if (/^[a-z]+:/.test(u) && u.indexOf(self.location.origin) !== 0) {
     const parsedUrl = new URL(u);
     parsedUrl.host = parsedUrl.host.replace(/-/g, '--');
-    return 'https://' + parsedUrl.origin.replace(/^(https?):\/\//, '$1-').replace(/:([0-9]+)$/, '-$1').replace(/\./g, '-') + '.proxy.webaverse.com' + parsedUrl.pathname;
+    return 'https://' + parsedUrl.origin.replace(/^(https?):\/\//, '$1-').replace(/:([0-9]+)$/, '-$1').replace(/\./g, '-') + '.proxy.webaverse.com' + parsedUrl.pathname + parsedUrl.search;
   } else {
     return u;
   }
