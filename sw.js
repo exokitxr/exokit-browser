@@ -72,6 +72,14 @@ const _rewriteRes = res => {
     return _rewriteResText(res, jsString => jsString.replace('getDistance:function(){var e=this.axis;', 'getDistance:function(){if (!this.axis)this.axis=[0,0,0];var e=this.axis;'));
   } else if (originalUrl === 'https://https-moonrider-xyz.proxy.webaverse.com/vendor/aframe-master.min.js') {
     return _rewriteResText(res, jsString => 'delete navigator.xr;' + jsString);
+  } else if (originalUrl === 'https://js.cryptovoxels.com/client.js') {
+    return _rewriteResText(res, jsString => {
+      const result = jsString
+        .replace(/https:\/\/www\.cryptovoxels\.com\//g, '/')
+        .replace('n._attached&&n.getEngine().enableVR()', 'n.getEngine().enableVR()')
+        .replace(/getContext\("webgl2",i\)/g, `getContext("webgl2",Object.assign(i,{xrCompatible:true}))`);
+      return result;
+    });
   } else if (originalUrl && /^text\/html(?:;|$)/.test(headers.get('Content-Type'))) {
     return _rewriteResText(res, htmlString => {
       htmlString = _addHtmlBase(htmlString, _getBaseUrl(url));
