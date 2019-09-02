@@ -1153,8 +1153,8 @@ const _bindEventTarget = target => {
         }
       },
       dblclick(e) {
-        if (!window.document.pointerLockElement && !(intersectionSpecs[1] && intersectionSpecs[1].cancel)) {
-          renderer.domElement.requestPointerLock();
+        if (!(intersectionSpecs[1] && intersectionSpecs[1].cancel)) {
+          _enter2d();
         }
       },
     }, {
@@ -5565,6 +5565,24 @@ const _enterXr = async () => {
     }
   }
 };
+const _enter2d = () => {
+  if (!window.document.pointerLockElement) {
+    renderer.domElement.requestPointerLock();
+  }
+};
+window.addEventListener('message', e => {
+  const {data} = e;
+  const {method} = data;
+  switch (method) {
+    case 'enter2d': {
+      _enter2d();
+      /* window.parent.postMessage({
+        lol: 'zol',
+      }); */
+      break;
+    }
+  }
+});
 _startFakeVrDisplay()
   .then(() => {
     _bindEventTarget('ui');

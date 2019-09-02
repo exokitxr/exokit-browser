@@ -89,6 +89,7 @@ header > .wrap {
 }
 .multibutton {
   display: flex;
+  margin-right: 15px;
 }
 .multibutton > .button {
   margin-right: 1px;
@@ -425,6 +426,10 @@ iframe, audio {
       <a class="nav">Download</a>
       <a class="nav" id="developers-dropdown">Developers<i class="fal fa-chevron-down"></i></a>
       <div class=wrap>
+        <div class=multibutton>
+          <nav class="button" id="enter-2d-button">Enter 2D</nav>
+          <nav class="button" id="enter-xr-button">Enter XR</nav>
+        </div>
         <nav class="button highlight" id="login-button">Login</nav>
         <nav class="button highlight" id="logout-button">Log out</nav>
       </div>
@@ -491,6 +496,21 @@ navigator.serviceWorker.register('sw.js')
     const xrIframe = document.createElement('xr-iframe');
     xrIframe.src = 'app.html';
     document.body.appendChild(xrIframe);
+    
+    /* xrIframe.addEventListener('message', e => {
+      console.log('index got message', e);
+    }); */
+    
+    const enter2dButton = document.getElementById('enter-2d-button');
+    enter2dButton.addEventListener('click', () => {
+      xrIframe.postMessage({
+        method: 'enter2d',
+      });
+    });
+    const enterXrButton = document.getElementById('enter-xr-button');
+    enterXrButton.addEventListener('click', () => {
+      console.log('enter xr click');
+    });
   });
 
 const LAMBDA_URLS = {
