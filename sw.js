@@ -161,7 +161,7 @@ self.addEventListener('fetch', event => {
               })
             );
           }
-        } else if (match2 = match[1].match(/^\/d\/(.+)$/)) {
+        } else if (match2 = match[1].match(/^\/.d\/(.+)$/)) {
           event.respondWith(fetch(match2[1]));
         } else {
           event.respondWith(
