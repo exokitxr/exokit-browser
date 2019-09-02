@@ -25,6 +25,15 @@ const _rewriteUrlToProxy = u => {
     return u;
   }
 };
+const _rewriteUrlToRaw = u => {
+  const o = new URL(u);
+  const match = o.host.match(/^(.+)\.proxy\.webaverse\.com$/);
+  const raw = match[1];
+  const match2 = raw.match(/^(https?-)(.+?)(-[0-9]+)?$/);
+  o.protocol = match2[1].replace(/-/g, ':');
+  o.host = match2[2].replace(/--/g, '=').replace(/-/g, '.').replace(/=/g, '-').replace(/\.\./g, '-') + (match2[3] ? match2[3].replace(/-/g, ':') : '');
+  return o.href;
+};
 const _getBaseUrl = u => {
   if (!/^(?:[a-z]+:|\/)/.test(u)) {
     u = '/' + u;
@@ -97,6 +106,9 @@ const _rewriteRes = res => {
     return res;
   }
 };
+const _resolveFollowUrl = u => fetch(_rewriteUrlToProxy(u), {
+  method: 'HEAD',
+}).then(res => _rewriteUrlToRaw(res.url));
 
 self.addEventListener('install', event => {
   // console.log('sw install');
@@ -163,6 +175,15 @@ self.addEventListener('fetch', event => {
           }
         } else if (match2 = match[1].match(/^\/.d\/(.+)$/)) {
           event.respondWith(fetch(match2[1]));
+        } else if (match2 = match[1].match(/^\/.f\/(.+)$/)) {
+          event.respondWith(
+            _resolveFollowUrl(match2[1])
+              .then(u => new Response(u, {
+                headers: {
+                  'Content-Type': 'text/plain',
+                },
+              }))
+          );
         } else {
           event.respondWith(
             fetch(event.request)
