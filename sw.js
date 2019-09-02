@@ -50,7 +50,7 @@ const _addHtmlBase = (htmlString, u) => {
 };
 const _proxyHtmlScripts = (htmlString, originalUrl) => htmlString.replace(/(src=["'])([^"']+)(["'])/g, (all, pre, src, post) => {
   if (/^[a-z]+:\/\//.test(src)) {
-    return pre + location.origin + '/p/' + src + post;
+    return pre + location.origin + '/.p/' + src + post;
   } else {
     return all;
   }
@@ -145,7 +145,7 @@ self.addEventListener('fetch', event => {
       let match = u.match(/^[a-z]+:\/\/[a-zA-Z0-9\-\.:]+(.+)$/);
       if (match) {
         let match2;
-        if (match2 = match[1].match(/^\/p\/(.+)$/)) {
+        if (match2 = match[1].match(/^\/\.p\/(.+)$/)) {
           const originalUrl = match2[1];
           const permanentRedirect = permanentRedirects[originalUrl];
           if (permanentRedirect) {
