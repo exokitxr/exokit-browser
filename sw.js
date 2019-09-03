@@ -42,10 +42,10 @@ const _getBaseUrl = u => {
   return u;
 };
 const _insertAfter = (htmlString, match, s) => {
-  return htmlString.slice(0, match.index) + match[0] + s + htmlString.slice();
+  return htmlString.slice(0, match.index) + match[0] + s + htmlString.slice(match.index + match[0].length);
 };
 const _insertBefore = (htmlString, match, s) => {
-  return htmlString.slice(0, match.index) + s + match[0] + htmlString.slice();
+  return htmlString.slice(0, match.index) + s + match[0] + htmlString.slice(match.index + match[0].length);
 };
 const _addHtmlBase = (htmlString, u) => {
   let match;
