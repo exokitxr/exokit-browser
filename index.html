@@ -483,6 +483,8 @@ iframe, audio {
     </header>
     <script src="https://kit.fontawesome.com/0735724151.js"></script>
     <script type=module>
+let xrIframe = null;
+
 navigator.serviceWorker.register(`sw.js`)
   .then(() => {
     if (navigator.serviceWorker.controller) {
@@ -494,9 +496,14 @@ navigator.serviceWorker.register(`sw.js`)
   .then(() => import('/.d/https://web.exokit.org/src/index.js'))
   // .then(() => import('./exokit-web/src/index.js'))
   .then(() => {
-    const xrIframe = document.createElement('xr-iframe');
+    xrIframe = document.createElement('xr-iframe');
     xrIframe.src = 'app.html';
     document.body.appendChild(xrIframe);
+
+    loginToken && xrIframe.postMessage({
+      method: 'login',
+      loginToken,
+    });
     
     /* xrIframe.addEventListener('message', e => {
       console.log('index got message', e);
@@ -558,6 +565,11 @@ loginButton.onclick = () => {
 logoutButton.onclick = () => {
   localStorage.removeItem('loginToken');
 
+  loginToken = undefined;
+  xrIframe && xrIframe.postMessage({
+    method: 'login',
+    loginToken,
+  });
   header.classList.remove('logged-in');
 };
 loginForm.onsubmit = e => {
@@ -602,7 +614,11 @@ loginForm.onsubmit = e => {
         // console.log('login 4', newLoginToken);
 
         loginToken = newLoginToken;
-        localStorage.setItem('loginToken', JSON.stringify(newLoginToken));
+        xrIframe && xrIframe.postMessage({
+          method: 'login',
+          loginToken,
+        });
+        localStorage.setItem('loginToken', JSON.stringify(loginToken));
 
         header.classList.add('logged-in');
         loginPopdown.classList.remove('open');
@@ -612,46 +628,13 @@ loginForm.onsubmit = e => {
       });
   }
 };
-let loginToken;
-(() => {
-  loginToken = localStorage.getItem('loginToken');
-  if (loginToken) {
-    loginToken = JSON.parse(loginToken);
+let loginToken = localStorage.getItem('loginToken');
+if (loginToken) {
+  loginToken = JSON.parse(loginToken);
 
-    console.log('login token 1');
+  // console.log('login token 1');
 
-    fetch(LAMBDA_URLS.login + `?email=${encodeURIComponent(loginToken.email)}&token=${encodeURIComponent(loginToken.token)}`, {
-      method: 'POST',
-    })
-      .then(res => {
-        if (res.status >= 200 && res.status < 300) {
-          return res.json();
-        } else {
-          throw new Error(`invalid status code: ${res.status}`);
-        }
-      })
-      .then(() => {
-        console.log('login token 2');
-
-        header.classList.add('logged-in');
-      })
-      .catch(err => {
-        console.warn(err);
-
-        loginToken = undefined;
-        localStorage.removeItem('loginToken');
-      });
-  }
-})();
-
-/* const urlForm = document.getElementById('url-form');
-const urlInput = document.getElementById('url-input');
-urlForm.addEventListener('submit', e => {
-  e.preventDefault();
-
-  const u = `${LAMBDA_URLS.token}?email=${encodeURIComponent(loginToken.email)}&token=${encodeURIComponent(loginToken.token)}&url=${encodeURIComponent(urlInput.value)}`;
-  console.log('open url', u);
-  fetch(u, {
+  fetch(LAMBDA_URLS.login + `?email=${encodeURIComponent(loginToken.email)}&token=${encodeURIComponent(loginToken.token)}`, {
     method: 'POST',
   })
     .then(res => {
@@ -661,16 +644,22 @@ urlForm.addEventListener('submit', e => {
         throw new Error(`invalid status code: ${res.status}`);
       }
     })
-    .then(j => {
-      const tokenId = j && j.tokenId;
-      const name = j && j.name;
-      const url = j && j.url;
-      console.log('got token', {tokenId, name, url});
+    .then(() => {
+      // console.log('login token 2');
+
+      xrIframe && xrIframe.postMessage({
+        method: 'login',
+        loginToken,
+      });
+      header.classList.add('logged-in');
     })
     .catch(err => {
       console.warn(err);
+
+      loginToken = undefined;
+      localStorage.removeItem('loginToken');
     });
-}); */
+}
 
 let currentExploreTab = 1;
 for (let i = 1; i <= 4; i++) {

@@ -5548,10 +5548,16 @@ const _enter2d = () => {
     renderer.domElement.requestPointerLock();
   }
 };
+let loginToken;
 window.addEventListener('message', e => {
   const {data} = e;
   const {method} = data;
   switch (method) {
+    case 'login': {
+      loginToken = data.loginToken;
+      console.log('app login', loginToken);
+      break;
+    }
     case 'enter2d': {
       _enter2d();
       /* window.parent.postMessage({
