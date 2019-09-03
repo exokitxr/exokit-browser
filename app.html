@@ -5754,7 +5754,7 @@ const _makePeerConnection = peerConnectionId => {
   let pingInterval = 0;
   let updateInterval = 0;
   sendChannel.onopen = () => {
-    console.log('data channel local open');
+    // console.log('data channel local open');
 
     skinMesh = _makeSkinMesh();
     skinMesh.setSkinUrl(DEFAULT_SKIN_URL);
@@ -5795,12 +5795,12 @@ const _makePeerConnection = peerConnectionId => {
     }, 20);
   };
   sendChannel.onclose = () => {
-    console.log('data channel local close');
+    // console.log('data channel local close');
 
     _cleanup();
   };
   sendChannel.onerror = err => {
-    console.log('data channel local error', err);
+    // console.log('data channel local error', err);
   };
   let watchdogTimeout = 0;
   const _kick = () => {
@@ -5815,16 +5815,17 @@ const _makePeerConnection = peerConnectionId => {
   _kick();
   peerConnection.ondatachannel = e => {
     const {channel} = e;
-    console.log('data channel remote open', channel);
+    // console.log('data channel remote open', channel);
     channel.onclose = () => {
-      console.log('data channel remote close');
+      // console.log('data channel remote close');
       peerConnection.close();
     };
     channel.onerror = err => {
-      console.log('data channel remote error', err);
+      // console.log('data channel remote error', err);
     };
     channel.onmessage = e => {
       // console.log('data channel message', e.data);
+
       const data = JSON.parse(e.data);
       const {method} = data;
       if (method === 'pose') {
@@ -5879,7 +5880,7 @@ const peerConnections = [];
 const _rtcConnect = () => {
   const s = new WebSocket(LAMBDA_URLS.presence);
   s.onopen = () => {
-    console.log('presence socket open');
+    // console.log('presence socket open');
 
     s.send(JSON.stringify({
       method: 'init',

@@ -564,7 +564,7 @@ loginForm.onsubmit = e => {
   e.preventDefault();
 
   if (loginForm.classList.contains('phase-1')) {
-    console.log('login 1', loginEmail.value);
+    // console.log('login 1', loginEmail.value);
 
     loginForm.classList.remove('phase-1');
 
@@ -573,7 +573,7 @@ loginForm.onsubmit = e => {
     })
       .then(res => {
         if (res.status >= 200 && res.status < 300) {
-          console.log('login 2', loginEmail.value);
+          // console.log('login 2', loginEmail.value);
 
           loginForm.classList.add('phase-2');
 
@@ -586,7 +586,7 @@ loginForm.onsubmit = e => {
         console.warn(err);
       });
   } else if (loginForm.classList.contains('phase-2')) {
-    console.log('login 3', loginVerificationCode.value);
+    // console.log('login 3', loginVerificationCode.value);
 
     fetch(LAMBDA_URLS.login + `?email=${loginEmail.value}&code=${encodeURIComponent(loginVerificationCode.value)}`, {
       method: 'POST',
@@ -599,7 +599,7 @@ loginForm.onsubmit = e => {
         }
       })
       .then(newLoginToken => {
-        console.log('login 4', newLoginToken);
+        // console.log('login 4', newLoginToken);
 
         loginToken = newLoginToken;
         localStorage.setItem('loginToken', JSON.stringify(newLoginToken));
