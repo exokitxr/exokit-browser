@@ -5315,24 +5315,6 @@ function animate(time, frame) {
 
 // bootstrap
 
-const _emitLayersVrDisplayActivate = () => {
-  for (let i = 0; i < layers.length; i++) {
-    const layer = layers[i];
-
-    if (layer.tagName === 'IFRAME' && layer.d === 3) {
-      layer.contentWindow.runAsync('vrdisplayactivate');
-    }
-  }
-};
-const _emitLayersExitPresent = () => {
-  for (let i = 0; i < layers.length; i++) {
-    const layer = layers[i];
-
-    if (layer.tagName === 'IFRAME' && layer.d === 3) {
-      layer.contentWindow.runAsync('exitPresent');
-    }
-  }
-};
 const _startFakeVrDisplay = async (width, height) => {
   if (typeof FakeXRDisplay !== 'undefined') {
     fakeXrDisplay = new FakeXRDisplay();
