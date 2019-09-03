@@ -5564,14 +5564,6 @@ window.addEventListener('message', e => {
 _startFakeVrDisplay()
   .then(() => {
     _bindEventTarget('ui');
-
-    /* const roomMesh = _makeRoomMesh(0, 0, 0, 0, 0, 0, 0xffee58);
-    const roomLinkMesh = _makeRoomLinkMesh(roomLinks.length, roomMesh);
-    scene.add(roomLinkMesh);
-    roomLinks.push(roomLinkMesh);
-    _addVolume(roomMesh); */
-
-    console.log('loaded fake display');
   })
   .catch(err => {
     console.warn(err.stack);
