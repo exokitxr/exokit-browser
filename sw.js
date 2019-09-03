@@ -71,8 +71,10 @@ const _rewriteResText = (res, rewriteFn) => res.text()
     headers: res.headers,
   }));
 const _rewriteRes = res => {
-  const {url, headers, originalUrl} = res;
-
+  const {url, originalUrl} = res;
+  return _rewriteResExt(res.url, res.originalUrl, res.headers, res);
+};
+const _rewriteResExt = (url, originalUrl, headers, res) => {
   if (/^https:\/\/assets-prod\.reticulum\.io\/hubs\/assets\/js\/hub-[a-zA-Z0-9]+\.js$/.test(originalUrl)) {
     return _rewriteResText(res, jsString => jsString.replace('window.top', 'window.self'));
   } else if (/^https:\/\/assets-prod\.reticulum\.io\/hubs\/assets\/js\/engine-[a-zA-Z0-9]+\.js$/.test(originalUrl)) {
@@ -148,11 +150,12 @@ self.addEventListener('fetch', event => {
     if (dst) {
       redirects.delete(event.request.url);
 
-      event.respondWith(new Response(dst, {
+      const res = new Response(dst, {
         headers: {
           'Content-Type': 'text/html',
         },
-      }));
+      });
+      event.respondWith(_rewriteResExt(u, u, res.headers, res));
     } else {
       let match = u.match(/^[a-z]+:\/\/[a-zA-Z0-9\-\.:]+(.+)$/);
       if (match) {
@@ -195,7 +198,8 @@ self.addEventListener('fetch', event => {
                     return _rewriteRes(res);
                   })
                 } else {
-                  return res;
+                  res.originalUrl = u;
+                  return _rewriteRes(res);
                 }
               })
           );
