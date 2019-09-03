@@ -58,7 +58,7 @@ const _addHtmlBase = (htmlString, u) => {
   }
 };
 const _proxyHtmlScripts = (htmlString, originalUrl) => htmlString.replace(/(src=["'])([^"']+)(["'])/g, (all, pre, src, post) => {
-  if (/^[a-z]+:\/\//.test(src)) {
+  if (/^[a-z]+:\/\//.test(src) && !src.startsWith(location.origin)) {
     return pre + location.origin + '/.p/' + src + post;
   } else {
     return all;
