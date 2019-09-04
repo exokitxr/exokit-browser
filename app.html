@@ -1034,11 +1034,12 @@ const _bindEventTarget = target => {
           localCamera.projectionMatrix.fromArray(fakeXrDisplay.projectionMatrix);
           localCamera.projectionMatrixInverse.getInverse(localCamera.projectionMatrix);
 
-          let xFactor = e.clientX / window.innerWidth;
+          const rect = renderer.domElement.getBoundingClientRect();
+          let xFactor = (e.clientX - rect.left) / rect.width;
           if (fakeXrDisplay.stereo) {
             xFactor = (xFactor % 0.5) * 2;
           }
-          const yFactor = -e.clientY / window.innerHeight;
+          const yFactor = -(e.clientY - rect.top) / rect.height;
           localVector2D.set(xFactor * 2 - 1, yFactor * 2 + 1);
           localRaycaster.setFromCamera(localVector2D, localCamera);
 
