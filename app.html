@@ -1035,7 +1035,7 @@ const _bindEventTarget = target => {
           localCamera.projectionMatrixInverse.getInverse(localCamera.projectionMatrix);
 
           let xFactor = e.clientX / window.innerWidth;
-          if (window.FakeXRDisplay) {
+          if (fakeXrDisplay.stereo) {
             xFactor = (xFactor % 0.5) * 2;
           }
           const yFactor = -e.clientY / window.innerHeight;
