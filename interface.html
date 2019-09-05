@@ -1,0 +1,129 @@
+<!doctype html>
+<html>
+  <head>
+    <!-- <link rel="stylesheet" href="https://render.exokit.xyz/open-sans.css">
+    <link rel="stylesheet" href="https://render.exokit.xyz/font-awesome.css"> -->
+    <style>
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-family: 'Open Sans';
+  font-size: 12px;
+}
+a {
+  cursor: pointer;
+}
+ul {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+ul li {
+  display: flex;
+  padding: 8px 10px;
+}
+ul li.selected {
+  background-color: #5c6bc0;
+  color: #FFF;
+}
+ul li img {
+  width: 50px;
+  height: 50px;
+  margin-right: 10px;
+  /* background-color: #f2f3f5; */
+  /* image-rendering: pixelated; */
+}
+ul li .wrap {
+  display: flex;
+  flex-direction: column;
+}
+ul li .wrap h3 {
+  margin: 0;
+  font-weight: 400;
+}
+.ui-left {
+  display: flex;
+  position: absolute;
+  top: 50px;
+  bottom: 0;
+  width: 400px;
+  background-color: #FFF;
+  flex-direction: column;
+  /* box-shadow: 3px 0 3px rgba(0,0,0,0.05); */
+  display: none;
+}
+.url-input {
+  margin: 10px;
+  padding: 10px;
+  background-color: #f2f3f5;
+  border: 0;
+  /* border-bottom: 2px solid #CCC; */
+  border-radius: 8px;
+  color: #5c5c6e;
+  font-family: inherit;
+  line-height: 1.6;
+  outline: none;
+}
+.radios {
+  display: flex;
+  margin: 10px;
+}
+.radios > .radio {
+  display: flex;
+  flex: 1;
+  padding: 5px 15px;
+  border: 2px solid;
+  border-radius: 5px;
+  color: #ec407a;
+  justify-content: center;
+}
+.radios > .radio:not(:first-child) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.radios > .radio:not(:last-child) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.radios > .radio + .radio {
+  margin-left: -2px;
+}
+.radios > .radio.selected {
+  background-color: #ec407a;
+  border-color: #ec407a;
+  color: #FFF;
+}
+    </style>
+  </head>
+  <body>
+    <div class=ui-left>
+      <input type=text placeholder="https://" class=url-input>
+      <div class=radios>
+        <div class=radio>Actions</div>
+        <div class="radio selected">WebXR</div>
+        <div class=radio>Models</div>
+        <div class=radio>Data</div>
+      </div>
+      <ul>
+        <li class=selected>
+          <img src="https://www.google.com/favicon.ico">
+          <div class=wrap>
+            <h3>Google</h3>
+            <div>https://google.com</div>
+          </div>
+        </li>
+        <li>
+          <img src="https://www.cryptovoxels.com/favicon.png">
+          <div class=wrap>
+            <h3>Cryptovoxels</h3>
+            <div>https://cryprovoxels.com</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+    <script>
+    </script>
+  </body>
+</html>
