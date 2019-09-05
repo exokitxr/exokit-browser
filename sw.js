@@ -1,9 +1,6 @@
 const redirects = new Map();
 const permanentRedirects = {
-  /* 'https://assets-prod.reticulum.io/hubs/assets/js/vendor-64ef06ca9a87923873c0.js': './vendor-64ef06ca9a87923873c0.js',
-  'https://assets-prod.reticulum.io/hubs/assets/js/hub-67b8da18c0bbd358dd06.js': './hub-67b8da18c0bbd358dd06.js',
-  'https://assets-prod.reticulum.io/hubs/assets/js/engine-23a00b5ddcc04ff719cd.js': './engine-23a00b5ddcc04ff719cd.js',
-  'https://uploads-prod.reticulum.io/files/128e210e-2f20-4dab-846d-a4282333e77b.bin': 'https://https-uploads--prod-reticulum-io.proxy.webaverse.com/files/128e210e-2f20-4dab-846d-a4282333e77b.bin', */
+  // 'https://assets-prod.reticulum.io/hubs/assets/js/vendor-64ef06ca9a87923873c0.js': './vendor-64ef06ca9a87923873c0.js',
 };
 
 self.addEventListener('message', e => {
@@ -17,17 +14,17 @@ self.addEventListener('message', e => {
 });
 
 const _rewriteUrlToProxy = u => {
-  if (/^[a-z]+:\/\//.test(u) && !u.startsWith(self.location.origin) && !/^[a-z]+:\/\/[a-z0-9\-]+\.proxy\.webaverse\.com(?:\/|$)/.test(u)) {
+  if (/^[a-z]+:\/\//.test(u) && !u.startsWith(self.location.origin) && !/^[a-z]+:\/\/[a-z0-9\-]+\.proxy\.exokit\.org(?:\/|$)/.test(u)) {
     const parsedUrl = new URL(u);
     parsedUrl.host = parsedUrl.host.replace(/-/g, '--');
-    return 'https://' + parsedUrl.origin.replace(/^(https?):\/\//, '$1-').replace(/:([0-9]+)$/, '-$1').replace(/\./g, '-') + '.proxy.webaverse.com' + parsedUrl.pathname + parsedUrl.search;
+    return 'https://' + parsedUrl.origin.replace(/^(https?):\/\//, '$1-').replace(/:([0-9]+)$/, '-$1').replace(/\./g, '-') + '.proxy.exokit.org' + parsedUrl.pathname + parsedUrl.search;
   } else {
     return u;
   }
 };
 const _rewriteUrlToRaw = u => {
   const o = new URL(u);
-  const match = o.host.match(/^(.+)\.proxy\.webaverse\.com$/);
+  const match = o.host.match(/^(.+)\.proxy\.exokit\.org$/);
   const raw = match[1];
   const match2 = raw.match(/^(https?-)(.+?)(-[0-9]+)?$/);
   o.protocol = match2[1].replace(/-/g, ':');
@@ -79,9 +76,9 @@ const _rewriteResExt = (url, originalUrl, headers, res) => {
     return _rewriteResText(res, jsString => jsString.replace('window.top', 'window.self'));
   } else if (/^https:\/\/assets-prod\.reticulum\.io\/hubs\/assets\/js\/engine-[a-zA-Z0-9]+\.js$/.test(originalUrl)) {
     return _rewriteResText(res, jsString => jsString.replace(`powerPreference:"default"}`, 'powerPreference:"default",xrCompatible:!0}'));
-  } else if (originalUrl === 'https://https-moonrider-xyz.proxy.webaverse.com/build/build.js') {
+  } else if (originalUrl === 'https://https-moonrider-xyz.proxy.exokit.org/build/build.js') {
     return _rewriteResText(res, jsString => jsString.replace('getDistance:function(){var e=this.axis;', 'getDistance:function(){if (!this.axis)this.axis=[0,0,0];var e=this.axis;'));
-  } else if (originalUrl === 'https://https-moonrider-xyz.proxy.webaverse.com/vendor/aframe-master.min.js') {
+  } else if (originalUrl === 'https://https-moonrider-xyz.proxy.exokit.org/vendor/aframe-master.min.js') {
     return _rewriteResText(res, jsString => 'delete navigator.xr;' + jsString);
   } else if (originalUrl === 'https://js.cryptovoxels.com/client.js') {
     return _rewriteResText(res, jsString => {
