@@ -3325,11 +3325,11 @@ const _makeScreenMesh = () => {
         THREE.UVMapping,
         THREE.ClampToEdgeWrapping,
         THREE.ClampToEdgeWrapping,
-        THREE.NearestFilter,
-        THREE.NearestFilter,
+        THREE.LinearFilter,
+        THREE.LinearMipMapLinearFilter,
         THREE.RGBAFormat,
         THREE.UnsignedByteType,
-        1
+        16
       );
       texture.needsUpdate = true;
       const material = new THREE.MeshBasicMaterial({
