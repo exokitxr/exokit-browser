@@ -521,11 +521,13 @@ const [
   xImg,
   faviconImg,
   keyboardImg,
-  screen1Img,
+  /* screen1Img,
   screen2Img,
   screen3Img,
   screen4Img,
-  screenJson,
+  screenJson, */
+  uiIframe,
+  uiHtml,
   keyboardHighlightCanvasCtx,
   keyMap,
   fontJson,
@@ -554,10 +556,10 @@ const [
     'x.png',
     'favicon.ico',
     'keyboard.png',
-    'screen1.png',
+    /* 'screen1.png',
     'screen2.png',
     'screen3.png',
-    'screen4.png',
+    'screen4.png', */
   ].map(src => new Promise((accept, reject) => {
     const img = new Image();
     img.onload = () => {
@@ -568,9 +570,24 @@ const [
     };
     img.crossOrigin = 'Anonymous';
     img.src = src;
-  })).concat([
-    fetch('screen.json').then(res => res.json()),
-  ]).concat([
+  }))
+  .concat([
+    new Promise((accept, reject) => {
+      const iframe = document.createElement('iframe');
+      iframe.src = 'https://render.exokit.xyz/';
+      iframe.onload = () => {
+        accept(iframe);
+      };
+      iframe.onerror = reject;
+      iframe.style.position = 'absolute';
+      iframe.style.top = '-4096px';
+      iframe.style.left = '-4096px';
+      document.body.appendChild(iframe);
+    }),
+    fetch('ui.html').then(res => res.text()),
+    // fetch('screen.json').then(res => res.json()),
+  ])
+  .concat([
     new Promise((accept, reject) => {
       const img = new Image();
       img.crossOrigin = 'Anonymous';
@@ -3077,6 +3094,41 @@ const _makeTrayMesh = () => {
 // const trayMesh = _makeTrayMesh();
 // scene.add(trayMesh);
 
+const uiSize = 2048;
+const _renderUi = styleSpec => new Promise((accept, reject) => {
+  const start = Date.now();
+
+  const mc = new MessageChannel();
+  mc.port1.onmessage = e => {
+    const {data} = e;
+    const {error, result} = data;
+
+    if (result) {
+      console.log('time taken', Date.now() - start);
+
+      accept(result);
+
+      /* const canvas = document.createElement('canvas');
+      canvas.width = result.width;
+      canvas.height = result.height;
+      canvas.style.width = `${result.width}px`;
+      canvas.style.height = `${result.height}px`;
+      const ctx = canvas.getContext('bitmaprenderer');
+      ctx.transferFromImageBitmap(result);
+      document.body.insertBefore(canvas, document.body.childNodes[0]); */
+    } else {
+      reject(error);
+    }
+  };
+
+  uiIframe.contentWindow.postMessage({
+    htmlString: uiHtml,
+    width: uiSize,
+    height: uiSize,
+    port: mc.port2,
+  }, '*', [mc.port2]);
+});
+
 const _makeScreenMesh = () => {
   const s = 2;
   const r = s*4/(2*Math.PI);
@@ -3084,37 +3136,25 @@ const _makeScreenMesh = () => {
     .applyMatrix(new THREE.Matrix4().makeScale(1, 1, -1))
     .applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, r));
 
-  /* const img = new Image();
-  const screen = screens[0];
-  img.src = screen.src;
-  img.onload = () => {
-    createImageBitmap(img)
-      .then(imageBitmap => {
-        texture.image = img;
-        texture.needsUpdate = true;
-      });
-  };
-  img.onerror = err => {
-    console.warn(err.stack);
-  }; */
-
-  const screenImgs = [
+  /* const screenImgs = [
     screen1Img,
     screen2Img,
     screen3Img,
     screen4Img,
-  ];
+  ]; */
   let screenIndex = 0;
 
-  const texture = new THREE.Texture(
+  const texture = new THREE.DataTexture(
     null,
+    uiSize,
+    uiSize,
+    THREE.RGBAFormat,
+    THREE.UnsignedByteType,
     THREE.UVMapping,
     THREE.RepeatWrapping,
     THREE.RepeatWrapping,
     THREE.LinearFilter,
     THREE.LinearMipMapFilter,
-    THREE.RGBAFormat,
-    THREE.UnsignedByteType,
     16
   );
 
@@ -3123,8 +3163,8 @@ const _makeScreenMesh = () => {
   const measures = [];
   let cursor = text.length;
   const canvas = document.createElement('canvas');
-  canvas.width = 4096;
-  canvas.height = 4096;
+  // canvas.width = 4096;
+  // canvas.height = 4096;
   const ctx = canvas.getContext('2d');
   const _updateMeasures = () => {
     ctx.font = '80px Open Sans';
@@ -3138,8 +3178,15 @@ const _makeScreenMesh = () => {
   };
   _updateMeasures();
 
+  let anchors = [];
   const _updateTexture = async () => {
-    const img = screenImgs[screenIndex];
+    const result = await _renderUi({});
+    texture.image.data = result.data;
+    texture.needsUpdate = true;
+    anchors = result.anchors;
+    console.log('got anchors', JSON.stringify(anchors));
+
+    /* const img = screenImgs[screenIndex];
     ctx.drawImage(img, 0, 0);
 
     const {anchors} = screenJson[screenIndex];
@@ -3192,9 +3239,6 @@ const _makeScreenMesh = () => {
         ctx.textBaseline = 'bottom';
         ctx.fillText(item.bindingUrl || 'not bound', bindingAnchor.x, bindingAnchor.bottom + i*rect.height);
       });
-      
-      /* ctx.fillStyle = 'red';
-      ctx.fillRect(rect.x, rect.y, rect.width, rect.height); */
 
       createImageBitmap(canvas, {
         imageOrientation: 'flipY',
@@ -3227,9 +3271,10 @@ const _makeScreenMesh = () => {
     } else {
       texture.image = canvas;
       texture.needsUpdate = true;
-    }
+    } */
   };
   _updateTexture();
+  // setInterval(_updateTexture, 1000);
 
   const material = new THREE.MeshBasicMaterial({
     map: texture,
@@ -3246,8 +3291,8 @@ const _makeScreenMesh = () => {
     if (intersection) {
       const {uv, distance} = intersection;
       uv.y = 1-uv.y;
-      uv.multiplyScalar(4096);
-      const {anchors} = screenJson[screenIndex];
+      uv.multiplyScalar(uiSize);
+      // const {anchors} = screenJson[screenIndex];
       const anchor = anchors.find(anchor => uv.x >= anchor.left && uv.x <= anchor.right && uv.y >= anchor.top && uv.y <= anchor.bottom);
       if (anchor) {
         return {
