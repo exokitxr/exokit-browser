@@ -661,7 +661,6 @@ fetch('interface.html')
     }
     const bodyChildNodes = Array.from(body.childNodes);
     for (let i = 0; i < bodyChildNodes.length; i++) {
-      console.log('append', i, bodyChildNodes.length, bodyChildNodes[i]);
       uiEl.appendChild(bodyChildNodes[i]);
     }
   });
