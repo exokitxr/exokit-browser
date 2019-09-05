@@ -13,7 +13,7 @@ app.use(express.static(__dirname));
 http.createServer(app)
   .listen(PORT);
 https.createServer({
-  key: fs.readFileSync('cert/key.pem'),
-  cert: fs.readFileSync('cert/cert.pem'),
+  key: fs.readFileSync('cert/privkey.pem'),
+  cert: fs.readFileSync('cert/fullchain.pem'),
 }, app)
   .listen(443)
