@@ -296,7 +296,7 @@ canvas {
     <div class=ui id=ui></div>
     <script src="https://kit.fontawesome.com/0735724151.js"></script>
     <script type=module>
-let xrIframe = null;
+let xrScene = null;
 
 navigator.serviceWorker.register(`sw.js`)
   .then(() => {
@@ -309,28 +309,28 @@ navigator.serviceWorker.register(`sw.js`)
   .then(() => import('/.d/https://web.exokit.org/src/index.js'))
   // .then(() => import('./exokit-web/src/index.js'))
   .then(() => {
-    xrIframe = document.createElement('xr-iframe');
-    xrIframe.src = 'app.html';
-    document.body.appendChild(xrIframe);
+    xrScene = document.createElement('xr-scene');
+    xrScene.src = 'app.html';
+    document.body.appendChild(xrScene);
 
-    loginToken && xrIframe.postMessage({
+    loginToken && xrScene.postMessage({
       method: 'login',
       loginToken,
     });
     
-    /* xrIframe.addEventListener('message', e => {
+    /* xrScene.addEventListener('message', e => {
       console.log('index got message', e);
     }); */
     
     const enter2dButton = document.getElementById('enter-2d-button');
     enter2dButton.addEventListener('click', () => {
-      xrIframe.postMessage({
+      xrScene.postMessage({
         method: 'enter2d',
       });
     });
     const enterXrButton = document.getElementById('enter-xr-button');
     enterXrButton.addEventListener('click', () => {
-      xrIframe.enterXr();
+      xrScene.enterXr();
     });
   });
 
@@ -379,7 +379,7 @@ logoutButton.onclick = () => {
   localStorage.removeItem('loginToken');
 
   loginToken = undefined;
-  xrIframe && xrIframe.postMessage({
+  xrScene && xrScene.postMessage({
     method: 'login',
     loginToken,
   });
@@ -427,7 +427,7 @@ loginForm.onsubmit = e => {
         // console.log('login 4', newLoginToken);
 
         loginToken = newLoginToken;
-        xrIframe && xrIframe.postMessage({
+        xrScene && xrScene.postMessage({
           method: 'login',
           loginToken,
         });
@@ -460,7 +460,7 @@ if (loginToken) {
     .then(() => {
       // console.log('login token 2');
 
-      xrIframe && xrIframe.postMessage({
+      xrScene && xrScene.postMessage({
         method: 'login',
         loginToken,
       });
