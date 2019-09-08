@@ -5321,6 +5321,18 @@ function animate(time, frame) {
           screenMesh.scale.copy(start.scale).lerp(end.scale, f);
           screenMesh.updateMatrixWorld();
           screenMesh.visible = true;
+          for (let i = 0; i < moveMeshes.length; i++) {
+            const moveMesh = moveMeshes[i];
+            moveMesh.scale.set(menuFactor, menuFactor, menuFactor);
+            moveMesh.updateMatrixWorld();
+            moveMesh.visible = true;
+          }
+          for (let i = 0; i < controllerMeshes.length; i++) {
+            const controllerMesh = controllerMeshes[i];
+            controllerMesh.rayMesh.scale.set(menuFactor, menuFactor, menuFactor);
+            controllerMesh.rayMesh.updateMatrixWorld();
+            controllerMesh.rayMesh.visible = true;
+          }
           /* trayMesh.quaternion.copy(start.quaternion).slerp(end.quaternion, f);
           trayMesh.position.copy(start.position).lerp(localVector.copy(end.position), f);
           trayMesh.scale.copy(start.scale).lerp(end.scale, f);
@@ -5356,6 +5368,12 @@ function animate(time, frame) {
           if (f >= 1) {
             if (end.factor === 0) {
               screenMesh.visible = false;
+              for (let i = 0; i < moveMeshes.length; i++) {
+                moveMeshes[i].visible = false;
+              }
+              for (let i = 0; i < controllerMeshes.length; i++) {
+                controllerMeshes[i].rayMesh.visible = false;
+              }
               /* trayMesh.visible = false;
               for (let i = 0; i < trayMesh.appIconMeshes.children.length; i++) {
                 const {moveMesh} = trayMesh.appIconMeshes.children[i];
