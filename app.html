@@ -3314,7 +3314,15 @@ const _makeScreenMesh = () => {
   mesh.click = intersectionSpec => {
     keyboardFocus = null;
 
-    const {id} = intersectionSpec;
+    const {href} = intersectionSpec;
+    if (href) {
+      const xrIframe = document.createElement('xr-iframe');
+      xrIframe.src = href;
+      layers.push(xrIframe);
+    } else {
+      console.log('no match', intersectionSpec, new Error().stack);
+    }
+    /* const {id} = intersectionSpec;
     let match;
     if (match = id.match(/^explore-tab-([0-9]+)$/)) {
       screenIndex = parseInt(match[1], 10) - 1;
@@ -3347,7 +3355,7 @@ const _makeScreenMesh = () => {
     } else {
       const {href} = intersectionSpec;
       console.log('no match', {id, href}, new Error().stack);
-    }
+    } */
   };
 
   mesh.getText = () => text;
