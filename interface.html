@@ -22,61 +22,75 @@ ul {
   padding: 0;
   list-style-type: none;
 }
+ul li {
+  display: inline-block;
+  width: 668px;
+  float: left;
+}
 ul li a {
   display: flex;
-  padding: 8px 10px;
+  padding: 40px;
 }
 ul li a.selected {
   background-color: #5c6bc0;
   color: #FFF;
 }
 ul li a img {
-  width: 50px;
-  height: 50px;
-  margin-right: 10px;
+  width: 120px;
+  height: 120px;
+  margin-right: 40px;
   /* background-color: #f2f3f5; */
   /* image-rendering: pixelated; */
 }
 ul li a .wrap {
   display: flex;
   flex-direction: column;
+  font-size: 42px;
+}
+ul li a .wrap h3,
+ul li a .wrap p {
+  /* display: flex; */
+  margin: 0;
+  max-width: 428px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 ul li a .wrap h3 {
-  margin: 0;
   font-weight: 400;
 }
 .ui-left {
   display: flex;
-  position: absolute;
-  top: 50px;
-  bottom: 0;
-  width: 400px;
+  width: 2048px;
+  height: 2048px;
+  font-size: 80px;
   background-color: #FFF;
   flex-direction: column;
+  align-items: stretch;
   /* box-shadow: 3px 0 3px rgba(0,0,0,0.05); */
 }
 .url-input {
-  margin: 10px;
-  padding: 10px;
+  margin: 40px;
+  padding: 40px;
   background-color: #f2f3f5;
   border: 0;
-  /* border-bottom: 2px solid #CCC; */
-  border-radius: 8px;
+  border-radius: 40px;
   color: #5c5c6e;
   font-family: inherit;
+  font-size: inherit;
   line-height: 1.6;
   outline: none;
 }
 .radios {
   display: flex;
-  margin: 10px;
+  margin: 40px;
 }
 .radios > .radio {
   display: flex;
   flex: 1;
-  padding: 5px 15px;
-  border: 2px solid;
-  border-radius: 5px;
+  padding: 15px 40px;
+  border: 8px solid;
+  border-radius: 22px;
   color: #ec407a;
   justify-content: center;
 }
@@ -89,7 +103,7 @@ ul li a .wrap h3 {
   border-bottom-right-radius: 0;
 }
 .radios > .radio + .radio {
-  margin-left: -2px;
+  margin-left: -8px;
 }
 .radios > .radio.selected {
   background-color: #ec407a;
