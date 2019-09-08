@@ -79,7 +79,10 @@ const _rewriteResExt = (url, originalUrl, headers, res) => {
   if (/^https:\/\/assets-prod\.reticulum\.io\/hubs\/assets\/js\/hub-[a-zA-Z0-9]+\.js$/.test(originalUrl)) {
     return _rewriteResText(res, jsString => jsString.replace('window.top', 'window.self'));
   } else if (/^https:\/\/assets-prod\.reticulum\.io\/hubs\/assets\/js\/engine-[a-zA-Z0-9]+\.js$/.test(originalUrl)) {
-    return _rewriteResText(res, jsString => jsString.replace(`powerPreference:"default"}`, 'powerPreference:"default",xrCompatible:!0}'));
+    return _rewriteResText(res, jsString => 'delete navigator.xr;' + jsString.replace(
+      /\.getEyeParameters\("left"\);[a-z]+=2\*/g,
+      all => all + '(new FakeXRDisplay().stereo?1:0.5)*'
+    ));
   } else if (originalUrl === 'https://https-moonrider-xyz.proxy.exokit.org/build/build.js') {
     return _rewriteResText(res, jsString => jsString.replace('getDistance:function(){var e=this.axis;', 'getDistance:function(){if (!this.axis)this.axis=[0,0,0];var e=this.axis;'));
   } else if (originalUrl === 'https://https-moonrider-xyz.proxy.exokit.org/vendor/aframe-master.min.js') {
@@ -89,6 +92,8 @@ const _rewriteResExt = (url, originalUrl, headers, res) => {
       const result = jsString
         .replace(/https:\/\/www\.cryptovoxels\.com\//g, '/')
         .replace('n._attached&&n.getEngine().enableVR()', 'n.getEngine().enableVR()')
+        .replace(/this\._rigCameras\[0\]\.viewport=new U\.Viewport\(0\,0\,\.5\,1\)/g, 'this._rigCameras[0].viewport=new U.Viewport(0,0,new FakeXRDisplay().stereo?0.5:1,1)')
+        .replace(/this\._rigCameras\[1\]\.viewport=new U\.Viewport\(\.5\,0\,\.5\,1\)/g, 'this._rigCameras[1].viewport=new U.Viewport(new FakeXRDisplay().stereo?0.5:0,0,new FakeXRDisplay().stereo?0.5:0,1)')
         .replace(/getContext\("webgl2",i\)/g, `getContext("webgl2",Object.assign(i,{xrCompatible:true}))`);
       return result;
     });
@@ -108,7 +113,7 @@ const _rewriteResExt = (url, originalUrl, headers, res) => {
         headers: res.headers,
       }));
   } else {
-    return res;
+    return Promise.resolve(res);
   }
 };
 const _resolveFollowUrl = u => fetch(_rewriteUrlToProxy(u), {
@@ -199,11 +204,18 @@ self.addEventListener('fetch', event => {
                   return fetch(proxyUrl).then(res => {
                     res.originalUrl = u;
                     return _rewriteRes(res);
-                  })
+                  });
                 } else {
                   res.originalUrl = u;
                   return _rewriteRes(res);
                 }
+              })
+              .catch(err => {
+                const proxyUrl = _rewriteUrlToProxy(u);
+                return fetch(proxyUrl).then(res => {
+                  res.originalUrl = u;
+                  return _rewriteRes(res);
+                });
               })
           );
         }
