@@ -3579,7 +3579,9 @@ const _makeScreenMesh = () => {
   };
 
   mesh.getIntersectionCandidates = () => mesh.visible ?
-    [mesh, keyboardMesh].concat(appIconMeshes.children)
+    [mesh, keyboardMesh]
+      .concat(appIconMeshes.children)
+      .concat(moveMeshes)
   : [];
 
   mesh.go = () => {
@@ -4705,6 +4707,36 @@ function animate(time, frame) {
   };
   _updateControllerMeshes();
 
+  const _updateCurrentMoveMeshes = () => {
+    for (let i = 0; i < currentMoveMeshes.length; i++) {
+      const moveMesh = currentMoveMeshes[i];
+      const controllerMesh = controllerMeshes[i];
+      if (moveMesh && controllerMesh.visible) {
+        localVector.copy(controllerMesh.position);
+        localQuaternion.copy(controllerMesh.quaternion);
+        localRay.set(localVector, localVector2.set(0, 0, -1).applyQuaternion(localQuaternion));
+        let intersection = floorMesh.intersect(localRay, i);
+        if (intersection) {
+          localVector.set(Math.round(intersection.point.x) + 0.5, intersection.point.y, Math.floor(intersection.point.z) + 0.5);
+          localEuler.setFromQuaternion(localQuaternion, localEuler.order);
+          localEuler.x = 0;
+          localEuler.z = 0;
+          localEuler.y = Math.round((localEuler.y < 0 ? (localEuler.y+Math.PI*2) : localEuler.y) / (Math.PI/2)) * (Math.PI/2);
+          localQuaternion.setFromEuler(localEuler);
+        } else {
+          localVector.copy(controllerMesh.position).add(localVector2.set(0, 0, -3).applyQuaternion(localQuaternion));
+        }
+
+        moveMesh.position.copy(localVector);
+        moveMesh.quaternion.copy(localQuaternion);
+
+        moveMesh.xrIframe.position = localVector.toArray();
+        moveMesh.xrIframe.orientation = localQuaternion.toArray();
+      }
+    }
+  };
+  _updateCurrentMoveMeshes();
+
   const _updateOrbitControls = () => {
     if (orbitControls) {
       orbitControls.update();
@@ -5001,12 +5033,14 @@ function animate(time, frame) {
       keyboardFocus = null;
     }
 
-    if (pressed && !lastPressed && moveSpecs[i]) {
+    if (pressed && !lastPressed && currentMoveMeshes[i]) {
+      currentMoveMeshes[i] = null;
+    /* } else if (pressed && !lastPressed && moveSpecs[i]) {
       const moveSpec = moveSpecs[i];
       if (moveSpec.snapSceneMesh) {
         moveSpec.iconMesh.setSceneBinding(moveSpec.snapSceneMesh);
       }
-      moveSpecs[i] = null;
+      moveSpecs[i] = null; */
     } else {
       const intersectionSpec = intersectionSpecs[i];
       if (intersectionSpec) {
@@ -5198,6 +5232,9 @@ function animate(time, frame) {
           } else if (type === 'key') {
             const {key} = intersectionSpec;
             console.log(`click key: ${key}`);
+          } else if (type === 'move-mesh') {
+            const {mesh} = intersectionSpec;
+            currentMoveMeshes[i] = mesh;
           } else {
             console.warn(`unknown intersection type ${type}`);
           }
