@@ -1904,6 +1904,42 @@ const _makeMoveMesh = (() => {
     });
     const mesh = new THREE.Mesh(volumeTargetGeometry, material);
     mesh.frustumCulled = false;
+    mesh.intersect = ray => {
+      const intersectionPoint = (() => {
+        if (mesh.scale.x >= 0.1 && !currentMoveMeshes.some(moveMesh => moveMesh === mesh)) {
+          localMatrix.compose(
+            ray.origin,
+            localQuaternion.setFromUnitVectors(localVector.set(0, 0, -1), ray.direction),
+            localVector2.set(1, 1, 1)
+          ).premultiply(
+            localMatrix2
+              .copy(mesh.matrixWorld)
+              .getInverse(localMatrix2)
+          ).decompose(localRay.origin, localQuaternion, localVector);
+          localRay.direction.set(0, 0, -1).applyQuaternion(localQuaternion);
+
+          // localBox.setFromCenterAndSize(mesh.position, localVector.copy(mesh.scale));
+          localBox.setFromCenterAndSize(localVector.set(0, 0, 0), localVector2.set(1, 1, 1));
+
+          return localRay.intersectBox(localBox, localVector);
+        } else {
+          return null;
+        }
+      })();
+
+      if (intersectionPoint) {
+        material.color.setHex(RAY_COLOR);
+        return {
+          type: 'move-mesh',
+          mesh,
+          distance: localRay.origin.distanceTo(intersectionPoint),
+          cancel: true,
+        };
+      } else {
+        material.color.setHex(currentMoveMeshes.some(moveMesh => moveMesh === mesh) ? RAY_HIGHLIGHT_COLOR : 0x333333);
+        return null;
+      }
+    };
     return mesh;
   };
 
