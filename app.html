@@ -3298,6 +3298,7 @@ const _makeScreenMesh = () => {
         return {
           type: 'screen',
           id: anchor.id,
+          href: anchor.href,
           x: uv.x,
           y: uv.y,
           distance,
@@ -3344,7 +3345,8 @@ const _makeScreenMesh = () => {
     } else if (id === 'go') {
       screenMesh.go();
     } else {
-      console.log('no match', {id});
+      const {href} = intersectionSpec;
+      console.log('no match', {id, href}, new Error().stack);
     }
   };
 
