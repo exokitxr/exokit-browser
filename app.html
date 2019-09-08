@@ -527,7 +527,7 @@ const [
   screen4Img,
   screenJson, */
   uiIframe,
-  uiHtml,
+  interfaceHtml,
   keyboardHighlightCanvasCtx,
   keyMap,
   fontJson,
@@ -584,7 +584,7 @@ const [
       iframe.style.left = '-4096px';
       document.body.appendChild(iframe);
     }),
-    fetch('ui.html').then(res => res.text()),
+    fetch('interface.html').then(res => res.text()),
     // fetch('screen.json').then(res => res.json()),
   ])
   .concat([
@@ -3122,7 +3122,7 @@ const _renderUi = styleSpec => new Promise((accept, reject) => {
   };
 
   uiIframe.contentWindow.postMessage({
-    htmlString: uiHtml,
+    htmlString: interfaceHtml,
     width: uiSize,
     height: uiSize,
     port: mc.port2,
