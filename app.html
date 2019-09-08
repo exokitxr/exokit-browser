@@ -3341,8 +3341,8 @@ const _makeScreenMesh = () => {
 
       const mesh = new THREE.Mesh(geometry, material);
       mesh.frustumCulled = false;
-      mesh.position.y = -0.1;
-      mesh.position.z = 0.3;
+      mesh.position.y = -0.5;
+      mesh.position.z = 0.8;
       mesh.quaternion.setFromUnitVectors(
         new THREE.Vector3(0, 0, 1),
         new THREE.Vector3(0, 1, 1).normalize()
