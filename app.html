@@ -3347,7 +3347,7 @@ const _makeScreenMesh = () => {
       return null;
     }
   };
-  mesh.click = intersectionSpec => {
+  mesh.click = (intersectionSpec, controllerIndex) => {
     keyboardFocus = null;
 
     const {href} = intersectionSpec;
@@ -5030,7 +5030,7 @@ function animate(time, frame) {
           } else if (type === 'icon-close') {
             intersectionSpec.onclose(i);
           } else if (type === 'screen') {
-            screenMesh.click(intersectionSpec);
+            screenMesh.click(intersectionSpec, i);
           } else if (type === 'map') {
             window.document.xrOffset.position[0] += intersectionSpec.x*7 - camera.position.x;
             window.document.xrOffset.position[2] += intersectionSpec.y*7 - camera.position.z;
