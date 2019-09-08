@@ -3355,6 +3355,12 @@ const _makeScreenMesh = () => {
       const xrIframe = document.createElement('xr-iframe');
       xrIframe.src = href;
       layers.push(xrIframe);
+
+      const moveMesh = _makeMoveMesh('volume');
+      moveMesh.xrIframe = xrIframe;
+      scene.add(moveMesh);
+      moveMeshes.push(moveMesh);
+      currentMoveMeshes[controllerIndex] = moveMesh;
     } else {
       console.log('no match', intersectionSpec, new Error().stack);
     }
