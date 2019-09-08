@@ -4734,7 +4734,7 @@ function animate(time, frame) {
   };
   _updateScreenMesh();
 
-  const _updateMoves = () => {
+  /* const _updateMoves = () => {
     for (let i = 0; i < moveSpecs.length; i++) {
       const moveSpec = moveSpecs[i];
       if (moveSpec) {
@@ -4791,7 +4791,7 @@ function animate(time, frame) {
       }
     }
   };
-  _updateMoves();
+  _updateMoves(); */
 
   const _updateScene = () => {
     const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
