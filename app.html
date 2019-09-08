@@ -5582,17 +5582,11 @@ const _startFakeVrDisplay = async () => {
   window.addEventListener('mousedown', e => {
     if (e.button === 0) {
       const gamepads = navigator.getGamepads();
-      if (window.document.pointerLockElement) {
-        const gamepad = gamepads[1];
-        if (gamepad) {
-          gamepad.buttons[1].pressed = true;
-        }
-      } else if (intersectionSpecs[1] || moveSpecs[1]) {
-        const gamepad = gamepads[1];
-        if (gamepad) {
-          gamepad.buttons[1].pressed = true;
-        }
-
+      const gamepad = gamepads[1];
+      if (gamepad) {
+        gamepad.buttons[1].pressed = true;
+      }
+      if (!window.document.pointerLockElement && (intersectionSpecs[1] || moveSpecs[1])) {
         if (orbitControls && ((intersectionSpecs[1] && intersectionSpecs[1].cancel) || moveSpecs[1])) {
           _removeOrbitControls();
         }
