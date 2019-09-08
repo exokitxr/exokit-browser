@@ -13,6 +13,8 @@ body {
   font-size: 12px;
 }
 a {
+  color: inherit;
+  text-decoration: none;
   cursor: pointer;
 }
 ul {
@@ -20,26 +22,26 @@ ul {
   padding: 0;
   list-style-type: none;
 }
-ul li {
+ul li a {
   display: flex;
   padding: 8px 10px;
 }
-ul li.selected {
+ul li a.selected {
   background-color: #5c6bc0;
   color: #FFF;
 }
-ul li img {
+ul li a img {
   width: 50px;
   height: 50px;
   margin-right: 10px;
   /* background-color: #f2f3f5; */
   /* image-rendering: pixelated; */
 }
-ul li .wrap {
+ul li a .wrap {
   display: flex;
   flex-direction: column;
 }
-ul li .wrap h3 {
+ul li a .wrap h3 {
   margin: 0;
   font-weight: 400;
 }
@@ -98,7 +100,7 @@ ul li .wrap h3 {
   </head>
   <body>
     <div class=ui-left>
-      <input type=text placeholder="https://" class=url-input>
+      <input type=text placeholder="https://" class=url-input id=url-input>
       <div class=radios>
         <div class=radio>Actions</div>
         <div class="radio selected">WebXR</div>
@@ -106,23 +108,88 @@ ul li .wrap h3 {
         <div class=radio>Data</div>
       </div>
       <ul>
-        <li class=selected>
-          <img src="https://www.google.com/favicon.ico">
-          <div class=wrap>
-            <h3>Google</h3>
-            <div>https://google.com</div>
-          </div>
+        <li>
+          <a href="https://google.com">
+            <img src="https://www.google.com/favicon.ico">
+            <div class=wrap>
+              <h3>Google</h3>
+              <div>https://google.com</div>
+            </div>
+          </a>
         </li>
         <li>
-          <img src="https://www.cryptovoxels.com/favicon.png">
-          <div class=wrap>
-            <h3>Cryptovoxels</h3>
-            <div>https://cryprovoxels.com</div>
-          </div>
+          <a href="https://aframe.io/a-painter" class=selected>
+            <img src="https://aframe.io/a-painter/img/icon-256.png">
+            <div class=wrap>
+              <h3>A-Painter</h3>
+              <div>https://aframe.io/a-painter</div>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a href="https://rawcdn.githack.com/exokitxr/webxr-samples/8a13dcbb22fa52feadfab7b7f41f85bdb3601a3f/xr-presentation.html">
+            <img src="https://immersive-web.github.io/webxr-samples/favicon-96x96.png">
+            <div class=wrap>
+              <h3>Solar System</h3>
+              <div>https://rawcdn.githack.com/exokitxr/webxr-samples/8a13dcbb22fa52feadfab7b7f41f85bdb3601a3f/xr-presentation.html</div>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a href="https://supermedium.com/supercraft">
+            <img src="https://supermedium.com/supercraft/assets/img/favicon.png">
+            <div class=wrap>
+              <h3>Supercraft</h3>
+              <div>https://supermedium.com/supercraft</div>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a href="https://moonrider.xyz">
+            <img src="https://moonrider.xyz/assets/img/favicon.png">
+            <div class=wrap>
+              <h3>Moon Rider</h3>
+              <div>https://moonrider.xyz</div>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a href="https://aframe.io/a-blast/">
+            <img src="https://aframe.io/a-blast/assets/images/icon-128.png">
+            <div class=wrap>
+              <h3>A-Blast</h3>
+              <div>https://aframe.io/a-blast/</div>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a href="https://decentraland.org">
+            <img src="https://decentraland.org/images/icons/favicon.ico">
+            <div class=wrap>
+              <h3>Decentraland</h3>
+              <div>https://decentraland.org</div>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a href="https://www.cryptovoxels.com/play?vr=enabled">
+            <img src="https://www.cryptovoxels.com/favicon.png">
+            <div class=wrap>
+              <h3>Cryptovoxels</h3>
+              <div>https://cryptovoxels.com</div>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a href="https://hubs.mozilla.com/VxGmqjU/fuchsia-winding-room?vr_entry_type=vr_now">
+            <img src="https://hubs.mozilla.com/favicon.ico">
+            <div class=wrap>
+              <h3>Mozilla Hubs</h3>
+              <div>https://hubs.mozilla.com</div>
+            </div>
+          </a>
         </li>
       </ul>
     </div>
-    <script>
-    </script>
   </body>
 </html>
