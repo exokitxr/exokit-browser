@@ -575,6 +575,7 @@ const [
     new Promise((accept, reject) => {
       const iframe = document.createElement('iframe');
       iframe.src = '/.d/https://render.exokit.xyz/';
+      // iframe.src = './exokit-render/index.html';
       iframe.onload = () => {
         accept(iframe);
       };
