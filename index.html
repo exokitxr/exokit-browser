@@ -316,8 +316,8 @@ navigator.serviceWorker.register(`sw.js`)
       window.location.reload();
     }
   })
-  .then(() => import('/.d/https://web.exokit.org/src/index.js'))
-  // .then(() => import('./exokit-web/src/index.js'))
+  .then(() => import('/.d/https://web.exokit.org/ew.js'))
+  // .then(() => import('./exokit-web/ew.js'))
   .then(() => {
     xrScene = document.createElement('xr-scene');
     xrScene.src = 'app.html';
