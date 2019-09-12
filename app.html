@@ -390,7 +390,9 @@ const skyboxMesh = (() => {
   };
   return mesh;
 })();
-scene.add(skyboxMesh);
+if (!/helio/i.test(navigator.userAgent)) {
+  scene.add(skyboxMesh);
+}
 
 const floorMesh = (() => {
   const geometry = new THREE.PlaneBufferGeometry(300, 300, 300, 300)
