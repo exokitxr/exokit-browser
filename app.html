@@ -529,6 +529,7 @@ const [
   keyboardImg,
   uiIframe,
   interfaceHtml,
+  fuse,
   keyboardHighlightCanvasCtx,
   keyMap,
   fontJson,
@@ -571,8 +572,8 @@ const [
   .concat([
     new Promise((accept, reject) => {
       const iframe = document.createElement('iframe');
-      iframe.src = '/.d/https://render.exokit.xyz/';
-      // iframe.src = './exokit-render/index.html';
+      // iframe.src = '/.d/https://render.exokit.xyz/';
+      iframe.src = './exokit-render/index.html';
       iframe.onload = () => {
         accept(iframe);
       };
@@ -583,6 +584,74 @@ const [
       document.body.appendChild(iframe);
     }),
     fetch('interface.html').then(res => res.text()),
+    fetch('sites.json')
+      .then(res => res.json())
+      .then(sitesJson => {
+        /* const sitesJson = [
+          {
+            label: 'Google',
+            icon: 'https://www.google.com/favicon.ico',
+            url: 'https://google.com',
+          },
+          {
+            label: 'A-Painter',
+            icon: 'https://aframe.io/a-painter/img/icon-256.png',
+            url: 'https://aframe.io/a-painter',
+          },
+          {
+            label: 'Solar System',
+            icon: 'https://immersive-web.github.io/webxr-samples/favicon-96x96.png',
+            url: 'https://rawcdn.githack.com/exokitxr/webxr-samples/8a13dcbb22fa52feadfab7b7f41f85bdb3601a3f/xr-presentation.html',
+          },
+          {
+            label: 'Babylon.js',
+            icon: 'https://doc.babylonjs.com/img/favicon.ico',
+            url: 'https://playground.babylonjs.com/frame.html#TAFSN0',
+          },
+          {
+            label: 'Supercraft',
+            icon: 'https://supermedium.com/supercraft/assets/img/favicon.png',
+            url: 'https://supermedium.com/craft',
+          },
+          {
+            label: 'Moon Rider',
+            icon: 'https://moonrider.xyz/assets/img/favicon.png',
+            url: 'https://moonrider.xyz',
+          },
+          {
+            label: 'A-Blast',
+            icon: 'https://aframe.io/a-blast/assets/images/icon-128.png',
+            url: 'https://aframe.io/a-blast/',
+          },
+          {
+            label: 'Decentraland',
+            icon: 'https://decentraland.org/images/icons/favicon.ico',
+            url: 'https://decentraland.org',
+          },
+          {
+            label: 'Cryptovoxels',
+            icon: 'https://www.cryptovoxels.com/favicon.png',
+            url: 'https://www.cryptovoxels.com/play?vr=enabled',
+          },
+          {
+            label: 'Mozilla Hubs',
+            icon: 'https://hubs.mozilla.com/favicon.ico',
+            url: 'https://hubs.mozilla.com/VxGmqjU/fuchsia-winding-room?vr_entry_type=vr_now',
+          },
+        ]; */
+        return new Fuse(sitesJson, {
+          shouldSort: true,
+          threshold: 0.6,
+          location: 0,
+          distance: 100,
+          maxPatternLength: 32,
+          minMatchCharLength: 1,
+          keys: [
+            'label',
+            'url',
+          ]
+        });
+      }),
     new Promise((accept, reject) => {
       const img = new Image();
       img.crossOrigin = 'Anonymous';
@@ -3166,72 +3235,7 @@ const _renderUi = searchString => new Promise((accept, reject) => {
     }
   };
 
-  const list = [
-    {
-      label: 'Google',
-      icon: 'https://www.google.com/favicon.ico',
-      url: 'https://google.com',
-    },
-    {
-      label: 'A-Painter',
-      icon: 'https://aframe.io/a-painter/img/icon-256.png',
-      url: 'https://aframe.io/a-painter',
-    },
-    {
-      label: 'Solar System',
-      icon: 'https://immersive-web.github.io/webxr-samples/favicon-96x96.png',
-      url: 'https://rawcdn.githack.com/exokitxr/webxr-samples/8a13dcbb22fa52feadfab7b7f41f85bdb3601a3f/xr-presentation.html',
-    },
-    {
-      label: 'Babylon.js',
-      icon: 'https://doc.babylonjs.com/img/favicon.ico',
-      url: 'https://playground.babylonjs.com/frame.html#TAFSN0',
-    },
-    {
-      label: 'Supercraft',
-      icon: 'https://supermedium.com/supercraft/assets/img/favicon.png',
-      url: 'https://supermedium.com/craft',
-    },
-    {
-      label: 'Moon Rider',
-      icon: 'https://moonrider.xyz/assets/img/favicon.png',
-      url: 'https://moonrider.xyz',
-    },
-    {
-      label: 'A-Blast',
-      icon: 'https://aframe.io/a-blast/assets/images/icon-128.png',
-      url: 'https://aframe.io/a-blast/',
-    },
-    {
-      label: 'Decentraland',
-      icon: 'https://decentraland.org/images/icons/favicon.ico',
-      url: 'https://decentraland.org',
-    },
-    {
-      label: 'Cryptovoxels',
-      icon: 'https://www.cryptovoxels.com/favicon.png',
-      url: 'https://www.cryptovoxels.com/play?vr=enabled',
-    },
-    {
-      label: 'Mozilla Hubs',
-      icon: 'https://hubs.mozilla.com/favicon.ico',
-      url: 'https://hubs.mozilla.com/VxGmqjU/fuchsia-winding-room?vr_entry_type=vr_now',
-    },
-  ];
-  const options = {
-    shouldSort: true,
-    threshold: 0.6,
-    location: 0,
-    distance: 100,
-    maxPatternLength: 32,
-    minMatchCharLength: 1,
-    keys: [
-      'label',
-      'url',
-    ]
-  };
-  const fuse = new Fuse(list, options);
-  const searchResults = fuse.search(searchString);
+  const searchResults = fuse.search(searchString).slice(0, 12);
 
   uiIframe.contentWindow.postMessage({
     htmlString: interfaceHtml,
