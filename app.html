@@ -3152,7 +3152,7 @@ const _makeTrayMesh = () => {
 // scene.add(trayMesh);
 
 const uiSize = 2048;
-const _renderUi = styleSpec => new Promise((accept, reject) => {
+const _renderUi = searchString => new Promise((accept, reject) => {
   const start = Date.now();
 
   const mc = new MessageChannel();
@@ -3178,64 +3178,78 @@ const _renderUi = styleSpec => new Promise((accept, reject) => {
     }
   };
 
-  const templateData = {
-    searchResults: [
-      {
-        label: 'Google',
-        icon: 'https://www.google.com/favicon.ico',
-        url: 'https://google.com',
-      },
-      {
-        label: 'A-Painter',
-        icon: 'https://aframe.io/a-painter/img/icon-256.png',
-        url: 'https://aframe.io/a-painter',
-      },
-      {
-        label: 'Solar System',
-        icon: 'https://immersive-web.github.io/webxr-samples/favicon-96x96.png',
-        url: 'https://rawcdn.githack.com/exokitxr/webxr-samples/8a13dcbb22fa52feadfab7b7f41f85bdb3601a3f/xr-presentation.html',
-      },
-      {
-        label: 'Babylon.js',
-        icon: 'https://doc.babylonjs.com/img/favicon.ico',
-        url: 'https://playground.babylonjs.com/frame.html#TAFSN0',
-      },
-      {
-        label: 'Supercraft',
-        icon: 'https://supermedium.com/supercraft/assets/img/favicon.png',
-        url: 'https://supermedium.com/craft',
-      },
-      {
-        label: 'Moon Rider',
-        icon: 'https://moonrider.xyz/assets/img/favicon.png',
-        url: 'https://moonrider.xyz',
-      },
-      {
-        label: 'A-Blast',
-        icon: 'https://aframe.io/a-blast/assets/images/icon-128.png',
-        url: 'https://aframe.io/a-blast/',
-      },
-      {
-        label: 'Decentraland',
-        icon: 'https://decentraland.org/images/icons/favicon.ico',
-        url: 'https://decentraland.org',
-      },
-      {
-        label: 'Cryptovoxels',
-        icon: 'https://www.cryptovoxels.com/favicon.png',
-        url: 'https://www.cryptovoxels.com/play?vr=enabled',
-      },
-      {
-        label: 'Mozilla Hubs',
-        icon: 'https://hubs.mozilla.com/favicon.ico',
-        url: 'https://hubs.mozilla.com/VxGmqjU/fuchsia-winding-room?vr_entry_type=vr_now',
-      }
-    ],
+  const list = [
+    {
+      label: 'Google',
+      icon: 'https://www.google.com/favicon.ico',
+      url: 'https://google.com',
+    },
+    {
+      label: 'A-Painter',
+      icon: 'https://aframe.io/a-painter/img/icon-256.png',
+      url: 'https://aframe.io/a-painter',
+    },
+    {
+      label: 'Solar System',
+      icon: 'https://immersive-web.github.io/webxr-samples/favicon-96x96.png',
+      url: 'https://rawcdn.githack.com/exokitxr/webxr-samples/8a13dcbb22fa52feadfab7b7f41f85bdb3601a3f/xr-presentation.html',
+    },
+    {
+      label: 'Babylon.js',
+      icon: 'https://doc.babylonjs.com/img/favicon.ico',
+      url: 'https://playground.babylonjs.com/frame.html#TAFSN0',
+    },
+    {
+      label: 'Supercraft',
+      icon: 'https://supermedium.com/supercraft/assets/img/favicon.png',
+      url: 'https://supermedium.com/craft',
+    },
+    {
+      label: 'Moon Rider',
+      icon: 'https://moonrider.xyz/assets/img/favicon.png',
+      url: 'https://moonrider.xyz',
+    },
+    {
+      label: 'A-Blast',
+      icon: 'https://aframe.io/a-blast/assets/images/icon-128.png',
+      url: 'https://aframe.io/a-blast/',
+    },
+    {
+      label: 'Decentraland',
+      icon: 'https://decentraland.org/images/icons/favicon.ico',
+      url: 'https://decentraland.org',
+    },
+    {
+      label: 'Cryptovoxels',
+      icon: 'https://www.cryptovoxels.com/favicon.png',
+      url: 'https://www.cryptovoxels.com/play?vr=enabled',
+    },
+    {
+      label: 'Mozilla Hubs',
+      icon: 'https://hubs.mozilla.com/favicon.ico',
+      url: 'https://hubs.mozilla.com/VxGmqjU/fuchsia-winding-room?vr_entry_type=vr_now',
+    },
+  ];
+  const options = {
+    shouldSort: true,
+    threshold: 0.6,
+    location: 0,
+    distance: 100,
+    maxPatternLength: 32,
+    minMatchCharLength: 1,
+    keys: [
+      'label',
+      'url',
+    ]
   };
+  const fuse = new Fuse(list, options);
+  const searchResults = fuse.search(searchString);
 
   uiIframe.contentWindow.postMessage({
     htmlString: interfaceHtml,
-    templateData,
+    templateData: {
+      searchResults,
+    },
     width: uiSize,
     height: uiSize,
     port: mc.port2,
@@ -3283,7 +3297,7 @@ const _makeScreenMesh = () => {
   ); */
 
   let items = [];
-  let text = DEFAULT_URL;
+  let text = 'https://';
   const measures = [];
   let cursor = text.length;
   const canvas = document.createElement('canvas');
@@ -3323,7 +3337,7 @@ const _makeScreenMesh = () => {
 
   let anchors = [];
   const _updateTextureDynamic = async () => {
-    const result = await _renderUi({});
+    const result = await _renderUi(text);
     if (result.data) {
       imageData = new ImageData(new Uint8ClampedArray(result.data.buffer, result.data.byteOffset, result.data.byteLength), uiSize, uiSize);
     }
@@ -3525,7 +3539,7 @@ const _makeScreenMesh = () => {
   mesh.setText = newText => {
     text = newText;
     _updateMeasures();
-    _updateTextureStatic();
+    _updateTextureDynamic();
   };
   mesh.getValue = () => cursor;
   mesh.setValue = newValue => {
