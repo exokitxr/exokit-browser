@@ -122,96 +122,17 @@ ul li a .wrap h3 {
         <div class=radio>Data</div>
       </div>
       <ul>
+        {{#searchResults}}
         <li>
-          <a href="https://google.com">
-            <img src="https://www.google.com/favicon.ico">
+          <a href="{{{url}}}">
+            <img src="{{{icon}}}">
             <div class=wrap>
-              <h3>Google</h3>
-              <p>https://google.com</p>
+              <h3>{{label}}</h3>
+              <p>{{{url}}}</p>
             </div>
           </a>
         </li>
-        <li>
-          <a href="https://aframe.io/a-painter" class=selected>
-            <img src="https://aframe.io/a-painter/img/icon-256.png">
-            <div class=wrap>
-              <h3>A-Painter</h3>
-              <p>https://aframe.io/a-painter</p>
-            </div>
-          </a>
-        </li>
-        <li>
-          <a href="https://rawcdn.githack.com/exokitxr/webxr-samples/8a13dcbb22fa52feadfab7b7f41f85bdb3601a3f/xr-presentation.html">
-            <img src="https://immersive-web.github.io/webxr-samples/favicon-96x96.png">
-            <div class=wrap>
-              <h3>Solar System</h3>
-              <p>https://rawcdn.githack.com/exokitxr/webxr-samples/8a13dcbb22fa52feadfab7b7f41f85bdb3601a3f/xr-presentation.html</p>
-            </div>
-          </a>
-        </li>
-        <li>
-          <a href="https://playground.babylonjs.com/frame.html#TAFSN0">
-            <img src="https://doc.babylonjs.com/img/favicon.ico">
-            <div class=wrap>
-              <h3>Babylon.js</h3>
-              <p>https://playground.babylonjs.com/frame.html#TAFSN0</p>
-            </div>
-          </a>
-        </li>
-        <li>
-          <a href="https://supermedium.com/craft">
-            <img src="https://supermedium.com/supercraft/assets/img/favicon.png">
-            <div class=wrap>
-              <h3>Supercraft</h3>
-              <p>https://supermedium.com/craft</p>
-            </div>
-          </a>
-        </li>
-        <li>
-          <a href="https://moonrider.xyz">
-            <img src="https://moonrider.xyz/assets/img/favicon.png">
-            <div class=wrap>
-              <h3>Moon Rider</h3>
-              <p>https://moonrider.xyz</p>
-            </div>
-          </a>
-        </li>
-        <li>
-          <a href="https://aframe.io/a-blast/">
-            <img src="https://aframe.io/a-blast/assets/images/icon-128.png">
-            <div class=wrap>
-              <h3>A-Blast</h3>
-              <p>https://aframe.io/a-blast/</p>
-            </div>
-          </a>
-        </li>
-        <li>
-          <a href="https://decentraland.org">
-            <img src="https://decentraland.org/images/icons/favicon.ico">
-            <div class=wrap>
-              <h3>Decentraland</h3>
-              <p>https://decentraland.org</p>
-            </div>
-          </a>
-        </li>
-        <li>
-          <a href="https://www.cryptovoxels.com/play?vr=enabled">
-            <img src="https://www.cryptovoxels.com/favicon.png">
-            <div class=wrap>
-              <h3>Cryptovoxels</h3>
-              <p>https://cryptovoxels.com</p>
-            </div>
-          </a>
-        </li>
-        <li>
-          <a href="https://hubs.mozilla.com/VxGmqjU/fuchsia-winding-room?vr_entry_type=vr_now">
-            <img src="https://hubs.mozilla.com/favicon.ico">
-            <div class=wrap>
-              <h3>Mozilla Hubs</h3>
-              <p>https://hubs.mozilla.com</p>
-            </div>
-          </a>
-        </li>
+        {{/searchResults}}
       </ul>
     </div>
   </body>
