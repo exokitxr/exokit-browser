@@ -3439,20 +3439,16 @@ const _makeScreenMesh = () => {
       uv.y = 1-uv.y;
       uv.multiplyScalar(uiSize);
       // const {anchors} = screenJson[screenIndex];
-      const anchor = anchors.find(anchor => uv.x >= anchor.left && uv.x <= anchor.right && uv.y >= anchor.top && uv.y <= anchor.bottom);
-      if (anchor) {
-        return {
-          type: 'screen',
-          id: anchor.id,
-          href: anchor.href,
-          x: uv.x,
-          y: uv.y,
-          distance,
-          cancel: true,
-        };
-      } else {
-        return null;
-      }
+      const anchor = anchors.find(anchor => uv.x >= anchor.left && uv.x <= anchor.right && uv.y >= anchor.top && uv.y <= anchor.bottom) || null;
+      return {
+        type: 'screen',
+        id: anchor && anchor.id,
+        href: anchor && anchor.href,
+        x: uv.x,
+        y: uv.y,
+        distance,
+        cancel: true,
+      };
     } else {
       return null;
     }
@@ -3482,9 +3478,9 @@ const _makeScreenMesh = () => {
       scene.add(moveMesh);
       moveMeshes.push(moveMesh);
       currentMoveMeshes[controllerIndex] = moveMesh;
-    } else {
+    } /* else {
       console.log('no match', intersectionSpec, new Error().stack);
-    }
+    } */
 
     _updateTextureStatic();
 
