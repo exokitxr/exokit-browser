@@ -3209,7 +3209,15 @@ const _makeTrayMesh = () => {
 // scene.add(trayMesh);
 
 const uiSize = 2048;
+let renderIds = 0;
 const _renderUi = searchString => new Promise((accept, reject) => {
+  if (renderIds > 0) {
+    uiIframe.contentWindow.postMessage({
+      method: 'cancel',
+      id: renderIds,
+    });
+  }
+
   const start = Date.now();
 
   const mc = new MessageChannel();
@@ -3238,6 +3246,8 @@ const _renderUi = searchString => new Promise((accept, reject) => {
   const searchResults = fuse.search(searchString).slice(0, 12);
 
   uiIframe.contentWindow.postMessage({
+    method: 'render',
+    id: ++renderIds,
     htmlString: interfaceHtml,
     templateData: {
       searchResults,
