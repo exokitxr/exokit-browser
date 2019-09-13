@@ -3274,8 +3274,8 @@ const _makeScreenMesh = () => {
   const measures = [];
   let cursor = text.length;
   const canvas = document.createElement('canvas');
-  // canvas.width = 4096;
-  // canvas.height = 4096;
+  canvas.width = uiSize;
+  canvas.height = uiSize;
   const ctx = canvas.getContext('2d');
   const _updateMeasures = () => {
     ctx.font = '80px Open Sans';
