@@ -3256,7 +3256,18 @@ const _makeScreenMesh = () => {
   ]; */
   let screenIndex = 0;
 
-  const texture = new THREE.DataTexture(
+  const texture = new THREE.Texture(
+    null,
+    THREE.UVMapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.LinearFilter,
+    THREE.LinearMipMapFilter,
+    THREE.RGBAFormat,
+    THREE.UnsignedByteType,
+    16
+  );
+  /* const texture = new THREE.DataTexture(
     null,
     uiSize,
     uiSize,
@@ -3268,7 +3279,7 @@ const _makeScreenMesh = () => {
     THREE.LinearFilter,
     THREE.LinearMipMapFilter,
     16
-  );
+  ); */
 
   let items = [];
   let text = DEFAULT_URL;
@@ -3278,8 +3289,9 @@ const _makeScreenMesh = () => {
   canvas.width = uiSize;
   canvas.height = uiSize;
   const ctx = canvas.getContext('2d');
+  ctx.font = '300 80px Open Sans';
+  let imageData = null;
   const _updateMeasures = () => {
-    ctx.font = '80px Open Sans';
     measures.length = 0;
     measures.push(0);
     const {width: barWidth} = ctx.measureText('[');
@@ -3290,13 +3302,35 @@ const _makeScreenMesh = () => {
   };
   _updateMeasures();
 
-  let anchors = [];
-  const _updateTexture = async () => {
-    const result = await _renderUi({});
-    texture.image.data = result.data;
+  const urlInputPadding = [40, 53];
+  const _updateTextureStatic = () => {
+    ctx.putImageData(imageData, 0, 0);
+
+    const urlInputAnchor = anchors.find(anchor => anchor.id === 'url-input');
+
+    ctx.fillStyle = 'black';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(text, urlInputAnchor.x + urlInputPadding[0], urlInputAnchor.bottom - urlInputPadding[1]);
+
+    if (keyboardFocus) {
+      ctx.fillRect(urlInputAnchor.x + urlInputPadding[0] + measures[cursor] - 4, urlInputAnchor.y + urlInputAnchor.height*0.2, 6, urlInputAnchor.height*0.6);
+    }
+
+    texture.image = canvas;
     texture.needsUpdate = true;
+  };
+
+  let anchors = [];
+  const _updateTextureDynamic = async () => {
+    const result = await _renderUi({});
+    if (result.data) {
+      imageData = new ImageData(new Uint8ClampedArray(result.data.buffer, result.data.byteOffset, result.data.byteLength), uiSize, uiSize);
+    }
     anchors = result.anchors;
     console.log('got anchors', JSON.stringify(anchors));
+
+    // _updateMeasures();
+    _updateTextureStatic();
 
     /* const img = screenImgs[screenIndex];
     ctx.drawImage(img, 0, 0);
@@ -3385,8 +3419,8 @@ const _makeScreenMesh = () => {
       texture.needsUpdate = true;
     } */
   };
-  _updateTexture();
-  // setInterval(_updateTexture, 1000);
+  _updateTextureDynamic();
+  // setInterval(_updateTextureDynamic, 1000);
 
   const material = new THREE.MeshBasicMaterial({
     map: texture,
@@ -3426,8 +3460,19 @@ const _makeScreenMesh = () => {
   mesh.click = (intersectionSpec, controllerIndex) => {
     keyboardFocus = null;
 
-    const {href} = intersectionSpec;
-    if (href) {
+    const {id, href} = intersectionSpec;
+    if (id === 'url-input') {
+      const {x, y} = intersectionSpec;
+
+      keyboardFocus = {
+        textMesh: mesh,
+        caretMesh: mesh,
+      };
+
+      const urlInputAnchor = anchors.find(anchor => anchor.id === 'url-input');
+      const xOffset = x - urlInputAnchor.x - urlInputPadding[0];
+      cursor = measures.map((measure, index) => [Math.abs(xOffset - measure), index]).sort((a, b) => a[0] - b[0])[0][1];
+    } else if (href) {
       const xrIframe = document.createElement('xr-iframe');
       xrIframe.src = href;
       layers.push(xrIframe);
@@ -3440,6 +3485,9 @@ const _makeScreenMesh = () => {
     } else {
       console.log('no match', intersectionSpec, new Error().stack);
     }
+
+    _updateTextureStatic();
+
     /* const {id} = intersectionSpec;
     let match;
     if (match = id.match(/^explore-tab-([0-9]+)$/)) {
@@ -3480,13 +3528,14 @@ const _makeScreenMesh = () => {
   mesh.setText = newText => {
     text = newText;
     _updateMeasures();
-    _updateTexture();
+    _updateTextureStatic();
   };
   mesh.getValue = () => cursor;
   mesh.setValue = newValue => {
     cursor = newValue;
-    _updateTexture();
+    _updateTextureStatic();
   };
+  mesh.refresh = _updateTextureStatic;
 
   const keyboardMesh = (() => {
     const object = new THREE.Object3D();
@@ -4687,6 +4736,7 @@ const _handleKey = (code, shiftKey) => {
   } else if (code === 27) { // esc
     // trayMesh.labelMesh.caretMesh.visible = false;
     keyboardFocus = null;
+    screenMesh.refresh();
   } else if (
     code === 9 || // tab
     code === 16 || // shift
