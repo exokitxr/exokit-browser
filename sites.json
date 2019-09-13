@@ -1,0 +1,514 @@
+[
+  {
+    "label": "Soundboxing Beta",
+    "description": "A VR music kickboxing game with beats created by people. If you feel the urge to dance, you're doing it right!",
+    "url": "https://webvr.soundboxing.co/",
+    "icon": "https://supermedium.com/superassets/site/soundboxing.png"
+  },
+  {
+    "label": "Jelly Face",
+    "description": "Pinch and squeeze these celebrities' cheeks, or their entire head! Grandmas love this.",
+    "url": "https://joshshadik.github.io/jelly-face/",
+    "icon": "https://supermedium.com/superassets/site/jellyface.png"
+  },
+  {
+    "label": "Ocean of Thought",
+    "description": "A surreal and relaxive music experience for Machine Drum's Ocean of Thought.",
+    "url": "https://patches.vizor.io/machinedrum/ocean-of-thought",
+    "icon": "https://supermedium.com/superassets/site/oceanofthought.png"
+  },
+  {
+    "label": "Gunters of OASIS",
+    "description": "Hundreds of generated worlds, among one lies a golden egg. First gunters to find it inherit half a hundred dollars and the OASIS.",
+    "url": "https://supermedium.com/gunters-of-oasis-deploy/",
+    "icon": "https://supermedium.com/superassets/site/guntersofoasis.png"
+  },
+  {
+    "label": "Origami Simulator",
+    "description": "Grab, stretch, and simulate dozens of origami patterns folding and creasing simultaneously in 3D.",
+    "url": "http://apps.amandaghassaei.com/OrigamiSimulator/",
+    "icon": "https://supermedium.com/superassets/site/origamisimulator.png"
+  },
+  {
+    "label": "Inside Music",
+    "description": "Step inside music to get a closer look at how they're made. Explode songs to their individual ingredients.",
+    "url": "https://experiments.withgoogle.com/webvr/inside-music/view/",
+    "icon": "https://supermedium.com/superassets/site/insidemusic.png"
+  },
+  {
+    "label": "Slime Freighter",
+    "description": "A trip down a road. Emphasis on trip. VR music experience for Big Black Delta's 'Side of the Road'.",
+    "url": "https://slime-freighter.glitch.me/?autoplay=true",
+    "icon": "https://supermedium.com/superassets/site/slimefreighter.png"
+  },
+  {
+    "label": "Van Gogh Room",
+    "description": "The room of the artist. Recreation of Vincent Van Gogh's 'The Bedroom' painting.",
+    "url": "https://sketchfab.com/models/311d052a9f034ba8bce55a1a8296b6f9",
+    "icon": "https://supermedium.com/superassets/site/vangoghroom.png"
+  },
+  {
+    "label": "Apollo 11",
+    "description": "Neil Armstrong & Buzz Aldrin landed on the moon July 20, 1969. Step onto the lunar surface alongside Armstrong.",
+    "url": "https://sketchfab.com/models/2324f9685404433fa6231c7cb2cd2ff5",
+    "icon": "https://supermedium.com/superassets/site/apollo11.png"
+  },
+  {
+    "label": "Sherlock",
+    "description": "Visit 221B Baker Street, home of the world's most renowned detective.",
+    "url": "https://sketchfab.com/models/69be107ca5234ca8a9fcff6ba6851e9e",
+    "icon": "https://supermedium.com/superassets/site/sherlock.png"
+  },
+  {
+    "label": "Super Says",
+    "description": "Test your memory with Super. Memorize the color sequence and grab a high score!",
+    "url": "https://supermedium.com/supersays/src",
+    "icon": "https://supermedium.com/superassets/site/supersays.png"
+  },
+  {
+    "label": "Lily & Snout",
+    "description": "A girl, a dragon, and some berries. Pick your vantage point and watch this charming VR short.",
+    "url": "https://sketchfab.com/models/618ea0209b1045e89b2c6d2b74d0956e",
+    "icon": "https://supermedium.com/superassets/site/lilyandsnout.png"
+  },
+  {
+    "label": "Tomb of Nefertari",
+    "description": "A 3D reconstruction of QV66, the tomb of Egyptian queen Nefertari (1255 BC), in the Valley of the Queens.",
+    "url": "https://sketchfab.com/models/90034cbe58904828a11429395cef9125",
+    "icon": "https://supermedium.com/superassets/site/nefertari.png"
+  },
+  {
+    "label": "Sea Railway",
+    "description": "Relive the Sea-Railway scene from Spirited Away.",
+    "url": "https://sketchfab.com/models/478d32513eda44338b59aa2284ee01b8",
+    "icon": "https://supermedium.com/superassets/site/spiritedawaysearailway.png"
+  },
+  {
+    "label": "A-Painter",
+    "description": "Paint in VR! Create a masterpiece with dozens of brushes available. Save your painting and share it with your friends.",
+    "url": "https://aframe.io/a-painter/",
+    "icon": "https://supermedium.com/superassets/site/apainter.png"
+  },
+  {
+    "label": "Dance Tonite",
+    "description": "Go from room to room watching dances created entirely by fans. An ever-changing VR collaboration by LCD Soundsystem.",
+    "url": "https://tonite.dance/",
+    "icon": "https://supermedium.com/superassets/site/dancetonite.png"
+  },
+  {
+    "label": "Under Neon Lights",
+    "description": "Enter a world of imagination and color in this interactive music experience for The Chemical Brothers Under Neon Lights.",
+    "url": "https://player.with.in/embed/?id=541&resolution=1920&forced=false&autoplay=true&t=0&internal=true",
+    "icon": "https://supermedium.com/superassets/site/underneonlights.png"
+  },
+  {
+    "label": "Tabel",
+    "description": "A tasty allegory for global inaction in the face of climate change. Listen to the conversation you want.",
+    "url": "https://tabel.withgoogle.com/film",
+    "icon": "https://supermedium.com/superassets/site/tabel.png"
+  },
+  {
+    "label": "Musical Forest",
+    "description": "Join users from around the world in a musical forest. Tap or click a shape to play it. You can add shapes too!",
+    "url": "https://forest.webvrexperiments.com/",
+    "icon": "https://supermedium.com/superassets/site/musicalforest.png"
+  },
+  {
+    "label": "Puzzle Rain",
+    "description": "A musical WebVR journey.",
+    "url": "https://supermedium.com/puzzle-rain/app/?mode=normal",
+    "icon": "https://supermedium.com/superassets/site/puzzlerain.png"
+  },
+  {
+    "label": "Obsidian",
+    "description": "To the electronic beat of Om Unit and Lorn, watch an ever-changing sphere as you travel down a tunnel of lights bombarding the senses.",
+    "url": "https://xplsv.github.io/obsidian/?webvr",
+    "icon": "https://supermedium.com/superassets/site/obsidian.png"
+  },
+  {
+    "label": "Broken Mantra",
+    "description": "Feel the bass in a computer generated music video for Lorn's 'Broken Mantra'. Orbs, particles, lights, streaks, glitch, music.",
+    "url": "https://mrdoob.github.io/brokenmantra/?webvr",
+    "icon": "https://supermedium.com/superassets/site/brokenmantra.png"
+  },
+  {
+    "label": "Stahl House",
+    "description": "Visit Stahl House in Hollywood Hills, an iconic representation of modern architecture in LA.",
+    "url": "http://paragram.io/view/?id=stahl&vr=true",
+    "icon": "https://supermedium.com/superassets/site/stahlhouse.png"
+  },
+  {
+    "label": "Paint",
+    "description": "Paint, draw, doodle, sketch.",
+    "url": "https://supermedium.com/three.js/examples/webvr_vive_paint.html",
+    "icon": "https://supermedium.com/superassets/site/paint.png"
+  },
+  {
+    "label": "Space Disaster",
+    "description": "Zip through the asteroid belt in your laser-equipped spaceship.",
+    "url": "https://www.blend4web.com/apps/space_disaster/space_disaster.html?v=063e38d76f7a243a3b5b97e9ce5d0b96",
+    "icon": "https://supermedium.com/superassets/site/spacedisaster.png"
+  },
+  {
+    "label": "Polygon Shredder",
+    "description": "A whirlwind of confetti amassed from shredded cubes and polygons.",
+    "url": "http://swimminglessonsformodernlife.com/polygon-shredder/",
+    "icon": "https://supermedium.com/superassets/site/polygonshredder.png"
+  },
+  {
+    "label": "Finding Love",
+    "description": "We fall in love by chance. We stay in love by chance. A virtual reality story for us.",
+    "url": "https://findinglove.activetheory.net/",
+    "icon": "https://supermedium.com/superassets/site/findinglove.png"
+  },
+  {
+    "label": "Sonic Umbrella",
+    "description": "Stand under a umbrella and hear the sounds of raining dog toys, ping pong balls, and more. Listen to objects crashing all around.",
+    "url": "https://sonicumbrella.com/",
+    "icon": "https://supermedium.com/superassets/site/sonicumbrella.png"
+  },
+  {
+    "label": "Up There",
+    "description": "Planetarium of 100K real stars. Spot exoplanets, travel through time, hold the galaxy in your hands with the grip buttons.",
+    "url": "https://ngokevin.github.io/up-there-webvr",
+    "icon": "https://supermedium.com/superassets/site/upthere.png"
+  },
+  {
+    "label": "Spider",
+    "description": "Come visit your little pet spider in VR!",
+    "url": "https://demo.marpi.pl/spider/",
+    "icon": "https://supermedium.com/superassets/site/spider.png"
+  },
+  {
+    "label": "Shooting Stars",
+    "description": "Get lost in an explosion of colors.",
+    "url": "https://aframe-shooting-stars.glitch.me/",
+    "icon": "https://supermedium.com/superassets/site/shootingstars.png"
+  },
+  {
+    "label": "Float",
+    "description": "A puzzle of floating platforms admist blooming plants and sky islands.",
+    "url": "https://ngokevin.github.io/float/",
+    "icon": "https://supermedium.com/superassets/site/float.png"
+  },
+  {
+    "label": "Aurora",
+    "description": "Catch the northern lights (aurora borealis) live in Yellowknife, Canada.",
+    "url": "http://www.gnometech.com/webvr/aurora/",
+    "icon": "https://supermedium.com/superassets/site/aurora.png"
+  },
+  {
+    "label": "Forest Wave",
+    "description": "Trippy space forest.",
+    "url": "https://forestwave.glitch.me/",
+    "icon": "https://supermedium.com/superassets/site/forestwave.png"
+  },
+  {
+    "label": "Cross the Street",
+    "description": "How many times can you cross the Golden Gate bridge without getting hit by a car? Get on the global leaderboards!",
+    "url": "https://crossthestreet.fun/game/",
+    "icon": "https://supermedium.com/superassets/site/crossthestreet.png"
+  },
+  {
+    "label": "Bear 71",
+    "description": "Blur the line between the wild world and the wired one. Follow Bear 71, a female grizzly bear living in the Canadian Rockies.",
+    "url": "https://bear71vr.nfb.ca/",
+    "icon": "https://supermedium.com/superassets/site/bear71.png"
+  },
+  {
+    "label": "The Hall",
+    "description": "A fine little museum. Statues, kinectic sculptures, and paintings.",
+    "url": "https://cecropia.github.io/thehallaframe/",
+    "icon": "https://supermedium.com/superassets/site/thehall.png"
+  },
+  {
+    "label": "City Builder",
+    "description": "Create a virtual city with your hands using a library of pixel-style models. You are the mayor.",
+    "url": "https://aframe.city/",
+    "icon": "https://supermedium.com/superassets/site/citybuilder.png"
+  },
+  {
+    "label": "Within",
+    "description": "Extraordinary stories in virtual reality. Space adventures and marine seascapes. A produced library of 360-degree videos.",
+    "url": "https://vr.with.in/",
+    "icon": "https://supermedium.com/superassets/site/within.png"
+  },
+  {
+    "label": "Resonate: Audio Reactive",
+    "description": "Ride the audio reactive waves. First installment of featuring generative VR worlds.",
+    "url": "https://classes.marpi.pl/resonate/",
+    "icon": "https://supermedium.com/superassets/site/resonate.png"
+  },
+  {
+    "label": "Speak to Go",
+    "description": "Discover somewhere new in the world. 360-degree imagery from around the globe. Press the trigger instead of the spacebar.",
+    "url": "https://speaktogo.withgoogle.com/",
+    "icon": "https://supermedium.com/superassets/site/speaktogo.png"
+  },
+  {
+    "label": "Space Rocks",
+    "description": "Escape through space on stolen plasma engines while slinging photon bolts at deadly asteroids. How many can you blow apart?",
+    "url": "https://spacerocks.moar.io/",
+    "icon": "https://supermedium.com/superassets/site/spacerocks.png"
+  },
+  {
+    "label": "Dark Haze",
+    "description": "Where dust, smoke and other dry particles obscure the clarity of the sky. A Christmas Experiment.",
+    "url": "https://christmasexperiments.com//xps/2016/24/dark-haze/",
+    "icon": "https://supermedium.com/superassets/site/darkhaze.png"
+  },
+  {
+    "label": "Night Eye",
+    "description": "Using abstract lines to recreate the shape of the animals in the forest. Click the thumb at the winds to move.",
+    "url": "https://christmasexperiments.com/xps/2016/01/night-eye/",
+    "icon": "https://supermedium.com/superassets/site/nighteye.png"
+  },
+  {
+    "label": "A-Blast",
+    "description": "Stay alert as creatures happily fire at your from all angles. Protect yourself with laser pistols. Shoot down projectiles that come at you.",
+    "url": "https://aframe.io/a-blast/",
+    "icon": "https://supermedium.com/superassets/site/ablast.png"
+  },
+  {
+    "label": "A Saturday Night",
+    "description": "The hottest dance club. Be a bear, a chicken, Elvis, or a disco lady, and shake it off. Record a dance in VR and show the world your moves.",
+    "url": "https://aframe.io/a-saturday-night/",
+    "icon": "https://supermedium.com/superassets/site/asaturdaynight.png"
+  },
+  {
+    "label": "Access Mars",
+    "description": "The real surface of Mars from over 200,000 photographs sent back to Earth by the Curiosity rover. Used by NASA JPL scientists.",
+    "url": "https://accessmars.withgoogle.com/",
+    "icon": "https://supermedium.com/superassets/site/accessmars.png"
+  },
+  {
+    "label": "Eutow",
+    "description": "A Virtual Reality collaboration with Archan Nair, a series of 3D virtual worlds with music by An on Bast.",
+    "url": "https://demo.marpi.pl/archan/eutow/",
+    "icon": "https://supermedium.com/superassets/site/eutow.png"
+  },
+  {
+    "label": "Mass Migrations",
+    "description": "An experiment in mecha world creation. Create, adopt and set them free.",
+    "url": "https://massmigrations.com/ide",
+    "icon": "https://supermedium.com/superassets/site/massmigrations.png"
+  },
+  {
+    "label": "Virtual Art Sessions",
+    "description": "Six world-renowned artists given a new way to paint, draw, and sculpt. Observe them as they paint.",
+    "url": "https://virtualart.chromeexperiments.com/vr/",
+    "icon": "https://supermedium.com/superassets/site/virtualartsessions.png"
+  },
+  {
+    "label": "WebVR Lab",
+    "description": "Fire some confetti and play the record. A small lab demonstrating various interactions in VR. Teleport, grab, throw.",
+    "url": "https://playcanv.as//index/GgVZJtha",
+    "icon": "https://supermedium.com/superassets/site/playcanvaswebvrlab.png"
+  },
+  {
+    "label": "Pokemon",
+    "description": "Stand from the trainer's stand at the Pokemon Stadium with Pikachu against Charizard.",
+    "url": "https://supermedium.com/superframe/scenes/pokemon/",
+    "icon": "https://supermedium.com/superassets/site/pokemon.png"
+  },
+  {
+    "label": "Destroyed Subway",
+    "description": "A subway that won't be in service any time soon. Inspired by post-apocalyptic horror game Metro 2033.",
+    "url": "https://sketchfab.com/models/d7fbea6211aa4116ae8a3a882af55c6c",
+    "icon": "https://supermedium.com/superassets/site/destroyedsubway.png"
+  },
+  {
+    "label": "Sherwood Forest",
+    "description": "Welcome to Sherwood Forest!",
+    "url": "https://sketchfab.com/models/63dd568f5bc64e8694d5f4252924c99e",
+    "icon": "https://supermedium.com/superassets/site/robinhoodinsherwoodforest.png"
+  },
+  {
+    "label": "SIKA",
+    "description": "Deer under a cherry blossom on an island in the moonlit lake.",
+    "url": "https://sketchfab.com/models/7bb67d1dea724a6eb4ebe21bcf94b09e",
+    "icon": "https://supermedium.com/superassets/site/sika.png"
+  },
+  {
+    "label": "Grid of Cylinders",
+    "description": "An infinite grid of cylinders, like the swelling waves of the ocean. An expanse of mountains, rising and falling, forever.",
+    "url": "https://www.shadertoy.com/view/4dSGW1",
+    "icon": "https://supermedium.com/superassets/site/gridofcylinders.png"
+  },
+  {
+    "label": "Cubescape",
+    "description": "Marvel at the fine detail of the wood-grained waveforms. Rounded pulsating cubes that bounce to the beat.",
+    "url": "https://www.shadertoy.com/view/Msl3Rr",
+    "icon": "https://supermedium.com/superassets/site/cubescape.png"
+  },
+  {
+    "label": "Worms",
+    "description": "A surreal experience in a forest of strand things.",
+    "url": "https://www.shadertoy.com/view/XsjXR1",
+    "icon": "https://supermedium.com/superassets/site/worms.png"
+  },
+  {
+    "label": "Witch's Brew",
+    "description": "Mix together a red potion, some blue potion, a bit of yellow potion, and baby you've got a stew going.",
+    "url": "https://ravenworks.ca/witch/",
+    "icon": "https://supermedium.com/superassets/site/witchsbrew.png"
+  },
+  {
+    "label": "Ye Olde Puppetrilla",
+    "description": "Ye Olde Puppetrilla has arrived in town and everybody's here to enjoy your puppeteering skills. It's showtime!",
+    "url": "https://www.jorgefuentes.net/projects/puppetrilla/",
+    "icon": "https://supermedium.com/superassets/site/puppetrilla.png"
+  },
+  {
+    "label": "Medieval Dance Battle",
+    "description": "A medieval dance-off. Sit back and be the judge, who's got the moves?",
+    "url": "https://www.thedart76.com/webvr/epic-medieval-battle/emb.html",
+    "icon": "https://supermedium.com/superassets/site/epicmedievalbattle.png"
+  },
+  {
+    "label": "PanoMoments",
+    "description": "The GIFs of VR, control time with your gaze! Press any button navigate through visual stories and living photos.",
+    "url": "https://my.panomoments.com",
+    "icon": "https://supermedium.com/superassets/site/panomoments.png"
+  },
+  {
+    "label": "C O M P O S U R E",
+    "description": "Immersive music experience for stress relief.",
+    "url": "https://composure.site/prelude",
+    "icon": "https://supermedium.com/superassets/site/composure.png"
+  },
+  {
+    "label": "Trajectile Command",
+    "description": "Defend your cities from missiles and bombers! Inspired by an old arcade classic.",
+    "url": "http://micosmo.com/trajectilecommand/",
+    "icon": "https://supermedium.com/superassets/site/trajectilecommand.png"
+  },
+  {
+    "label": "Supercraft",
+    "description": "Build a VR world in minutes! Publish your creation instantly to the Web to share with your friends.",
+    "url": "https://supermedium.com/craft/",
+    "icon": "https://supermedium.com/superassets/site/supercraft.png"
+  },
+  {
+    "label": "Dragon",
+    "url": "https://supermedium.com/craft/bawdy-wealth",
+    "icon": "https://supermedium.com/superassets/site/supercraft.png"
+  },
+  {
+    "label": "Blimps",
+    "url": "https://supermedium.com/craft/fierce-talk",
+    "icon": "https://supermedium.com/superassets/site/supercraft.png"
+  },
+  {
+    "label": "Castle of Mystery",
+    "url": "https://supermedium.com/craft/icky-snake",
+    "icon": "https://supermedium.com/superassets/site/supercraft.png"
+  },
+  {
+    "label": "Mecha",
+    "url": "https://supermedium.com/craft/cooperative-potato",
+    "icon": "https://supermedium.com/superassets/site/supercraft.png"
+  },
+  {
+    "label": "Toy Mountain",
+    "url": "https://supermedium.com/craft/shocking-hose",
+    "icon": "https://supermedium.com/superassets/site/supercraft.png"
+  },
+  {
+    "label": "Danger",
+    "url": "https://supermedium.com/craft/onerous-chalk",
+    "icon": "https://supermedium.com/superassets/site/supercraft.png"
+  },
+  {
+    "label": "Homer",
+    "url": "https://supermedium.com/craft/dangerous-cars",
+    "icon": "https://supermedium.com/superassets/site/supercraft.png"
+  },
+  {
+    "label": "Powerpuff",
+    "url": "https://supermedium.com/craft/previous-acoustics",
+    "icon": "https://supermedium.com/superassets/site/supercraft.png"
+  },
+  {
+    "label": "Cave",
+    "url": "https://supermedium.com/craft/wealthy-dock",
+    "icon": "https://supermedium.com/superassets/site/supercraft.png"
+  },
+  {
+    "label": "Canyon",
+    "url": "https://supermedium.com/craft/optimal-marble",
+    "icon": "https://supermedium.com/superassets/site/supercraft.png"
+  },
+  {
+    "label": "Walking Simulator VR",
+    "description": "Not all who wander are lost. An infinite generated Minecraft-like world.",
+    "url": "https://projects.gatunes.com/wsvr/#/61331/443,-448",
+    "icon": "https://supermedium.com/superassets/site/walkingsimulator.png"
+  },
+  {
+    "label": "VR Beats",
+    "description": "Come on, DJ, turn the music up. Mix and sequence your own rhythms and tunes!",
+    "url": "https://vrbeats.gatunes.com/",
+    "icon": "https://supermedium.com/superassets/site/vrbeats.png"
+  },
+  {
+    "label": "Tower Max Fitness",
+    "description": "TRAIN YOUR POWER WITH THE TOWER. Soundbased VR workout in space on a tower.",
+    "url": "https://towermax.fitness/tower/",
+    "icon": "https://supermedium.com/superassets/site/towermaxfitness.png"
+  },
+  {
+    "label": "VRBlocks",
+    "description": "A tranquil multiplayer Minecraft-like sandbox. The sequel to Walking Simulator.",
+    "url": "https://vrblocks.gatunes.com/",
+    "icon": "https://supermedium.com/superassets/site/vrblocks.png"
+  },
+  {
+    "label": "Track",
+    "description": "Go on a trip. Randomly ever-changing environment composed of various geometrical shapes.",
+    "url": "https://demos.littleworkshop.fr/demos/track/",
+    "icon": "https://supermedium.com/superassets/site/track.png"
+  },
+  {
+    "label": "HalloVReen",
+    "description": "Gaze upon the citizens of Creepville and see what they're up to. Can you find them all?",
+    "url": "https://www.jorgefuentes.net/projects/halloVReen/",
+    "icon": "https://supermedium.com/superassets/site/hallovreen.png"
+  },
+  {
+    "label": "Vuppets",
+    "description": "Put on a show with these cute animated hand puppets.",
+    "url": "https://www.jorgefuentes.net/projects/vuppets/vuppets_6DOF/",
+    "icon": "https://supermedium.com/superassets/site/vuppets.png"
+  },
+  {
+    "label": "Realms VR",
+    "description": "A recursive VR experience.",
+    "url": "https://realmsvr.gatunes.com",
+    "icon": "https://supermedium.com/superassets/site/realmsvr.png"
+  },
+  {
+    "label": "Barista Express",
+    "description": "Virtually be a barista in your own cafe.",
+    "url": "https://constructarca.de/construct-arcade/game/barista-express/game/",
+    "icon": "https://supermedium.com/superassets/site/baristaexpress.png"
+  },
+  {
+    "label": "Blue Cyber: Episode 1",
+    "description": "You are charged to protect the galaxy with powers given from the artfiact, Blue Cyber. A science fantasy VR story.",
+    "url": "https://www.bluecybervr.com/episode01/",
+    "icon": "https://supermedium.com/superassets/site/bluecyber.png"
+  },
+  {
+    "label": "Monster or Friend",
+    "description": "You are followed by a procedurally animated sea space creature. A visual and audio experience.",
+    "url": "https://codercat.tk/monster-or-friend/",
+    "icon": "https://supermedium.com/superassets/site/monsterorfriend.png"
+  },
+  {
+    "label": "Moon Rider",
+    "description": "Surf the musical road among the stars, moon, and lights.",
+    "url": "https://moonrider.xyz",
+    "icon": "https://supermedium.com/superassets/site/moonrider.png"
+  }
+]
