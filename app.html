@@ -5066,7 +5066,9 @@ function animate(time, frame) {
       parcelTextMesh.popup(coords[0], coords[1]);
     }
   };
-  _updateScene();
+  if (!isFinite(lastSceneCoords[0]) || loginToken) {
+    _updateScene();
+  }
 
   /* const _updateSecureScene = () => {
     loginMesh.update();
