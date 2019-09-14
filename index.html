@@ -393,16 +393,10 @@ let loginToken = null;
 Promise.all([
   import(`https://web.exokit.org/ew.js${window.location.search}`)
   // import(`./exokit-web/ew.js${window.location.search}`)
-    .then(async () => {
+    .then(() => {
       xrScene = document.createElement('xr-scene');
       xrScene.src = 'app.html';
       document.body.appendChild(xrScene);
-
-      await new Promise((accept, reject) => {
-        xrScene.addEventListener('load', () => {
-          accept();
-        });
-      });
     }),
   (async () => {
     let localLoginToken = localStorage.getItem('loginToken');
