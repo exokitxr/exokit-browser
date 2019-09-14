@@ -97,6 +97,26 @@ function escapeRegExp(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
+let loginToken;
+window.addEventListener('message', e => {
+  const {data} = e;
+  const {method} = data;
+  switch (method) {
+    case 'login': {
+      loginToken = data.loginToken;
+      console.log('app login', loginToken);
+
+      const isLoggedIn = !!loginToken;
+      defaultGltf.visible = isLoggedIn;
+      break;
+    }
+    case 'enter2d': {
+      _enter2d();
+      break;
+    }
+  }
+});
+
 /* localforage.config({driver: localforage.INDEXEDDB});
 const chunkSize = 100 * 1024 * 1024;
 localforage.write = (p, d) => new Promise((accept, reject) => {
@@ -5778,25 +5798,6 @@ const _enter2d = () => {
     renderer.domElement.requestPointerLock();
   }
 };
-let loginToken;
-window.addEventListener('message', e => {
-  const {data} = e;
-  const {method} = data;
-  switch (method) {
-    case 'login': {
-      loginToken = data.loginToken;
-      console.log('app login', loginToken);
-
-      const isLoggedIn = !!loginToken;
-      defaultGltf.visible = isLoggedIn;
-      break;
-    }
-    case 'enter2d': {
-      _enter2d();
-      break;
-    }
-  }
-});
 _startFakeVrDisplay()
   .then(() => {
     _bindEventTarget('ui');
