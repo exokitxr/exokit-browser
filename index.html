@@ -59,18 +59,42 @@ header .nav i {
   padding: 0 7px;
   padding-top: 2px;
 }
-header > .wrap {
+header > .login-form {
   display: flex;
   margin-left: auto;
+}
+body.logging-in .login-form,
+header > .login-form:not(.phase-1) > .phase-1-content,
+header > .login-form:not(.phase-2) > .phase-2-content,
+header > .login-form:not(.phase-3) > .phase-3-content,
+header > .login-form.phase-1 > .phaseless-content,
+header > .login-form.phase-2 > .phaseless-content,
+header > .login-form.phase-3 > .phaseless-content
+{
+  display: none;
+}
+input[type=email],
+input[type=text]
+{
+  margin-right: 10px;
+  padding: 7px 15px;
+  background-color: #f2f3f5;
+  border: 0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: inherit;
+  outline: none;
 }
 .button {
   display: inline-block;
   margin-right: 15px;
   padding: 7px 15px;
+  border: 0;
   border-radius: 8px;
   color: #FFF;
   text-decoration: none;
   cursor: pointer;
+  outline: none;
 }
 /* .button:hover {
   background-color: #37474f;
@@ -87,6 +111,17 @@ header > .wrap {
 .button.alt:hover {
   background-color: #2e7d32;
 } */
+.login-form .phase-content {
+  display: flex;
+  align-items: center;
+}
+.login-form .phase-content .login-name {
+  margin-right: 10px;
+  font-weight: 600;
+}
+.login-form .phaseless-content {
+  padding: 0 30px;
+}
 .multibutton {
   position: absolute;
   right: 30px;
@@ -181,9 +216,6 @@ header .popdown {
   /* border: 2px solid rgba(0,0,0,0.5); */
   color: #FFF;
 }
-body.logging-in #login-button,
-body.logging-in #logout-button,
-body.logged-in #login-button,
 body:not(.logged-in) #logout-button,
 body:not(.logged-in) #enter-buttons
 {
@@ -227,21 +259,6 @@ body.logged-in #login-blocker
 }
 .blocker .wrap .button {
   margin: 10px 0;
-}
-#login-popdown {
-  position: absolute;
-  top: 50px;
-  left: 0;
-  width: 100vw;
-  padding: 30px;
-  background-color: rgba(33,33,33,1);
-  border-top: 2px solid #141414;
-}
-#login-popdown > form:not(.phase-1) > .phase-1-content {
-  display: none;
-}
-#login-popdown > form:not(.phase-2) > .phase-2-content {
-  display: none;
 }
 #subscribe-popdown {
   position: absolute;
@@ -335,22 +352,23 @@ canvas {
       <!-- <a class="nav" id="explore-dropdown">Explore</a>
       <a class="nav">Download</a>
       <a class="nav" id="developers-dropdown">Developers<i class="fal fa-chevron-down"></i></a> -->
-      <div class=wrap>
-        <nav class="button highlight" id="login-button">Login</nav>
-        <nav class="button highlight" id="logout-button">Log out</nav>
-      </div>
-      <div class="popdown" id="login-popdown">
-        <form class="phase-1" id="login-form">
-          <div class="phase-1-content">
-            <input type=email placeholder="your@email.com" id="login-email">
-            <input type="submit" value="Log in">
-          </div>
-          <div class="phase-2-content">
-            <input type=text placeholder="Verification code" id="login-verification-code">
-            <input type="submit" value="Verify">
-          </div>
-        </form>
-      </div>
+      <form class="login-form phase-1" id=login-form>
+        <div class="phase-content phase-1-content">
+          <input type=email placeholder="your@email.com" id=login-email>
+          <input type=submit value="Log in" class="button highlight">
+        </div>
+        <div class="phase-content phase-2-content">
+          <input type=text placeholder="Verification code" id=login-verification-code>
+          <input type=submit value="Verify" class="button highlight">
+        </div>
+        <div class="phase-content phase-3-content">
+          <div class=login-name id=login-name></div>
+          <input type=submit value="Log out" class="button highlight">
+        </div>
+        <div class="phase-content phaseless-content">
+          <div>Working...</div>
+        </div>
+      </form>
       <!-- <div class="popdown" id="developers-popdown">
         <ul>
           <li>CLI</li>
@@ -408,7 +426,13 @@ Promise.all([
 
         loginToken = localLoginToken;
 
+        console.log('set login name 1', loginToken.email);
+        loginName.innerText = loginToken.email;
+
         document.body.classList.add('logged-in');
+        loginForm.classList.remove('phase-1');
+        loginForm.classList.remove('phase-2');
+        loginForm.classList.add('phase-3');
       } else {
         localStorage.removeItem('loginToken');
 
@@ -460,14 +484,15 @@ Promise.all([
     console.warn(err);
   });
 
-const loginButton = document.getElementById('login-button');
-const loginButton2 = document.getElementById('login-button-2');
-const loginPopdown = document.getElementById('login-popdown');
+// const loginButton = document.getElementById('login-button');
+// const loginButton2 = document.getElementById('login-button-2');
+// const loginPopdown = document.getElementById('login-popdown');
 const loginForm = document.getElementById('login-form');
 const loginEmail = document.getElementById('login-email');
+const loginName = document.getElementById('login-name');
 const loginVerificationCode = document.getElementById('login-verification-code');
 const logoutButton = document.getElementById('logout-button');
-[loginButton, loginButton2].forEach(b => {
+/* [loginButton, loginButton2].forEach(b => {
   b.onclick = () => {
     loginPopdown.classList.toggle('open');
   };
@@ -481,7 +506,7 @@ logoutButton.onclick = () => {
     loginToken,
   });
   document.body.classList.remove('logged-in');
-};
+}; */
 loginForm.onsubmit = e => {
   e.preventDefault();
 
@@ -510,6 +535,8 @@ loginForm.onsubmit = e => {
   } else if (loginForm.classList.contains('phase-2')) {
     // console.log('login 3', loginVerificationCode.value);
 
+    loginForm.classList.remove('phase-2');
+
     fetch(LAMBDA_URLS.login + `?email=${loginEmail.value}&code=${encodeURIComponent(loginVerificationCode.value)}`, {
       method: 'POST',
     })
@@ -530,12 +557,26 @@ loginForm.onsubmit = e => {
         });
         localStorage.setItem('loginToken', JSON.stringify(loginToken));
 
+        console.log('set login name 2', loginToken.email);
+        loginName.innerText = loginToken.email;
+
         document.body.classList.add('logged-in');
-        loginPopdown.classList.remove('open');
+        loginForm.classList.add('phase-3');
       })
       .catch(err => {
         console.warn(err);
       });
+  } else if (loginForm.classList.contains('phase-3')) {
+    localStorage.removeItem('loginToken');
+
+    loginToken = null;
+    xrScene.postMessage({
+      method: 'login',
+      loginToken,
+    });
+    document.body.classList.remove('logged-in');
+    loginForm.classList.remove('phase-3');
+    loginForm.classList.add('phase-1');
   }
 };
 
