@@ -3,7 +3,7 @@ window.rewriteUrl = u => {
     return u;
   } else {
     const parsedUrl = new URL(u);
-    return 'https://' + parsedUrl.origin.replace(/^(https?):\/\//, '$1-').replace(/:([0-9]+)$/, '-$1').replace(/\./g, '-') + '.proxy.webaverse.com' + parsedUrl.pathname;
+    return 'https://' + parsedUrl.origin.replace(/^(https?):\/\//, '$1-').replace(/:([0-9]+)$/, '-$1').replace(/\./g, '-') + '.proxy.exokit.org' + parsedUrl.pathname;
   }
 };
 
