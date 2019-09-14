@@ -590,18 +590,23 @@ const [
       .then(res => res.json())
       .then(sitesJson => {
         return s => {
-          const regexps = s.split(/\s/).filter(s => !!s).map(s => new RegExp(escapeRegExp(s), 'i'));
-          const results = [];
-          for (let i = 0; i < sitesJson.length; i++) {
-            const site = sitesJson[i];
-            if (regexps.some(regexp => regexp.test(site.label) || regexp.test(site.url))) {
-              results.push(site);
-              if (results.length >= 12) {
-                break;
+          const maxResults = 12;
+          if (s) {
+            const regexps = s.split(/\s/).filter(s => !!s).map(s => new RegExp(escapeRegExp(s), 'i'));
+            const results = [];
+            for (let i = 0; i < sitesJson.length; i++) {
+              const site = sitesJson[i];
+              if (regexps.some(regexp => regexp.test(site.label) || regexp.test(site.url))) {
+                results.push(site);
+                if (results.length >= maxResults) {
+                  break;
+                }
               }
             }
+            return results;
+          } else {
+            return sitesJson.slice(0, maxResults);
           }
-          return results;
         };
       }),
     new Promise((accept, reject) => {
