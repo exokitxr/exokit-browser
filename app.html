@@ -19,7 +19,7 @@
     <script src="skin.js"></script>
     <script src="parse5.js"></script>
     <script src="file-type.js"></script>
-    <script src="fuse.js"></script>
+    <!-- <script src="fuse.js"></script> -->
   </head>
   <body>
     <script type=module>
@@ -96,6 +96,9 @@ function parseQuery(s) {
 }
 function _randomString() {
   return Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
+}
+function escapeRegExp(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
 /* localforage.config({driver: localforage.INDEXEDDB});
@@ -587,59 +590,23 @@ const [
     fetch('sites.json')
       .then(res => res.json())
       .then(sitesJson => {
-        /* const sitesJson = [
-          {
-            label: 'Google',
-            icon: 'https://www.google.com/favicon.ico',
-            url: 'https://google.com',
+        return {
+          search(s) {
+            const regexps = s.split(/\s/).filter(s => !!s).map(s => new RegExp(escapeRegExp(s), 'i'));
+            const results = [];
+            for (let i = 0; i < sitesJson.length; i++) {
+              const site = sitesJson[i];
+              if (regexps.some(regexp => regexp.test(site.label) || regexp.test(site.url))) {
+                results.push(site);
+                if (results.length >= 12) {
+                  break;
+                }
+              }
+            }
+            return results;
           },
-          {
-            label: 'A-Painter',
-            icon: 'https://aframe.io/a-painter/img/icon-256.png',
-            url: 'https://aframe.io/a-painter',
-          },
-          {
-            label: 'Solar System',
-            icon: 'https://immersive-web.github.io/webxr-samples/favicon-96x96.png',
-            url: 'https://rawcdn.githack.com/exokitxr/webxr-samples/8a13dcbb22fa52feadfab7b7f41f85bdb3601a3f/xr-presentation.html',
-          },
-          {
-            label: 'Babylon.js',
-            icon: 'https://doc.babylonjs.com/img/favicon.ico',
-            url: 'https://playground.babylonjs.com/frame.html#TAFSN0',
-          },
-          {
-            label: 'Supercraft',
-            icon: 'https://supermedium.com/supercraft/assets/img/favicon.png',
-            url: 'https://supermedium.com/craft',
-          },
-          {
-            label: 'Moon Rider',
-            icon: 'https://moonrider.xyz/assets/img/favicon.png',
-            url: 'https://moonrider.xyz',
-          },
-          {
-            label: 'A-Blast',
-            icon: 'https://aframe.io/a-blast/assets/images/icon-128.png',
-            url: 'https://aframe.io/a-blast/',
-          },
-          {
-            label: 'Decentraland',
-            icon: 'https://decentraland.org/images/icons/favicon.ico',
-            url: 'https://decentraland.org',
-          },
-          {
-            label: 'Cryptovoxels',
-            icon: 'https://www.cryptovoxels.com/favicon.png',
-            url: 'https://www.cryptovoxels.com/play?vr=enabled',
-          },
-          {
-            label: 'Mozilla Hubs',
-            icon: 'https://hubs.mozilla.com/favicon.ico',
-            url: 'https://hubs.mozilla.com/VxGmqjU/fuchsia-winding-room?vr_entry_type=vr_now',
-          },
-        ]; */
-        return new Fuse(sitesJson, {
+        };
+        /* return new Fuse(sitesJson, {
           shouldSort: true,
           threshold: 0.6,
           location: 0,
@@ -650,7 +617,7 @@ const [
             'label',
             'url',
           ]
-        });
+        }); */
       }),
     new Promise((accept, reject) => {
       const img = new Image();
