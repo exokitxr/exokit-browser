@@ -5784,6 +5784,9 @@ window.addEventListener('message', e => {
     case 'login': {
       loginToken = data.loginToken;
       console.log('app login', loginToken);
+
+      const isLoggedIn = !!loginToken;
+      defaultGltf.visible = isLoggedIn;
       break;
     }
     case 'enter2d': {
@@ -5934,17 +5937,18 @@ const _makeSkinMesh = () => {
   return object;
 };
 
+const defaultGltf = new THREE.Object3D();
+defaultGltf.visible = false;
+scene.add(defaultGltf);
 const _loadDefaultGltf = () => {
   const loader = new THREE.GLTFLoader();
   // const loader = new THREE.LegacyGLTFLoader();
   loader.load('model/sketch.gltf', object => {
     object = object.scene;
 
-    var scaler = new THREE.Group();
-    scaler.add(object);
-    scaler.position.set(-0.5, 0, -1);
-    scaler.scale.setScalar(2);
-    scene.add(scaler);
+    defaultGltf.add(object);
+    defaultGltf.position.set(-0.5, 0, -1);
+    defaultGltf.scale.setScalar(2);
   }, xhr => {}, err => {
     console.warn(err.stack);
   });
