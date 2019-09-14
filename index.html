@@ -346,7 +346,19 @@ let xrScene = null;
 let loginToken = null;
 
 Promise.all([
-  import(`https://web.exokit.org/ew.js${window.location.search}`),
+  import(`https://web.exokit.org/ew.js${window.location.search}`)
+    .then(() => {
+      xrScene = document.createElement('xr-scene');
+      xrScene.src = 'app.html';
+      document.body.appendChild(xrScene);
+
+      xrScene.addEventListener('load', () => {
+        xrScene.postMessage({
+          method: 'login',
+          loginToken,
+        });
+      });
+    }),
   // import(`./exokit-web/ew.js${window.location.search}`),
   (async () => {
     let localLoginToken = localStorage.getItem('loginToken');
@@ -391,17 +403,6 @@ Promise.all([
   })(),
 ])
   .then(() => {
-    xrScene = document.createElement('xr-scene');
-    xrScene.src = 'app.html';
-    document.body.appendChild(xrScene);
-
-    xrScene.addEventListener('load', () => {
-      xrScene.postMessage({
-        method: 'login',
-        loginToken,
-      });
-    });
-    
     const enter2dButton = document.getElementById('enter-2d-button');
     enter2dButton.addEventListener('click', () => {
       xrScene.postMessage({
