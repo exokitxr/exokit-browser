@@ -1,5 +1,5 @@
 window.rewriteUrl = u => {
-  if (!/^https:\/\//.test(u) || /^https:\/\/(?:.+?\.)?webaverse.com/.test(u)) {
+  if (!/^https:\/\//.test(u) || /^https:\/\/(?:.+?\.)?browser.exokit.org/.test(u)) {
     return u;
   } else {
     const parsedUrl = new URL(u);
