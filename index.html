@@ -186,11 +186,9 @@ header .popdown {
 }
 body.logging-in #login-button,
 body.logging-in #logout-button,
-body.logging-in #enter-2d-button,
-body.logging-in #enter-xr-button,
-body.logging-in #no-xr-button,
-header.logged-in #login-button,
-header:not(.logged-in) #logout-button
+body.logged-in #login-button,
+body:not(.logged-in) #logout-button,
+body:not(.logged-in) #enter-buttons
 {
   display: none;
 }
@@ -325,7 +323,7 @@ canvas {
       </div>
     </header>
 
-    <div class=multibutton>
+    <div class=multibutton id=enter-buttons>
       <nav class="button" id="enter-2d-button">Enter 2D</nav>
       <a class=button id="enter-xr-button" style="display: none;">Enter XR</a>
       <a class=button id="no-xr-button" disabled style="display: none;">No XR</a>
@@ -373,7 +371,7 @@ Promise.all([
 
         loginToken = localLoginToken;
 
-        header.classList.add('logged-in');
+        document.body.classList.add('logged-in');
       } else {
         localStorage.removeItem('loginToken');
 
@@ -437,7 +435,7 @@ logoutButton.onclick = () => {
     method: 'login',
     loginToken,
   });
-  header.classList.remove('logged-in');
+  document.body.classList.remove('logged-in');
 };
 loginForm.onsubmit = e => {
   e.preventDefault();
@@ -487,7 +485,7 @@ loginForm.onsubmit = e => {
         });
         localStorage.setItem('loginToken', JSON.stringify(loginToken));
 
-        header.classList.add('logged-in');
+        document.body.classList.add('logged-in');
         loginPopdown.classList.remove('open');
       })
       .catch(err => {
