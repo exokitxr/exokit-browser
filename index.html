@@ -192,6 +192,44 @@ body:not(.logged-in) #enter-buttons
 {
   display: none;
 }
+body.logging-in #login-blocker,
+body.logged-in #login-blocker
+{
+  display: none;
+}
+.blocker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+.blocker .wrap {
+  width: 300px;
+  padding: 50px;
+  background-color: #FFF;
+  border-radius: 8px;
+}
+/* .blocker .wrap i {
+  position: absolute;
+  top: 0;
+  right: 0;
+} */
+.blocker .wrap img {
+  width: 100px;
+  height: 100px;
+}
+.blocker .wrap h1, .blocker .wrap h2, .blocker .wrap h3 {
+  margin: 0;
+  /* font-weight: 300; */
+}
+.blocker .wrap .button {
+  margin: 10px 0;
+}
 #login-popdown {
   position: absolute;
   top: 50px;
@@ -323,6 +361,15 @@ canvas {
       </div>
     </header>
 
+    <div class=blocker id=login-blocker>
+      <div class=wrap>
+        <img class=icon src="logo.svg"/>
+        <h1>Yo!</h1>
+        <h3>Gotta log in first!</h3>
+        <nav class="button highlight" id="login-button-2">Login</nav>
+      </div>
+    </div>
+
     <div class=multibutton id=enter-buttons>
       <nav class="button" id="enter-2d-button">Enter 2D</nav>
       <a class=button id="enter-xr-button" style="display: none;">Enter XR</a>
@@ -419,14 +466,17 @@ Promise.all([
   });
 
 const loginButton = document.getElementById('login-button');
+const loginButton2 = document.getElementById('login-button-2');
 const loginPopdown = document.getElementById('login-popdown');
 const loginForm = document.getElementById('login-form');
 const loginEmail = document.getElementById('login-email');
 const loginVerificationCode = document.getElementById('login-verification-code');
 const logoutButton = document.getElementById('logout-button');
-loginButton.onclick = () => {
-  loginPopdown.classList.toggle('open');
-};
+[loginButton, loginButton2].forEach(b => {
+  b.onclick = () => {
+    loginPopdown.classList.toggle('open');
+  };
+});
 logoutButton.onclick = () => {
   localStorage.removeItem('loginToken');
 
