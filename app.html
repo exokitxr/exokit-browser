@@ -1002,6 +1002,34 @@ const _removeOrbitControls = () => {
   orbitControls = null;
 };
 
+const _mousedown = e => {
+  if (e.button === 0) {
+    const gamepads = navigator.getGamepads();
+    const gamepad = gamepads[1];
+    if (gamepad) {
+      gamepad.buttons[1].pressed = true;
+    }
+    if (!window.document.pointerLockElement && (intersectionSpecs[1] || moveSpecs[1])) {
+      if (orbitControls && ((intersectionSpecs[1] && intersectionSpecs[1].cancel) || moveSpecs[1])) {
+        _removeOrbitControls();
+      }
+    }
+  }
+};
+const _mouseup = e => {
+  if (e.button === 0) {
+    const gamepads = navigator.getGamepads();
+    const gamepad = gamepads[1];
+    if (gamepad) {
+      gamepad.buttons[1].pressed = false;
+    }
+
+    if (!window.document.pointerLockElement) {
+      _addOrbitControls();
+    }
+  }
+};
+
 let unbindEvents = null;
 const _bindEventTarget = target => {
   if (unbindEvents) {
@@ -1202,6 +1230,8 @@ const _bindEventTarget = target => {
           }
         }
       },
+      mousedown: _mousedown,
+      mouseup: _mouseup,
       dblclick(e) {
         if (!(intersectionSpecs[1] && intersectionSpecs[1].cancel)) {
           _enter2d();
@@ -1226,20 +1256,22 @@ const _bindEventTarget = target => {
         renderer.domElement.requestPointerLock();
       }, */
       mousedown(e) {
-        if (window.document.pointerLockElement) {
+        _mousedown(e);
+        /* if (window.document.pointerLockElement) {
           const gamepads = navigator.getGamepads();
           if (gamepads[1]) {
             gamepads[1].buttons[1].pressed = true;
           }
-        }
+        } */
       },
       mouseup(e) {
-        if (window.document.pointerLockElement) {
+        _mouseup(e);
+        /* if (window.document.pointerLockElement) {
           const gamepads = navigator.getGamepads();
           if (gamepads[1]) {
             gamepads[1].buttons[1].pressed = false;
           }
-        }
+        } */
       },
       mousemove(e) {
         if (window.document.pointerLockElement) {
@@ -5661,33 +5693,6 @@ const _startFakeVrDisplay = async () => {
     window.document.xrOffset.inverse.matrix = window.document.xrOffset.matrixInverse;
   }
 
-  window.addEventListener('mousedown', e => {
-    if (e.button === 0) {
-      const gamepads = navigator.getGamepads();
-      const gamepad = gamepads[1];
-      if (gamepad) {
-        gamepad.buttons[1].pressed = true;
-      }
-      if (!window.document.pointerLockElement && (intersectionSpecs[1] || moveSpecs[1])) {
-        if (orbitControls && ((intersectionSpecs[1] && intersectionSpecs[1].cancel) || moveSpecs[1])) {
-          _removeOrbitControls();
-        }
-      }
-    }
-  });
-  window.addEventListener('mouseup', e => {
-    if (e.button === 0) {
-      const gamepads = navigator.getGamepads();
-      const gamepad = gamepads[1];
-      if (gamepad) {
-        gamepad.buttons[1].pressed = false;
-      }
-
-      if (!window.document.pointerLockElement) {
-        _addOrbitControls();
-      }
-    }
-  });
   window.addEventListener('popstate', () => {
     window.location.reload();
   });
