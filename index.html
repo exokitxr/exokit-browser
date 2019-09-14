@@ -48,6 +48,7 @@ header .nav {
   align-items: center;
   border-top: 3px solid transparent;
   border-bottom: 3px solid transparent;
+  color: inherit;
   font-size: 14px;
   text-decoration: none;
 }
@@ -356,7 +357,10 @@ canvas {
   </head>
   <body class=logging-in>
     <header id=header>
-      <img class=icon src="logo.svg"/>
+      <a href="https://browser.exokit.org">
+        <img class=icon src="logo.svg"/>
+      </a>
+      <a href="/" class="nav" id="explore-dropdown">Exokit Browser</a>
       <!-- <a class="nav" id="explore-dropdown">Explore</a>
       <a class="nav">Download</a>
       <a class="nav" id="developers-dropdown">Developers<i class="fal fa-chevron-down"></i></a> -->
