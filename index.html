@@ -617,24 +617,6 @@ developersDropdown.onclick = () => {
   developersDropdown.classList.toggle('open');
   developersPopdown.classList.toggle('open');
 };
-
-/* const uiEl = document.getElementById('ui');
-fetch('interface.html')
-  .then(res => res.text())
-  .then(htmlString => {
-    const dom = new DOMParser().parseFromString(htmlString, 'text/html');
-    const {head, body} = dom;
-    const headChildNodes = Array.from(head.childNodes);
-    for (let i = 0; i < headChildNodes.length; i++) {
-      if (headChildNodes[i] instanceof HTMLStyleElement) {
-        document.head.appendChild(headChildNodes[i]);
-      }
-    }
-    const bodyChildNodes = Array.from(body.childNodes);
-    for (let i = 0; i < bodyChildNodes.length; i++) {
-      uiEl.appendChild(bodyChildNodes[i]);
-    }
-  }); */
     </script>
   </body>
 </html>
