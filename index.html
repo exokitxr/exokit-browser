@@ -115,9 +115,17 @@ input[type=text]
   display: flex;
   align-items: center;
 }
-.login-form .phase-content .login-name {
-  margin-right: 10px;
+.login-form .phase-content .login-name,
+.login-form .phase-content .login-error
+{
+  margin-right: 15px;
   font-weight: 600;
+}
+.login-form .phase-content .login-notice {
+  color: #4caf50;
+}
+.login-form .phase-content .login-error {
+  color: #e53935;
 }
 .login-form .phaseless-content {
   padding: 0 30px;
@@ -353,6 +361,10 @@ canvas {
       <a class="nav">Download</a>
       <a class="nav" id="developers-dropdown">Developers<i class="fal fa-chevron-down"></i></a> -->
       <form class="login-form phase-1" id=login-form>
+        <div class=phase-content>
+          <div class=login-notice id=login-notice></div>
+          <div class=login-error id=login-error></div>
+        </div>
         <div class="phase-content phase-1-content">
           <input type=email placeholder="your@email.com" id=login-email>
           <input type=submit value="Log in" class="button highlight">
@@ -426,7 +438,6 @@ Promise.all([
 
         loginToken = localLoginToken;
 
-        console.log('set login name 1', loginToken.email);
         loginName.innerText = loginToken.email;
 
         document.body.classList.add('logged-in');
@@ -491,6 +502,8 @@ const loginForm = document.getElementById('login-form');
 const loginEmail = document.getElementById('login-email');
 const loginName = document.getElementById('login-name');
 const loginVerificationCode = document.getElementById('login-verification-code');
+const loginNotice = document.getElementById('login-notice');
+const loginError = document.getElementById('login-error');
 const logoutButton = document.getElementById('logout-button');
 /* [loginButton, loginButton2].forEach(b => {
   b.onclick = () => {
@@ -513,6 +526,8 @@ loginForm.onsubmit = e => {
   if (loginForm.classList.contains('phase-1')) {
     // console.log('login 1', loginEmail.value);
 
+    loginNotice.innerText = '';
+    loginError.innerText = '';
     loginForm.classList.remove('phase-1');
 
     fetch(LAMBDA_URLS.login + `?email=${encodeURIComponent(loginEmail.value)}`, {
@@ -522,9 +537,14 @@ loginForm.onsubmit = e => {
         if (res.status >= 200 && res.status < 300) {
           // console.log('login 2', loginEmail.value);
 
+          loginNotice.innerText = `Code sent to ${loginEmail.value}!`;
           loginForm.classList.add('phase-2');
 
           return res.blob();
+        } else if (res.status === 403) {
+          loginError.innerText = `${loginEmail.value} is not in the beta yet :(`;
+
+          loginForm.classList.add('phase-1');
         } else {
           throw new Error(`invalid status code: ${res.status}`);
         }
@@ -535,6 +555,8 @@ loginForm.onsubmit = e => {
   } else if (loginForm.classList.contains('phase-2')) {
     // console.log('login 3', loginVerificationCode.value);
 
+    loginNotice.innerText = '';
+    loginError.innerText = '';
     loginForm.classList.remove('phase-2');
 
     fetch(LAMBDA_URLS.login + `?email=${loginEmail.value}&code=${encodeURIComponent(loginVerificationCode.value)}`, {
@@ -557,7 +579,6 @@ loginForm.onsubmit = e => {
         });
         localStorage.setItem('loginToken', JSON.stringify(loginToken));
 
-        console.log('set login name 2', loginToken.email);
         loginName.innerText = loginToken.email;
 
         document.body.classList.add('logged-in');
@@ -574,6 +595,9 @@ loginForm.onsubmit = e => {
       method: 'login',
       loginToken,
     });
+
+    loginNotice.innerText = '';
+    loginError.innerText = '';
     document.body.classList.remove('logged-in');
     loginForm.classList.remove('phase-3');
     loginForm.classList.add('phase-1');
