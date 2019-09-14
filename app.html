@@ -5325,8 +5325,12 @@ function animate(time, frame) {
 
             renderScene = scene;
           } else if (type === 'key') {
-            const {key} = intersectionSpec;
-            console.log(`click key: ${key}`);
+            if (keyboardFocus) {
+              const {key} = intersectionSpec;
+              const code = keyCode(key);
+              // console.log(`click key: ${key}/${code}`);
+              _handleKey(code, false);
+            }
           } else if (type === 'move-mesh') {
             const {mesh} = intersectionSpec;
             currentMoveMeshes[i] = mesh;
