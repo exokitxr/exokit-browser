@@ -1,5 +1,56 @@
 [
   {
+    "label": "Moon Rider",
+    "description": "Surf the musical road among the stars, moon, and lights.",
+    "url": "https://moonrider.xyz",
+    "icon": "https://supermedium.com/superassets/site/moonrider.jpg"
+  },
+  {
+    "label": "A-Painter",
+    "url": "https://aframe.io/a-painter",
+    "icon": "https://aframe.io/a-painter/img/icon-256.png"
+  },
+  {
+    "label": "Solar System",
+    "url": "https://rawcdn.githack.com/exokitxr/webxr-samples/8a13dcbb22fa52feadfab7b7f41f85bdb3601a3f/xr-presentation.html",
+    "icon": "https://immersive-web.github.io/webxr-samples/favicon-96x96.png"
+  },
+  {
+    "label": "Babylon.js",
+    "url": "https://playground.babylonjs.com/frame.html#TAFSN0",
+    "icon": "https://www.babylonjs.com/assets/img/Page_Logo.svg"
+  },
+  {
+    "label": "Supercraft",
+    "url": "https://supermedium.com/craft",
+    "icon": "https://supermedium.com/supercraft/assets/img/favicon.png"
+  },
+  {
+    "label": "Moon Rider",
+    "url": "https://moonrider.xyz",
+    "icon": "https://moonrider.xyz/assets/img/favicon.png"
+  },
+  {
+    "label": "A-Blast",
+    "url": "https://aframe.io/a-blast/",
+    "icon": "https://aframe.io/a-blast/assets/images/icon-128.png"
+  },
+  {
+    "label": "Decentraland",
+    "url": "https://decentraland.org",
+    "icon": "https://decentraland.org/images/logo.png"
+  },
+  {
+    "label": "Cryptovoxels",
+    "url": "https://www.cryptovoxels.com/play?vr=enabled",
+    "icon": "https://www.cryptovoxels.com/favicon.png"
+  },
+  {
+    "label": "Mozilla Hubs",
+    "url": "https://hubs.mozilla.com/VxGmqjU/fuchsia-winding-room?vr_entry_type=vr_now",
+    "icon": "https://assets-prod.reticulum.io/assets/images/pwaicon-180-hubs.png"
+  },
+  {
     "label": "Soundboxing Beta",
     "description": "A VR music kickboxing game with beats created by people. If you feel the urge to dance, you're doing it right!",
     "url": "https://webvr.soundboxing.co/",
@@ -504,61 +555,5 @@
     "description": "You are followed by a procedurally animated sea space creature. A visual and audio experience.",
     "url": "https://codercat.tk/monster-or-friend/",
     "icon": "https://supermedium.com/superassets/site/monsterorfriend.jpg"
-  },
-  {
-    "label": "Moon Rider",
-    "description": "Surf the musical road among the stars, moon, and lights.",
-    "url": "https://moonrider.xyz",
-    "icon": "https://supermedium.com/superassets/site/moonrider.jpg"
-  },
-  {
-    "label": "Google",
-    "url": "https://google.com",
-    "icon": "https://www.google.com/images/branding/googleg/1x/googleg_standard_color_128dp.png"
-  },
-  {
-    "label": "A-Painter",
-    "url": "https://aframe.io/a-painter",
-    "icon": "https://aframe.io/a-painter/img/icon-256.png"
-  },
-  {
-    "label": "Solar System",
-    "url": "https://rawcdn.githack.com/exokitxr/webxr-samples/8a13dcbb22fa52feadfab7b7f41f85bdb3601a3f/xr-presentation.html",
-    "icon": "https://immersive-web.github.io/webxr-samples/favicon-96x96.png"
-  },
-  {
-    "label": "Babylon.js",
-    "url": "https://playground.babylonjs.com/frame.html#TAFSN0",
-    "icon": "https://www.babylonjs.com/assets/img/Page_Logo.svg"
-  },
-  {
-    "label": "Supercraft",
-    "url": "https://supermedium.com/craft",
-    "icon": "https://supermedium.com/supercraft/assets/img/favicon.png"
-  },
-  {
-    "label": "Moon Rider",
-    "url": "https://moonrider.xyz",
-    "icon": "https://moonrider.xyz/assets/img/favicon.png"
-  },
-  {
-    "label": "A-Blast",
-    "url": "https://aframe.io/a-blast/",
-    "icon": "https://aframe.io/a-blast/assets/images/icon-128.png"
-  },
-  {
-    "label": "Decentraland",
-    "url": "https://decentraland.org",
-    "icon": "https://decentraland.org/images/logo.png"
-  },
-  {
-    "label": "Cryptovoxels",
-    "url": "https://www.cryptovoxels.com/play?vr=enabled",
-    "icon": "https://www.cryptovoxels.com/favicon.png"
-  },
-  {
-    "label": "Mozilla Hubs",
-    "url": "https://hubs.mozilla.com/VxGmqjU/fuchsia-winding-room?vr_entry_type=vr_now",
-    "icon": "https://assets-prod.reticulum.io/assets/images/pwaicon-180-hubs.png"
   }
 ]
