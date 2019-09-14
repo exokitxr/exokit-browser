@@ -97,6 +97,8 @@ function escapeRegExp(s) {
 }
 
 let loginToken;
+let defaultGltf = new THREE.Object3D();
+defaultGltf.visible = false;
 window.addEventListener('message', e => {
   const {data} = e;
   const {method} = data;
@@ -5897,8 +5899,6 @@ const _makeSkinMesh = () => {
   return object;
 };
 
-const defaultGltf = new THREE.Object3D();
-defaultGltf.visible = false;
 scene.add(defaultGltf);
 const _loadDefaultGltf = () => {
   const loader = new THREE.GLTFLoader();
