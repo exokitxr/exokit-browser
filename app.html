@@ -1167,46 +1167,48 @@ const _bindEventTarget = target => {
         }
       }, */
       keydown(e) {
-        if (keyboardFocus) {
-          _handleKey(e.keyCode, e.shiftKey);
-        } else {
-          switch (e.which) {
-            case 69: { // E
-              const gamepads = navigator.getGamepads();
-              if (gamepads[1]) {
-                gamepads[1].buttons[5].pressed = true;
-              }
-              break;
-            }
-            case 70: { // F
-              const gamepads = navigator.getGamepads();
-              if (gamepads[1]) {
-                gamepads[1].buttons[2].pressed = true;
-              }
-              break;
-            }
-            case 46: { // del
-              for (let i = 0; i < currentMoveMeshes.length; i++) {
-                const moveMesh = currentMoveMeshes[i];
-                if (moveMesh) {
-                  const {xrIframe} = moveMesh;
-                  layers.splice(layers.indexOf(xrIframe), 1);
-                  xrIframe.destroy();
-                  scene.remove(moveMesh);
-                  moveMeshes.splice(moveMeshes.indexOf(moveMesh), 1);
-                  currentMoveMeshes[i] = null;
+        if (loginToken) {
+          if (keyboardFocus) {
+            _handleKey(e.keyCode, e.shiftKey);
+          } else {
+            switch (e.which) {
+              case 69: { // E
+                const gamepads = navigator.getGamepads();
+                if (gamepads[1]) {
+                  gamepads[1].buttons[5].pressed = true;
                 }
+                break;
               }
-              break;
+              case 70: { // F
+                const gamepads = navigator.getGamepads();
+                if (gamepads[1]) {
+                  gamepads[1].buttons[2].pressed = true;
+                }
+                break;
+              }
+              case 46: { // del
+                for (let i = 0; i < currentMoveMeshes.length; i++) {
+                  const moveMesh = currentMoveMeshes[i];
+                  if (moveMesh) {
+                    const {xrIframe} = moveMesh;
+                    layers.splice(layers.indexOf(xrIframe), 1);
+                    xrIframe.destroy();
+                    scene.remove(moveMesh);
+                    moveMeshes.splice(moveMeshes.indexOf(moveMesh), 1);
+                    currentMoveMeshes[i] = null;
+                  }
+                }
+                break;
+              }
+              /* case 82: { // R
+                _endFakeVrDisplay()
+                  .then(() => _enterXr())
+                  .catch(err => {
+                    console.warn(err.stack);
+                  });
+                break;
+              } */
             }
-            /* case 82: { // R
-              _endFakeVrDisplay()
-                .then(() => _enterXr())
-                .catch(err => {
-                  console.warn(err.stack);
-                });
-              break;
-            } */
           }
         }
       },
