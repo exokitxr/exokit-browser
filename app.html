@@ -19,7 +19,6 @@
     <script src="skin.js"></script>
     <script src="parse5.js"></script>
     <script src="file-type.js"></script>
-    <!-- <script src="fuse.js"></script> -->
   </head>
   <body>
     <script type=module>
@@ -532,7 +531,7 @@ const [
   keyboardImg,
   uiIframe,
   interfaceHtml,
-  fuse,
+  searchSitesJson,
   keyboardHighlightCanvasCtx,
   keyMap,
   fontJson,
@@ -590,34 +589,20 @@ const [
     fetch('sites.json')
       .then(res => res.json())
       .then(sitesJson => {
-        return {
-          search(s) {
-            const regexps = s.split(/\s/).filter(s => !!s).map(s => new RegExp(escapeRegExp(s), 'i'));
-            const results = [];
-            for (let i = 0; i < sitesJson.length; i++) {
-              const site = sitesJson[i];
-              if (regexps.some(regexp => regexp.test(site.label) || regexp.test(site.url))) {
-                results.push(site);
-                if (results.length >= 12) {
-                  break;
-                }
+        return s => {
+          const regexps = s.split(/\s/).filter(s => !!s).map(s => new RegExp(escapeRegExp(s), 'i'));
+          const results = [];
+          for (let i = 0; i < sitesJson.length; i++) {
+            const site = sitesJson[i];
+            if (regexps.some(regexp => regexp.test(site.label) || regexp.test(site.url))) {
+              results.push(site);
+              if (results.length >= 12) {
+                break;
               }
             }
-            return results;
-          },
+          }
+          return results;
         };
-        /* return new Fuse(sitesJson, {
-          shouldSort: true,
-          threshold: 0.6,
-          location: 0,
-          distance: 100,
-          maxPatternLength: 32,
-          minMatchCharLength: 1,
-          keys: [
-            'label',
-            'url',
-          ]
-        }); */
       }),
     new Promise((accept, reject) => {
       const img = new Image();
@@ -3210,7 +3195,7 @@ const _renderUi = searchString => new Promise((accept, reject) => {
     }
   };
 
-  const searchResults = fuse.search(searchString).slice(0, 12);
+  const searchResults = searchSitesJson(searchString);
 
   uiIframe.contentWindow.postMessage({
     method: 'render',
