@@ -6,6 +6,11 @@
   "dependencies": {
     "express": "^4.17.1"
   },
+  "devDependencies": {
+    "image-size": "^0.7.4",
+    "sharp": "^0.23.0",
+    "window-fetch": "0.0.13"
+  },
   "scripts": {
     "start": "sudo $(which node) index.js",
     "build": "cd menu && react-scripts build",
