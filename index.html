@@ -306,16 +306,49 @@ canvas {
     <div class=ui id=ui></div>
     <script src="https://kit.fontawesome.com/0735724151.js"></script>
     <script type=module>
-let xrScene = null;
+const LAMBDA_URLS = {
+  login: `https://login.webaverse.com/`,
+  token: `https://token.webaverse.com/token`,
+  tokens: `https://token.webaverse.com/tokens`,
+  coords: `https://token.webaverse.com/coords`,
+  presence: `wss://presence.webaverse.com/`,
+  browser: `https://browser.webaverse.com/`,
+};
 
-import(`https://web.exokit.org/ew.js${window.location.search}`)
-// import(`./exokit-web/ew.js${window.location.search}`)
+let xrScene = null;
+let loginToken = null;
+
+Promise.all([
+  import(`https://web.exokit.org/ew.js${window.location.search}`),
+  // import(`./exokit-web/ew.js${window.location.search}`),
+  (async () => {
+    let localLoginToken = localStorage.getItem('loginToken');
+    if (localLoginToken) {
+      localLoginToken = JSON.parse(localLoginToken);
+
+      const res = await fetch(LAMBDA_URLS.login + `?email=${encodeURIComponent(localLoginToken.email)}&token=${encodeURIComponent(localLoginToken.token)}`, {
+        method: 'POST',
+      })
+      if (res.status >= 200 && res.status < 300) {
+        res.json();
+
+        loginToken = localLoginToken;
+
+        header.classList.add('logged-in');
+      } else {
+        localStorage.removeItem('loginToken');
+
+        console.warn(`invalid status code: ${res.status}`);
+      }
+    }
+  })(),
+])
   .then(() => {
     xrScene = document.createElement('xr-scene');
     xrScene.src = 'app.html';
     document.body.appendChild(xrScene);
 
-    loginToken && xrScene.postMessage({
+    xrScene.postMessage({
       method: 'login',
       loginToken,
     });
@@ -336,15 +369,6 @@ import(`https://web.exokit.org/ew.js${window.location.search}`)
     });
   });
 
-const LAMBDA_URLS = {
-  login: `https://login.webaverse.com/`,
-  token: `https://token.webaverse.com/token`,
-  tokens: `https://token.webaverse.com/tokens`,
-  coords: `https://token.webaverse.com/coords`,
-  presence: `wss://presence.webaverse.com/`,
-  browser: `https://browser.webaverse.com/`,
-};
-
 const loginButton = document.getElementById('login-button');
 const loginPopdown = document.getElementById('login-popdown');
 const loginForm = document.getElementById('login-form');
@@ -357,8 +381,8 @@ loginButton.onclick = () => {
 logoutButton.onclick = () => {
   localStorage.removeItem('loginToken');
 
-  loginToken = undefined;
-  xrScene && xrScene.postMessage({
+  loginToken = null;
+  xrScene.postMessage({
     method: 'login',
     loginToken,
   });
@@ -406,7 +430,7 @@ loginForm.onsubmit = e => {
         // console.log('login 4', newLoginToken);
 
         loginToken = newLoginToken;
-        xrScene && xrScene.postMessage({
+        xrScene.postMessage({
           method: 'login',
           loginToken,
         });
@@ -420,38 +444,6 @@ loginForm.onsubmit = e => {
       });
   }
 };
-let loginToken = localStorage.getItem('loginToken');
-if (loginToken) {
-  loginToken = JSON.parse(loginToken);
-
-  // console.log('login token 1');
-
-  fetch(LAMBDA_URLS.login + `?email=${encodeURIComponent(loginToken.email)}&token=${encodeURIComponent(loginToken.token)}`, {
-    method: 'POST',
-  })
-    .then(res => {
-      if (res.status >= 200 && res.status < 300) {
-        return res.json();
-      } else {
-        throw new Error(`invalid status code: ${res.status}`);
-      }
-    })
-    .then(() => {
-      // console.log('login token 2');
-
-      xrScene && xrScene.postMessage({
-        method: 'login',
-        loginToken,
-      });
-      header.classList.add('logged-in');
-    })
-    .catch(err => {
-      console.warn(err);
-
-      loginToken = undefined;
-      localStorage.removeItem('loginToken');
-    });
-}
 
 // const exploreLabel = document.getElementById('explore-label');
 // const exploreContent = document.getElementById('explore-content');
