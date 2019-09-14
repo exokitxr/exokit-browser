@@ -70,33 +70,42 @@ header > .wrap {
   display: inline-block;
   margin-right: 15px;
   padding: 7px 15px;
-  border-radius: 100px;
+  border-radius: 8px;
   color: #FFF;
-  background-color: #455a64;
   text-decoration: none;
   cursor: pointer;
 }
-.button:hover {
+/* .button:hover {
   background-color: #37474f;
-}
+} */
 .button.highlight {
   background-color: #ef5350;
 }
 .button.highlight:hover {
   background-color: #d32f2f;
 }
-.button.alt {
+/* .button.alt {
   background-color: #4caf50;
 }
 .button.alt:hover {
   background-color: #2e7d32;
-}
+} */
 .multibutton {
+  position: absolute;
+  right: 30px;
+  bottom: 30px;
   display: flex;
-  margin-right: 15px;
 }
 .multibutton > .button {
-  margin-right: 1px;
+  margin-right: 5px;
+}
+.multibutton > .button {
+  display: inline-flex;
+  padding: 8px 20px;
+  border: 2px solid;
+  border-radius: 100px;
+  color: #5c6bc0;
+  cursor: pointer;
 }
 .multibutton > .button:not(:first-child) {
   border-top-left-radius: 0;
@@ -105,6 +114,15 @@ header > .wrap {
 .multibutton > .button:not(:last-child) {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
+}
+.multibutton  .button:not([disabled]):hover {
+  background-color: #5c6bc0;
+  border-color: #5c6bc0;
+  color: #FFF;
+}
+.multibutton .button[disabled] {
+  color: #b71c1c;
+  cursor: auto;
 }
 header .popup {
   position: absolute;
@@ -277,10 +295,6 @@ canvas {
       <a class="nav">Download</a>
       <a class="nav" id="developers-dropdown">Developers<i class="fal fa-chevron-down"></i></a>
       <div class=wrap>
-        <div class=multibutton>
-          <nav class="button" id="enter-2d-button">Enter 2D</nav>
-          <nav class="button" id="enter-xr-button">Enter XR</nav>
-        </div>
         <nav class="button highlight" id="login-button">Login</nav>
         <nav class="button highlight" id="logout-button">Log out</nav>
       </div>
@@ -303,7 +317,13 @@ canvas {
         </ul>
       </div>
     </header>
-    <div class=ui id=ui></div>
+
+    <div class=multibutton>
+      <nav class="button" id="enter-2d-button">Enter 2D</nav>
+      <a class=button id="enter-xr-button" style="display: none;">Enter XR</a>
+      <a class=button id="no-xr-button" disabled style="display: none;">No XR</a>
+    </div>
+
     <script src="https://kit.fontawesome.com/0735724151.js"></script>
     <script type=module>
 const LAMBDA_URLS = {
@@ -342,20 +362,38 @@ Promise.all([
       }
     }
   })(),
+  (async () => {
+    let result;
+    if (navigator.xr) {
+      try {
+        await navigator.xr.supportsSession('immersive-vr');
+        result = true;
+      } catch (err) {
+        result = false;
+      }
+    } else {
+      result = false;
+    }
+    if (result) {
+      console.log('xr available');
+      document.getElementById('enter-xr-button').style.display = null;
+    } else {
+      console.log('no xr');
+      document.getElementById('no-xr-button').style.display = null;
+    }
+  })(),
 ])
   .then(() => {
     xrScene = document.createElement('xr-scene');
     xrScene.src = 'app.html';
     document.body.appendChild(xrScene);
 
-    xrScene.postMessage({
-      method: 'login',
-      loginToken,
+    xrScene.addEventListener('load', () => {
+      xrScene.postMessage({
+        method: 'login',
+        loginToken,
+      });
     });
-    
-    /* xrScene.addEventListener('message', e => {
-      console.log('index got message', e);
-    }); */
     
     const enter2dButton = document.getElementById('enter-2d-button');
     enter2dButton.addEventListener('click', () => {
@@ -367,6 +405,9 @@ Promise.all([
     enterXrButton.addEventListener('click', () => {
       xrScene.enterXr();
     });
+  })
+  .catch(err => {
+    console.warn(err);
   });
 
 const loginButton = document.getElementById('login-button');
