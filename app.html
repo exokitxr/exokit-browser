@@ -523,27 +523,6 @@ if (!/helio/i.test(navigator.userAgent)) {
 }
 
 const [
-  /* layersImg,
-  browserImg,
-  mapImg,
-  diceImg,
-  dice2Img,
-  cogsImg,
-  chevronUpImg,
-  chevronDownImg,
-  chevronLeftImg,
-  chevronRightImg,
-  arrowUpImg,
-  arrowDownImg,
-  arrowLeftImg,
-  arrowRightImg,
-  timesImg,
-  crosshairImg,
-  plusImg,
-  locationImg,
-  saveImg,
-  xImg,
-  faviconImg, */
   keyboardImg,
   uiIframe,
   interfaceHtml,
@@ -554,27 +533,6 @@ const [
   fontTexture,
 ] = await Promise.all(
   [
-    /* 'layers.png',
-    'browser.png',
-    'map.png',
-    'dice.png',
-    'dice2.png',
-    'cogs.png',
-    'chevron-up.png',
-    'chevron-down.png',
-    'chevron-left.png',
-    'chevron-right.png',
-    'arrow-up.png',
-    'arrow-down.png',
-    'arrow-left.png',
-    'arrow-right.png',
-    'times.png',
-    'crosshair.png',
-    'plus.png',
-    'location.png',
-    'save.png',
-    'x.png',
-    'favicon.ico', */
     'keyboard.png',
   ].map(src => new Promise((accept, reject) => {
     const img = new Image();
