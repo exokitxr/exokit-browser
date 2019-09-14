@@ -3264,7 +3264,6 @@ const _makeScreenMesh = () => {
   canvas.height = uiSize;
   const ctx = canvas.getContext('2d');
   ctx.font = '300 80px Open Sans';
-  let imageData = null;
   const _updateMeasures = () => {
     measures.length = 0;
     measures.push(0);
@@ -3278,9 +3277,10 @@ const _makeScreenMesh = () => {
 
   const urlInputPadding = [40, 53];
   const _updateTextureStatic = () => {
-    ctx.putImageData(imageData, 0, 0);
-
     const urlInputAnchor = anchors.find(anchor => anchor.id === 'url-input');
+
+    ctx.fillStyle = '#f2f3f5';
+    ctx.fillRect(urlInputAnchor.x + urlInputPadding[0] - 4, urlInputAnchor.y + urlInputAnchor.height*0.2, urlInputAnchor.width - urlInputPadding[0]*2 + 4, urlInputAnchor.height*0.6);
 
     ctx.fillStyle = 'black';
     ctx.textBaseline = 'bottom';
@@ -3298,12 +3298,11 @@ const _makeScreenMesh = () => {
   const _updateTextureDynamic = async () => {
     const result = await _renderUi(text);
     if (result.data) {
-      imageData = new ImageData(new Uint8ClampedArray(result.data.buffer, result.data.byteOffset, result.data.byteLength), uiSize, uiSize);
+      ctx.putImageData(new ImageData(new Uint8ClampedArray(result.data.buffer, result.data.byteOffset, result.data.byteLength), uiSize, uiSize), 0, 0);
     }
     anchors = result.anchors;
     // console.log('got anchors', JSON.stringify(anchors));
 
-    // _updateMeasures();
     _updateTextureStatic();
 
     /* const img = screenImgs[screenIndex];
