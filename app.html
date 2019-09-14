@@ -1235,7 +1235,7 @@ const _bindEventTarget = target => {
       mousedown: _mousedown,
       mouseup: _mouseup,
       dblclick(e) {
-        if (!(intersectionSpecs[1] && intersectionSpecs[1].cancel)) {
+        if (loginToken && !(intersectionSpecs[1] && intersectionSpecs[1].cancel)) {
           _enter2d();
         }
       },
