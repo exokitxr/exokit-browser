@@ -104,7 +104,7 @@ async function _fetchData(u) {
   } else if (u && u instanceof ArrayBuffer) {
     return {
       arrayBuffer: u,
-      baseUrl: 'https://content.webaverse.com/',
+      baseUrl: 'https://content.exokit.org/',
     };
   } else {
     throw new Error(`could not fetch data`);
