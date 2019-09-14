@@ -1,7 +1,7 @@
 {
-  "name": "webaverse",
+  "name": "exokit-browser",
   "version": "0.0.1",
-  "description": "Webaverse",
+  "description": "Exokit Browser",
   "main": "index.js",
   "dependencies": {
     "express": "^4.17.1"
