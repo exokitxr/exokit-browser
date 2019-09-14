@@ -1003,7 +1003,7 @@ const _removeOrbitControls = () => {
 };
 
 const _mousedown = e => {
-  if (e.button === 0) {
+  if (loginToken && e.button === 0) {
     const gamepads = navigator.getGamepads();
     const gamepad = gamepads[1];
     if (gamepad) {
@@ -1017,7 +1017,7 @@ const _mousedown = e => {
   }
 };
 const _mouseup = e => {
-  if (e.button === 0) {
+  if (loginToken && e.button === 0) {
     const gamepads = navigator.getGamepads();
     const gamepad = gamepads[1];
     if (gamepad) {
