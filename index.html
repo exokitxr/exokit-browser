@@ -334,9 +334,9 @@ canvas {
   <body class=logging-in>
     <header id=header>
       <img class=icon src="logo.svg"/>
-      <a class="nav" id="explore-dropdown">Explore</a>
+      <!-- <a class="nav" id="explore-dropdown">Explore</a>
       <a class="nav">Download</a>
-      <a class="nav" id="developers-dropdown">Developers<i class="fal fa-chevron-down"></i></a>
+      <a class="nav" id="developers-dropdown">Developers<i class="fal fa-chevron-down"></i></a> -->
       <div class=wrap>
         <nav class="button highlight" id="login-button">Login</nav>
         <nav class="button highlight" id="logout-button">Log out</nav>
@@ -585,7 +585,7 @@ const _renderItems = items => {
       const {type} = item;
       const coords = _getCoordsFromBindingUrl(item.bindingUrl);
       return `<li>
-        
+
         <a id=img-${index+1}><img src="skin.png"></a>
         <div class=tag>
         ${(() => {
