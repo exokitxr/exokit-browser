@@ -1255,24 +1255,8 @@ const _bindEventTarget = target => {
       /* click(e) {
         renderer.domElement.requestPointerLock();
       }, */
-      mousedown(e) {
-        _mousedown(e);
-        /* if (window.document.pointerLockElement) {
-          const gamepads = navigator.getGamepads();
-          if (gamepads[1]) {
-            gamepads[1].buttons[1].pressed = true;
-          }
-        } */
-      },
-      mouseup(e) {
-        _mouseup(e);
-        /* if (window.document.pointerLockElement) {
-          const gamepads = navigator.getGamepads();
-          if (gamepads[1]) {
-            gamepads[1].buttons[1].pressed = false;
-          }
-        } */
-      },
+      mousedown: _mousedown,
+      mouseup: _mouseup,
       mousemove(e) {
         if (window.document.pointerLockElement) {
           const {movementX, movementY} = e;
