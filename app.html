@@ -3705,7 +3705,7 @@ const screenMesh = _makeScreenMesh();
 screenMesh.position.set(0, 1.6, -1.25);
 scene.add(screenMesh);
 
-const _makeParcelMesh = () => {
+const _makeParcelTextMesh = () => {
   const mesh = new THREE.Object3D();
   mesh.visible = false;
 
@@ -3742,8 +3742,8 @@ const _makeParcelMesh = () => {
   };
   return mesh;
 };
-const parcelMesh = _makeParcelMesh();
-scene.add(parcelMesh);
+const parcelTextMesh = _makeParcelTextMesh();
+scene.add(parcelTextMesh);
 
 const _makeRoomMesh = (sx, sy, sz, dx, dy, dz, color) => {
   const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
@@ -5045,7 +5045,7 @@ function animate(time, frame) {
         }
       }
 
-      parcelMesh.popup(coords[0], coords[1]);
+      parcelTextMesh.popup(coords[0], coords[1]);
     }
   };
   _updateScene();
@@ -5056,10 +5056,10 @@ function animate(time, frame) {
   };
   _updateSecureScene();
 
-  const _updateParcelMesh = () => {
-    parcelMesh.update();
+  const _updateParcelTextMesh = () => {
+    parcelTextMesh.update();
   };
-  _updateParcelMesh();
+  _updateParcelTextMesh();
 
   const _updateIntersections = () => {
     for (let i = 0; i < 2; i++) {
