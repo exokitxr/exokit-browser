@@ -523,7 +523,7 @@ if (!/helio/i.test(navigator.userAgent)) {
 }
 
 const [
-  layersImg,
+  /* layersImg,
   browserImg,
   mapImg,
   diceImg,
@@ -543,7 +543,7 @@ const [
   locationImg,
   saveImg,
   xImg,
-  faviconImg,
+  faviconImg, */
   keyboardImg,
   uiIframe,
   interfaceHtml,
@@ -554,7 +554,7 @@ const [
   fontTexture,
 ] = await Promise.all(
   [
-    'layers.png',
+    /* 'layers.png',
     'browser.png',
     'map.png',
     'dice.png',
@@ -574,7 +574,7 @@ const [
     'location.png',
     'save.png',
     'x.png',
-    'favicon.ico',
+    'favicon.ico', */
     'keyboard.png',
   ].map(src => new Promise((accept, reject) => {
     const img = new Image();
