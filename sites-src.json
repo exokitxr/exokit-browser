@@ -506,12 +506,6 @@
     "icon": "https://supermedium.com/superassets/site/monsterorfriend.jpg"
   },
   {
-    "label": "Moon Rider",
-    "description": "Surf the musical road among the stars, moon, and lights.",
-    "url": "https://moonrider.xyz",
-    "icon": "https://supermedium.com/superassets/site/moonrider.jpg"
-  },
-  {
     "label": "A-Painter",
     "url": "https://aframe.io/a-painter",
     "icon": "https://aframe.io/a-painter/img/icon-256.png"
@@ -520,6 +514,12 @@
     "label": "Solar System",
     "url": "https://rawcdn.githack.com/exokitxr/webxr-samples/8a13dcbb22fa52feadfab7b7f41f85bdb3601a3f/xr-presentation.html",
     "icon": "https://immersive-web.github.io/webxr-samples/favicon-96x96.png"
+  },
+  {
+    "label": "Moon Rider",
+    "description": "Surf the musical road among the stars, moon, and lights.",
+    "url": "https://moonrider.xyz",
+    "icon": "https://supermedium.com/superassets/site/moonrider.jpg"
   },
   {
     "label": "Babylon.js",
