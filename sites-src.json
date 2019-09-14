@@ -512,11 +512,6 @@
     "icon": "https://supermedium.com/superassets/site/moonrider.jpg"
   },
   {
-    "label": "Google",
-    "url": "https://google.com",
-    "icon": "https://www.google.com/images/branding/googleg/1x/googleg_standard_color_128dp.png"
-  },
-  {
     "label": "A-Painter",
     "url": "https://aframe.io/a-painter",
     "icon": "https://aframe.io/a-painter/img/icon-256.png"
