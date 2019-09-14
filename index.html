@@ -184,7 +184,14 @@ header .popdown {
   /* border: 2px solid rgba(0,0,0,0.5); */
   color: #FFF;
 }
-header.logged-in #login-button, header:not(.logged-in) #logout-button {
+body.logging-in #login-button,
+body.logging-in #logout-button,
+body.logging-in #enter-2d-button,
+body.logging-in #enter-xr-button,
+body.logging-in #no-xr-button,
+header.logged-in #login-button,
+header:not(.logged-in) #logout-button
+{
   display: none;
 }
 #login-popdown {
@@ -288,7 +295,7 @@ canvas {
 } */
     </style>
   </head>
-  <body>
+  <body class=logging-in>
     <header id=header>
       <img class=icon src="logo.svg"/>
       <a class="nav" id="explore-dropdown">Explore</a>
@@ -405,6 +412,8 @@ Promise.all([
     enterXrButton.addEventListener('click', () => {
       xrScene.enterXr();
     });
+
+    document.body.classList.remove('logging-in');
   })
   .catch(err => {
     console.warn(err);
