@@ -526,8 +526,8 @@ loginForm.onsubmit = e => {
   if (loginForm.classList.contains('phase-1')) {
     // console.log('login 1', loginEmail.value);
 
-    loginNotice.innerText = '';
-    loginError.innerText = '';
+    loginNotice.innerHTML = '';
+    loginError.innerHTML = '';
     loginForm.classList.remove('phase-1');
 
     fetch(LAMBDA_URLS.login + `?email=${encodeURIComponent(loginEmail.value)}`, {
@@ -555,8 +555,8 @@ loginForm.onsubmit = e => {
   } else if (loginForm.classList.contains('phase-2')) {
     // console.log('login 3', loginVerificationCode.value);
 
-    loginNotice.innerText = '';
-    loginError.innerText = '';
+    loginNotice.innerHTML = '';
+    loginError.innerHTML = '';
     loginForm.classList.remove('phase-2');
 
     fetch(LAMBDA_URLS.login + `?email=${loginEmail.value}&code=${encodeURIComponent(loginVerificationCode.value)}`, {
@@ -596,8 +596,8 @@ loginForm.onsubmit = e => {
       loginToken,
     });
 
-    loginNotice.innerText = '';
-    loginError.innerText = '';
+    loginNotice.innerHTML = '';
+    loginError.innerHTML = '';
     document.body.classList.remove('logged-in');
     loginForm.classList.remove('phase-3');
     loginForm.classList.add('phase-1');
