@@ -53,16 +53,16 @@
     "icon": "https://supermedium.com/superassets/site/jellyface.jpg"
   },
   {
-    "label": "Ocean of Thought",
-    "description": "A surreal and relaxive music experience for Machine Drum's Ocean of Thought.",
-    "url": "https://patches.vizor.io/machinedrum/ocean-of-thought",
-    "icon": "https://supermedium.com/superassets/site/oceanofthought.jpg"
-  },
-  {
     "label": "Gunters of OASIS",
     "description": "Hundreds of generated worlds, among one lies a golden egg. First gunters to find it inherit half a hundred dollars and the OASIS.",
     "url": "https://supermedium.com/gunters-of-oasis-deploy/",
     "icon": "https://supermedium.com/superassets/site/guntersofoasis.jpg"
+  },
+  {
+    "label": "Pokemon",
+    "description": "Stand from the trainer's stand at the Pokemon Stadium with Pikachu against Charizard.",
+    "url": "https://supermedium.com/superframe/scenes/pokemon/",
+    "icon": "https://supermedium.com/superassets/site/pokemon.jpg"
   },
   {
     "label": "Origami Simulator",
@@ -339,12 +339,6 @@
     "description": "Fire some confetti and play the record. A small lab demonstrating various interactions in VR. Teleport, grab, throw.",
     "url": "https://playcanv.as//index/GgVZJtha",
     "icon": "https://supermedium.com/superassets/site/playcanvaswebvrlab.jpg"
-  },
-  {
-    "label": "Pokemon",
-    "description": "Stand from the trainer's stand at the Pokemon Stadium with Pikachu against Charizard.",
-    "url": "https://supermedium.com/superframe/scenes/pokemon/",
-    "icon": "https://supermedium.com/superassets/site/pokemon.jpg"
   },
   {
     "label": "Destroyed Subway",
