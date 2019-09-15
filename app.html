@@ -109,7 +109,9 @@ window.addEventListener('message', e => {
 
       const isLoggedIn = !!loginToken;
       defaultGltf.visible = isLoggedIn;
-      orbitControls.enabled = isLoggedIn;
+      if (orbitControls) {
+        orbitControls.enabled = isLoggedIn;
+      }
       break;
     }
     case 'enter2d': {
@@ -974,6 +976,7 @@ const _addOrbitControls = () => {
   orbitCamera.updateMatrixWorld();
   orbitControls.target.copy(orbitCamera.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(orbitCamera.quaternion));
   orbitControls.screenSpacePanning = true;
+  orbitControls.enabled = !!loginToken;
   orbitControls.update();
 };
 const _removeOrbitControls = () => {
