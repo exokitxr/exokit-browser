@@ -23,7 +23,7 @@
     <script type=module>
 (async () => {
 
-let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastGripped = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], menuOpen = false, orbitCamera = null, orbitControls = null, transformControls, currentMoveMeshes = [null, null], moveMeshes = [], rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], currentSceneToken = null, selectedSceneToken = null, guardianMeshes = [], baseMeshes = [], sceneMeshes = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null, user = null;
+let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastGripped = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], menuOpen = false, orbitControls = null, transformControls, currentMoveMeshes = [null, null], moveMeshes = [], rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], currentSceneToken = null, selectedSceneToken = null, guardianMeshes = [], baseMeshes = [], sceneMeshes = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null, user = null;
 const mouse = {
   position: new THREE.Vector3(),
   quaternion: new THREE.Quaternion(),
@@ -109,6 +109,7 @@ window.addEventListener('message', e => {
 
       const isLoggedIn = !!loginToken;
       defaultGltf.visible = isLoggedIn;
+      orbitControls.enabled = isLoggedIn;
       break;
     }
     case 'enter2d': {
@@ -965,11 +966,8 @@ scene.add(targetMesh); */
 // events
 
 const _addOrbitControls = () => {
-  orbitCamera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+  const orbitCamera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
   orbitControls = new THREE.OrbitControls(orbitCamera, renderer.domElement);
-  if(!loginToken){
-    orbitControls.enabled = false;
-  }
   orbitCamera.position.copy(fakeXrDisplay.position);
   orbitCamera.quaternion.copy(fakeXrDisplay.quaternion);
   scene.add(orbitCamera);
@@ -4771,21 +4769,12 @@ const _handleKey = (code, shiftKey) => {
 const startTime = Date.now();
 let lastTime = 0;
 const lastSceneCoords = [NaN, NaN];
-var angle = 0;
-var radius = .5;
 function animate(time, frame) {
   const now = Date.now();
   const timeDiff = now - lastTime;
   const startTimeDiff = now - startTime;
 
   const gamepads = navigator.getGamepads();
-
-  if(!loginToken){
-    orbitCamera.position.x = radius * Math.cos( angle );
-    orbitCamera.position.z = radius * Math.sin( angle );
-    camera.lookAt(new THREE.Vector3(0,0,0));
-    angle += 0.005;
-  }
 
   const _updateControllerMeshes = () => {
     // if (renderer.vr.enabled) {
@@ -4855,7 +4844,22 @@ function animate(time, frame) {
       }
     }
   };
-  _updateOrbitControls();
+  const _updateFakeOrbit = () => {
+    const f = (Date.now() % 20000) / 20000;
+    const angle = f * Math.PI*2;
+    fakeXrDisplay.position.x = 0.5 * Math.cos(angle);
+    fakeXrDisplay.position.z = 0.2 * Math.sin(angle);
+    fakeXrDisplay.quaternion.setFromUnitVectors(
+      localVector.set(0, 0, -1),
+      localVector2.copy(screenMesh.position).sub(fakeXrDisplay.position).normalize()
+    );
+    fakeXrDisplay.pushUpdate();
+  };
+  if (loginToken) {
+    _updateOrbitControls();
+  } else {
+    _updateFakeOrbit();
+  }
 
   /* const _updateTrayMesh = () => {
     trayMesh.update();
