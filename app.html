@@ -4871,7 +4871,7 @@ function animate(time, frame) {
         localVector.copy(controllerMesh.position);
         localQuaternion.copy(controllerMesh.quaternion);
         localRay.set(localVector, localVector2.set(0, 0, -1).applyQuaternion(localQuaternion));
-        let intersection = floorMesh.intersect(localRay, i);
+        const intersection = floorMesh.intersect(localRay);
         if (intersection) {
           localVector.set(Math.round(intersection.point.x) + 0.5, intersection.point.y, Math.floor(intersection.point.z) + 0.5);
           localEuler.setFromQuaternion(localQuaternion, localEuler.order);
@@ -4955,7 +4955,7 @@ function animate(time, frame) {
           localVector.fromArray(gamepad.pose.position);
           localQuaternion.fromArray(gamepad.pose.orientation);
           localRay.set(localVector, localVector2.set(0, 0, -1).applyQuaternion(localQuaternion));
-          let intersection = floorMesh.intersect(localRay, i);
+          let intersection = floorMesh.intersect(localRay);
           if (intersection) {
             const coords = [Math.floor((intersection.point.x + PARCEL_SIZE/2 + 0.5) / PARCEL_SIZE), Math.floor((intersection.point.z + PARCEL_SIZE/2 + 0.5) / PARCEL_SIZE)];
             const targetSceneMesh = (() => {
