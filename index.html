@@ -553,8 +553,7 @@ import(`https://web.exokit.org/ew.js${key ? `?key=${encodeURIComponent(key)}` : 
       if (email && code && await doLogin(email, code)) {
         delete q.email;
         delete q.code;
-        const ks = Object.keys(q);
-        window.location.search = ks.length > 0 ? '?' + ks.map(k => encodeURIComponent(k) + '=' + encodeURIComponent(q[k])).join('&') : '';
+        window.location.search = '?' + Object.keys(q).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(q[k])).join('&');
         return;
       }
 
