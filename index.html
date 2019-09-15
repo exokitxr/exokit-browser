@@ -225,13 +225,9 @@ header .popdown {
   /* border: 2px solid rgba(0,0,0,0.5); */
   color: #FFF;
 }
-body:not(.logged-in) #logout-button,
-body:not(.logged-in) #enter-buttons
-{
-  display: none;
-}
 body.logging-in #login-blocker,
-body.logged-in #login-blocker
+body.logged-in #login-blocker,
+body:not(.logged-in) #enter-buttons
 {
   display: none;
 }
