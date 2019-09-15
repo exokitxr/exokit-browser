@@ -4851,14 +4851,19 @@ function animate(time, frame) {
     fakeXrDisplay.position.z = 0.2 * Math.sin(angle);
     fakeXrDisplay.quaternion.setFromUnitVectors(
       localVector.set(0, 0, -1),
-      localVector2.copy(screenMesh.position).sub(fakeXrDisplay.position).normalize()
+      localVector2.set(0, 1.6, -1.25).sub(fakeXrDisplay.position).normalize()
     );
     fakeXrDisplay.pushUpdate();
+  };
+  const _updateScreenBob = () => {
+    const f = (Date.now() % 20000) / 20000;
+    screenMesh.position.y = 1.6 + ( .25 * Math.cos(Math.PI*f*10));
   };
   if (loginToken) {
     _updateOrbitControls();
   } else {
     _updateFakeOrbit();
+    _updateScreenBob();
   }
 
   /* const _updateTrayMesh = () => {
