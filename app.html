@@ -4784,7 +4784,7 @@ function animate(time, frame) {
 
       for (let i = 0; i < 2; i++) {
         const gamepad = gamepads[i];
-        if (gamepad && gamepad.connected) {
+        if (gamepad && gamepad.connected && loginToken) {
           const controllerIndex = _getControllerIndex(gamepad);
           const controllerMesh = controllerMeshes[controllerIndex];
           controllerMesh.position.fromArray(gamepad.pose.position);
