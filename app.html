@@ -3730,7 +3730,7 @@ const _makeParcelTextMesh = () => {
   };
   mesh.update = () => {
     if (Date.now() < endTime) {
-      // mesh.visible = true;
+      mesh.visible = true;
       const {position, quaternion} = _getFrontOfCamera();
       mesh.position.lerp(position, 0.1);
       mesh.quaternion.slerp(quaternion, 0.1);
@@ -5071,10 +5071,10 @@ function animate(time, frame) {
   };
   _updateSecureScene(); */
 
-  const _updateParcelTextMesh = () => {
+  /* const _updateParcelTextMesh = () => {
     parcelTextMesh.update();
   };
-  _updateParcelTextMesh();
+  _updateParcelTextMesh(); */
 
   const _updateIntersections = () => {
     for (let i = 0; i < 2; i++) {
