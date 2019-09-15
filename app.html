@@ -109,6 +109,7 @@ window.addEventListener('message', e => {
 
       const isLoggedIn = !!loginToken;
       defaultGltf.visible = isLoggedIn;
+      orbitControls.enabled = isLoggedIn;
       break;
     }
     case 'enter2d': {
@@ -637,7 +638,7 @@ const [
 );
 
 const _makeTextMesh = (s = '', color = 0x000000, size = 1) => {
-  // create a geometry of packed bitmap glyphs, 
+  // create a geometry of packed bitmap glyphs,
   // word wrapped to 300px and right-aligned
   var geometry = createTextGeometry({
     width: Infinity,
@@ -2274,7 +2275,7 @@ const _removeApp = iconMesh => {
   if (iconMesh.moveMesh) {
     scene.remove(iconMesh.moveMesh);
   }
-  
+
   // if (!screenMesh.appIconMeshes.children.some(iconMesh => iconMesh.x === selectedIconCoord.x && iconMesh.y === selectedIconCoord.y)) {
   if (selectedIconMesh === screenMesh.appIconMeshes) {
     if (screenMesh.appIconMeshes.children.some(iconMesh => iconMesh.x === 0 && iconMesh.y === 0)) {
@@ -2393,7 +2394,7 @@ const _makeTrayMesh = () => {
       selectedIconMesh = actionIconMeshes;
       selectedIconCoord.set(1, 0);
       selectedIconPage = 0;
-      
+
       labelMesh.textMesh.setText(DEFAULT_URL);
       labelMesh.visible = true;
       actionIconMeshes.children.find(mesh => mesh.x === 5 && mesh.y === 1).localVisible = true;
@@ -3136,7 +3137,7 @@ const _makeTrayMesh = () => {
   })();
   mesh.add(settingsMesh);
   mesh.settingsMesh = settingsMesh;
-  
+
   /* labelMesh.textMesh.addEventListener('update', e => {
     const {url} = e;
     if (selectedIconMesh === appIconMeshes) {
@@ -4245,7 +4246,7 @@ const portalFsh = `
       }
       gl_FragDepth = gl_FragCoord.z;
     } */
-    
+
     gl_FragColor.rgb += vec3(texCoordFull, 1.0) * 0.2;
   }
 `;
@@ -4843,7 +4844,22 @@ function animate(time, frame) {
       }
     }
   };
-  _updateOrbitControls();
+  const _updateFakeOrbit = () => {
+    const f = (Date.now() % 20000) / 20000;
+    const angle = f * Math.PI*2;
+    fakeXrDisplay.position.x = 0.5 * Math.cos(angle);
+    fakeXrDisplay.position.z = 0.2 * Math.sin(angle);
+    fakeXrDisplay.quaternion.setFromUnitVectors(
+      localVector.set(0, 0, -1),
+      localVector2.copy(screenMesh.position).sub(fakeXrDisplay.position).normalize()
+    );
+    fakeXrDisplay.pushUpdate();
+  };
+  if (loginToken) {
+    _updateOrbitControls();
+  } else {
+    _updateFakeOrbit();
+  }
 
   /* const _updateTrayMesh = () => {
     trayMesh.update();
@@ -5055,10 +5071,10 @@ function animate(time, frame) {
   };
   _updateSecureScene(); */
 
-  const _updateParcelTextMesh = () => {
+  /* const _updateParcelTextMesh = () => {
     parcelTextMesh.update();
   };
-  _updateParcelTextMesh();
+  _updateParcelTextMesh(); */
 
   const _updateIntersections = () => {
     for (let i = 0; i < 2; i++) {
@@ -5663,7 +5679,7 @@ const _startFakeVrDisplay = async () => {
   window.addEventListener('popstate', () => {
     window.location.reload();
   });
-  
+
   renderer.setAnimationLoop(animate);
 };
 const _endFakeVrDisplay = async () => {
@@ -6084,12 +6100,12 @@ const _rtcConnect = () => {
   };
   s.onmessage = e => {
     // console.log('got message', e.data);
-    
+
     const data = JSON.parse(e.data);
     const {method} = data;
     if (method === 'join') {
       const {connectionId: peerConnectionId} = data;
-     
+
       let peerConnection = peerConnections.find(peerConnection => peerConnection.connectionId === peerConnectionId);
       if (peerConnection && !peerConnection.open) {
         peerConnection.close();
