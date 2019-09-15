@@ -23,7 +23,7 @@
     <script type=module>
 (async () => {
 
-let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastGripped = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], menuOpen = false, orbitControls = null, transformControls, currentMoveMeshes = [null, null], moveMeshes = [], rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], currentSceneToken = null, selectedSceneToken = null, guardianMeshes = [], baseMeshes = [], sceneMeshes = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null, user = null;
+let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastGripped = [false, false], lastPads = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], menuOpen = false, orbitControls = null, transformControls, currentMoveMeshes = [null, null], moveMeshes = [], rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], currentSceneToken = null, selectedSceneToken = null, guardianMeshes = [], baseMeshes = [], sceneMeshes = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null, user = null;
 const mouse = {
   position: new THREE.Vector3(),
   quaternion: new THREE.Quaternion(),
@@ -989,11 +989,15 @@ const _removeOrbitControls = () => {
 };
 
 const _mousedown = e => {
-  if (loginToken && e.button === 0) {
+  if (loginToken && (e.button === 0 || e.button === 1)) {
     const gamepads = navigator.getGamepads();
     const gamepad = gamepads[1];
     if (gamepad) {
-      gamepad.buttons[1].pressed = true;
+      if (e.button === 0) {
+        gamepad.buttons[1].pressed = true;
+      } else if (e.button === 1) {
+        gamepad.buttons[0].pressed = true;
+      }
     }
     if (!window.document.pointerLockElement && (intersectionSpecs[1] || moveSpecs[1])) {
       if (orbitControls && ((intersectionSpecs[1] && intersectionSpecs[1].cancel) || moveSpecs[1])) {
@@ -1003,11 +1007,15 @@ const _mousedown = e => {
   }
 };
 const _mouseup = e => {
-  if (loginToken && e.button === 0) {
+  if (loginToken && (e.button === 0 || e.button === 1)) {
     const gamepads = navigator.getGamepads();
     const gamepad = gamepads[1];
     if (gamepad) {
-      gamepad.buttons[1].pressed = false;
+      if (e.button === 0) {
+        gamepad.buttons[1].pressed = false;
+      } else if (e.button === 1) {
+        gamepad.buttons[0].pressed = false;
+      }
     }
 
     if (!window.document.pointerLockElement) {
@@ -5387,6 +5395,11 @@ function animate(time, frame) {
         const lastPressed = lastPresseds[i];
         _handleTrigger(gamepad, i, pressed, lastPressed);
         lastPresseds[i] = pressed;
+
+        const pad = gamepad.buttons[0].pressed;
+        const lastPad = lastPads[i];
+        _handlePad(gamepad, i, pad, lastPad);
+        lastPads[i] = pad;
 
         const menu = gamepad.buttons[5].pressed;
         const lastMenu = lastButtons[i].menu;
