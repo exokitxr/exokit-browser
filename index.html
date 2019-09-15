@@ -276,10 +276,11 @@ body.logged-in #login-blocker
   left: 0;
   width: 35vw;
   padding: 15px;
-  background-color: #FFF;
+  background-color: #FFFFFFEE;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
   color: black;
   font-size: 12px;
-  border-top: 2px solid grey;
+  border-top: 2px solid #000;
 }
 #subscribe-popdown {
   position: absolute;
@@ -359,7 +360,13 @@ canvas {
   background-color: #000;
 }
 table {
-   width:100%;
+  width: 100%;
+}
+table colgroup col:nth-child(1) {
+  width: 20%;
+}
+table colgroup col:nth-child(3) {
+  width: 60%;
 }
 /* .ui-left {
   position: absolute;
@@ -382,36 +389,42 @@ table {
       <a class="nav" id="controls-dropdown">Controls</a>
       <div class="popdown" id="controls-popdown">
         <table>
-         <tr>
-           <td>KEY/BUTTON</td>
-           <td>ACTION</td>
-           <td>DESCRIPTION</td>
-         </tr>
-         <tr>
-           <td><b>Enter XR</b></td>
-           <td>XR Mode</td>
-           <td>If you are using a headset or have one plugged in, you can view through your headset.</td>
-         </tr>
-         <tr>
-           <td><b>Enter 2D</b></td>
-           <td>2D Mode</td>
-           <td>This will allow you to emulate using a VR device. Also can double click to enter 2D.</td>
-         </tr>
-         <tr>
-           <td><b>E</b></td>
-           <td>Toggle edit</td>
-           <td>This toggles edit mode which lets you add, move, and delete apps from your scene.</td>
-         </tr>
-         <tr>
-           <td><b>DEL</b></td>
-           <td>Delete app</td>
-           <td>Delete the currently selected opened app.</td>
-         </tr>
-         <tr>
-           <td><b>ESC</b></td>
-           <td>Exit 2D</td>
-           <td>This is useful if you want to type with your keyboard.</td>
-         </tr>
+          <colgroup>
+            <col>
+            <col>
+            <col>
+          </colgroup>  
+          <tbody>
+          <tr>
+            <td>KEY/BUTTON</td>
+            <td>ACTION</td>
+            <td>DESCRIPTION</td>
+          </tr>
+          <tr>
+            <td><b>Enter XR</b></td>
+            <td>XR Mode</td>
+            <td>If you are using a headset or have one plugged in, you can view through your headset.</td>
+          </tr>
+          <tr>
+            <td><b>Enter 2D</b></td>
+            <td>2D Mode</td>
+            <td>This will allow you to emulate using a VR device. Also can double click to enter 2D.</td>
+          </tr>
+          <tr>
+            <td><b>E</b></td>
+            <td>Toggle edit</td>
+            <td>This toggles edit mode which lets you add, move, and delete apps from your scene.</td>
+          </tr>
+          <tr>
+            <td><b>DEL</b></td>
+            <td>Delete app</td>
+            <td>Delete the currently selected opened app.</td>
+          </tr>
+          <tr>
+            <td><b>ESC</b></td>
+            <td>Exit 2D</td>
+            <td>This is useful if you want to type with your keyboard.</td>
+          </tr>
         </table>
       </div>
       <!-- <a class="nav" id="explore-dropdown">Explore</a>
@@ -580,9 +593,6 @@ Promise.all([
   .catch(err => {
     console.warn(err);
   });
-const controlsDropdown = document.getElementById('controls-dropdown');
-const controlsPopdown = document.getElementById('controls-popdown');
-
 
 // const loginButton = document.getElementById('login-button');
 // const loginButton2 = document.getElementById('login-button-2');
@@ -594,7 +604,10 @@ const loginVerificationCode = document.getElementById('login-verification-code')
 const loginNotice = document.getElementById('login-notice');
 const loginError = document.getElementById('login-error');
 const logoutButton = document.getElementById('logout-button');
+const controlsDropdown = document.getElementById('controls-dropdown');
+const controlsPopdown = document.getElementById('controls-popdown');
 controlsDropdown.onclick = () => {
+  controlsDropdown.classList.toggle('open');
   controlsPopdown.classList.toggle('open');
 };
 /* [loginButton, loginButton2].forEach(b => {
