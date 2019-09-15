@@ -588,7 +588,9 @@ Promise.all([
       xrScene.enterXr();
     });
 
-    document.body.classList.remove('logging-in');
+    if (navigator.serviceWorker.controller) { // avoid FOUC during reload
+      document.body.classList.remove('logging-in');
+    }
   })
   .catch(err => {
     console.warn(err);
