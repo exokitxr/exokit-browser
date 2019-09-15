@@ -558,8 +558,6 @@ loginForm.onsubmit = async e => {
   e.preventDefault();
 
   if (loginForm.classList.contains('phase-1')) {
-    // console.log('login 1', loginEmail.value);
-
     loginNotice.innerHTML = '';
     loginError.innerHTML = '';
     loginForm.classList.remove('phase-1');
@@ -568,8 +566,6 @@ loginForm.onsubmit = async e => {
       method: 'POST',
     })
     if (res.status >= 200 && res.status < 300) {
-      // console.log('login 2', loginEmail.value);
-
       loginNotice.innerText = `Code sent to ${loginEmail.value}!`;
       loginForm.classList.add('phase-2');
 
@@ -582,8 +578,6 @@ loginForm.onsubmit = async e => {
       throw new Error(`invalid status code: ${res.status}`);
     }
   } else if (loginForm.classList.contains('phase-2')) {
-    // console.log('login 3', loginVerificationCode.value);
-
     loginNotice.innerHTML = '';
     loginError.innerHTML = '';
     loginForm.classList.remove('phase-2');
