@@ -26,19 +26,9 @@
     "icon": "https://supermedium.com/supercraft/assets/img/favicon.png"
   },
   {
-    "label": "Moon Rider",
-    "url": "https://moonrider.xyz",
-    "icon": "https://moonrider.xyz/assets/img/favicon.png"
-  },
-  {
     "label": "A-Blast",
     "url": "https://aframe.io/a-blast/",
     "icon": "https://aframe.io/a-blast/assets/images/icon-128.png"
-  },
-  {
-    "label": "Decentraland",
-    "url": "https://decentraland.org",
-    "icon": "https://decentraland.org/images/logo.png"
   },
   {
     "label": "Cryptovoxels",
@@ -474,6 +464,11 @@
     "label": "Homer",
     "url": "https://supermedium.com/craft/dangerous-cars",
     "icon": "https://supermedium.com/superassets/site/supercrafthomer.jpg"
+  },
+  {
+    "label": "Decentraland",
+    "url": "https://decentraland.org",
+    "icon": "https://decentraland.org/images/logo.png"
   },
   {
     "label": "Powerpuff",
