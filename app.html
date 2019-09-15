@@ -1510,6 +1510,28 @@ for (let i = 0; i < controllerMeshes.length; i++) {
 // controllerMeshes[0].add(toolMesh);
 const _getControllerIndex = gamepad => gamepad.hand === 'left' ? 0 : 1;
 
+const teleportGeometry = new THREE.TorusBufferGeometry(0.5, 0.15, 3, 5)
+  .applyMatrix(new THREE.Matrix4().makeRotationX(-(Math.PI / 2)))
+  .applyMatrix(new THREE.Matrix4().makeRotationY((1 / 20) * (Math.PI * 2)));
+const teleportMaterial = new THREE.MeshBasicMaterial({
+  color: RAY_COLOR,
+});
+const _makeTeleportMesh = () => {
+  const geometry = teleportGeometry;
+  const material = teleportMaterial;
+
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.visible = false;
+  mesh.frustumCulled = false;
+  return mesh;
+};
+const teleportMeshes = [
+  _makeTeleportMesh(),
+  _makeTeleportMesh(),
+];
+scene.add(teleportMeshes[0]);
+scene.add(teleportMeshes[1]);
+
 // grid
 
 let data;
@@ -4813,6 +4835,34 @@ function animate(time, frame) {
     _updateControllerMeshes();
   }
 
+  const _updateTeleportMeshes = () => {
+    for (let i = 0; i < teleportMeshes.length; i++) {
+      teleportMeshes[i].visible = false;
+    }
+
+    for (let i = 0; i < 2; i++) {
+      const gamepad = gamepads[i];
+      if (gamepad && gamepad.buttons[0].pressed) {
+        const controllerIndex = _getControllerIndex(gamepad);
+        const teleportMesh = teleportMeshes[controllerIndex];
+        localRay.set(localVector.fromArray(gamepad.pose.position), localVector2.set(0, 0, -1).applyQuaternion(localQuaternion.fromArray(gamepad.pose.orientation)));
+        const intersection = floorMesh.intersect(localRay);
+        if (intersection) {
+          teleportMesh.position.copy(intersection.point);
+          localEuler.setFromQuaternion(localQuaternion, localEuler.order);
+          localEuler.x = 0;
+          localEuler.z = 0;
+          teleportMesh.quaternion.setFromEuler(localEuler);
+          teleportMesh.updateMatrixWorld(true);
+          teleportMesh.visible = true;
+        }
+      }
+    }
+  };
+  if (loginToken) {
+    _updateTeleportMeshes();
+  }
+
   const _updateCurrentMoveMeshes = () => {
     for (let i = 0; i < currentMoveMeshes.length; i++) {
       const moveMesh = currentMoveMeshes[i];
@@ -5372,6 +5422,23 @@ function animate(time, frame) {
           }
         }
       }
+    }
+  };
+  const _handlePad = (gamepad, i, pad, lastPad) => {
+    if (lastPad && !pad) {
+      const teleportMesh = teleportMeshes[i];
+
+      const vrCamera = renderer.vr.enabled ? renderer.vr.getCamera(camera).cameras[0] : camera;
+      vrCamera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+
+      const xDest = teleportMesh.position.x;
+      const xDist = xDest - localVector.x;
+      const zDest = teleportMesh.position.z;
+      const zDist = zDest - localVector.z;
+
+      window.document.xrOffset.position[0] -= xDist;
+      window.document.xrOffset.position[2] -= zDist;
+      window.document.xrOffset.pushUpdate();
     }
   };
   const _makeMenuAnimation = spec => {
