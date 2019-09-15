@@ -225,11 +225,15 @@ header .popdown {
   /* border: 2px solid rgba(0,0,0,0.5); */
   color: #FFF;
 }
-body.logging-in #login-blocker,
-body.logged-in #login-blocker,
 body:not(.logged-in) #enter-buttons
 {
   display: none;
+}
+#login-blocker {
+  display: none;
+}
+body:not(.logging-in):not(.logged-in) #login-blocker {
+  display: flex;
 }
 .blocker {
   position: absolute;
