@@ -620,7 +620,7 @@ logoutButton.onclick = async () => {
 loginForm.onsubmit = async e => {
   e.preventDefault();
 
-  if (loginForm.classList.contains('phase-1')) {
+  if (loginForm.classList.contains('phase-1') && loginEmail.value) {
     loginNotice.innerHTML = '';
     loginError.innerHTML = '';
     loginForm.classList.remove('phase-1');
@@ -640,7 +640,7 @@ loginForm.onsubmit = async e => {
     } else {
       throw new Error(`invalid status code: ${res.status}`);
     }
-  } else if (loginForm.classList.contains('phase-2')) {
+  } else if (loginForm.classList.contains('phase-2') && loginEmail.value && loginVerificationCode.value) {
     loginNotice.innerHTML = '';
     loginError.innerHTML = '';
     loginForm.classList.remove('phase-2');
