@@ -979,6 +979,7 @@ const _addOrbitControls = () => {
   orbitControls.target.copy(orbitCamera.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(orbitCamera.quaternion));
   orbitControls.screenSpacePanning = true;
   orbitControls.enabled = !!loginToken;
+  orbitControls.enableMiddleZoom = false;
   orbitControls.update();
 };
 const _removeOrbitControls = () => {
