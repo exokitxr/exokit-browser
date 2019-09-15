@@ -261,7 +261,7 @@ const getWeb3 = async () => {
   }
 };
 const makeWeb3 = async (password = '', approve = () => Promise.reject()) => {
-  const INFURA_API_KEY = 'ed32fe7667964c1398772a73c2426676';
+  const INFURA_API_KEY = '';
   const rpcUrl = `https://rinkeby.infura.io/v3/${INFURA_API_KEY}`;
   const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
   const hash = ethUtil.sha3(password);
