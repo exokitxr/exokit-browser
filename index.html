@@ -539,15 +539,16 @@ const storage = {
 
 let xrScene = null;
 let loginToken = null;
-import(`https://web.exokit.org/ew.js${window.location.search}`)
-// import(`./exokit-web/ew.js${window.location.search}`)
+const q = parseQuery(window.location.search);
+const {key} = q;
+import(`https://web.exokit.org/ew.js${key ? `?key=${encodeURIComponent(key)}` : ''}`)
+// import(`./exokit-web/ew.js${key ? `?key=${encodeURIComponent(key)}` : ''}`)
   .then(async () => {
     if (navigator.serviceWorker.controller) { // avoid FOUC during reload
       xrScene = document.createElement('xr-scene');
       xrScene.src = 'app.html';
       document.body.appendChild(xrScene);
 
-      const q = parseQuery(window.location.search);
       const {email, code} = q;
       if (email && code && await doLogin(email, code)) {
         delete q.email;
