@@ -4780,7 +4780,7 @@ function animate(time, frame) {
 
   const gamepads = navigator.getGamepads();
 
-  if(!loginToken && orbitCamera != null){
+  if(!loginToken){
     orbitCamera.position.x = radius * Math.cos( angle );
     orbitCamera.position.z = radius * Math.sin( angle );
     camera.lookAt(new THREE.Vector3(0,0,0));
