@@ -417,10 +417,41 @@ const LAMBDA_URLS = {
   coords: `https://token.exokit.org/coords`,
   presence: `wss://presence.exokit.org/`,
 };
+const storage = {
+  async get(k) {
+    const res = await fetch(`/.s/${k}`);
+    if (res.status >= 200 && res.status < 300) {
+      const s = await res.text();
+      return JSON.parse(s);
+    } else {
+      return undefined;
+    }
+  },
+  async set(k, v) {
+    const res = await fetch(`/.s/${k}`, {
+      method: 'PUT',
+      body: JSON.stringify(v),
+    });
+    if (res.status >= 200 && res.status < 300) {
+      // nothing
+    } else {
+      throw new Error(`invalid status code: ${res.status}`);
+    }
+  },
+  async remove(k) {
+    const res = await fetch(`/.s/${k}`, {
+      method: 'DELETE',
+    });
+    if (res.status >= 200 && res.status < 300) {
+      // nothing
+    } else {
+      throw new Error(`invalid status code: ${res.status}`);
+    }
+  },
+};
 
 let xrScene = null;
 let loginToken = null;
-
 Promise.all([
   import(`https://web.exokit.org/ew.js${window.location.search}`)
   // import(`./exokit-web/ew.js${window.location.search}`)
@@ -430,10 +461,9 @@ Promise.all([
       document.body.appendChild(xrScene);
     }),
   (async () => {
-    let localLoginToken = localStorage.getItem('loginToken');
-    if (localLoginToken) {
-      localLoginToken = JSON.parse(localLoginToken);
+    const localLoginToken = await storage.get('loginToken');
 
+    if (localLoginToken) {
       const res = await fetch(LAMBDA_URLS.login + `?email=${encodeURIComponent(localLoginToken.email)}&token=${encodeURIComponent(localLoginToken.token)}`, {
         method: 'POST',
       })
@@ -449,7 +479,7 @@ Promise.all([
         loginForm.classList.remove('phase-2');
         loginForm.classList.add('phase-3');
       } else {
-        localStorage.removeItem('loginToken');
+        await storage.remove('loginToken');
 
         console.warn(`invalid status code: ${res.status}`);
       }
@@ -514,8 +544,8 @@ const logoutButton = document.getElementById('logout-button');
     loginPopdown.classList.toggle('open');
   };
 });
-logoutButton.onclick = () => {
-  localStorage.removeItem('loginToken');
+logoutButton.onclick = async () => {
+  await storage.remove('loginToken');
 
   loginToken = null;
   xrScene.postMessage({
@@ -524,7 +554,7 @@ logoutButton.onclick = () => {
   });
   document.body.classList.remove('logged-in');
 }; */
-loginForm.onsubmit = e => {
+loginForm.onsubmit = async e => {
   e.preventDefault();
 
   if (loginForm.classList.contains('phase-1')) {
@@ -534,28 +564,23 @@ loginForm.onsubmit = e => {
     loginError.innerHTML = '';
     loginForm.classList.remove('phase-1');
 
-    fetch(LAMBDA_URLS.login + `?email=${encodeURIComponent(loginEmail.value)}`, {
+    const res = await fetch(LAMBDA_URLS.login + `?email=${encodeURIComponent(loginEmail.value)}`, {
       method: 'POST',
     })
-      .then(res => {
-        if (res.status >= 200 && res.status < 300) {
-          // console.log('login 2', loginEmail.value);
+    if (res.status >= 200 && res.status < 300) {
+      // console.log('login 2', loginEmail.value);
 
-          loginNotice.innerText = `Code sent to ${loginEmail.value}!`;
-          loginForm.classList.add('phase-2');
+      loginNotice.innerText = `Code sent to ${loginEmail.value}!`;
+      loginForm.classList.add('phase-2');
 
-          return res.blob();
-        } else if (res.status === 403) {
-          loginError.innerText = `${loginEmail.value} is not in the beta yet :(`;
+      return res.blob();
+    } else if (res.status === 403) {
+      loginError.innerText = `${loginEmail.value} is not in the beta yet :(`;
 
-          loginForm.classList.add('phase-1');
-        } else {
-          throw new Error(`invalid status code: ${res.status}`);
-        }
-      })
-      .catch(err => {
-        console.warn(err);
-      });
+      loginForm.classList.add('phase-1');
+    } else {
+      throw new Error(`invalid status code: ${res.status}`);
+    }
   } else if (loginForm.classList.contains('phase-2')) {
     // console.log('login 3', loginVerificationCode.value);
 
@@ -563,36 +588,29 @@ loginForm.onsubmit = e => {
     loginError.innerHTML = '';
     loginForm.classList.remove('phase-2');
 
-    fetch(LAMBDA_URLS.login + `?email=${loginEmail.value}&code=${encodeURIComponent(loginVerificationCode.value)}`, {
+    const res = await fetch(LAMBDA_URLS.login + `?email=${loginEmail.value}&code=${encodeURIComponent(loginVerificationCode.value)}`, {
       method: 'POST',
     })
-      .then(res => {
-        if (res.status >= 200 && res.status < 300) {
-          return res.json();
-        } else {
-          throw new Error(`invalid status code: ${res.status}`);
-        }
-      })
-      .then(newLoginToken => {
-        // console.log('login 4', newLoginToken);
+    if (res.status >= 200 && res.status < 300) {
+      const newLoginToken = await res.json();
 
-        loginToken = newLoginToken;
-        xrScene.postMessage({
-          method: 'login',
-          loginToken,
-        });
-        localStorage.setItem('loginToken', JSON.stringify(loginToken));
+      await storage.set('loginToken', newLoginToken);
 
-        loginName.innerText = loginToken.email;
-
-        document.body.classList.add('logged-in');
-        loginForm.classList.add('phase-3');
-      })
-      .catch(err => {
-        console.warn(err);
+      loginToken = newLoginToken;
+      xrScene.postMessage({
+        method: 'login',
+        loginToken,
       });
+
+      loginName.innerText = loginToken.email;
+
+      document.body.classList.add('logged-in');
+      loginForm.classList.add('phase-3');
+    } else {
+      throw new Error(`invalid status code: ${res.status}`);
+    }
   } else if (loginForm.classList.contains('phase-3')) {
-    localStorage.removeItem('loginToken');
+    await storage.remove('loginToken');
 
     loginToken = null;
     xrScene.postMessage({
