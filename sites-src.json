@@ -31,11 +31,6 @@
     "icon": "https://aframe.io/a-blast/assets/images/icon-128.png"
   },
   {
-    "label": "Decentraland",
-    "url": "https://decentraland.org",
-    "icon": "https://decentraland.org/images/logo.png"
-  },
-  {
     "label": "Cryptovoxels",
     "url": "https://www.cryptovoxels.com/play?vr=enabled",
     "icon": "https://www.cryptovoxels.com/favicon.png"
@@ -469,6 +464,11 @@
     "label": "Homer",
     "url": "https://supermedium.com/craft/dangerous-cars",
     "icon": "https://supermedium.com/superassets/site/supercrafthomer.jpg"
+  },
+  {
+    "label": "Decentraland",
+    "url": "https://decentraland.org",
+    "icon": "https://decentraland.org/images/logo.png"
   },
   {
     "label": "Powerpuff",
