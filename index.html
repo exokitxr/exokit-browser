@@ -472,6 +472,38 @@ const LAMBDA_URLS = {
   coords: `https://token.exokit.org/coords`,
   presence: `wss://presence.exokit.org/`,
 };
+function parseQuery(s) {
+  var query = {};
+  var pairs = (s[0] === '?' ? s.substr(1) : s).split('&');
+  for (var i = 0; i < pairs.length; i++) {
+    var pair = pairs[i].split('=');
+    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+  }
+  return query;
+}
+async function doLogin(email, code) {
+  const res = await fetch(LAMBDA_URLS.login + `?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, {
+    method: 'POST',
+  });
+  if (res.status >= 200 && res.status < 300) {
+    const newLoginToken = await res.json();
+
+    await storage.set('loginToken', newLoginToken);
+
+    loginToken = newLoginToken;
+
+    loginName.innerText = loginToken.email;
+
+    document.body.classList.add('logged-in');
+    loginForm.classList.remove('phase-1');
+    loginForm.classList.remove('phase-2');
+    loginForm.classList.add('phase-3');
+
+    return true;
+  } else {
+    return false;
+  }
+}
 const storage = {
   async get(k) {
     const res = await fetch(`/.s/${k}`);
@@ -507,78 +539,71 @@ const storage = {
 
 let xrScene = null;
 let loginToken = null;
-Promise.all([
-  import(`https://web.exokit.org/ew.js${window.location.search}`)
-  // import(`./exokit-web/ew.js${window.location.search}`)
-    .then(() => {
+import(`https://web.exokit.org/ew.js${window.location.search}`)
+// import(`./exokit-web/ew.js${window.location.search}`)
+  .then(async () => {
+    if (navigator.serviceWorker.controller) { // avoid FOUC during reload
       xrScene = document.createElement('xr-scene');
       xrScene.src = 'app.html';
       document.body.appendChild(xrScene);
-    }),
-  (async () => {
-    const localLoginToken = await storage.get('loginToken');
 
-    if (localLoginToken) {
-      const res = await fetch(LAMBDA_URLS.login + `?email=${encodeURIComponent(localLoginToken.email)}&token=${encodeURIComponent(localLoginToken.token)}`, {
-        method: 'POST',
-      })
-      if (res.status >= 200 && res.status < 300) {
-        res.json();
-
-        loginToken = localLoginToken;
-
-        loginName.innerText = loginToken.email;
-
-        document.body.classList.add('logged-in');
-        loginForm.classList.remove('phase-1');
-        loginForm.classList.remove('phase-2');
-        loginForm.classList.add('phase-3');
-      } else {
-        await storage.remove('loginToken');
-
-        console.warn(`invalid status code: ${res.status}`);
+      const q = parseQuery(window.location.search);
+      const {email, code} = q;
+      if (email && code && await doLogin(email, code)) {
+        delete q.email;
+        delete q.code;
+        const ks = Object.keys(q);
+        window.location.search = ks.length > 0 ? '?' + ks.map(k => encodeURIComponent(k) + '=' + encodeURIComponent(q[k])).join('&') : '';
+        return;
       }
-    }
-  })(),
-  (async () => {
-    let result;
-    if (navigator.xr) {
-      try {
-        await navigator.xr.supportsSession('immersive-vr');
-        result = true;
-      } catch (err) {
+
+      const localLoginToken = await storage.get('loginToken');
+      if (localLoginToken) {
+        const res = await fetch(LAMBDA_URLS.login + `?email=${encodeURIComponent(localLoginToken.email)}&token=${encodeURIComponent(localLoginToken.token)}`, {
+          method: 'POST',
+        })
+        if (res.status >= 200 && res.status < 300) {
+          res.json();
+
+          loginToken = localLoginToken;
+
+          loginName.innerText = loginToken.email;
+
+          document.body.classList.add('logged-in');
+          loginForm.classList.remove('phase-1');
+          loginForm.classList.remove('phase-2');
+          loginForm.classList.add('phase-3');
+        } else {
+          await storage.remove('loginToken');
+
+          console.warn(`invalid status code: ${res.status}`);
+        }
+      }
+
+      xrScene.postMessage({
+        method: 'login',
+        loginToken,
+      });
+
+      let result;
+      if (navigator.xr) {
+        try {
+          await navigator.xr.supportsSession('immersive-vr');
+          result = true;
+        } catch (err) {
+          result = false;
+        }
+      } else {
         result = false;
       }
-    } else {
-      result = false;
-    }
-    if (result) {
-      console.log('xr available');
-      document.getElementById('enter-xr-button').style.display = null;
-    } else {
-      console.log('no xr');
-      document.getElementById('no-xr-button').style.display = null;
-    }
-  })(),
-])
-  .then(() => {
-    xrScene.postMessage({
-      method: 'login',
-      loginToken,
-    });
+      if (result) {
+        console.log('xr available');
+        document.getElementById('enter-xr-button').style.display = null;
+      } else {
+        console.log('no xr');
+        document.getElementById('no-xr-button').style.display = null;
+      }
 
-    const enter2dButton = document.getElementById('enter-2d-button');
-    enter2dButton.addEventListener('click', () => {
-      xrScene.postMessage({
-        method: 'enter2d',
-      });
-    });
-    const enterXrButton = document.getElementById('enter-xr-button');
-    enterXrButton.addEventListener('click', () => {
-      xrScene.enterXr();
-    });
-
-    if (navigator.serviceWorker.controller) { // avoid FOUC during reload
       document.body.classList.remove('logging-in');
     }
   })
@@ -645,26 +670,11 @@ loginForm.onsubmit = async e => {
     loginError.innerHTML = '';
     loginForm.classList.remove('phase-2');
 
-    const res = await fetch(LAMBDA_URLS.login + `?email=${loginEmail.value}&code=${encodeURIComponent(loginVerificationCode.value)}`, {
-      method: 'POST',
-    })
-    if (res.status >= 200 && res.status < 300) {
-      const newLoginToken = await res.json();
-
-      await storage.set('loginToken', newLoginToken);
-
-      loginToken = newLoginToken;
+    if (await doLogin(loginEmail.value, loginVerificationCode.value)) {
       xrScene.postMessage({
         method: 'login',
         loginToken,
       });
-
-      loginName.innerText = loginToken.email;
-
-      document.body.classList.add('logged-in');
-      loginForm.classList.add('phase-3');
-    } else {
-      throw new Error(`invalid status code: ${res.status}`);
     }
   } else if (loginForm.classList.contains('phase-3')) {
     await storage.remove('loginToken');
@@ -682,6 +692,17 @@ loginForm.onsubmit = async e => {
     loginForm.classList.add('phase-1');
   }
 };
+
+const enter2dButton = document.getElementById('enter-2d-button');
+enter2dButton.addEventListener('click', () => {
+  xrScene.postMessage({
+    method: 'enter2d',
+  });
+});
+const enterXrButton = document.getElementById('enter-xr-button');
+enterXrButton.addEventListener('click', () => {
+  xrScene.enterXr();
+});
 
 // const exploreLabel = document.getElementById('explore-label');
 // const exploreContent = document.getElementById('explore-content');
