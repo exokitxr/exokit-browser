@@ -115,13 +115,16 @@ ul li a .wrap h3 {
   <body>
     <div class=ui-left>
       <!-- <input type=text placeholder="https://" class=url-input id=url-input> -->
+      {{#tab1}}
       <input type=text class=url-input id=url-input>
+      {{/tab1}}
       <div class=radios>
-        <div class=radio>Actions</div>
-        <div class="radio selected">WebXR</div>
-        <div class=radio>Models</div>
-        <div class=radio>Data</div>
+        <a id=tab-1 class="radio {{#tab1}}selected{{/tab1}}">WebXR</a>
+        <a id=tab-2 class="radio {{#tab2}}selected{{/tab2}}">Actions</a>
+        <a id=tab-3 class="radio {{#tab3}}selected{{/tab3}}">Models</a>
+        <a id=tab-4 class="radio {{#tab4}}selected{{/tab4}}">Data</a>
       </div>
+      {{#tab1}}
       <ul>
         {{#searchResults}}
         <li>
@@ -135,6 +138,7 @@ ul li a .wrap h3 {
         </li>
         {{/searchResults}}
       </ul>
+      {{/tab1}}
     </div>
   </body>
 </html>
