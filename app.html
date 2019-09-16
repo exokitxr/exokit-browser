@@ -193,11 +193,12 @@ localforage.read = p => new Promise((accept, reject) => {
 
 const _getFrontOfCamera = () => {
   const vrCamera = renderer.vr.enabled ? renderer.vr.getCamera(camera).cameras[0] : camera;
-  vrCamera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-  localVector.add(
-    localVector2.set(0, 0, -1)
-      .applyQuaternion(localQuaternion)
-  );
+  localVector
+    .copy(vrCamera.position)
+    .add(
+      localVector2.set(0, 0, -1)
+        .applyQuaternion(localQuaternion)
+    );
   localVector2.set(1, 1, 1);
 
   return {
@@ -4848,6 +4849,8 @@ function animate(time, frame) {
   const startTimeDiff = now - startTime;
 
   const gamepads = navigator.getGamepads();
+  const vrCamera = renderer.vr.enabled ? renderer.vr.getCamera(camera).cameras[0] : camera;
+  vrCamera.matrixWorld.decompose(vrCamera.position, vrCamera.quaternion, vrCamera.scale);
 
   const _updateControllerMeshes = () => {
     // if (renderer.vr.enabled) {
@@ -5439,12 +5442,11 @@ function animate(time, frame) {
 
       if (teleportMesh.visible) {
         const vrCamera = renderer.vr.enabled ? renderer.vr.getCamera(camera).cameras[0] : camera;
-        vrCamera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
 
         const xDest = teleportMesh.position.x;
-        const xDist = xDest - localVector.x;
+        const xDist = xDest - vrCamera.position.x;
         const zDest = teleportMesh.position.z;
-        const zDist = zDest - localVector.z;
+        const zDist = zDest - vrCamera.position.z;
 
         window.document.xrOffset.position[0] -= xDist;
         window.document.xrOffset.position[2] -= zDist;
