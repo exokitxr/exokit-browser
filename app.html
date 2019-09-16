@@ -3450,6 +3450,7 @@ const _makeScreenMesh = () => {
   const screenMeshFsh = `
     uniform sampler2D uTex;
     uniform vec4 uHover;
+    uniform float uClick;
     varying vec2 vUv;
     vec3 highlightColor = vec3(${new THREE.Color(0x42a5f5).toArray().map(n => n.toFixed(8)).join(',')});
     void main() {
@@ -3457,6 +3458,9 @@ const _makeScreenMesh = () => {
       vec2 uv = vec2(vUv.x, 1.0-vUv.y);
       if (uv.x >= uHover.x && uv.y >= uHover.y && uv.x <= uHover.z && uv.y <= uHover.w) {
         c.rgb = c.rgb*0.6 + highlightColor*0.4;
+        if (uClick > 0.0) {
+          c.rgb -= 0.1;
+        }
       }
       gl_FragColor = c;
     }
@@ -3471,6 +3475,10 @@ const _makeScreenMesh = () => {
         type: 'v4',
         value: new THREE.Vector4(),
       },
+      uClick: {
+        type: 'f',
+        value: 0,
+      },
     },
     vertexShader: screenMeshVsh,
     fragmentShader: screenMeshFsh,
@@ -3479,7 +3487,7 @@ const _makeScreenMesh = () => {
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
 
-  mesh.intersect = ray => {
+  mesh.intersect = (ray, i) => {
     localRaycaster.ray.copy(ray);
     const intersection = localRaycaster.intersectObject(mesh)[0];
     if (intersection) {
@@ -3490,6 +3498,7 @@ const _makeScreenMesh = () => {
       const anchor = anchors.find(anchor => uv.x >= anchor.left && uv.x <= anchor.right && uv.y >= anchor.top && uv.y <= anchor.bottom) || null;
       if (anchor) {
         material.uniforms.uHover.value.set(anchor.left, anchor.top, anchor.right, anchor.bottom).divideScalar(uiSize);
+        material.uniforms.uClick.value = navigator.getGamepads()[i].buttons[1].pressed ? 1 : 0;
       }
       return {
         type: 'screen',
