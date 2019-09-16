@@ -1778,8 +1778,6 @@ const _makeLabelMesh = label => {
   _renderLabel(label)
     .then(async result => {
       if (result.data) {
-        // result.data = await createImageBitmap(new ImageData(new Uint8ClampedArray(result.data.buffer, result.data.byteOffset, result.data.byteLength), uiSize, uiSize/8));
-        // texture.image = result.data;
         texture.image = new ImageData(new Uint8ClampedArray(result.data.buffer, result.data.byteOffset, result.data.byteLength), uiSize, uiSize/8);
         texture.needsUpdate = true;
       }
