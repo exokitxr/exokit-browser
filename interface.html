@@ -112,6 +112,54 @@ ul li a .wrap h3 {
   border-color: #ec407a;
   color: #FFF;
 }
+.actions {
+}
+.actions .action {
+  position: relative;
+  display: inline-flex;
+  width: 668px;
+  height: 250px;
+  padding: 30px;
+  float: left;
+  align-items: center;
+}
+.actions .action .border {
+  position: absolute;
+  left: 30px;
+  right: 30px;
+  top: 30px;
+  bottom: 30px;
+  background-color: #f2f3f5;
+  border-radius: 20px;
+}
+.actions .action .icon {
+  position: relative;
+  display: flex;
+  width: 130px;
+  height: 130px;
+  margin-right: 20px;
+  // background-color: #f2f3f5;
+  // border-radius: 40px;
+  justify-content: center;
+  align-items: center;
+}
+.actions .action .wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.actions .action .wrap h3,
+.actions .action .wrap p {
+  margin: 0;
+}
+.actions .action .wrap h3 {
+  font-size: 50px;
+  // line-height: 1.6;
+  font-weight: 300;
+}
+.actions .action .wrap p {
+  font-size: 36px;
+}
 .metasites {
   display: flex;
   flex-direction: column;
@@ -136,13 +184,7 @@ ul li a .wrap h3 {
 }
 .metasites .metasite.selected .border {
   background-color: #000;
-  /* background-color: #5c6bc0;
-  color: #FFF; */
-  // border-color: #000;
 }
-/* .metasites .metasite.selected .icon {
-  background-color: #FFF;
-} */
 .metasites .metasite .icon {
   position: relative;
   display: flex;
@@ -205,6 +247,20 @@ ul li a .wrap h3 {
         </ul>
       </div>
       {{/tab1}}
+      {{#tab2}}
+      <div class=actions>
+        <a id=action-new class=action>
+          <div class=border></div>
+          <div class=icon>
+            <i class="fal fa-sparkles"></i>
+          </div>
+          <div class=wrap>
+            <h3>New scene</h3>
+            <p>Clear your metasite scene</p>
+          </div>
+        </a>
+      </div>
+      {{/tab2}}
       {{#tab4}}
       <div class=metasites>
         <a id=metasite-local class="metasite selected">
