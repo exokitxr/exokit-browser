@@ -917,6 +917,35 @@ developersDropdown.onclick = () => {
   developersDropdown.classList.toggle('open');
   developersPopdown.classList.toggle('open');
 }; */
+
+const activityRate = 30 * 1000;
+let timeActive = 0;
+let activityTimeout = 0;
+let activityStartTime = 0;
+const _setActivityTimeout = () => {
+  activityTimeout = setTimeout(() => {
+    ga('send', 'event', 'Active', 'activity', 'Exokit Browser');
+    timeActive = 0;
+    _setActivityTimeout();
+  }, activityRate - timeActive);
+  activityStartTime = Date.now();
+};
+const _clearActivityTimeout = () => {
+  clearTimeout(activityTimeout);
+  timeActive += Date.now() - activityStartTime;
+  activityTimeout = 0;
+  activityStartTime = 0;
+};
+if (!document.hidden) {
+  _setActivityTimeout();
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    _clearActivityTimeout();
+  } else {
+    _setActivityTimeout();
+  }
+});
     </script>
   </body>
 </html>
