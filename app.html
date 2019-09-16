@@ -3535,6 +3535,7 @@ const _makeScreenMesh = () => {
 
       const moveMesh = _makeMoveMesh('volume');
       moveMesh.xrIframe = xrIframe;
+      moveMesh.startTime = Date.now();
       scene.add(moveMesh);
       moveMeshes.push(moveMesh);
       currentMoveMeshes[controllerIndex] = moveMesh;
@@ -5631,6 +5632,19 @@ function animate(time, frame) {
     }
   };
   _updateTrayMeshAnimation();
+
+  const _updateMoveMeshes = () => {
+    for (let i = 0; i < moveMeshes.length; i++) {
+      const moveMesh = moveMeshes[i];
+      moveMesh.scale.set(1, 1, 1);
+      if (!moveMesh.xrIframe.loaded) {
+        const f = ((Date.now() - moveMesh.startTime) % 1000) / 1000;
+        const angle = Math.pow(f, 0.5) * Math.PI*2;
+        moveMesh.scale.multiplyScalar(1 + (1-Math.cos(angle))*0.2);
+      }
+    }
+  };
+  _updateMoveMeshes();
 
   const _updateTeleportMeshes = () => {
     for (let i = 0; i < teleportMeshes.length; i++) {
