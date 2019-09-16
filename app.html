@@ -5550,19 +5550,6 @@ function animate(time, frame) {
             controllerMesh.rayMesh.updateMatrixWorld();
             controllerMesh.rayMesh.visible = true;
           }
-          /* trayMesh.quaternion.copy(start.quaternion).slerp(end.quaternion, f);
-          trayMesh.position.copy(start.position).lerp(localVector.copy(end.position), f);
-          trayMesh.scale.copy(start.scale).lerp(end.scale, f);
-          trayMesh.updateMatrixWorld();
-          trayMesh.visible = true; */
-          /* for (let i = 0; i < trayMesh.appIconMeshes.children.length; i++) {
-            const {moveMesh} = trayMesh.appIconMeshes.children[i];
-            if (moveMesh) {
-              moveMesh.scale.set(menuFactor, menuFactor, menuFactor);
-              moveMesh.updateMatrixWorld();
-              moveMesh.visible = true;
-            }
-          } */
           skyboxMesh.material.uniforms.uAnimation.value = menuFactor;
           skyboxMesh.visible = true;
           floorMesh.material.uniforms.uAnimation.value = menuFactor;
