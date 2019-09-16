@@ -96,6 +96,17 @@ function escapeRegExp(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
+const _makeNullPromise = () => {
+  let resolve, reject;
+  const result = new Promise((a, b) => {
+    resolve = a;
+    reject = b;
+  });
+  result.resolve = resolve;
+  result.reject = reject;
+  return result;
+};
+const loginPromise = _makeNullPromise();
 let loginToken;
 let defaultGltf = new THREE.Object3D();
 defaultGltf.visible = false;
@@ -114,6 +125,9 @@ window.addEventListener('message', e => {
       if (orbitControls) {
         orbitControls.enabled = isLoggedIn;
       }
+
+      loginPromise.resolve();
+
       break;
     }
     case 'enter2d': {
@@ -6300,7 +6314,11 @@ const _rtcConnect = () => {
     }));
   }, 30*1000);
 };
-_rtcConnect();
+loginPromise.then(() => {
+  if (loginToken) {
+    _rtcConnect();
+  }
+});
 
 console.log('app started');
 
