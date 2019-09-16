@@ -110,10 +110,8 @@ const loginPromise = _makeNullPromise();
 let loginToken;
 let defaultGltf = new THREE.Object3D();
 defaultGltf.visible = false;
-console.log('app listening for messages');
 window.addEventListener('message', e => {
   const {data} = e;
-  console.log('app got message', data);
   const {method} = data;
   switch (method) {
     case 'login': {
