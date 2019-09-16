@@ -1183,20 +1183,22 @@ const _bindEventTarget = target => {
             _handleKey(e.keyCode, e.shiftKey);
           } else {
             switch (e.which) {
-              case 69: { // E
+              case 9: { // tab
+                e.preventDefault();
+
                 const gamepads = navigator.getGamepads();
                 if (gamepads[1]) {
                   gamepads[1].buttons[5].pressed = true;
                 }
                 break;
               }
-              case 70: { // F
+              /* case 70: { // F
                 const gamepads = navigator.getGamepads();
                 if (gamepads[1]) {
                   gamepads[1].buttons[2].pressed = true;
                 }
                 break;
-              }
+              } */
               case 46: { // del
                 for (let i = 0; i < currentMoveMeshes.length; i++) {
                   const moveMesh = currentMoveMeshes[i];
@@ -1219,20 +1221,22 @@ const _bindEventTarget = target => {
       keyup(e) {
         if (!keyboardFocus) {
           switch (e.which) {
-            case 69: { // E
+            case 9: { // tab
+              e.preventDefault();
+
               const gamepads = navigator.getGamepads();
               if (gamepads[1]) {
                 gamepads[1].buttons[5].pressed = false;
               }
               break;
             }
-            case 70: { // F
+            /* case 70: { // F
               const gamepads = navigator.getGamepads();
               if (gamepads[1]) {
                 gamepads[1].buttons[2].pressed = false;
               }
               break;
-            }
+            } */
           }
         }
       },
@@ -1322,26 +1326,28 @@ const _bindEventTarget = target => {
               } */
               break;
             }
-            case 69: { // E
+            case 9: { // tab
+              e.preventDefault();
+
               const gamepads = navigator.getGamepads();
               if (gamepads[1]) {
                 gamepads[1].buttons[5].pressed = true;
               }
               break;
             }
-            case 70: { // E
+            /* case 70: { // E
               const gamepads = navigator.getGamepads();
               if (gamepads[1]) {
                 gamepads[1].buttons[2].pressed = true;
               }
               break;
-            }
-            case 32: { // space
-              keys.space = true;
+            } */
+            case 82: { // R
+              keys.r = true;
               break;
             }
-            case 17: { // ctrl
-              keys.ctrl = true;
+            case 70: { // F
+              keys.f = true;
               break;
             }
             /* case 49: // 1
@@ -1374,26 +1380,28 @@ const _bindEventTarget = target => {
               keys.right = false;
               break;
             }
-            case 69: { // E
+            case 9: { // tab
+              e.preventDefault();
+
               const gamepads = navigator.getGamepads();
               if (gamepads[1]) {
                 gamepads[1].buttons[5].pressed = false;
               }
               break;
             }
-            case 70: { // F
+            /* case 70: { // F
               const gamepads = navigator.getGamepads();
               if (gamepads[1]) {
                 gamepads[1].buttons[2].pressed = false;
               }
               break;
-            }
-            case 32: { // space
-              keys.space = false;
+            } */
+            case 82: { // R
+              keys.r = false;
               break;
             }
-            case 17: { // ctrl
-              keys.ctrl = false;
+            case 70: { // F
+              keys.f = false;
               break;
             }
           }
@@ -4651,6 +4659,8 @@ const keys = {
   down: false,
   left: false,
   right: false,
+  r: false,
+  f: false,
 };
 const _makeButtons = () => ({
   trigger: false,
@@ -5657,11 +5667,11 @@ function animate(time, frame) {
         velocity.x += speed * timeDiff;
         // moving = true;
       }
-      if (keys.space) {
+      if (keys.r) {
         velocity.y += speed * timeDiff;
         // moving = true;
       }
-      if (keys.ctrl) {
+      if (keys.f) {
         velocity.y -= speed * timeDiff;
         // moving = true;
       }
