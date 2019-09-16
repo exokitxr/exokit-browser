@@ -692,7 +692,9 @@ loginForm.onsubmit = async e => {
   } else if (loginForm.classList.contains('phase-3')) {
     await storage.remove('loginToken');
 
-    loginToken = null;
+    window.location.reload();
+
+    /* loginToken = null;
     xrScene.postMessage({
       method: 'login',
       loginToken,
@@ -702,7 +704,7 @@ loginForm.onsubmit = async e => {
     loginError.innerHTML = '';
     document.body.classList.remove('logged-in');
     loginForm.classList.remove('phase-3');
-    loginForm.classList.add('phase-1');
+    loginForm.classList.add('phase-1'); */
   }
 };
 
