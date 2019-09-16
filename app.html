@@ -548,6 +548,7 @@ const [
   keyboardImg,
   uiIframe,
   interfaceHtml,
+  labelHtml,
   searchSitesJson,
   keyboardHighlightCanvasCtx,
   keyMap,
@@ -582,6 +583,7 @@ const [
       document.body.appendChild(iframe);
     }),
     fetch('interface.html').then(res => res.text()),
+    fetch('label.html').then(res => res.text()),
     fetch('sites.json')
       .then(res => res.json())
       .then(sitesJson => {
@@ -1770,11 +1772,35 @@ const _loadSceneMeshFromCoords = (x, z) => {
   return object;
 };
 
-const _makeLabelMesh = () => {
-  const geometry = new THREE.PlaneBufferGeometry(1, 0.1);
+const _makeLabelMesh = label => {
+  const geometry = new THREE.PlaneBufferGeometry(2, 2/8);
+
+  _renderLabel(label)
+    .then(async result => {
+      if (result.data) {
+        // result.data = await createImageBitmap(new ImageData(new Uint8ClampedArray(result.data.buffer, result.data.byteOffset, result.data.byteLength), uiSize, uiSize/8));
+        // texture.image = result.data;
+        texture.image = new ImageData(new Uint8ClampedArray(result.data.buffer, result.data.byteOffset, result.data.byteLength), uiSize, uiSize/8);
+        texture.needsUpdate = true;
+      }
+    });
+  const texture = new THREE.Texture(
+    null,
+    THREE.UVMapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.LinearFilter,
+    THREE.LinearFilter,
+    THREE.RGBAFormat,
+    THREE.UnsignedByteType,
+    16
+  );
   const material = new THREE.MeshBasicMaterial({
-    color: 0x000080,
+    map: texture,
+    // color: 0x000080,
+    // transparent: true,
   });
+
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
   return mesh;
@@ -3127,6 +3153,44 @@ const _renderUi = searchString => new Promise((accept, reject) => {
     port: mc.port2,
   }, '*', [mc.port2]);
 });
+const _renderLabel = label => new Promise((accept, reject) => {
+  if (renderIds > 0) {
+    uiIframe.contentWindow.postMessage({
+      method: 'cancel',
+      id: renderIds,
+    });
+  }
+
+  const start = Date.now();
+
+  const mc = new MessageChannel();
+  mc.port1.onmessage = e => {
+    const {data} = e;
+    const {error, result} = data;
+
+    console.log('render label', result);
+
+    if (result) {
+      console.log('time taken', Date.now() - start);
+
+      accept(result);
+    } else {
+      reject(error);
+    }
+  };
+
+  uiIframe.contentWindow.postMessage({
+    method: 'render',
+    id: ++renderIds,
+    htmlString: labelHtml,
+    templateData: {
+      label,
+    },
+    width: uiSize,
+    height: uiSize/8,
+    port: mc.port2,
+  }, '*', [mc.port2]);
+});
 
 const _makeScreenMesh = () => {
   const s = 2;
@@ -3372,6 +3436,7 @@ const _makeScreenMesh = () => {
         type: 'screen',
         id: anchor && anchor.id,
         href: anchor && anchor.href,
+        name: anchor && anchor.name,
         x: uv.x,
         y: uv.y,
         distance,
@@ -3384,7 +3449,7 @@ const _makeScreenMesh = () => {
   mesh.click = (intersectionSpec, controllerIndex) => {
     keyboardFocus = null;
 
-    const {id, href} = intersectionSpec;
+    const {id, href, name} = intersectionSpec;
     if (id === 'url-input') {
       const {x, y} = intersectionSpec;
 
@@ -3408,7 +3473,7 @@ const _makeScreenMesh = () => {
       moveMeshes.push(moveMesh);
       currentMoveMeshes[controllerIndex] = moveMesh;
 
-      const labelMesh = _makeLabelMesh();
+      const labelMesh = _makeLabelMesh(name || href);
       scene.add(labelMesh);
       moveMesh.labelMesh = labelMesh;
     } /* else {
