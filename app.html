@@ -3538,6 +3538,10 @@ const _makeScreenMesh = () => {
       _selectTab(3);
     } else if (id === 'tab-4') {
       _selectTab(4);
+    } else if (id === 'action-new-scene') {
+      while (root.firstChild) {
+        root.removeChild(root.firstChild);
+      }
     } else if (href) {
       const xrIframe = document.createElement('xr-iframe');
       xrIframe.src = href;
