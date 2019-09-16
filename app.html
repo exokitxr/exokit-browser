@@ -5636,11 +5636,13 @@ function animate(time, frame) {
   const _updateMoveMeshes = () => {
     for (let i = 0; i < moveMeshes.length; i++) {
       const moveMesh = moveMeshes[i];
-      moveMesh.scale.set(1, 1, 1);
-      if (!moveMesh.xrIframe.loaded) {
-        const f = ((Date.now() - moveMesh.startTime) % 1000) / 1000;
-        const angle = Math.pow(f, 0.5) * Math.PI*2;
-        moveMesh.scale.multiplyScalar(1 + (1-Math.cos(angle))*0.2);
+      if (moveMesh.visible) {
+        moveMesh.scale.set(1, 1, 1);
+        if (!moveMesh.xrIframe.loaded) {
+          const f = ((Date.now() - moveMesh.startTime) % 1000) / 1000;
+          const angle = Math.pow(f, 0.5) * Math.PI*2;
+          moveMesh.scale.multiplyScalar(1 + (1-Math.cos(angle))*0.2);
+        }
       }
     }
   };
