@@ -4859,16 +4859,23 @@ function animate(time, frame) {
       if (gamepad && gamepad.buttons[0].pressed) {
         const controllerIndex = _getControllerIndex(gamepad);
         const teleportMesh = teleportMeshes[controllerIndex];
-        localRay.set(localVector.fromArray(gamepad.pose.position), localVector2.set(0, 0, -1).applyQuaternion(localQuaternion.fromArray(gamepad.pose.orientation)));
-        const intersection = floorMesh.intersect(localRay);
-        if (intersection) {
-          teleportMesh.position.copy(intersection.point);
-          localEuler.setFromQuaternion(localQuaternion, localEuler.order);
-          localEuler.x = 0;
-          localEuler.z = 0;
-          teleportMesh.quaternion.setFromEuler(localEuler);
-          teleportMesh.updateMatrixWorld(true);
-          teleportMesh.visible = true;
+
+        localVector2.fromArray(gamepad.pose.position);
+        localEuler.setFromQuaternion(localQuaternion.fromArray(gamepad.pose.orientation), localEuler.order);
+
+        for (let i = 0; i < 20; i++, localVector2.add(localVector3), localEuler.x = Math.max(localEuler.x - Math.PI*0.07, -Math.PI/2)) {
+          localRay.set(localVector2, localVector3.set(0, 0, -1).applyQuaternion(localQuaternion.setFromEuler(localEuler)));
+          const intersection = floorMesh.intersect(localRay);
+          if (intersection && intersection.distance <= 1) {
+            teleportMesh.position.copy(intersection.point);
+            localEuler.setFromQuaternion(localQuaternion, localEuler.order);
+            localEuler.x = 0;
+            localEuler.z = 0;
+            teleportMesh.quaternion.setFromEuler(localEuler);
+            teleportMesh.updateMatrixWorld(true);
+            teleportMesh.visible = true;
+            break;
+          }
         }
       }
     }
