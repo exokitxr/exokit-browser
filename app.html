@@ -3108,15 +3108,6 @@ const _renderUi = searchString => new Promise((accept, reject) => {
       console.log('time taken', Date.now() - start);
 
       accept(result);
-
-      /* const canvas = document.createElement('canvas');
-      canvas.width = result.width;
-      canvas.height = result.height;
-      canvas.style.width = `${result.width}px`;
-      canvas.style.height = `${result.height}px`;
-      const ctx = canvas.getContext('bitmaprenderer');
-      ctx.transferFromImageBitmap(result);
-      document.body.insertBefore(canvas, document.body.childNodes[0]); */
     } else {
       reject(error);
     }
