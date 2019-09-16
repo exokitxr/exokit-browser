@@ -126,7 +126,9 @@ window.addEventListener('message', e => {
         orbitControls.enabled = isLoggedIn;
       }
 
-      loginPromise.resolve();
+      if (isLoggedIn) {
+        loginPromise.resolve();
+      }
 
       break;
     }
@@ -6315,9 +6317,7 @@ const _rtcConnect = () => {
   }, 30*1000);
 };
 loginPromise.then(() => {
-  if (loginToken) {
-    _rtcConnect();
-  }
+  _rtcConnect();
 });
 
 console.log('app started');
