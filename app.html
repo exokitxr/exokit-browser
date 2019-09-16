@@ -5449,17 +5449,19 @@ function animate(time, frame) {
     if (lastPad && !pad) {
       const teleportMesh = teleportMeshes[i];
 
-      const vrCamera = renderer.vr.enabled ? renderer.vr.getCamera(camera).cameras[0] : camera;
-      vrCamera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      if (teleportMesh.visible) {
+        const vrCamera = renderer.vr.enabled ? renderer.vr.getCamera(camera).cameras[0] : camera;
+        vrCamera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
 
-      const xDest = teleportMesh.position.x;
-      const xDist = xDest - localVector.x;
-      const zDest = teleportMesh.position.z;
-      const zDist = zDest - localVector.z;
+        const xDest = teleportMesh.position.x;
+        const xDist = xDest - localVector.x;
+        const zDest = teleportMesh.position.z;
+        const zDist = zDest - localVector.z;
 
-      window.document.xrOffset.position[0] -= xDist;
-      window.document.xrOffset.position[2] -= zDist;
-      window.document.xrOffset.pushUpdate();
+        window.document.xrOffset.position[0] -= xDist;
+        window.document.xrOffset.position[2] -= zDist;
+        window.document.xrOffset.pushUpdate();
+      }
     }
   };
   const _makeMenuAnimation = spec => {
