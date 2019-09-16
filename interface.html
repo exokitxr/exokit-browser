@@ -25,6 +25,7 @@ ul {
 ul li {
   display: inline-block;
   width: 668px;
+  height: 200px;
   float: left;
 }
 ul li a {
@@ -87,11 +88,13 @@ ul li a .wrap h3 {
 .radios > .radio {
   display: flex;
   flex: 1;
+  height: 160px;
   padding: 15px 40px;
   border: 8px solid;
   border-radius: 22px;
   color: #ec407a;
   justify-content: center;
+  align-items: center;
 }
 .radios > .radio:not(:first-child) {
   border-top-left-radius: 0;
@@ -109,6 +112,68 @@ ul li a .wrap h3 {
   border-color: #ec407a;
   color: #FFF;
 }
+.metasites {
+  display: flex;
+  flex-direction: column;
+}
+.metasites .metasite {
+  position: relative;
+  display: flex;
+  height: 340px;
+  padding: 60px;
+}
+.metasites .metasite .border {
+  position: absolute;
+  left: 30px;
+  right: 30px;
+  top: 30px;
+  bottom: 30px;
+  // border: 10px solid transparent;
+  border-radius: 20px;
+}
+.metasites .metasite.selected {
+  color: #FFF;
+}
+.metasites .metasite.selected .border {
+  background-color: #000;
+  /* background-color: #5c6bc0;
+  color: #FFF; */
+  // border-color: #000;
+}
+/* .metasites .metasite.selected .icon {
+  background-color: #FFF;
+} */
+.metasites .metasite .icon {
+  position: relative;
+  display: flex;
+  width: 200px;
+  height: 200px;
+  margin-right: 30px;
+  background-color: #f2f3f5;
+  border-radius: 40px;
+  color: #000;
+  justify-content: center;
+  align-items: center;
+}
+.metasites .metasite .wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.metasites .metasite .wrap h1,
+.metasites .metasite .wrap h2,
+.metasites .metasite .wrap h3,
+.metasites .metasite .wrap p
+{
+  margin: 0;
+}
+.metasites .metasite .wrap h3 {
+  font-size: 60px;
+  line-height: 1.6;
+}
+.metasites .metasite .wrap p {
+  font-size: 50px;
+}
     </style>
   </head>
   <body>
@@ -120,24 +185,61 @@ ul li a .wrap h3 {
       <div class=radios>
         <a id=tab-1 class="radio {{#tab1}}selected{{/tab1}}">WebXR</a>
         <a id=tab-2 class="radio {{#tab2}}selected{{/tab2}}">Actions</a>
-        <a id=tab-3 class="radio {{#tab3}}selected{{/tab3}}">Models</a>
-        <a id=tab-4 class="radio {{#tab4}}selected{{/tab4}}">Data</a>
+        <a id=tab-3 class="radio {{#tab3}}selected{{/tab3}}">Avatar</a>
+        <a id=tab-4 class="radio {{#tab4}}selected{{/tab4}}">Metasite</a>
       </div>
       {{#tab1}}
-      <ul>
-        {{#searchResults}}
-        <li>
-          <a href="{{{url}}}" name="{{{label}}}">
-            <img src="{{{icon}}}">
-            <div class=wrap>
-              <h3>{{label}}</h3>
-              <p>{{{url}}}</p>
-            </div>
-          </a>
-        </li>
-        {{/searchResults}}
-      </ul>
+      <div class=results>
+        <ul>
+          {{#searchResults}}
+          <li>
+            <a href="{{{url}}}" name="{{{label}}}">
+              <img src="{{{icon}}}">
+              <div class=wrap>
+                <h3>{{label}}</h3>
+                <p>{{{url}}}</p>
+              </div>
+            </a>
+          </li>
+          {{/searchResults}}
+        </ul>
+      </div>
       {{/tab1}}
+      {{#tab4}}
+      <div class=metasites>
+        <a id=metasite-local class="metasite selected">
+          <div class=border></div>
+          <div class=icon>
+            <i class="fal fa-street-view"></i>
+            <!-- <i class="fal fa-home-lg-alt"></i> -->
+          </div>
+          <div class=wrap>
+            <h3>Local</h3>
+            <p>Your home space</p>
+          </div>
+        </a>
+        <a id=metasite-shared class=metasite>
+          <div class=border></div>
+          <div class=icon>
+            <i class="fal fa-couch"></i>
+          </div>
+          <div class=wrap>
+            <h3>Shared</h3>
+            <p>Shared space for your friends</p>
+          </div>
+        </a>
+        <a id=metasite-global class=metasite>
+          <div class=border></div>
+          <div class=icon>
+            <i class="fal fa-map-marked-alt"></i>
+          </div>
+          <div class=wrap>
+            <h3>Universe</h3>
+            <p>Global space to explore</p>
+          </div>
+        </a>
+      </div>
+      {{/tab4}}
     </div>
   </body>
 </html>
