@@ -169,11 +169,11 @@ input[type=text]
   color: #5c6bc0;
   cursor: pointer;
 }
-.multibutton > .button:not(:first-child) {
+.multibutton > .button:not(.first) {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
-.multibutton > .button:not(:last-child) {
+.multibutton > .button:not(.last) {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
@@ -492,9 +492,9 @@ table tr {
     </div>
 
     <div class=multibutton id=enter-buttons>
-      <nav class="button" id="enter-2d-button">Enter 2D</nav>
-      <a class=button id="enter-xr-button" style="display: none;">Enter XR</a>
-      <a class=button id="no-xr-button" disabled style="display: none;">No XR</a>
+      <nav class="button first" id="enter-2d-button">Enter 2D</nav>
+      <a class="button last" id="enter-xr-button" style="display: none;">Enter XR</a>
+      <a class="button last" id="no-xr-button" disabled style="display: none;">No XR</a>
     </div>
 
     <script src="https://kit.fontawesome.com/0735724151.js"></script>
