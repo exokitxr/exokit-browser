@@ -6040,7 +6040,7 @@ function _updateCoord() {
 _updateCoord();
 window.addEventListener('popstate', _updateCoord);
 
-/* const _makePeerConnection = peerConnectionId => {
+const _makePeerConnection = peerConnectionId => {
   const peerConnectionConfig = {
     iceServers: [
       {'urls': 'stun:stun.stunprotocol.org:3478'},
@@ -6286,12 +6286,13 @@ const _rtcConnect = () => {
   };
   s.onclose = () => {
     clearInterval(pingInterval);
-    setTimeout(_rtcConnect, 5000);
+    console.log('rtc closed');
+    // setTimeout(_rtcConnect, 5000);
   };
   s.onerror = err => {
-    console.warn(err);
+    console.warn('rtc error', err);
     clearInterval(pingInterval);
-    setTimeout(_rtcConnect, 5000);
+    // setTimeout(_rtcConnect, 5000);
   };
   const pingInterval = setInterval(() => {
     s.send(JSON.stringify({
@@ -6299,7 +6300,7 @@ const _rtcConnect = () => {
     }));
   }, 30*1000);
 };
-_rtcConnect(); */
+_rtcConnect();
 
 console.log('app started');
 
