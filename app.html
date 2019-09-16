@@ -4849,41 +4849,6 @@ function animate(time, frame) {
     _updateControllerMeshes();
   }
 
-  const _updateTeleportMeshes = () => {
-    for (let i = 0; i < teleportMeshes.length; i++) {
-      teleportMeshes[i].visible = false;
-    }
-
-    for (let i = 0; i < 2; i++) {
-      const gamepad = gamepads[i];
-      if (gamepad && gamepad.buttons[0].pressed) {
-        const controllerIndex = _getControllerIndex(gamepad);
-        const teleportMesh = teleportMeshes[controllerIndex];
-
-        localVector2.fromArray(gamepad.pose.position);
-        localEuler.setFromQuaternion(localQuaternion.fromArray(gamepad.pose.orientation), localEuler.order);
-
-        for (let i = 0; i < 20; i++, localVector2.add(localVector3), localEuler.x = Math.max(localEuler.x - Math.PI*0.07, -Math.PI/2)) {
-          localRay.set(localVector2, localVector3.set(0, 0, -1).applyQuaternion(localQuaternion.setFromEuler(localEuler)));
-          const intersection = floorMesh.intersect(localRay);
-          if (intersection && intersection.distance <= 1) {
-            teleportMesh.position.copy(intersection.point);
-            localEuler.setFromQuaternion(localQuaternion, localEuler.order);
-            localEuler.x = 0;
-            localEuler.z = 0;
-            teleportMesh.quaternion.setFromEuler(localEuler);
-            teleportMesh.updateMatrixWorld(true);
-            teleportMesh.visible = true;
-            break;
-          }
-        }
-      }
-    }
-  };
-  if (loginToken) {
-    _updateTeleportMeshes();
-  }
-
   const _updateCurrentMoveMeshes = () => {
     for (let i = 0; i < currentMoveMeshes.length; i++) {
       const moveMesh = currentMoveMeshes[i];
@@ -5624,6 +5589,41 @@ function animate(time, frame) {
     }
   };
   _updateTrayMeshAnimation();
+
+  const _updateTeleportMeshes = () => {
+    for (let i = 0; i < teleportMeshes.length; i++) {
+      teleportMeshes[i].visible = false;
+    }
+
+    for (let i = 0; i < 2; i++) {
+      const gamepad = gamepads[i];
+      if (gamepad && gamepad.buttons[0].pressed) {
+        const controllerIndex = _getControllerIndex(gamepad);
+        const teleportMesh = teleportMeshes[controllerIndex];
+
+        localVector2.fromArray(gamepad.pose.position);
+        localEuler.setFromQuaternion(localQuaternion.fromArray(gamepad.pose.orientation), localEuler.order);
+
+        for (let i = 0; i < 20; i++, localVector2.add(localVector3), localEuler.x = Math.max(localEuler.x - Math.PI*0.07, -Math.PI/2)) {
+          localRay.set(localVector2, localVector3.set(0, 0, -1).applyQuaternion(localQuaternion.setFromEuler(localEuler)));
+          const intersection = floorMesh.intersect(localRay);
+          if (intersection && intersection.distance <= 1) {
+            teleportMesh.position.copy(intersection.point);
+            localEuler.setFromQuaternion(localQuaternion, localEuler.order);
+            localEuler.x = 0;
+            localEuler.z = 0;
+            teleportMesh.quaternion.setFromEuler(localEuler);
+            teleportMesh.updateMatrixWorld(true);
+            teleportMesh.visible = true;
+            break;
+          }
+        }
+      }
+    }
+  };
+  if (loginToken) {
+    _updateTeleportMeshes();
+  }
 
   const _render = () => {
     const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
