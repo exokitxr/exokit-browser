@@ -20,6 +20,7 @@
     <script src="file-type.js"></script>
   </head>
   <body>
+    <xr-site id=root></xr-site>
     <script type=module>
 (async () => {
 
@@ -1204,11 +1205,7 @@ const _bindEventTarget = target => {
                   const moveMesh = currentMoveMeshes[i];
                   if (moveMesh) {
                     const {xrIframe} = moveMesh;
-                    layers.splice(layers.indexOf(xrIframe), 1);
-                    xrIframe.destroy();
-                    scene.remove(moveMesh);
-                    scene.remove(moveMesh.labelMesh);
-                    moveMeshes.splice(moveMeshes.indexOf(moveMesh), 1);
+                    xrIframe.parentNode.removeChild(xrIframe);
                     currentMoveMeshes[i] = null;
                   }
                 }
@@ -3119,6 +3116,65 @@ const _makeTrayMesh = () => {
 // const trayMesh = _makeTrayMesh();
 // scene.add(trayMesh);
 
+class XRSite extends HTMLElement {
+  constructor() {
+    super();
+
+    this.observer = new MutationObserver(mutations => {
+      this.handleMutations(mutations);
+    });
+    this.observer.observe(this, {
+      childList: true,
+    });
+  }
+  update() {
+    this.handleMutations(this.observer.takeRecords());
+  }
+  handleMutations(mutations) {
+    for (let i = 0; i < mutations.length; i++) {
+      const {addedNodes, removedNodes} = mutations[i];
+
+      for (let j = 0; j < removedNodes.length; j++) {
+        const removedNode = removedNodes[j];
+
+        if (removedNode instanceof XRIFrame) {
+          const xrIframe = removedNode;
+
+          layers.splice(layers.indexOf(xrIframe), 1);
+          xrIframe.destroy();
+
+          const {moveMesh} = xrIframe;
+          scene.remove(moveMesh);
+          scene.remove(moveMesh.labelMesh);
+          moveMeshes.splice(moveMeshes.indexOf(moveMesh), 1);
+        }
+      }
+      for (let j = 0; j < addedNodes.length; j++) {
+        const addedNode = addedNodes[j];
+
+        if (addedNode instanceof XRIFrame) {
+          const xrIframe = addedNode;
+
+          layers.push(xrIframe);
+
+          const moveMesh = _makeMoveMesh('volume');
+          moveMesh.xrIframe = xrIframe;
+          moveMesh.startTime = Date.now();
+          scene.add(moveMesh);
+          moveMeshes.push(moveMesh);
+          xrIframe.moveMesh = moveMesh;
+
+          const labelMesh = _makeLabelMesh(xrIframe.name || xrIframe.src);
+          scene.add(labelMesh);
+          moveMesh.labelMesh = labelMesh;
+        }
+      }
+    }
+  }
+}
+customElements.define('xr-site', XRSite);
+const root = document.getElementById('root');
+
 const uiSize = 2048;
 let renderIds = 0;
 const _renderUi = (searchString, selectedTab) => new Promise((accept, reject) => {
@@ -3485,18 +3541,11 @@ const _makeScreenMesh = () => {
     } else if (href) {
       const xrIframe = document.createElement('xr-iframe');
       xrIframe.src = href;
-      layers.push(xrIframe);
+      xrIframe.name = name;
+      root.appendChild(xrIframe);
+      root.update(); // force mutation observer to run
 
-      const moveMesh = _makeMoveMesh('volume');
-      moveMesh.xrIframe = xrIframe;
-      moveMesh.startTime = Date.now();
-      scene.add(moveMesh);
-      moveMeshes.push(moveMesh);
-      currentMoveMeshes[controllerIndex] = moveMesh;
-
-      const labelMesh = _makeLabelMesh(name || href);
-      scene.add(labelMesh);
-      moveMesh.labelMesh = labelMesh;
+      currentMoveMeshes[controllerIndex] = xrIframe.moveMesh;
     } /* else {
       console.log('no match', intersectionSpec, new Error().stack);
     } */
