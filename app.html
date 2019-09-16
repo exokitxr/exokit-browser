@@ -1203,6 +1203,7 @@ const _bindEventTarget = target => {
                     layers.splice(layers.indexOf(xrIframe), 1);
                     xrIframe.destroy();
                     scene.remove(moveMesh);
+                    scene.remove(moveMesh.labelMesh);
                     moveMeshes.splice(moveMeshes.indexOf(moveMesh), 1);
                     currentMoveMeshes[i] = null;
                   }
@@ -1769,118 +1770,13 @@ const _loadSceneMeshFromCoords = (x, z) => {
   return object;
 };
 
-const _makeLabelMesh = s => {
-  const width = 2;
-  const height = 0.2;
-  const geometry = new THREE.PlaneBufferGeometry(width, height);
-  const labelVsh = `
-    varying vec2 vUv;
-    void main() {
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
-      vUv = uv;
-    }
-  `;
-  const labelFsh = `
-    varying vec2 vUv;
-    // vec4 color = vec4(${new THREE.Color(0x1976d2).toArray().map(n => n.toFixed(8)).join(',')}, 1.0);
-    vec4 color = vec4(${new THREE.Color(0x333333).toArray().map(n => n.toFixed(8)).join(',')}, 1.0);
-    void main() {
-      if ((vUv.x < 0.005 || vUv.x > 0.995) || (vUv.y < 0.03 || vUv.y > 0.97)) {
-        // gl_FragColor = vec4(vec3(0.11055276381909548, 0.27638190954773867, 0.4103852596314908) * 2.0, 1.0);
-        gl_FragColor = color;
-      } else {
-        // gl_FragColor = vec4(vUv.x, vUv.y, 0.0, 0.5);
-        gl_FragColor = vec4(1., 1., 1., 1.);
-      }
-    }
-  `;
-  const material = new THREE.ShaderMaterial({
-    vertexShader: labelVsh,
-    fragmentShader: labelFsh,
-    transparent: true,
-    side: THREE.DoubleSide,
-    // depthWrite: false,
+const _makeLabelMesh = () => {
+  const geometry = new THREE.PlaneBufferGeometry(1, 0.1);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0x000080,
   });
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.width = width;
-  mesh.height = height;
   mesh.frustumCulled = false;
-  mesh.getGlyphs = () => {
-    const glyphs = textMesh.geometry.layout.glyphs.slice();
-    if (glyphs.length > 0) {
-      const lastGlyph = glyphs[glyphs.length - 1];
-      glyphs.push({x: lastGlyph.x + lastGlyph.data.width});
-    }
-    return glyphs;
-  };
-  mesh.plane = new THREE.Plane();
-  mesh.leftLine = new THREE.Line3();
-  mesh.topLine = new THREE.Line3();
-  mesh.update = () => {
-    const menuWorldWidth = width;
-    const menuWorldHeight = height;
-    mesh.leftLine.start
-      .set(-menuWorldWidth/2, menuWorldHeight/2, 0)
-      .applyMatrix4(mesh.matrixWorld);
-    mesh.leftLine.end
-      .set(-menuWorldWidth/2, -menuWorldHeight/2, 0)
-      .applyMatrix4(mesh.matrixWorld);
-
-    mesh.topLine.start
-      .set(-menuWorldWidth/2, menuWorldHeight/2, 0)
-      .applyMatrix4(mesh.matrixWorld);
-    mesh.topLine.end
-      .set(menuWorldWidth/2, menuWorldHeight / 2, 0)
-      .applyMatrix4(mesh.matrixWorld);
-
-    mesh.plane.setFromCoplanarPoints(
-      mesh.leftLine.start,
-      mesh.leftLine.end,
-      mesh.topLine.end
-    );
-  };
-  mesh.intersect = ray => {
-    const intersectionPoint = ray.intersectPlane(mesh.plane, localVector);
-    if (intersectionPoint) {
-      const leftIntersectionPoint = mesh.leftLine.closestPointToPoint(intersectionPoint, true, localVector2);
-      const topIntersectionPoint = mesh.topLine.closestPointToPoint(intersectionPoint, true, localVector3);
-
-      const xFactor = topIntersectionPoint.distanceTo(mesh.topLine.start) / mesh.width;
-      const yFactor = leftIntersectionPoint.distanceTo(mesh.leftLine.start) / mesh.height;
-      const distance = ray.origin.distanceTo(intersectionPoint);
-
-      if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
-        const xScale = mesh.width / mesh.textMesh.scale.x;
-        const x = xFactor * xScale;
-        const yScale = mesh.height;
-        const y = yFactor * yScale;
-        return {
-          type: 'label',
-          mesh,
-          distance,
-          cancel: true,
-          x,
-          y,
-          xScale,
-          yScale,
-        };
-      }
-    }
-    return null;
-  };
-
-  const textMesh = _makeTextMesh(s, 0x000000);
-  textMesh.position.x -= width/2;
-  // textMesh.position.x += -0.45;
-  textMesh.position.y += 0.02;
-  textMesh.position.z += 0.001;
-  mesh.add(textMesh);
-  mesh.textMesh = textMesh;
-
-  const caretMesh = _makeCaretMesh(mesh, 0x000000);
-  mesh.add(caretMesh);
-  mesh.caretMesh = caretMesh;
-
   return mesh;
 };
 
@@ -3520,6 +3416,10 @@ const _makeScreenMesh = () => {
       scene.add(moveMesh);
       moveMeshes.push(moveMesh);
       currentMoveMeshes[controllerIndex] = moveMesh;
+
+      const labelMesh = _makeLabelMesh();
+      scene.add(labelMesh);
+      moveMesh.labelMesh = labelMesh;
     } /* else {
       console.log('no match', intersectionSpec, new Error().stack);
     } */
@@ -5541,8 +5441,10 @@ function animate(time, frame) {
           for (let i = 0; i < moveMeshes.length; i++) {
             const moveMesh = moveMeshes[i];
             moveMesh.scale.set(menuFactor, menuFactor, menuFactor);
-            moveMesh.updateMatrixWorld();
             moveMesh.visible = true;
+            moveMesh.labelMesh.scale.set(menuFactor, menuFactor, menuFactor);
+            moveMesh.labelMesh.visible = true;
+            // moveMesh.updateMatrixWorld();
           }
           for (let i = 0; i < controllerMeshes.length; i++) {
             const controllerMesh = controllerMeshes[i];
@@ -5573,7 +5475,9 @@ function animate(time, frame) {
             if (end.factor === 0) {
               screenMesh.visible = false;
               for (let i = 0; i < moveMeshes.length; i++) {
-                moveMeshes[i].visible = false;
+                const moveMesh = moveMeshes[i];
+                moveMesh.visible = false;
+                moveMesh.labelMesh.visible = false;
               }
               for (let i = 0; i < controllerMeshes.length; i++) {
                 controllerMeshes[i].rayMesh.visible = false;
@@ -5614,6 +5518,11 @@ function animate(time, frame) {
             moveMesh.scale.multiplyScalar(1 + (1-Math.cos(angle))*0.2);
           }
         }
+
+        const {labelMesh} = moveMesh;
+        labelMesh.position.copy(moveMesh.position).add(localVector.set(0, 1, 0));
+        const vrCamera = renderer.vr.enabled ? renderer.vr.getCamera(camera).cameras[0] : camera;
+        labelMesh.quaternion.copy(vrCamera.quaternion);
       }
     }
   };
