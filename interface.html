@@ -81,6 +81,18 @@ ul li a .wrap h3 {
   line-height: 1.6;
   outline: none;
 }
+.scene-input {
+  margin: 40px;
+  padding: 40px;
+  background-color: #f2f3f5;
+  border: 0;
+  border-radius: 40px;
+  color: #5c5c6e;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: 1.6;
+  outline: none;
+}
 .radios {
   display: flex;
   margin: 40px;
@@ -314,6 +326,12 @@ ul li a .wrap h3 {
   <body>
     <div class=ui-left>
       <!-- <input type=text placeholder="https://" class=url-input id=url-input> -->
+      {{#tab1}}
+      <input type=text class=url-input id=url-input>
+      {{/tab1}}
+      {{#tab2}}
+      <input type=text class=scene-input id=scene-input>
+      {{/tab2}}
       <div class=radios>
         <a id=tab-1 class="radio {{#tab1}}selected{{/tab1}}">Apps</a>
         <a id=tab-2 class="radio {{#tab2}}selected{{/tab2}}">Scene</a>
@@ -454,6 +472,22 @@ ul li a .wrap h3 {
         </a>
       </div>
       {{/tab3}}
+      <div class=results>
+        <ul>
+          {{#searchResults}}
+          <li>
+            <a href="{{{url}}}" name="{{{label}}}">
+              <img src="{{{icon}}}">
+              <div class=wrap>
+                <h3>{{label}}</h3>
+                <p>{{{url}}}</p>
+              </div>
+            </a>
+          </li>
+          {{/searchResults}}
+        </ul>
+      </div>
+      {{/tab2}}
       {{#tab4}}
       <div class=grid>
         <a id="/l/0/0" class=item>
