@@ -6432,48 +6432,58 @@ const _rtcConnect = (name, channelId) => {
       connectionId,
     }));
   };
+  const _addPeerConnection = peerConnectionId => {
+    let peerConnection = peerConnections.find(peerConnection => peerConnection.connectionId === peerConnectionId);
+    if (peerConnection && !peerConnection.open) {
+      peerConnection.close();
+      peerConnection = null;
+    }
+    if (!peerConnection) {
+      peerConnection = _makePeerConnection(peerConnectionId);
+      peerConnection.onicecandidate = e => {
+        // console.log('ice candidate', e.candidate);
+
+        rtcWs.send(JSON.stringify({
+          dst: peerConnectionId,
+          src: connectionId,
+          method: 'iceCandidate',
+          candidate: e.candidate,
+        }));
+      };
+      peerConnections.push(peerConnection);
+
+      if (connectionId < peerConnectionId) {
+        peerConnection
+          .createOffer()
+          .then(offer => {
+            peerConnection.setLocalDescription(offer);
+
+            rtcWs.send(JSON.stringify({
+              dst: peerConnectionId,
+              src: connectionId,
+              method: 'offer',
+              offer,
+            }));
+          });
+      }
+    }
+  };
+  const _removePeerConnection = peerConnectionId => {
+    const index = peerConnections.findIndex(peerConnection => peerConnection.connectionId === peerConnectionId);
+    if (index !== -1) {
+      peerConnections.splice(index, 1)[0].close();
+    } else {
+      console.warn('no such peer connection', peerConnectionId, peerConnections.map(peerConnection => peerConnection.connectionId));
+    }
+  };
   rtcWs.onmessage = e => {
     // console.log('got message', e.data);
 
     const data = JSON.parse(e.data);
     const {method} = data;
-    if (method === 'join') {
+   if (method === 'join') {
       const {connectionId: peerConnectionId} = data;
-
-      let peerConnection = peerConnections.find(peerConnection => peerConnection.connectionId === peerConnectionId);
-      if (peerConnection && !peerConnection.open) {
-        peerConnection.close();
-        peerConnection = null;
-      }
-      if (!peerConnection) {
-        peerConnection = _makePeerConnection(peerConnectionId);
-        peerConnection.onicecandidate = e => {
-          // console.log('ice candidate', e.candidate);
-
-          rtcWs.send(JSON.stringify({
-            dst: peerConnectionId,
-            src: connectionId,
-            method: 'iceCandidate',
-            candidate: e.candidate,
-          }));
-        };
-        peerConnections.push(peerConnection);
-
-        if (connectionId < peerConnectionId) {
-          peerConnection
-            .createOffer()
-            .then(offer => {
-              peerConnection.setLocalDescription(offer);
-
-              rtcWs.send(JSON.stringify({
-                dst: peerConnectionId,
-                src: connectionId,
-                method: 'offer',
-                offer,
-              }));
-            });
-        }
-      }
+      _addPeerConnection(peerConnectionId);
     } else if (method === 'offer') {
       const {src: peerConnectionId, offer} = data;
 
@@ -6517,12 +6527,7 @@ const _rtcConnect = (name, channelId) => {
       }
     } else if (method === 'leave') {
       const {connectionId: peerConnectionId} = data;
-      const index = peerConnections.findIndex(peerConnection => peerConnection.connectionId === peerConnectionId);
-      if (index !== -1) {
-        peerConnections.splice(index, 1)[0].close();
-      } else {
-        console.warn('no such peer connection', peerConnectionId, peerConnections.map(peerConnection => peerConnection.connectionId));
-      }
+      _removePeerConnection(peerConnectionId);
     }
   };
   rtcWs.onclose = () => {
