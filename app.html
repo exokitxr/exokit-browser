@@ -96,6 +96,58 @@ function _randomString() {
 function escapeRegExp(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
+const clipboard = {
+  copy(text) {
+    const fakeElem = document.body.appendChild(document.createElement('textarea'));
+    fakeElem.style.position = 'absolute';
+    fakeElem.style.left = '-9999px';
+    fakeElem.setAttribute('readonly', '');
+    fakeElem.value = text;
+    fakeElem.select();
+    try {
+      return document.execCommand('copy');
+    } catch (err) {
+      return false;
+    } finally {
+      fakeElem.parentNode.removeChild(fakeElem);
+    }
+  },
+  paste() {
+    const fakeElem = document.body.appendChild(document.createElement('textarea'));
+    fakeElem.style.position = 'absolute';
+    fakeElem.style.left = '-9999px';
+    fakeElem.setAttribute('readonly', '');
+    fakeElem.select();
+    fakeElem.parentNode.removeChild(fakeElem);
+
+    return navigator.clipboard.readText()
+      .catch(err => {
+        console.warn(err);
+
+        return navigator.permissions.query({
+          name: 'clipboard-read',
+        })
+        .then(async permissionStatus => {
+          // Will be 'granted', 'denied' or 'prompt':
+          console.log('permission 1', permissionStatus.state);
+
+          if (permissionStatus.state !== 'granted') {
+            // Listen for changes to the permission state
+            await new Promise((accept, reject) => {
+              permissionStatus.onchange = () => {
+                console.log('permission 2', permissionStatus.state);
+                if (permissionStatus.state === 'granted') {
+                  permissionStatus.onchange = null;
+                  accept();
+                }
+              };
+            });
+          }
+        })
+        .then(() => navigator.clipboard.readText());
+      });
+  },
+};
 
 const _makeNullPromise = () => {
   let resolve, reject;
