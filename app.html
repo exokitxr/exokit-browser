@@ -633,8 +633,8 @@ const [
   .concat([
     new Promise((accept, reject) => {
       const iframe = document.createElement('iframe');
-      iframe.src = 'https://render.exokit.xyz/';
-      // iframe.src = './exokit-render/index.html';
+      // iframe.src = 'https://render.exokit.xyz/';
+      iframe.src = './exokit-render/index.html';
       iframe.onload = () => {
         accept(iframe);
       };
@@ -3639,6 +3639,7 @@ const _makeScreenMesh = () => {
         id: anchor && anchor.id,
         href: anchor && anchor.href,
         name: anchor && anchor.name,
+        content: anchor && anchor.content,
         x: uv.x,
         y: uv.y,
         distance,
@@ -3660,7 +3661,7 @@ const _makeScreenMesh = () => {
   mesh.click = async (intersectionSpec, controllerIndex) => {
     keyboardFocus = null;
 
-    const {id, href, name, url} = intersectionSpec;
+    const {id, href, name, url, content} = intersectionSpec;
     if (id === 'url-input') {
       const {x, y} = intersectionSpec;
 
@@ -3723,7 +3724,7 @@ const _makeScreenMesh = () => {
     } else if (id === 'channel-global') {
       _setChannel(3);
     } else if (id === 'action-open-scene') {
-      const dom = new DOMParser().parseFromString(url, 'text/html');
+      const dom = new DOMParser().parseFromString(atob(content), 'text/html');
       if (dom.body.childNodes.length === 1 && dom.body.childNodes[0].nodeName === 'XR-SITE') {
         root.innerHTML = dom.body.childNodes[0].innerHTML;
       } else {
