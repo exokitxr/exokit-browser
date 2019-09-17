@@ -669,7 +669,7 @@ const [
           }
         };
       }),
-    fetch('json.json')
+    fetch('scenes.json')
       .then(res => res.json())
       .then(scenesJson => {
         return s => {
@@ -3746,7 +3746,7 @@ const _makeScreenMesh = () => {
     } else if (id === 'action-open-scene') {
       // let url = 'https://api.myjson.com/bins/bdd2t';
 
-      fetch('json.json')
+      fetch('scenes.json')
       .then(res => res.json())
       .then((out) => {
         console.log("out = " + JSON.stringify(out));
