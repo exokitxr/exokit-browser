@@ -677,18 +677,20 @@ const [
           const maxResults = 12;
           if (s) {
             const regexps = s.split(/\s/).filter(s => !!s).map(s => new RegExp(escapeRegExp(s), 'i'));
-            const results = [];
+            const sceneResults = [];
             for (let i = 0; i < scenesJson.length; i++) {
               const site = scenesJson[i];
               if (regexps.some(regexp => regexp.test(site.label) || regexp.test(site.url))) {
-                results.push(site);
-                if (results.length >= maxResults) {
+                sceneResults.push(site);
+                if (sceneResults.length >= maxResults) {
                   break;
                 }
               }
             }
-            return results;
+            console.log("scenes.json --- sceneResults = " + sceneResults);
+            return sceneResults;
           } else {
+            console.log("scenes.json --- maxResults = " + maxResults);
             return scenesJson.slice(0, maxResults);
           }
         };
@@ -3301,11 +3303,10 @@ const _renderUi = (searchString, selectedTab, selectedChannel) => new Promise((a
     }
   };
 
-  console.log(" ------ selectedTab = " + selectedTab);
   if (selectedTab === 1) {
     var searchResults = searchSitesJson(searchString);
   } else if (selectedTab === 2) {
-    var searchResults = searchScenesJson(searchString);
+    var sceneResults = searchScenesJson(searchString);
   }
 
   uiIframe.contentWindow.postMessage({
@@ -3314,6 +3315,7 @@ const _renderUi = (searchString, selectedTab, selectedChannel) => new Promise((a
     htmlString: interfaceHtml,
     templateData: {
       searchResults,
+      sceneResults,
       tab1: selectedTab === 1,
       tab2: selectedTab === 2,
       tab3: selectedTab === 3,
@@ -3659,7 +3661,7 @@ const _makeScreenMesh = () => {
   mesh.click = async (intersectionSpec, controllerIndex) => {
     keyboardFocus = null;
 
-    const {id, href, name} = intersectionSpec;
+    const {id, href, name, url} = intersectionSpec;
     if (id === 'url-input') {
       const {x, y} = intersectionSpec;
 
@@ -3721,6 +3723,13 @@ const _makeScreenMesh = () => {
       _setChannel(2);
     } else if (id === 'channel-global') {
       _setChannel(3);
+    } else if (id === 'action-open-scene') {
+      const dom = new DOMParser().parseFromString(url, 'text/html');
+      if (dom.body.childNodes.length === 1 && dom.body.childNodes[0].nodeName === 'XR-SITE') {
+        root.innerHTML = dom.body.childNodes[0].innerHTML;
+      } else {
+        console.log('paste fail');
+      }
     } else if (href) {
       const xrIframe = document.createElement('xr-iframe');
       xrIframe.src = href;
