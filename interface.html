@@ -69,19 +69,7 @@ ul li a .wrap h3 {
   align-items: stretch;
   /* box-shadow: 3px 0 3px rgba(0,0,0,0.05); */
 }
-.url-input {
-  margin: 40px;
-  padding: 40px;
-  background-color: #f2f3f5;
-  border: 0;
-  border-radius: 40px;
-  color: #5c5c6e;
-  font-family: inherit;
-  font-size: inherit;
-  line-height: 1.6;
-  outline: none;
-}
-.scene-input {
+.url-input, .scene-input {
   margin: 40px;
   padding: 40px;
   background-color: #f2f3f5;
@@ -326,12 +314,6 @@ ul li a .wrap h3 {
   <body>
     <div class=ui-left>
       <!-- <input type=text placeholder="https://" class=url-input id=url-input> -->
-      {{#tab1}}
-      <input type=text class=url-input id=url-input>
-      {{/tab1}}
-      {{#tab2}}
-      <input type=text class=scene-input id=scene-input>
-      {{/tab2}}
       <div class=radios>
         <a id=tab-1 class="radio {{#tab1}}selected{{/tab1}}">Apps</a>
         <a id=tab-2 class="radio {{#tab2}}selected{{/tab2}}">Scene</a>
@@ -447,6 +429,22 @@ ul li a .wrap h3 {
           </a>
         </section>
       </div>
+      <input type=text class=scene-input id=scene-input>
+      <div class=results>
+        <ul>
+          {{#sceneResults}}
+          <li>
+            <a id=action-open-scene name="{{{label}}}" data-content="{{{content}}}">
+              <img src="{{{icon}}}">
+              <div class=wrap>
+                <h3>{{label}}</h3>
+                <p>url here</p>
+              </div>
+            </a>
+          </li>
+          {{/sceneResults}}
+        </ul>
+      </div>
       {{/tab2}}
       {{#tab3}}
       <div class=playlist>
@@ -470,49 +468,8 @@ ul li a .wrap h3 {
             <p>by @user</p>
           </div>
         </a>
-        <a id=action-upload-scene class=action>
-          <div class=border></div>
-          <div class=icon>
-            <i class="fal fa-upload"></i>
-          </div>
-          <div class=wrap>
-            <h3>Upload scene</h3>
-            <p>Share scene with the world</p>
-          </div>
-        </a>
       </div>
       {{/tab3}}
-      <div class=results>
-        <ul>
-          {{#sceneResults}}
-          <li>
-            <a id=action-open-scene url="" name="{{{label}}}">
-              <img src="{{{icon}}}">
-              <div class=wrap>
-                <h3>{{label}}</h3>
-                <p>url area</p>
-              </div>
-            </a>
-          </li>
-          {{/sceneResults}}
-        </ul>
-      </div>
-      <div class=results>
-        <ul>
-          {{#searchResults}}
-          <li>
-            <a href="{{{url}}}" name="{{{label}}}">
-              <img src="{{{icon}}}">
-              <div class=wrap>
-                <h3>{{label}}</h3>
-                <p>{{{url}}}</p>
-              </div>
-            </a>
-          </li>
-          {{/searchResults}}
-        </ul>
-      </div>
-      {{/tab2}}
       {{#tab4}}
       <div class=grid>
         <a id="/l/0/0" class=item>
