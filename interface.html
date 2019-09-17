@@ -326,7 +326,7 @@ ul li a .wrap h3 {
         <ul>
           {{#searchResults}}
           <li>
-            <a href="{{{url}}}" name="{{{label}}}">
+            <a href="app:{{{url}}}" name="{{{label}}}">
               <img src="{{{icon}}}">
               <div class=wrap>
                 <h3>{{label}}</h3>
@@ -432,51 +432,31 @@ ul li a .wrap h3 {
       {{/tab2}}
       {{#tab3}}
       <div class=playlist>
-        <a id="/p/0" class=item>
+        {{#playlists}}
+        <a href="playlist:{{{name}}}" class=item>
           <div class=border></div>
           <div class=icon>
             <i class="fal fa-sword"></i>
           </div>
           <div class=wrap>
-            <h3>Playlist 1</h3>
-            <p>by @user</p>
+            <h3>{{{name}}}</h3>
+            <p>by @{{{user}}}</p>
           </div>
         </a>
-        <a id="/p/1" class=item>
-          <div class=border></div>
-          <div class=icon>
-            <i class="fal fa-sword"></i>
-          </div>
-          <div class=wrap>
-            <h3>Playlist 2</h3>
-            <p>by @user</p>
-          </div>
-        </a>
+        {{/playlists}}
       </div>
       {{/tab3}}
       {{#tab4}}
       <div class=grid>
-        <a id="/l/0/0" class=item>
-          <h3>Location 1</h3>
+        {{#channels}}
+        <a href="channel:{{{name}}}" class=item>
+          <h3>{{{name}}}</h3>
           <div class=dot></div>
           <div class=icon>
             <i class="fal fa-map-signs"></i>
           </div>
         </a>
-        <a id="/l/1/0" class=item>
-          <h3>Location 2</h3>
-          <div class=dot></div>
-          <div class=icon>
-            <i class="fal fa-map-signs"></i>
-          </div>
-        </a>
-        <a id="/l/0/1" class=item>
-          <h3>Location 3</h3>
-          <div class=dot></div>
-          <div class=icon>
-            <i class="fal fa-map-signs"></i>
-          </div>
-        </a>
+        {{/channels}}
       </div>
       {{/tab4}}
     </div>
