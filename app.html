@@ -17,6 +17,7 @@
     <!-- <script src="sprite3d.js"></script> -->
     <script src="skin.js"></script>
     <script src="parse5.js"></script>
+    <script src="html-beautify.js"></script>
     <script src="file-type.js"></script>
   </head>
   <body>
@@ -3598,7 +3599,7 @@ const _makeScreenMesh = () => {
         root.removeChild(root.firstChild);
       }
     } else if (id === 'action-copy-scene') {
-      const s = root.outerHTML.replace(/^(<xr-site) id="root"/, '$1');
+      const s = html_beautify(root.outerHTML.replace(/^(<xr-site) id="root"/, '$1'));
       console.log('copy', s);
       clipboard.copy(s);
     } else if (id === 'action-paste-scene') {
