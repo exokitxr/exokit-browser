@@ -3210,6 +3210,9 @@ class XRSite extends HTMLElement {
           layers.push(xrIframe);
 
           const moveMesh = _makeMoveMesh('volume');
+          moveMesh.position.fromArray(xrIframe.position);
+          moveMesh.quaternion.fromArray(xrIframe.orientation);
+          moveMesh.scale.fromArray(xrIframe.scale);
           moveMesh.xrIframe = xrIframe;
           moveMesh.startTime = Date.now();
           scene.add(moveMesh);
