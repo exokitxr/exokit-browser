@@ -3744,9 +3744,9 @@ const _makeScreenMesh = () => {
     } else if (id === 'channel-global') {
       _setChannel(3);
     } else if (id === 'action-open-scene') {
-      let url = 'https://api.myjson.com/bins/bdd2t';
+      // let url = 'https://api.myjson.com/bins/bdd2t';
 
-      fetch(url)
+      fetch('json.json')
       .then(res => res.json())
       .then((out) => {
         console.log("out = " + JSON.stringify(out));
