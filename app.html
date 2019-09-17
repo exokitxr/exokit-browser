@@ -3570,7 +3570,7 @@ const _makeScreenMesh = () => {
     keyboardFocus = null;
     _updateTextureDynamic();
   };
-  mesh.click = (intersectionSpec, controllerIndex) => {
+  mesh.click = async (intersectionSpec, controllerIndex) => {
     keyboardFocus = null;
 
     const {id, href, name} = intersectionSpec;
@@ -3596,6 +3596,20 @@ const _makeScreenMesh = () => {
     } else if (id === 'action-new-scene') {
       while (root.firstChild) {
         root.removeChild(root.firstChild);
+      }
+    } else if (id === 'action-copy-scene') {
+      const s = root.outerHTML.replace(/^(<xr-site) id="root"/, '$1');
+      console.log('copy', s);
+      clipboard.copy(s);
+    } else if (id === 'action-paste-scene') {
+      const s = await clipboard.paste();
+      const dom = new DOMParser().parseFromString(s, 'text/html');
+      console.log('paste', s, dom.body.childNodes[0].nodeName);
+      if (dom.body.childNodes.length === 1 && dom.body.childNodes[0].nodeName === 'XR-SITE') {
+        console.log('paste ok');
+        root.innerHTML = dom.body.childNodes[0].innerHTML;
+      } else {
+        console.log('paste fail');
       }
     } else if (href) {
       const xrIframe = document.createElement('xr-iframe');
