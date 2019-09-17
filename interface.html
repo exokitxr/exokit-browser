@@ -160,17 +160,17 @@ ul li a .wrap h3 {
 .actions .action .wrap p {
   font-size: 36px;
 }
-.metasites {
+.channels {
   display: flex;
   flex-direction: column;
 }
-.metasites .metasite {
+.channels .channel {
   position: relative;
   display: flex;
   height: 340px;
   padding: 60px;
 }
-.metasites .metasite .border {
+.channels .channel .border {
   position: absolute;
   left: 30px;
   right: 30px;
@@ -179,13 +179,13 @@ ul li a .wrap h3 {
   // border: 10px solid transparent;
   border-radius: 20px;
 }
-.metasites .metasite.selected {
+.channels .channel.selected {
   color: #FFF;
 }
-.metasites .metasite.selected .border {
+.channels .channel.selected .border {
   background-color: #000;
 }
-.metasites .metasite .icon {
+.channels .channel .icon {
   position: relative;
   display: flex;
   width: 200px;
@@ -197,23 +197,23 @@ ul li a .wrap h3 {
   justify-content: center;
   align-items: center;
 }
-.metasites .metasite .wrap {
+.channels .channel .wrap {
   position: relative;
   display: flex;
   flex-direction: column;
 }
-.metasites .metasite .wrap h1,
-.metasites .metasite .wrap h2,
-.metasites .metasite .wrap h3,
-.metasites .metasite .wrap p
+.channels .channel .wrap h1,
+.channels .channel .wrap h2,
+.channels .channel .wrap h3,
+.channels .channel .wrap p
 {
   margin: 0;
 }
-.metasites .metasite .wrap h3 {
+.channels .channel .wrap h3 {
   font-size: 60px;
   line-height: 1.6;
 }
-.metasites .metasite .wrap p {
+.channels .channel .wrap p {
   font-size: 50px;
 }
     </style>
@@ -228,7 +228,7 @@ ul li a .wrap h3 {
         <a id=tab-1 class="radio {{#tab1}}selected{{/tab1}}">WebXR</a>
         <a id=tab-2 class="radio {{#tab2}}selected{{/tab2}}">Actions</a>
         <a id=tab-3 class="radio {{#tab3}}selected{{/tab3}}">Avatar</a>
-        <a id=tab-4 class="radio {{#tab4}}selected{{/tab4}}">Metasite</a>
+        <a id=tab-4 class="radio {{#tab4}}selected{{/tab4}}">Channel</a>
       </div>
       {{#tab1}}
       <div class=results>
@@ -256,7 +256,7 @@ ul li a .wrap h3 {
           </div>
           <div class=wrap>
             <h3>New scene</h3>
-            <p>Clear your metasite scene</p>
+            <p>Clear your scene</p>
           </div>
         </a>
         <a id=action-copy-scene class=action>
@@ -302,8 +302,8 @@ ul li a .wrap h3 {
       </div>
       {{/tab2}}
       {{#tab4}}
-      <div class=metasites>
-        <a id=metasite-local class="metasite selected">
+      <div class=channels>
+        <a id=channel-local class="channel {{#channel1}}selected{{/channel1}}">
           <div class=border></div>
           <div class=icon>
             <i class="fal fa-street-view"></i>
@@ -314,7 +314,7 @@ ul li a .wrap h3 {
             <p>Your home space</p>
           </div>
         </a>
-        <a id=metasite-shared class=metasite>
+        <a id=channel-shared class="channel {{#channel2}}selected{{/channel2}}">
           <div class=border></div>
           <div class=icon>
             <i class="fal fa-couch"></i>
@@ -324,7 +324,7 @@ ul li a .wrap h3 {
             <p>Shared space for your friends</p>
           </div>
         </a>
-        <a id=metasite-global class=metasite>
+        <a id=channel-global class="channel {{#channel3}}selected{{/channel3}}">
           <div class=border></div>
           <div class=icon>
             <i class="fal fa-map-marked-alt"></i>
