@@ -487,6 +487,21 @@ ul li a .wrap h3 {
           {{/sceneResults}}
         </ul>
       </div>
+      <div class=results>
+        <ul>
+          {{#searchResults}}
+          <li>
+            <a href="{{{url}}}" name="{{{label}}}">
+              <img src="{{{icon}}}">
+              <div class=wrap>
+                <h3>{{label}}</h3>
+                <p>{{{url}}}</p>
+              </div>
+            </a>
+          </li>
+          {{/searchResults}}
+        </ul>
+      </div>
       {{/tab2}}
       {{#tab4}}
       <div class=grid>
