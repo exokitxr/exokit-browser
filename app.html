@@ -673,23 +673,22 @@ const [
       .then(res => res.json())
       .then(scenesJson => {
         return s => {
+          console.log("scenes.json");
           const maxResults = 12;
           if (s) {
             const regexps = s.split(/\s/).filter(s => !!s).map(s => new RegExp(escapeRegExp(s), 'i'));
-            const sceneResults = [];
+            const results = [];
             for (let i = 0; i < scenesJson.length; i++) {
               const site = scenesJson[i];
               if (regexps.some(regexp => regexp.test(site.label) || regexp.test(site.url))) {
-                sceneResults.push(site);
-                if (sceneResults.length >= maxResults) {
+                results.push(site);
+                if (results.length >= maxResults) {
                   break;
                 }
               }
             }
-            console.log("scenes.json --- sceneResults = " + sceneResults);
-            return sceneResults;
+            return results;
           } else {
-            console.log("scenes.json --- maxResults = " + maxResults);
             return scenesJson.slice(0, maxResults);
           }
         };
