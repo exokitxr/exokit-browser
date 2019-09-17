@@ -21,7 +21,7 @@
     <script src="file-type.js"></script>
   </head>
   <body>
-    <xr-site id=root></xr-site>
+    <xr-site></xr-site>
     <script type=module>
 (async () => {
 
@@ -3180,6 +3180,18 @@ class XRSite extends HTMLElement {
       childList: true,
     });
   }
+  getHTML() {
+    return html_beautify(this.outerHTML);
+  }
+  setHTML(htmlString) {
+    const dom = new DOMParser().parseFromString(htmlString, 'text/html');
+    if (dom.body.childNodes.length === 1 && dom.body.childNodes[0].nodeName === 'XR-SITE') {
+      this.innerHTML = dom.body.childNodes[0].innerHTML;
+      return true;
+    } else {
+      return false;
+    }
+  }
   update() {
     this.handleMutations(this.observer.takeRecords());
   }
@@ -3229,7 +3241,7 @@ class XRSite extends HTMLElement {
   }
 }
 customElements.define('xr-site', XRSite);
-const root = document.getElementById('root');
+const root = document.querySelector('xr-site');
 
 const uiSize = 2048;
 let renderIds = 0;
@@ -3599,16 +3611,14 @@ const _makeScreenMesh = () => {
         root.removeChild(root.firstChild);
       }
     } else if (id === 'action-copy-scene') {
-      const s = html_beautify(root.outerHTML.replace(/^(<xr-site) id="root"/, '$1'));
+      const s = root.getHTML();
       console.log('copy', s);
       clipboard.copy(s);
     } else if (id === 'action-paste-scene') {
       const s = await clipboard.paste();
-      const dom = new DOMParser().parseFromString(s, 'text/html');
-      console.log('paste', s, dom.body.childNodes[0].nodeName);
-      if (dom.body.childNodes.length === 1 && dom.body.childNodes[0].nodeName === 'XR-SITE') {
+      console.log('paste', s);
+      if (root.setHTML(s)) {
         console.log('paste ok');
-        root.innerHTML = dom.body.childNodes[0].innerHTML;
       } else {
         console.log('paste fail');
       }
