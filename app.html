@@ -673,7 +673,6 @@ const [
       .then(res => res.json())
       .then(scenesJson => {
         return s => {
-          console.log("scenes.json");
           const maxResults = 12;
           if (s) {
             const regexps = s.split(/\s/).filter(s => !!s).map(s => new RegExp(escapeRegExp(s), 'i'));
@@ -3746,6 +3745,15 @@ const _makeScreenMesh = () => {
       } else {
         console.log('paste fail');
       }
+    } else if (id === 'action-load-scene') {
+      window.parentPostMessage({
+        method: 'loadScene',
+      });
+    } else if (id === 'action-save-scene') {
+      window.parentPostMessage({
+        method: 'saveScene',
+        html: root.outerHTML,
+      });
     } else if (href) {
       const xrIframe = document.createElement('xr-iframe');
       xrIframe.src = href;
