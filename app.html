@@ -188,6 +188,13 @@ window.addEventListener('message', e => {
       _enter2d();
       break;
     }
+    case 'loadScene': {
+      const {html} = data;
+      if (html) {
+        root.setHTML(html);
+      }
+      break;
+    }
   }
 });
 
@@ -3622,6 +3629,15 @@ const _makeScreenMesh = () => {
       } else {
         console.log('paste fail');
       }
+    } else if (id === 'action-load-scene') {
+      window.parentPostMessage({
+        method: 'loadScene',
+      });
+    } else if (id === 'action-save-scene') {
+      window.parentPostMessage({
+        method: 'saveScene',
+        html: root.outerHTML,
+      });
     } else if (href) {
       const xrIframe = document.createElement('xr-iframe');
       xrIframe.src = href;

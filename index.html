@@ -581,6 +581,41 @@ import(`https://web.exokit.org/ew.js${key ? `?key=${encodeURIComponent(key)}` : 
     if (navigator.serviceWorker.controller) { // avoid FOUC during reload
       xrScene = document.createElement('xr-scene');
       xrScene.src = 'app.html';
+      xrScene.addEventListener('message', async e => {
+        const {data} = e;
+        const {method} = data;
+        if (method === 'loadScene') {
+          const res = await fetch('/.s/scene');
+          if (res.status >= 200 && res.status < 300) {
+            const html = await res.text();
+            xrScene.postMessage({
+              method: 'loadScene',
+              html,
+            });
+          } else if (res.status === 404) {
+            xrScene.postMessage({
+              method: 'loadScene',
+              html: null,
+            });
+          } else {
+            console.warn(`invalid status code: ${res.status}`);
+          }
+        } else if (method === 'saveScene') {
+          const {html} = data;
+          const res = await fetch('/.s/scene', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'text/html',
+            },
+            body: html,
+          });
+          if (res.status >= 200 && res.status < 300) {
+            // nothing
+          } else {
+            console.warn(`invalid status code: ${res.status}`);
+          }
+        }
+      });
       document.body.appendChild(xrScene);
 
       const {email, code} = q;
