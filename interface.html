@@ -326,7 +326,7 @@ ul li a .wrap h3 {
         <ul>
           {{#searchResults}}
           <li>
-            <a href="app:{{{url}}}" name="{{{label}}}">
+            <a id=app href="{{{url}}}" name="{{{label}}}">
               <img src="{{{icon}}}">
               <div class=wrap>
                 <h3>{{label}}</h3>
@@ -433,7 +433,7 @@ ul li a .wrap h3 {
       {{#tab3}}
       <div class=playlist>
         {{#playlists}}
-        <a href="playlist:{{{name}}}" class=item>
+        <a id="playlist:{{{name}}}" class=item>
           <div class=border></div>
           <div class=icon>
             <i class="fal fa-sword"></i>
@@ -449,7 +449,7 @@ ul li a .wrap h3 {
       {{#tab4}}
       <div class=grid>
         {{#channels}}
-        <a href="channel:{{{name}}}" class=item>
+        <a id="channel:{{{name}}}" class=item>
           <h3>{{{name}}}</h3>
           <div class=dot></div>
           <div class=icon>

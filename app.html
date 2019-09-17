@@ -3679,17 +3679,17 @@ const _makeScreenMesh = () => {
       _rtcConnect(name, channelId);
     } else if (id === 'channel-global') {
       _setChannel(3);
-    } else if (href && (match = href.match(/^app:(.+)$/))) {
+    } else if (id === 'app' && href) {
       const xrIframe = document.createElement('xr-iframe');
-      xrIframe.src = match[1];
+      xrIframe.src = href;
       xrIframe.name = name;
       root.appendChild(xrIframe);
       root.update(); // force mutation observer to run
 
       currentMoveMeshes[controllerIndex] = xrIframe.moveMesh;
-    } else if (href && (match = href.match(/^playlist:(.+)$/))) {
+    } else if (id && (match = id.match(/^playlist:(.+)$/))) {
       console.log('click playlist', match[1]); // XXX
-    } else if (href && (match = href.match(/^channel:(.+)$/))) {
+    } else if (id && (match = id.match(/^channel:(.+)$/))) {
       _rtcDisconnect();
       const name = loginToken.name || Math.random().toString(36).substring(7); // XXX
       const channelId = match[1];
