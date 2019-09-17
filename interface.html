@@ -69,7 +69,7 @@ ul li a .wrap h3 {
   align-items: stretch;
   /* box-shadow: 3px 0 3px rgba(0,0,0,0.05); */
 }
-.url-input {
+.url-input, .scene-input {
   margin: 40px;
   padding: 40px;
   background-color: #f2f3f5;
@@ -428,6 +428,22 @@ ul li a .wrap h3 {
             </div>
           </a>
         </section>
+      </div>
+      <input type=text class=scene-input id=scene-input>
+      <div class=results>
+        <ul>
+          {{#sceneResults}}
+          <li>
+            <a id=action-open-scene name="{{{label}}}" data-content="{{{content}}}">
+              <img src="{{{icon}}}">
+              <div class=wrap>
+                <h3>{{label}}</h3>
+                <p>url here</p>
+              </div>
+            </a>
+          </li>
+          {{/sceneResults}}
+        </ul>
       </div>
       {{/tab2}}
       {{#tab3}}

@@ -611,6 +611,7 @@ const [
   interfaceHtml,
   labelHtml,
   searchSitesJson,
+  searchScenesJson,
   keyboardHighlightCanvasCtx,
   keyMap,
   fontJson,
@@ -632,8 +633,8 @@ const [
   .concat([
     new Promise((accept, reject) => {
       const iframe = document.createElement('iframe');
-      iframe.src = 'https://render.exokit.xyz/';
-      // iframe.src = './exokit-render/index.html';
+      // iframe.src = 'https://render.exokit.xyz/';
+      iframe.src = './exokit-render/index.html';
       iframe.onload = () => {
         accept(iframe);
       };
@@ -665,6 +666,31 @@ const [
             return results;
           } else {
             return sitesJson.slice(0, maxResults);
+          }
+        };
+      }),
+    fetch('scenes.json')
+      .then(res => res.json())
+      .then(scenesJson => {
+        return s => {
+          const maxResults = 12;
+          if (s) {
+            const regexps = s.split(/\s/).filter(s => !!s).map(s => new RegExp(escapeRegExp(s), 'i'));
+            const sceneResults = [];
+            for (let i = 0; i < scenesJson.length; i++) {
+              const site = scenesJson[i];
+              if (regexps.some(regexp => regexp.test(site.label) || regexp.test(site.url))) {
+                sceneResults.push(site);
+                if (sceneResults.length >= maxResults) {
+                  break;
+                }
+              }
+            }
+            console.log("scenes.json --- sceneResults = " + sceneResults);
+            return sceneResults;
+          } else {
+            console.log("scenes.json --- maxResults = " + maxResults);
+            return scenesJson.slice(0, maxResults);
           }
         };
       }),
@@ -3276,7 +3302,11 @@ const _renderUi = (searchString, selectedTab, selectedChannel) => new Promise((a
     }
   };
 
-  const searchResults = searchSitesJson(searchString);
+  if (selectedTab === 1) {
+    var searchResults = searchSitesJson(searchString);
+  } else if (selectedTab === 2) {
+    var sceneResults = searchScenesJson(searchString);
+  }
 
   uiIframe.contentWindow.postMessage({
     method: 'render',
@@ -3284,6 +3314,7 @@ const _renderUi = (searchString, selectedTab, selectedChannel) => new Promise((a
     htmlString: interfaceHtml,
     templateData: {
       searchResults,
+      sceneResults,
       tab1: selectedTab === 1,
       tab2: selectedTab === 2,
       tab3: selectedTab === 3,
@@ -3372,28 +3403,42 @@ const _makeScreenMesh = () => {
 
   let items = [];
   let text = 'https://';
-  const measures = [];
-  let cursor = text.length;
+  let sceneText = '';
+  const urlMeasures = [];
+  const sceneMeasures = [];
+  let urlCursor = text.length;
+  let sceneCursor = sceneText.length;
   const canvas = document.createElement('canvas');
   canvas.width = uiSize;
   canvas.height = uiSize;
   const ctx = canvas.getContext('2d');
   ctx.font = '300 80px Open Sans';
-  const _updateMeasures = () => {
-    measures.length = 0;
-    measures.push(0);
+  const _updateUrlMeasures = () => {
+    urlMeasures.length = 0;
+    urlMeasures.push(0);
     const {width: barWidth} = ctx.measureText('[');
     for (let i = 1; i <= text.length; i++) {
       const {width} = ctx.measureText('[' + text.slice(0, i) + ']');
-      measures.push(width - barWidth*2);
+      urlMeasures.push(width - barWidth*2);
     }
   };
-  _updateMeasures();
+  _updateUrlMeasures();
+  const _updateSceneMeasures = () => {
+    sceneMeasures.length = 0;
+    sceneMeasures.push(0);
+    const {width: barWidth} = ctx.measureText('[');
+    for (let i = 1; i <= sceneText.length; i++) {
+      const {width} = ctx.measureText('[' + sceneText.slice(0, i) + ']');
+      sceneMeasures.push(width - barWidth*2);
+    }
+  };
+  _updateSceneMeasures();
 
   const urlInputPadding = [40, 53];
+  const sceneInputPadding = [40, 53];
   const _updateTextureStatic = () => {
-    const urlInputAnchor = anchors.find(anchor => anchor.id === 'url-input');
 
+    const urlInputAnchor = anchors.find(anchor => anchor.id === 'url-input');
     if (urlInputAnchor) {
       ctx.fillStyle = '#f2f3f5';
       ctx.fillRect(urlInputAnchor.x + urlInputPadding[0] - 4, urlInputAnchor.y + urlInputAnchor.height*0.2, urlInputAnchor.width - urlInputPadding[0]*2 + 4, urlInputAnchor.height*0.6);
@@ -3403,7 +3448,21 @@ const _makeScreenMesh = () => {
       ctx.fillText(text, urlInputAnchor.x + urlInputPadding[0], urlInputAnchor.bottom - urlInputPadding[1]);
 
       if (keyboardFocus) {
-        ctx.fillRect(urlInputAnchor.x + urlInputPadding[0] + measures[cursor] - 4, urlInputAnchor.y + urlInputAnchor.height*0.2, 6, urlInputAnchor.height*0.6);
+        ctx.fillRect(urlInputAnchor.x + urlInputPadding[0] + urlMeasures[urlCursor] - 4, urlInputAnchor.y + urlInputAnchor.height*0.2, 6, urlInputAnchor.height*0.6);
+      }
+    }
+
+    const sceneInputAnchor = anchors.find(anchor => anchor.id === 'scene-input');
+    if (sceneInputAnchor) {
+      ctx.fillStyle = '#f2f3f5';
+      ctx.fillRect(sceneInputAnchor.x + sceneInputPadding[0] - 4, sceneInputAnchor.y + sceneInputAnchor.height*0.2, sceneInputAnchor.width - sceneInputPadding[0]*2 + 4, sceneInputAnchor.height*0.6);
+
+      ctx.fillStyle = 'black';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(sceneText, sceneInputAnchor.x + sceneInputPadding[0], sceneInputAnchor.bottom - sceneInputPadding[1]);
+
+      if (keyboardFocus) {
+        ctx.fillRect(sceneInputAnchor.x + sceneInputPadding[0] + sceneMeasures[sceneCursor] - 4, sceneInputAnchor.y + sceneInputAnchor.height*0.2, 6, sceneInputAnchor.height*0.6);
       }
     }
 
@@ -3580,6 +3639,7 @@ const _makeScreenMesh = () => {
         id: anchor && anchor.id,
         href: anchor && anchor.href,
         name: anchor && anchor.name,
+        content: anchor && anchor.content,
         x: uv.x,
         y: uv.y,
         distance,
@@ -3601,7 +3661,7 @@ const _makeScreenMesh = () => {
   mesh.click = async (intersectionSpec, controllerIndex) => {
     keyboardFocus = null;
 
-    const {id, href, name} = intersectionSpec;
+    const {id, href, name, url, content} = intersectionSpec;
     if (id === 'url-input') {
       const {x, y} = intersectionSpec;
 
@@ -3612,7 +3672,18 @@ const _makeScreenMesh = () => {
 
       const urlInputAnchor = anchors.find(anchor => anchor.id === 'url-input');
       const xOffset = x - urlInputAnchor.x - urlInputPadding[0];
-      cursor = measures.map((measure, index) => [Math.abs(xOffset - measure), index]).sort((a, b) => a[0] - b[0])[0][1];
+      urlCursor = urlMeasures.map((measure, index) => [Math.abs(xOffset - measure), index]).sort((a, b) => a[0] - b[0])[0][1];
+    } else if (id === 'scene-input') {
+      const {x, y} = intersectionSpec;
+
+      keyboardFocus = {
+        textMesh: mesh,
+        caretMesh: mesh,
+      };
+
+      const sceneInputAnchor = anchors.find(anchor => anchor.id === 'scene-input');
+      const xOffset = x - sceneInputAnchor.x - sceneInputPadding[0];
+      sceneCursor = sceneMeasures.map((measure, index) => [Math.abs(xOffset - measure), index]).sort((a, b) => a[0] - b[0])[0][1];
     } else if (id === 'tab-1') {
       _selectTab(1);
     } else if (id === 'tab-2') {
@@ -3652,6 +3723,38 @@ const _makeScreenMesh = () => {
       _setChannel(2);
     } else if (id === 'channel-global') {
       _setChannel(3);
+    } else if (id === 'action-open-scene') {
+      const dom = new DOMParser().parseFromString(atob(content), 'text/html');
+      if (dom.body.childNodes.length === 1 && dom.body.childNodes[0].nodeName === 'XR-SITE') {
+        root.innerHTML = dom.body.childNodes[0].innerHTML;
+      } else {
+        console.log('paste fail');
+      }
+    } else if (id === 'action-load-scene') {
+      window.parentPostMessage({
+        method: 'loadScene',
+      });
+    } else if (id === 'action-save-scene') {
+      window.parentPostMessage({
+        method: 'saveScene',
+        html: root.outerHTML,
+      });
+    } else if (id === 'action-open-scene') {
+      const dom = new DOMParser().parseFromString(url, 'text/html');
+      if (dom.body.childNodes.length === 1 && dom.body.childNodes[0].nodeName === 'XR-SITE') {
+        root.innerHTML = dom.body.childNodes[0].innerHTML;
+      } else {
+        console.log('paste fail');
+      }
+    } else if (id === 'action-load-scene') {
+      window.parentPostMessage({
+        method: 'loadScene',
+      });
+    } else if (id === 'action-save-scene') {
+      window.parentPostMessage({
+        method: 'saveScene',
+        html: root.outerHTML,
+      });
     } else if (href) {
       const xrIframe = document.createElement('xr-iframe');
       xrIframe.src = href;
@@ -3702,15 +3805,40 @@ const _makeScreenMesh = () => {
     } */
   };
 
-  mesh.getText = () => text;
+  mesh.getText = () => {
+    if (selectedTab === 1){
+      return text;
+    } else if (selectedTab === 2) {
+      return sceneText;
+    }
+  }
   mesh.setText = newText => {
-    text = newText;
-    _updateMeasures();
+    if (selectedTab === 1){
+      text = newText;
+      _updateUrlMeasures();
+    } else if (selectedTab === 2) {
+      sceneText = newText;
+      _updateSceneMeasures();
+    }
     _updateTextureDynamic();
   };
-  mesh.getValue = () => cursor;
+  mesh.getValue = () => {
+    if (selectedTab === 1){
+      console.log("getValue of urlCursor = " + urlCursor);
+      return urlCursor;
+    } else if (selectedTab === 2) {
+      console.log("getValue of sceneCursor = " + sceneCursor);
+      return sceneCursor;
+    }
+  };
   mesh.setValue = newValue => {
-    cursor = newValue;
+    if (selectedTab === 1){
+      urlCursor = newValue;
+      console.log("set urlCursor = " + newValue);
+    } else if (selectedTab === 2) {
+      sceneCursor = newValue;
+      console.log("set sceneCursor = " + newValue);
+    }
     _updateTextureStatic();
   };
   mesh.refresh = _updateTextureStatic;
@@ -3868,7 +3996,9 @@ const _makeScreenMesh = () => {
 
     return object;
   })();
-  mesh.add(keyboardMesh);
+  if (fakeXrDisplay) {
+    mesh.add(keyboardMesh);
+  }
 
   const appIconMeshes = new THREE.Object3D();
   scene.add(appIconMeshes);
