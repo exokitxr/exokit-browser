@@ -352,6 +352,16 @@ ul li a .wrap h3 {
               <p>Clear your scene</p>
             </div>
           </a>
+          <a id=action-upload-scene class=action>
+            <div class=border></div>
+            <div class=icon>
+              <i class="fal fa-upload"></i>
+            </div>
+            <div class=wrap>
+              <h3>Upload scene</h3>
+              <p>Share your scene</p>
+            </div>
+          </a>
           <br/>
           <a id=action-copy-scene class=action>
             <div class=border></div>
@@ -434,7 +444,7 @@ ul li a .wrap h3 {
         <ul>
           {{#sceneResults}}
           <li>
-            <a id=action-open-scene name="{{{label}}}" data-content="{{{content}}}">
+            <a id=action-open-scene name="{{{label}}}">
               <img src="{{{icon}}}">
               <div class=wrap>
                 <h3>{{label}}</h3>
