@@ -474,17 +474,17 @@ ul li a .wrap h3 {
       {{/tab3}}
       <div class=results>
         <ul>
-          {{#searchResults}}
+          {{#sceneResults}}
           <li>
-            <a href="{{{url}}}" name="{{{label}}}">
+            <a id=action-open-scene url="" name="{{{label}}}">
               <img src="{{{icon}}}">
               <div class=wrap>
                 <h3>{{label}}</h3>
-                <p>{{{url}}}</p>
+                <p>url area</p>
               </div>
             </a>
           </li>
-          {{/searchResults}}
+          {{/sceneResults}}
         </ul>
       </div>
       {{/tab2}}
