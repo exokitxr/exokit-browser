@@ -3670,15 +3670,20 @@ const _makeScreenMesh = () => {
       });
     } else if (id === 'channel-local') {
       _setChannel(1);
+
+      root.innerHTML = '';
     } else if (id === 'channel-shared') {
       _setChannel(2);
 
+      root.innerHTML = '';
       _rtcDisconnect();
       const name = loginToken.name || Math.random().toString(36).substring(7); // XXX
       const channelId = name;
       _rtcConnect(name, channelId);
     } else if (id === 'channel-global') {
       _setChannel(3);
+
+      root.innerHTML = '';
     } else if (id === 'app' && href) {
       const xrIframe = document.createElement('xr-iframe');
       xrIframe.src = href;
