@@ -673,7 +673,7 @@ const [
       .then(res => res.json())
       .then(scenesJson => {
         return s => {
-          const maxResults = 12;
+          const maxResults = 9;
           if (s) {
             const regexps = s.split(/\s/).filter(s => !!s).map(s => new RegExp(escapeRegExp(s), 'i'));
             const sceneResults = [];
@@ -6386,7 +6386,7 @@ const _loadDefaultGltf = () => {
     console.warn(err.stack);
   });
 };
-_loadDefaultGltf();
+// _loadDefaultGltf();
 
 function _updateCoord() {
   const {c} = parseQuery(window.location.search);
