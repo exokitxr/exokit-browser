@@ -3191,6 +3191,7 @@ class XRSite extends HTMLElement {
     return html_beautify(this.outerHTML);
   }
   setHTML(htmlString) {
+    const dom = new DOMParser().parseFromString(htmlString, 'text/html');
     const xrSite = Array.from(dom.body.childNodes).find(el => el.nodeName === 'XR-SITE');
     if (xrSite) {
       this.innerHTML = xrSite.innerHTML;
