@@ -659,6 +659,14 @@ import(`https://web.exokit.org/ew.js${key ? `?key=${encodeURIComponent(key)}` : 
         loginToken,
       });
 
+      const {u} = q;
+      if (u) {
+        xrScene.postMessage({
+          method: 'loadScene',
+          html: `<xr-site><xr-iframe src="${u}"></xr-iframe></xr-site>`,
+        });
+      }
+
       let result;
       if (navigator.xr) {
         try {
