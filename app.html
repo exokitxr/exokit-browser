@@ -260,7 +260,10 @@ window.addEventListener('message', e => {
       const {html} = data;
       if (html) {
         root.setHTML(html);
+      } else {
+        root.innerHTML = '';
       }
+      rtcWs && rtcWs.pushScene();
       break;
     }
   }
@@ -3647,6 +3650,8 @@ const _makeScreenMesh = () => {
       }
     } else if (id === 'action-new-scene') {
       root.innerHTML = '';
+
+      rtcWs && rtcWs.pushScene();
     } else if (id === 'action-copy-scene') {
       const s = root.getHTML();
       console.log('copy', s);
@@ -3656,6 +3661,8 @@ const _makeScreenMesh = () => {
       console.log('paste', s);
       if (root.setHTML(s)) {
         console.log('paste ok');
+
+        rtcWs && rtcWs.pushScene();
       } else {
         console.log('paste fail');
       }
@@ -6428,7 +6435,6 @@ const connectionId = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0
 const peerConnections = [];
 const _rtcConnect = (name, channelId) => {
   rtcWs = new WebSocket(`${LAMBDA_URLS.presenceWs}?u=${encodeURIComponent(name)}&c=${encodeURIComponent(channelId)}`);
-  rtcWs.channelId = channelId;
   rtcWs.onopen = () => {
     // console.log('presence socket open');
 
@@ -6549,6 +6555,14 @@ const _rtcConnect = (name, channelId) => {
     console.warn('rtc error', err);
     clearInterval(pingInterval);
     // setTimeout(_rtcConnect, 5000);
+  };
+  rtcWs.channelId = channelId;
+  rtcWs.pushScene = () => {
+    const html = root.getHTML();
+    rtcWs.send(JSON.stringify({
+      method: 'setHtml',
+      html,
+    }));
   };
   const pingInterval = setInterval(() => {
     rtcWs.send(JSON.stringify({
