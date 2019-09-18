@@ -97,6 +97,79 @@ function _randomString() {
 function escapeRegExp(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
+class XRSite extends HTMLElement {
+  constructor() {
+    super();
+
+    this.observer = new MutationObserver(mutations => {
+      this.handleMutations(mutations);
+    });
+    this.observer.observe(this, {
+      childList: true,
+    });
+  }
+  getHTML() {
+    return html_beautify(this.outerHTML);
+  }
+  setHTML(htmlString) {
+    const dom = new DOMParser().parseFromString(htmlString, 'text/html');
+    const xrSite = Array.from(dom.body.childNodes).find(el => el.nodeName === 'XR-SITE');
+    if (xrSite) {
+      this.innerHTML = xrSite.innerHTML;
+      return true;
+    } else {
+      return false;
+    }
+  }
+  update() {
+    this.handleMutations(this.observer.takeRecords());
+  }
+  handleMutations(mutations) {
+    for (let i = 0; i < mutations.length; i++) {
+      const {addedNodes, removedNodes} = mutations[i];
+
+      for (let j = 0; j < removedNodes.length; j++) {
+        const removedNode = removedNodes[j];
+
+        if (removedNode instanceof XRIFrame) {
+          const xrIframe = removedNode;
+
+          layers.splice(layers.indexOf(xrIframe), 1);
+          xrIframe.destroy();
+
+          const {moveMesh} = xrIframe;
+          scene.remove(moveMesh);
+          scene.remove(moveMesh.labelMesh);
+          moveMeshes.splice(moveMeshes.indexOf(moveMesh), 1);
+        }
+      }
+      for (let j = 0; j < addedNodes.length; j++) {
+        const addedNode = addedNodes[j];
+
+        if (addedNode instanceof XRIFrame) {
+          const xrIframe = addedNode;
+
+          layers.push(xrIframe);
+
+          const moveMesh = _makeMoveMesh('volume');
+          moveMesh.position.fromArray(xrIframe.position);
+          moveMesh.quaternion.fromArray(xrIframe.orientation);
+          moveMesh.scale.fromArray(xrIframe.scale);
+          moveMesh.xrIframe = xrIframe;
+          moveMesh.startTime = Date.now();
+          scene.add(moveMesh);
+          moveMeshes.push(moveMesh);
+          xrIframe.moveMesh = moveMesh;
+
+          const labelMesh = _makeLabelMesh(xrIframe.name || xrIframe.src);
+          scene.add(labelMesh);
+          moveMesh.labelMesh = labelMesh;
+        }
+      }
+    }
+  }
+}
+customElements.define('xr-site', XRSite);
 const clipboard = {
   copy(text) {
     const fakeElem = document.body.appendChild(document.createElement('textarea'));
@@ -149,7 +222,6 @@ const clipboard = {
       });
   },
 };
-
 const _makeNullPromise = () => {
   let resolve, reject;
   const result = new Promise((a, b) => {
@@ -160,8 +232,10 @@ const _makeNullPromise = () => {
   result.reject = reject;
   return result;
 };
+
 const loginPromise = _makeNullPromise();
 let loginToken;
+const root = document.querySelector('xr-site');
 let defaultGltf = new THREE.Object3D();
 defaultGltf.visible = false;
 window.addEventListener('message', e => {
@@ -3175,81 +3249,6 @@ const _makeTrayMesh = () => {
 };
 // const trayMesh = _makeTrayMesh();
 // scene.add(trayMesh);
-
-class XRSite extends HTMLElement {
-  constructor() {
-    super();
-
-    this.observer = new MutationObserver(mutations => {
-      this.handleMutations(mutations);
-    });
-    this.observer.observe(this, {
-      childList: true,
-    });
-  }
-  getHTML() {
-    return html_beautify(this.outerHTML);
-  }
-  setHTML(htmlString) {
-    const dom = new DOMParser().parseFromString(htmlString, 'text/html');
-    const xrSite = Array.from(dom.body.childNodes).find(el => el.nodeName === 'XR-SITE');
-    if (xrSite) {
-      this.innerHTML = xrSite.innerHTML;
-      return true;
-    } else {
-      return false;
-    }
-  }
-  update() {
-    this.handleMutations(this.observer.takeRecords());
-  }
-  handleMutations(mutations) {
-    for (let i = 0; i < mutations.length; i++) {
-      const {addedNodes, removedNodes} = mutations[i];
-
-      for (let j = 0; j < removedNodes.length; j++) {
-        const removedNode = removedNodes[j];
-
-        if (removedNode instanceof XRIFrame) {
-          const xrIframe = removedNode;
-
-          layers.splice(layers.indexOf(xrIframe), 1);
-          xrIframe.destroy();
-
-          const {moveMesh} = xrIframe;
-          scene.remove(moveMesh);
-          scene.remove(moveMesh.labelMesh);
-          moveMeshes.splice(moveMeshes.indexOf(moveMesh), 1);
-        }
-      }
-      for (let j = 0; j < addedNodes.length; j++) {
-        const addedNode = addedNodes[j];
-
-        if (addedNode instanceof XRIFrame) {
-          const xrIframe = addedNode;
-
-          layers.push(xrIframe);
-
-          const moveMesh = _makeMoveMesh('volume');
-          moveMesh.position.fromArray(xrIframe.position);
-          moveMesh.quaternion.fromArray(xrIframe.orientation);
-          moveMesh.scale.fromArray(xrIframe.scale);
-          moveMesh.xrIframe = xrIframe;
-          moveMesh.startTime = Date.now();
-          scene.add(moveMesh);
-          moveMeshes.push(moveMesh);
-          xrIframe.moveMesh = moveMesh;
-
-          const labelMesh = _makeLabelMesh(xrIframe.name || xrIframe.src);
-          scene.add(labelMesh);
-          moveMesh.labelMesh = labelMesh;
-        }
-      }
-    }
-  }
-}
-customElements.define('xr-site', XRSite);
-const root = document.querySelector('xr-site');
 
 const uiSize = 2048;
 let renderIds = 0;
