@@ -271,6 +271,17 @@ window.addEventListener('message', e => {
     }
   }
 });
+window.addEventListener('paste', e => {
+  if (keyboardFocus && e.clipboardData.items.length > 0) {
+    e.clipboardData.items[0].getAsString(pasteString => {
+      pasteString = pasteString.slice(0, 1024);
+      const s = keyboardFocus.textMesh.getText();
+      const index = keyboardFocus.caretMesh.getValue();
+      keyboardFocus.textMesh.setText(s.slice(0, index) + pasteString + s.slice(index));
+      keyboardFocus.caretMesh.setValue(index + pasteString.length);
+    });
+  }
+});
 
 /* localforage.config({driver: localforage.INDEXEDDB});
 const chunkSize = 100 * 1024 * 1024;
