@@ -2001,7 +2001,7 @@ const _makeMoveMesh = (() => {
 let selectedIconMesh = null;
 let selectedIconCoord = new THREE.Vector2(1, 0);
 let selectedIconPage = 0;
-const _makeIframe = (url, type) => {
+/* const _makeIframe = (url, type) => {
   const iframe = document.createElement('iframe');
   iframe.addEventListener('load', () => {
     console.log(`iframe loaded: ${type} ${iframe.src}`);
@@ -2012,7 +2012,7 @@ const _makeIframe = (url, type) => {
   iframe.d = type === 'browser' ? 2 : 3;
   iframe.src = url;
   return iframe;
-};
+}; */
 const _makeIconMesh = (url, type, onclose) => {
   const mesh = new THREE.Object3D();
   mesh.localVisible = true;
@@ -2021,7 +2021,7 @@ const _makeIconMesh = (url, type, onclose) => {
 
   console.log('make icon mesh', {type});
   if (type === 'html') {
-    mesh.iframe = _makeIframe(url, type);
+    // mesh.iframe = _makeIframe(url, type);
 
     mesh.moveMesh = _makeMoveMesh(type);
   } else if (type === 'model') {
