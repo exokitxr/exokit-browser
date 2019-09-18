@@ -6529,6 +6529,10 @@ const _rtcConnect = (name, channelId) => {
     } else if (method === 'leave') {
       const {connectionId: peerConnectionId} = data;
       _removePeerConnection(peerConnectionId);
+    } else if (method === 'state') {
+      const {state} = data;
+      const htmlString = parse5.serialize(state);
+      root.setHTML(htmlString);
     }
   };
   rtcWs.onclose = () => {
