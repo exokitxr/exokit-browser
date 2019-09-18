@@ -1315,7 +1315,7 @@ const _bindEventTarget = target => {
       keydown(e) {
         if (loginToken) {
           if (keyboardFocus) {
-            _handleKey(e.keyCode, e.shiftKey);
+            _handleKey(e.keyCode, e.shiftKey, e.ctrlKey);
           } else {
             switch (e.which) {
               case 9: { // tab
@@ -4867,8 +4867,8 @@ const _handleSingleKey = c => {
   keyboardFocus.textMesh.setText(s.slice(0, index) + c + s.slice(index));
   keyboardFocus.caretMesh.setValue(index + 1);
 };
-const _handleKey = (code, shiftKey) => {
-  // console.log('handle key', code, shiftKey, new Error().stack);
+const _handleKey = (code, shiftKey, ctrlKey) => {
+  // console.log('handle key', code, shiftKey, ctrlKey);
   const s = keyboardFocus.textMesh.getText();
   const index = keyboardFocus.caretMesh.getValue();
 
@@ -5562,7 +5562,7 @@ function animate(time, frame) {
               const {key} = intersectionSpec;
               const code = keyCode(key);
               // console.log(`click key: ${key}/${code}`);
-              _handleKey(code, false);
+              _handleKey(code, false, false);
             }
           } else if (type === 'move-mesh') {
             const {mesh} = intersectionSpec;
