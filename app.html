@@ -6482,7 +6482,7 @@ const _rtcConnect = (name, channelId) => {
 
     const data = JSON.parse(e.data);
     const {method} = data;
-   if (method === 'join') {
+    if (method === 'join') {
       const {connectionId: peerConnectionId} = data;
       _addPeerConnection(peerConnectionId);
     } else if (method === 'offer') {
