@@ -571,7 +571,7 @@ const storage = {
   },
 };
 
-let xrScene = null;
+let xrEngine;
 let loginToken = null;
 const q = parseQuery(window.location.search);
 const {key} = q;
@@ -579,21 +579,21 @@ import(`https://web.exokit.org/ew.js${key ? `?key=${encodeURIComponent(key)}` : 
 // import(`./exokit-web/ew.js${key ? `?key=${encodeURIComponent(key)}` : ''}`)
   .then(async () => {
     if (navigator.serviceWorker.controller) { // avoid FOUC during reload
-      xrScene = document.createElement('xr-scene');
-      xrScene.src = 'app.html';
-      xrScene.addEventListener('message', async e => {
+      xrEngine = document.createElement('xr-engine');
+      xrEngine.src = 'app.html';
+      xrEngine.addEventListener('message', async e => {
         const {data} = e;
         const {method} = data;
         if (method === 'loadScene') {
           const res = await fetch('/.s/scene');
           if (res.status >= 200 && res.status < 300) {
             const html = await res.text();
-            xrScene.postMessage({
+            xrEngine.postMessage({
               method: 'loadScene',
               html,
             });
           } else if (res.status === 404) {
-            xrScene.postMessage({
+            xrEngine.postMessage({
               method: 'loadScene',
               html: null,
             });
@@ -616,7 +616,7 @@ import(`https://web.exokit.org/ew.js${key ? `?key=${encodeURIComponent(key)}` : 
           }
         }
       });
-      document.body.appendChild(xrScene);
+      document.body.appendChild(xrEngine);
 
       const {email, code} = q;
       if (email && code && await doLogin(email, code)) {
@@ -654,14 +654,14 @@ import(`https://web.exokit.org/ew.js${key ? `?key=${encodeURIComponent(key)}` : 
         }
       }
 
-      xrScene.postMessage({
+      xrEngine.postMessage({
         method: 'login',
         loginToken,
       });
 
       const {u} = q;
       if (u) {
-        xrScene.postMessage({
+        xrEngine.postMessage({
           method: 'loadScene',
           html: `<xr-site><xr-iframe src="${u}"></xr-iframe></xr-site>`,
         });
@@ -718,7 +718,7 @@ logoutButton.onclick = async () => {
   await storage.remove('loginToken');
 
   loginToken = null;
-  xrScene.postMessage({
+  xrEngine.postMessage({
     method: 'login',
     loginToken,
   });
@@ -753,7 +753,7 @@ loginForm.onsubmit = async e => {
     loginForm.classList.remove('phase-2');
 
     if (await doLogin(loginEmail.value, loginVerificationCode.value)) {
-      xrScene.postMessage({
+      xrEngine.postMessage({
         method: 'login',
         loginToken,
       });
@@ -764,7 +764,7 @@ loginForm.onsubmit = async e => {
     window.location.reload();
 
     /* loginToken = null;
-    xrScene.postMessage({
+    xrEngine.postMessage({
       method: 'login',
       loginToken,
     });
@@ -779,13 +779,13 @@ loginForm.onsubmit = async e => {
 
 const enter2dButton = document.getElementById('enter-2d-button');
 enter2dButton.addEventListener('click', () => {
-  xrScene.postMessage({
+  xrEngine.postMessage({
     method: 'enter2d',
   });
 });
 const enterXrButton = document.getElementById('enter-xr-button');
 enterXrButton.addEventListener('click', () => {
-  xrScene.enterXr();
+  xrEngine.enterXr();
 });
 
 // const exploreLabel = document.getElementById('explore-label');
