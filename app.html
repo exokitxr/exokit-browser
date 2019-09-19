@@ -21,7 +21,7 @@
     <script src="file-type.js"></script>
   </head>
   <body>
-    <xr-site></xr-site>
+    <xr-site-2></xr-site-2>
     <script type=module>
 (async () => {
 
@@ -97,7 +97,7 @@ function _randomString() {
 function escapeRegExp(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
-class XRSite extends HTMLElement {
+class XRSite2 extends HTMLElement {
   constructor() {
     super();
 
@@ -169,7 +169,7 @@ class XRSite extends HTMLElement {
     }
   }
 }
-customElements.define('xr-site', XRSite);
+customElements.define('xr-site-2', XRSite2);
 const clipboard = {
   copy(text) {
     const fakeElem = document.body.appendChild(document.createElement('textarea'));
@@ -235,7 +235,7 @@ const _makeNullPromise = () => {
 
 const loginPromise = _makeNullPromise();
 let loginToken;
-const root = document.querySelector('xr-site');
+const root = document.querySelector('xr-site-2');
 let defaultGltf = new THREE.Object3D();
 defaultGltf.visible = false;
 window.addEventListener('message', e => {
