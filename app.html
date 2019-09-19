@@ -1353,7 +1353,22 @@ const _bindEventTarget = target => {
                   const moveMesh = currentMoveMeshes[i];
                   if (moveMesh) {
                     const {xrIframe} = moveMesh;
-                    xrIframe.parentNode.removeChild(xrIframe);
+
+                    if (rtcWs) {
+                      const index = _getChildNodeIndex(xrIframe);
+                      const m = {
+                        method: 'editState',
+                        spec: {
+                          keyPath: [0],
+                          method: 'removeChild',
+                          key: index,
+                        },
+                      };
+                      // console.log('send', m);
+                      rtcWs.send(JSON.stringify(m));
+                    }
+
+                    root.removeChild(xrIframe);
                     currentMoveMeshes[i] = null;
                   }
                 }
