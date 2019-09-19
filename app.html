@@ -222,6 +222,7 @@ const _makeNullPromise = () => {
 const loginPromise = _makeNullPromise();
 let loginToken;
 const root = document.querySelector('xr-site');
+root.cameraEnabled = false;
 root.observer = new MutationObserver(mutations => {
   root.handleMutations(mutations);
 });
