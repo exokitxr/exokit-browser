@@ -3707,6 +3707,19 @@ const _makeScreenMesh = () => {
       root.update(); // force mutation observer to run
 
       currentMoveMeshes[controllerIndex] = xrIframe.moveMesh;
+
+      if (rtcWs) {
+        const m = {
+          method: 'editState',
+          spec: {
+            keyPath: [0],
+            method: 'appendChild',
+            value: xrIframe.outerHTML,
+          },
+        };
+        // console.log('send', m);
+        rtcWs.send(JSON.stringify(m));
+      }
     } else if (id && (match = id.match(/^playlist:(.+)$/))) {
       console.log('click playlist', match[1]); // XXX
     } else if (id && (match = id.match(/^channel:(.+)$/))) {
