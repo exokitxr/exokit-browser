@@ -579,7 +579,8 @@ import(`https://web.exokit.org/ew.js${key ? `?key=${encodeURIComponent(key)}` : 
 // import(`./exokit-web/ew.js${key ? `?key=${encodeURIComponent(key)}` : ''}`)
   .then(async () => {
     if (navigator.serviceWorker.controller) { // avoid FOUC during reload
-      xrEngine = document.createElement('xr-engine');
+      // xrEngine = document.createElement('xr-engine');
+      xrEngine = new XREngine();
       xrEngine.src = 'app.html';
       xrEngine.addEventListener('message', async e => {
         const {data} = e;
