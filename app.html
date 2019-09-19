@@ -5111,6 +5111,29 @@ function animate(time, frame) {
 
         moveMesh.xrIframe.position = localVector.toArray();
         moveMesh.xrIframe.orientation = localQuaternion.toArray();
+
+        if (rtcWs) {
+          const index = _getChildNodeIndex(moveMesh.xrIframe);
+          const m = {
+            method: 'editState',
+            spec: {
+              keyPath: [0, index],
+              method: 'setAttributes',
+              values: [
+                {
+                  key: 'position',
+                  value: moveMesh.xrIframe.getAttribute('position'),
+                },
+                {
+                  key: 'orientation',
+                  value: moveMesh.xrIframe.getAttribute('orientation'),
+                },
+              ],
+            },
+          };
+          // console.log('send', m);
+          rtcWs.send(JSON.stringify(m));
+        }
       }
     }
   };
