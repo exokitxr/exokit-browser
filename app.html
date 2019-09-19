@@ -98,6 +98,13 @@ function _randomString() {
 function escapeRegExp(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
+function _getChildNodeIndex(childEl) {
+  let i = 0;
+  while(childEl = childEl.previousSibling) {
+    i++;
+  }
+  return i;
+}
 XRSite.prototype.getHTML = function getHTML() {
   return html_beautify(this.outerHTML);
 };
