@@ -3319,7 +3319,7 @@ const _makeTrayMesh = () => {
 
 const uiSize = 2048;
 let renderIds = 0;
-const _renderUi = (searchString, playlists, channels, selectedTab, selectedChannel) => new Promise((accept, reject) => {
+const _renderUi = (searchResults, playlists, channels, selectedTab, selectedChannel) => new Promise((accept, reject) => {
   if (renderIds > 0) {
     uiIframe.contentWindow.postMessage({
       method: 'cancel',
@@ -3342,8 +3342,6 @@ const _renderUi = (searchString, playlists, channels, selectedTab, selectedChann
       reject(error);
     }
   };
-
-  const searchResults = searchSitesJson(searchString);
 
   uiIframe.contentWindow.postMessage({
     method: 'render',
@@ -3456,6 +3454,11 @@ const _makeScreenMesh = () => {
     }
   };
   _updateMeasures();
+  let searchResults = [];
+  const _updateResults = () => {
+    searchResults = searchSitesJson(text);
+  };
+  _updateResults();
 
   const urlInputPadding = [40, 53];
   const _updateTextureStatic = () => {
@@ -3489,7 +3492,7 @@ const _makeScreenMesh = () => {
   ];
   let channels = [];
   const _updateTextureDynamic = async () => {
-    const result = await _renderUi(text, playlists, channels, selectedTab, selectedChannel);
+    const result = await _renderUi(searchResults, playlists, channels, selectedTab, selectedChannel);
     if (result.data) {
       ctx.putImageData(new ImageData(new Uint8ClampedArray(result.data.buffer, result.data.byteOffset, result.data.byteLength), uiSize, uiSize), 0, 0);
     }
@@ -3826,6 +3829,7 @@ const _makeScreenMesh = () => {
   mesh.setText = newText => {
     text = newText;
     _updateMeasures();
+    _updateResults();
     _updateTextureDynamic();
   };
   mesh.getValue = () => cursor;
