@@ -6548,7 +6548,7 @@ const _makePeerConnection = (peerConnectionId, isHost) => {
   return peerConnection;
 };
 
-const connectionId = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
+const connectionId = _randomString();
 const peerConnections = [];
 const _rtcConnect = (userName, channelName) => {
   rtcWs = new WebSocket(`${LAMBDA_URLS.presenceWs}?u=${encodeURIComponent(userName)}&c=${encodeURIComponent(channelName)}`);
