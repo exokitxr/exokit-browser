@@ -250,10 +250,15 @@ ul li a .wrap h3 {
 .channel-list .item .main {
   display: flex;
   flex: 1;
+  // background-color: #f2f3f5;
   // border-left: 10px solid #000;
   border-left: 10px solid #f2f3f5;
-  // background-color: #f2f3f5;
   // border-radius: 20px;
+}
+.channel-list .item .main.selected {
+  background-color: #000;
+  border-left-color: #000;
+  color: #FFF;
 }
 .channel-list .item .main .icon {
   position: relative;
@@ -444,7 +449,7 @@ ul li a .wrap h3 {
               <h3>Universe</h3>
               <p>@user's shared channel</p>
             </div>
-          </a> -->
+          </a>
           <div class=item>
             <a id="channel:1" class=main>
               <div class=icon>
@@ -486,25 +491,34 @@ ul li a .wrap h3 {
                 <i class="fal fa-link"></i>
               </div>
             </a>
-          </div>
+          </div> -->
           {{#channels}}
-          <a id="channel:{{{name}}}" class=item>
-            <div class=border></div>
-            <div class=icon>
-              <i class="fal fa-sword"></i>
-            </div>
-            <div class=wrap>
-              <h3>{{{name}}}</h3>
-              <p>by @{{{user}}}</p>
-            </div>
-            <div class=side>
-            </div>
-          </a>
+          <div class=item>
+            <a id="channel:{{{user}}}/{{{channel}}}" class="main {{#selected}}selected{{/selected}}">
+              <div class=icon>
+                <i class="fal fa-map-marked-alt"></i>
+              </div>
+              <div class=wrap>
+                <h3>{{{channel}}}</h3>
+                <p>by @{{{user}}}</p>
+              </div>
+            </a>
+            <a id=link class=side>
+              <div class=icon>
+                <i class="fal fa-clipboard"></i>
+              </div>
+            </a>
+            <a id=link class=side>
+              <div class=icon>
+                <i class="fal fa-link"></i>
+              </div>
+            </a>
+          </div>
           {{/channels}}
         </section>
         <section class=channel-controls>
           <!-- <h3>Connected to</h3> -->
-          <a id=channel-local class="channel {{#channel1}}selected{{/channel1}}">
+          <a id=channel-local class="channel {{#rtcDisconnected}}selected{{/rtcDisconnected}}">
             <div class=border></div>
             <div class=icon>
               <i class="fal fa-street-view"></i>
@@ -515,7 +529,7 @@ ul li a .wrap h3 {
               <p>Your home space</p>
             </div>
           </a>
-          <a id=channel-shared class="channel {{#channel2}}selected{{/channel2}}">
+          <a id=channel-shared class=channel>
             <div class=border></div>
             <div class=icon>
               <i class="fal fa-plus"></i>
