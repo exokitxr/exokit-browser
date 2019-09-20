@@ -660,12 +660,23 @@ import(`https://web.exokit.org/ew.js${key ? `?key=${encodeURIComponent(key)}` : 
         loginToken,
       });
 
-      const {u} = q;
+      const {u, j} = q;
       if (u) {
         xrEngine.postMessage({
           method: 'loadScene',
           html: `<xr-site><xr-iframe src="${u}"></xr-iframe></xr-site>`,
         });
+      }
+      if (j) {
+        const split = j.split('/');
+        if (split.length === 2) {
+          const [userName, channelName] = split;
+          xrEngine.postMessage({
+            method: 'joinChannel',
+            userName,
+            channelName,
+          });
+        }
       }
 
       let result;
