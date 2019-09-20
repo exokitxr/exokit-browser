@@ -3799,8 +3799,6 @@ const _makeScreenMesh = () => {
       _rtcDisconnect();
       const userName = match[1];
       const channelId = match[2];
-      // const name = loginToken.name || Math.random().toString(36).substring(7); // XXX
-      // const channelId = match[1];
       _rtcConnect(userName, channelId);
       _updateTextureDynamic();
     } /* else {
