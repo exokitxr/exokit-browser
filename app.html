@@ -5387,12 +5387,12 @@ function animate(time, frame) {
           };
           const sceneColor = _getCurrentTokenColor(sceneToken);
 
-          const guardianMesh = _makeGuardianMesh(sceneToken, sceneColor);
-          scene.add(guardianMesh);
-          guardianMeshes.push(guardianMesh);
-          const baseMesh = _makeBaseMesh(sceneToken, sceneColor);
-          _insertBefore(baseMesh, floorMesh);
-          baseMeshes.push(baseMesh);
+          // const guardianMesh = _makeGuardianMesh(sceneToken, sceneColor);
+          // scene.add(guardianMesh);
+          // guardianMeshes.push(guardianMesh);
+          // const baseMesh = _makeBaseMesh(sceneToken, sceneColor);
+          // _insertBefore(baseMesh, floorMesh);
+          // baseMeshes.push(baseMesh);
         }
         if (selectedSceneToken) {
           const baseMesh = _makeBaseMesh(selectedSceneToken, 0x808080); // 0x42a5f5
