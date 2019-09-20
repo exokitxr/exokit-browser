@@ -3462,7 +3462,7 @@ const _makeScreenMesh = () => {
 
   const urlInputPadding = [40, 53];
   const _updateTextureStatic = () => {
-    const urlInputAnchor = anchors.find(anchor => anchor.id === 'url-input');
+    const urlInputAnchor = anchors.find(anchor => anchor.id === 'url-input' || anchor.id === 'channel-input');
 
     if (urlInputAnchor) {
       ctx.fillStyle = '#f2f3f5';
@@ -3680,7 +3680,7 @@ const _makeScreenMesh = () => {
 
     const {id, href, name} = intersectionSpec;
     let match;
-    if (id === 'url-input') {
+    if (id === 'url-input' || id === 'channel-input') {
       const {x, y} = intersectionSpec;
 
       keyboardFocus = {
@@ -3688,14 +3688,20 @@ const _makeScreenMesh = () => {
         caretMesh: mesh,
       };
 
-      const urlInputAnchor = anchors.find(anchor => anchor.id === 'url-input');
+      const urlInputAnchor = anchors.find(anchor => anchor.id === 'url-input' || anchor.id === 'channel-input');
       const xOffset = x - urlInputAnchor.x - urlInputPadding[0];
       cursor = measures.map((measure, index) => [Math.abs(xOffset - measure), index]).sort((a, b) => a[0] - b[0])[0][1];
     } else if (id === 'tab-1') {
+      text = 'https://';
+      _updateMeasures();
+      _updateResults();
       _selectTab(1);
     } else if (id === 'tab-2') {
       _selectTab(2);
     } else if (id === 'tab-3') {
+      text = '';
+      _updateMeasures();
+      _updateResults();
       _selectTab(3);
     } else if (id === 'tab-4') {
       _selectTab(4);
@@ -3787,7 +3793,9 @@ const _makeScreenMesh = () => {
       console.log('no match', intersectionSpec, new Error().stack);
     } */
 
-    _updateTextureStatic();
+    if (!['tab-1', 'tab-2', 'tab-3', 'tab-4'].includes(id)) {
+      _updateTextureStatic();
+    }
 
     /* const {id} = intersectionSpec;
     let match;
