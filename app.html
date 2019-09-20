@@ -6599,7 +6599,7 @@ const _rtcConnect = (name, channelId) => {
     } else if (method === 'leave') {
       const {connectionId: peerConnectionId} = data;
       _removePeerConnection(peerConnectionId);
-    } else if (method === 'state') {
+    } else if (method === 'initState') {
       const {state} = data;
       const htmlString = parse5.serialize(state);
       root.setHTML(htmlString);
