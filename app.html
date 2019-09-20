@@ -6538,8 +6538,8 @@ const _makePeerConnection = (peerConnectionId, isHost) => {
 
 const connectionId = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
 const peerConnections = [];
-const _rtcConnect = (name, channelId) => {
-  rtcWs = new WebSocket(`${LAMBDA_URLS.presenceWs}?u=${encodeURIComponent(name)}&c=${encodeURIComponent(channelId)}`);
+const _rtcConnect = (userName, channelName) => {
+  rtcWs = new WebSocket(`${LAMBDA_URLS.presenceWs}?u=${encodeURIComponent(userName)}&c=${encodeURIComponent(channelName)}`);
   rtcWs.onopen = () => {
     // console.log('presence socket open');
 
@@ -6548,7 +6548,7 @@ const _rtcConnect = (name, channelId) => {
       connectionId,
     }));
   };
-  const isHost = name === channelId;
+  const isHost = userName === channelName;
   const _addPeerConnection = peerConnectionId => {
     let peerConnection = peerConnections.find(peerConnection => peerConnection.connectionId === peerConnectionId);
     if (peerConnection && !peerConnection.open) {
@@ -6692,7 +6692,8 @@ const _rtcConnect = (name, channelId) => {
     clearInterval(pingInterval);
     // setTimeout(_rtcConnect, 5000);
   };
-  rtcWs.channelId = channelId;
+  rtcWs.userName = userName;
+  rtcWs.channelName = channelName;
   rtcWs.pushScene = () => {
     const html = root.getHTML();
     rtcWs.send(JSON.stringify({
