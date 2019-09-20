@@ -3677,6 +3677,7 @@ const _makeScreenMesh = () => {
     } else if (id === 'channel-local') {
       _setChannel(1);
 
+      _rtcDisconnect();
       root.innerHTML = '';
     } else if (id === 'channel-shared') {
       _setChannel(2);
@@ -3689,6 +3690,7 @@ const _makeScreenMesh = () => {
     } else if (id === 'channel-global') {
       _setChannel(3);
 
+      _rtcDisconnect();
       root.innerHTML = '';
     } else if (id === 'app' && href) {
       const xrIframe = document.createElement('xr-iframe');
