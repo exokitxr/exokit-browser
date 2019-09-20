@@ -176,16 +176,20 @@ ul li a .wrap h3 {
 }
 .channels {
   display: flex;
+}
+.channel-controls {
+  display: flex;
+  width: 668px;
+  margin-top: 20px;
   flex-direction: column;
 }
-.channels .channel {
+.channel-controls .channel {
   position: relative;
   display: flex;
-  /* height: 340px; */
   height: 250px;
   padding: 60px;
 }
-.channels .channel .border {
+.channel-controls .channel .border {
   position: absolute;
   left: 30px;
   right: 30px;
@@ -194,13 +198,13 @@ ul li a .wrap h3 {
   // border: 10px solid transparent;
   border-radius: 20px;
 }
-.channels .channel.selected {
+.channel-controls .channel.selected {
   color: #FFF;
 }
-.channels .channel.selected .border {
+.channel-controls .channel.selected .border {
   background-color: #000;
 }
-.channels .channel .icon {
+.channel-controls .channel .icon {
   position: relative;
   display: flex;
   width: 130px;
@@ -212,69 +216,91 @@ ul li a .wrap h3 {
   justify-content: center;
   align-items: center;
 }
-.channels .channel .wrap {
+.channel-controls .channel .wrap {
   position: relative;
   display: flex;
   flex-direction: column;
 }
-.channels .channel .wrap h1,
-.channels .channel .wrap h2,
-.channels .channel .wrap h3,
-.channels .channel .wrap p
+.channel-controls .channel .wrap h1,
+.channel-controls .channel .wrap h2,
+.channel-controls .channel .wrap h3,
+.channel-controls .channel .wrap p
 {
   margin: 0;
 }
-.channels .channel .wrap h3 {
+.channel-controls .channel .wrap h3 {
   /* font-size: 60px; */
   font-size: 44px;
   line-height: 1.6;
 }
-.channels .channel .wrap p {
-  /* font-size: 50px; */
+.channel-controls .channel .wrap p {
   font-size: 36px;
 }
-.playlist {
+.channel-list {
   display: flex;
+  width: 1336px;
   flex-direction: column;
 }
-.playlist .item {
+.channel-list .item {
   position: relative;
   display: flex;
-  padding: 60px;
+  height: 230px;
+  padding: 20px 40px;
 }
-.playlist .item .border {
-  position: absolute;
-  left: 30px;
-  right: 30px;
-  top: 30px;
-  bottom: 30px;
-  background-color: #f2f3f5;
-  border-radius: 20px;
+.channel-list .item .main {
+  display: flex;
+  flex: 1;
+  // border-left: 10px solid #000;
+  border-left: 10px solid #f2f3f5;
+  // background-color: #f2f3f5;
+  // border-radius: 20px;
 }
-.playlist .item .icon {
+.channel-list .item .main .icon {
   position: relative;
   display: flex;
+  // width: 190px;
+  height: 190px;
+  margin-left: 30px;
   margin-right: 30px;
   justify-content: center;
   align-items: center;
+  // background-color: #f2f3f5;
+  // border-radius: 20px;
+  // font-size: 60px;
 }
-.playlist .item .wrap {
+.channel-list .item .main .wrap {
   position: relative;
   display: flex;
   flex-direction: column;
 }
-.playlist .item .wrap h3,
-.playlist .item .wrap p {
+.channel-list .item .main .wrap h3,
+.channel-list .item .main .wrap p
+  {
   margin: 0;
 }
-.playlist .item .wrap h3 {
+.channel-list .item .main .wrap h3 {
   font-size: 60px;
   line-height: 1.6;
 }
-.playlist .item .wrap p {
+.channel-list .item .main .wrap p {
   font-size: 36px;
 }
-.grid {
+.channel-list .item .side {
+  display: flex;
+  width: 190px;
+  height: 190px;
+  margin-left: 30px;
+  justify-content: center;
+  align-items: center;
+  background-color: #f2f3f5;
+  border-radius: 20px;
+}
+.channel-list .item .side .icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+/* .grid {
   padding: 30px;
 }
 .grid .item {
@@ -308,7 +334,7 @@ ul li a .wrap h3 {
   flex: 1;
   justify-content: center;
   align-items: center;
-}
+} */
     </style>
   </head>
   <body>
@@ -317,7 +343,7 @@ ul li a .wrap h3 {
       <div class=radios>
         <a id=tab-1 class="radio {{#tab1}}selected{{/tab1}}">Apps</a>
         <a id=tab-2 class="radio {{#tab2}}selected{{/tab2}}">Scene</a>
-        <a id=tab-3 class="radio {{#tab3}}selected{{/tab3}}">Playlists</a>
+        <a id=tab-3 class="radio {{#tab3}}selected{{/tab3}}">Channels</a>
         <a id=tab-4 class="radio {{#tab4}}selected{{/tab4}}">Universe</a>
       </div>
       {{#tab1}}
@@ -394,7 +420,89 @@ ul li a .wrap h3 {
             </div>
           </a>
         </section>
-        <section class=channels>
+      </div>
+      {{/tab2}}
+      {{#tab3}}
+      <div class=channels>
+        <!-- <a id=playlist-new class=item>
+          <div class=border></div>
+          <div class=icon>
+            <i class="fal fa-sword"></i>
+          </div>
+          <div class=wrap>
+            <h3>New channel</h3>
+          </div>
+        </a> -->
+        <section class=channel-list>
+          <input type=text class=url-input id=channel-input>
+          <!-- <a id=channel-global class="channel {{#channel3}}selected{{/channel3}}">
+            <div class=border></div>
+            <div class=icon>
+              <i class="fal fa-map-marked-alt"></i>
+            </div>
+            <div class=wrap>
+              <h3>Universe</h3>
+              <p>@user's shared channel</p>
+            </div>
+          </a> -->
+          <div class=item>
+            <a id="channel:1" class=main>
+              <div class=icon>
+                <i class="fal fa-map-marked-alt"></i>
+              </div>
+              <div class=wrap>
+                <h3>First map</h3>
+                <p>by @user</p>
+              </div>
+            </a>
+            <a id=link class=side>
+              <div class=icon>
+                <i class="fal fa-clipboard"></i>
+              </div>
+            </a>
+            <a id=link class=side>
+              <div class=icon>
+                <i class="fal fa-link"></i>
+              </div>
+            </a>
+          </div>
+          <div class=item>
+            <a id="channel:1" class=main>
+              <div class=icon>
+                <i class="fal fa-map-marked-alt"></i>
+              </div>
+              <div class=wrap>
+                <h3>Second map</h3>
+                <p>by @user</p>
+              </div>
+            </a>
+            <a id=link class=side>
+              <div class=icon>
+                <i class="fal fa-clipboard"></i>
+              </div>
+            </a>
+            <a id=link class=side>
+              <div class=icon>
+                <i class="fal fa-link"></i>
+              </div>
+            </a>
+          </div>
+          {{#channels}}
+          <a id="channel:{{{name}}}" class=item>
+            <div class=border></div>
+            <div class=icon>
+              <i class="fal fa-sword"></i>
+            </div>
+            <div class=wrap>
+              <h3>{{{name}}}</h3>
+              <p>by @{{{user}}}</p>
+            </div>
+            <div class=side>
+            </div>
+          </a>
+          {{/channels}}
+        </section>
+        <section class=channel-controls>
           <!-- <h3>Connected to</h3> -->
           <a id=channel-local class="channel {{#channel1}}selected{{/channel1}}">
             <div class=border></div>
@@ -410,14 +518,14 @@ ul li a .wrap h3 {
           <a id=channel-shared class="channel {{#channel2}}selected{{/channel2}}">
             <div class=border></div>
             <div class=icon>
-              <i class="fal fa-couch"></i>
+              <i class="fal fa-plus"></i>
             </div>
             <div class=wrap>
-              <h3>Shared</h3>
-              <p>Your public channel</p>
+              <h3>New channel</h3>
+              <p>Create a new shared space</p>
             </div>
           </a>
-          <a id=channel-global class="channel {{#channel3}}selected{{/channel3}}">
+          <!-- <a id=channel-global class="channel {{#channel3}}selected{{/channel3}}">
             <div class=border></div>
             <div class=icon>
               <i class="fal fa-map-marked-alt"></i>
@@ -426,29 +534,13 @@ ul li a .wrap h3 {
               <h3>Universe</h3>
               <p>@user's shared channel</p>
             </div>
-          </a>
+          </a> -->
         </section>
-      </div>
-      {{/tab2}}
-      {{#tab3}}
-      <div class=playlist>
-        {{#playlists}}
-        <a id="playlist:{{{name}}}" class=item>
-          <div class=border></div>
-          <div class=icon>
-            <i class="fal fa-sword"></i>
-          </div>
-          <div class=wrap>
-            <h3>{{{name}}}</h3>
-            <p>by @{{{user}}}</p>
-          </div>
-        </a>
-        {{/playlists}}
       </div>
       {{/tab3}}
       {{#tab4}}
       <div class=grid>
-        {{#channels}}
+        <!-- {{#channels}}
         <a id="channel:{{{name}}}" class=item>
           <h3>{{{name}}}</h3>
           <div class=dot></div>
@@ -456,7 +548,7 @@ ul li a .wrap h3 {
             <i class="fal fa-map-signs"></i>
           </div>
         </a>
-        {{/channels}}
+        {{/channels}} -->
       </div>
       {{/tab4}}
     </div>
