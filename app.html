@@ -633,6 +633,11 @@ window.addEventListener('message', e => {
       rtcWs && rtcWs.pushScene();
       break;
     }
+    case 'joinChannel': {
+      const {userName, channelName} = data;
+      _rtcConnect(userName, channelName);
+      break;
+    }
   }
 });
 window.addEventListener('paste', e => {
@@ -4118,12 +4123,21 @@ const _makeScreenMesh = () => {
       }
     /* } else if (id && (match = id.match(/^playlist:(.+)$/))) {
       console.log('click playlist', match[1]); // XXX */
-    } else if (id && (match = id.match(/^channel:(.+?)\/(.+?)$/))) {
-      _rtcDisconnect();
-      const userName = match[1];
-      const channelId = match[2];
-      _rtcConnect(userName, channelId);
-      _updateTextureDynamic();
+    } else if (id && (match = id.match(/^channel(-copy-join|-copy-site)?:(.+?)\/(.+?)$/))) {
+      const userName = match[2];
+      const channelName = match[3];
+      if (!match[1]) {
+        _rtcDisconnect();
+        _rtcConnect(userName, channelName);
+        _updateTextureDynamic();
+      } else if (match[1] === '-copy-join') {
+        const u = new URL(window.location.href);
+        u.pathname = '/';
+        u.search = (u.search.length > 1 ? `${u.search}&` : '?') + `j=${encodeURIComponent(`${userName}/${channelName}`)}`;
+        clipboard.copy(u.href);
+      } else if (match[1] === '-copy-site') {
+        clipboard.copy(`https://${userName}.sites.exokit.org/${channelName}`);
+      }
     } /* else {
       console.log('no match', intersectionSpec, new Error().stack);
     } */
