@@ -3319,7 +3319,7 @@ const _makeTrayMesh = () => {
 
 const uiSize = 2048;
 let renderIds = 0;
-const _renderUi = (searchResults, playlists, channels, selectedTab, selectedChannel) => new Promise((accept, reject) => {
+const _renderUi = (searchResults, playlists, channels, selectedTab, rtcConnected) => new Promise((accept, reject) => {
   if (renderIds > 0) {
     uiIframe.contentWindow.postMessage({
       method: 'cancel',
@@ -3350,14 +3350,12 @@ const _renderUi = (searchResults, playlists, channels, selectedTab, selectedChan
     templateData: {
       searchResults,
       playlists,
-      channels,
+      channels: channels.slice(0, 4),
       tab1: selectedTab === 1,
       tab2: selectedTab === 2,
       tab3: selectedTab === 3,
       tab4: selectedTab === 4,
-      channel1: selectedChannel === 1,
-      channel2: selectedChannel === 2,
-      channel3: selectedChannel === 3,
+      rtcDisconnected: !rtcConnected,
     },
     width: uiSize,
     height: uiSize,
@@ -3482,7 +3480,6 @@ const _makeScreenMesh = () => {
   };
 
   let selectedTab = 1;
-  let selectedChannel = 1;
   let anchors = [];
   let playlists = [ // XXX
     {
@@ -3492,7 +3489,26 @@ const _makeScreenMesh = () => {
   ];
   let channels = [];
   const _updateTextureDynamic = async () => {
-    const result = await _renderUi(searchResults, playlists, channels, selectedTab, selectedChannel);
+    for (let i = 0; i < channels.length; i++) {
+      const channel = channels[i];
+      channel.selected = !!rtcWs && rtcWs.userName === channel.user && rtcWs.channelName === channel.channel;
+    }
+    const t = text.toLowerCase();
+    const localChannels = t ?
+      channels.filter(channel =>
+        channel.selected || channel.user.includes(t) || channel.channel.includes(t) || `${channel.user}/${channel.channel}` === t
+      )
+    :
+      channels.slice();
+    localChannels.sort((a, b) => {
+      let diff = a.user.localeCompare(b.user);
+      if (diff === 0) {
+        return a.channel.localeCompare(b.channel);
+      } else {
+        return diff;
+      }
+    });
+    const result = await _renderUi(searchResults, playlists, localChannels, selectedTab, !!rtcWs);
     if (result.data) {
       ctx.putImageData(new ImageData(new Uint8ClampedArray(result.data.buffer, result.data.byteOffset, result.data.byteLength), uiSize, uiSize), 0, 0);
     }
@@ -3671,10 +3687,6 @@ const _makeScreenMesh = () => {
     keyboardFocus = null;
     _updateTextureDynamic();
   };
-  const _setChannel = newChannel => {
-    selectedChannel = newChannel;
-    _updateTextureDynamic();
-  };
   mesh.click = async (intersectionSpec, controllerIndex) => {
     keyboardFocus = null;
 
@@ -3703,19 +3715,16 @@ const _makeScreenMesh = () => {
       _updateMeasures();
       _updateResults();
       _selectTab(3);
-    } else if (id === 'tab-4') {
-      _selectTab(4);
 
       const res = await fetch(`${LAMBDA_URLS.presence}channels`)
       if (res.status >= 200 && res.status < 300) {
         channels = await res.json();
-        if (rtcWs) {
-          channels = channels.filter(channel => channel.name !== rtcWs.channelId);
-        }
         _updateTextureDynamic();
       } else {
         console.warn(`invalid status code: ${res.status}`);
       }
+    } else if (id === 'tab-4') {
+      _selectTab(4);
     } else if (id === 'action-new-scene') {
       root.innerHTML = '';
 
@@ -3744,23 +3753,25 @@ const _makeScreenMesh = () => {
         html: root.outerHTML,
       });
     } else if (id === 'channel-local') {
-      _setChannel(1);
-
       _rtcDisconnect();
       root.innerHTML = '';
+      _updateTextureDynamic();
     } else if (id === 'channel-shared') {
-      _setChannel(2);
-
       root.innerHTML = '';
       _rtcDisconnect();
-      const name = loginToken.name || Math.random().toString(36).substring(7); // XXX
-      const channelId = name;
-      _rtcConnect(name, channelId);
-    } else if (id === 'channel-global') {
-      _setChannel(3);
-
+      const userName = loginToken.name || Math.random().toString(36).substring(7); // XXX
+      const channelName = Math.random().toString(36).substring(7);
+      _rtcConnect(userName, channelName);
+      if (!channels.some(channel => channel.user === userName && channel.channel === channelName)) {
+        channels.push({
+          user: userName,
+          channel: channelName,
+        });
+      }
+      mesh.setText(`${userName}/${channelName}`);
+    /* } else if (id === 'channel-global') {
       _rtcDisconnect();
-      root.innerHTML = '';
+      root.innerHTML = ''; */
     } else if (id === 'app' && href) {
       const xrIframe = document.createElement('xr-iframe');
       xrIframe.src = href;
@@ -3782,13 +3793,16 @@ const _makeScreenMesh = () => {
         // console.log('send', m);
         rtcWs.send(JSON.stringify(m));
       }
-    } else if (id && (match = id.match(/^playlist:(.+)$/))) {
-      console.log('click playlist', match[1]); // XXX
-    } else if (id && (match = id.match(/^channel:(.+)$/))) {
+    /* } else if (id && (match = id.match(/^playlist:(.+)$/))) {
+      console.log('click playlist', match[1]); // XXX */
+    } else if (id && (match = id.match(/^channel:(.+?)\/(.+?)$/))) {
       _rtcDisconnect();
-      const name = loginToken.name || Math.random().toString(36).substring(7); // XXX
-      const channelId = match[1];
-      _rtcConnect(name, channelId);
+      const userName = match[1];
+      const channelId = match[2];
+      // const name = loginToken.name || Math.random().toString(36).substring(7); // XXX
+      // const channelId = match[1];
+      _rtcConnect(userName, channelId);
+      _updateTextureDynamic();
     } /* else {
       console.log('no match', intersectionSpec, new Error().stack);
     } */
