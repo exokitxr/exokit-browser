@@ -251,6 +251,29 @@ root.observer = new MutationObserver(mutations => {
 root.observer.observe(root, {
   childList: true,
 });
+root.observer2 = new MutationObserver(mutations => {
+  for (let i = 0; i < mutations.length; i++) {
+    const mutation = mutations[i];
+    const {target, attributeName} = mutation;
+    if (target instanceof XRIFrame) {
+      const xrIframe = target;
+      const {moveMesh} = xrIframe;
+      if (attributeName === 'position') {
+        moveMesh.position.fromArray(xrIframe.position);
+      } else if (attributeName === 'orientation') {
+        moveMesh.quaternion.fromArray(xrIframe.orientation);
+      } else if (attributeName === 'scale') {
+        moveMesh.scale.fromArray(xrIframe.scale);
+      }
+    }
+  }
+});
+root.observer2.observe(root, {
+  attributeFilter: ['position', 'orientation', 'scale'],
+  attributes: true,
+  subtree: true,
+});
+
 let defaultGltf = new THREE.Object3D();
 defaultGltf.visible = false;
 window.addEventListener('message', e => {
@@ -5135,9 +5158,6 @@ function animate(time, frame) {
         } else {
           localVector.copy(controllerMesh.position).add(localVector2.set(0, 0, -3).applyQuaternion(localQuaternion));
         }
-
-        moveMesh.position.copy(localVector);
-        moveMesh.quaternion.copy(localQuaternion);
 
         moveMesh.xrIframe.position = localVector.toArray();
         moveMesh.xrIframe.orientation = localQuaternion.toArray();
