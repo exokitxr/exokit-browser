@@ -105,6 +105,21 @@ function _getChildNodeIndex(childEl) {
   }
   return i;
 }
+function _findElByKeyPath(el, keyPath) {
+  for (let i = 0; i < keyPath.length; i++) {
+    el = el.childNodes[keyPath[i]];
+    if (!el) {
+      el = null;
+      break;
+    }
+  }
+  return el;
+}
+function _parseHtml(s) {
+  const div = document.createElement('div');
+  div.innerHTML = s;
+  return div.childNodes[0] || null;
+}
 XRSite.prototype.getHTML = function getHTML() {
   return html_beautify(this.outerHTML);
 };
@@ -6603,6 +6618,37 @@ const _rtcConnect = (name, channelId) => {
       const {state} = data;
       const htmlString = parse5.serialize(state);
       root.setHTML(htmlString);
+    } else if (method === 'editState') {
+      const {spec} = data;
+      const {method, keyPath, key, value, values} = spec;
+      const el = _findElByKeyPath(root, keyPath.slice(1));
+      if (el) {
+        switch (method) {
+          case 'setAttributes': {
+            for (let i = 0; i < values.length; i++) {
+              const {key, value} = values[i];
+              el.setAttribute(key, value);
+            }
+            break;
+          }
+          case 'setAttribute':
+          case 'removeAttribute':
+            throw new Error('not implemented');
+          case 'appendChild': {
+            const childNode = el.childNodes[key];
+            const newNode = _parseHtml(value);
+            el.insertBefore(newNode, childNode);
+            break;
+          }
+          case 'removeChild': {
+            const childNode = el.childNodes[key];
+            el.removeChild(childNode);
+            break;
+          }
+        }
+      } else {
+        console.warn('could not find element for key path', keyPath);
+      }
     }
   };
   rtcWs.onclose = () => {
