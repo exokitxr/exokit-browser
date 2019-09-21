@@ -3690,8 +3690,6 @@ const _renderUi = (searchResults, playlists, channels, selectedTab, rtcConnected
         ay: y,
         x: x*40 + 2,
         y: y*40 + 2,
-        /* w: 36,
-        h: 36, */
       });
     }
   }
@@ -4166,7 +4164,6 @@ const _makeScreenMesh = () => {
     } else if (id && (match = id.match(/^grid:(.+?)-(.+?)$/))) {
       const x = parseInt(match[1], 10);
       const y = parseInt(match[2], 10);
-      console.log('got grid', x, y);
 
       const vrCamera = renderer.vr.enabled ? renderer.vr.getCamera(camera).cameras[0] : camera;
       const xDest = x;
