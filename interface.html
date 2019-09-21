@@ -319,8 +319,8 @@ ul li a .wrap h3 {
 }
 .grid .anchors a {
   position: absolute;
-  width: 36px;
-  height: 36px;
+  // width: 36px;
+  // height: 36px;
 }
 .grid svg {
   width: inherit;
@@ -328,8 +328,8 @@ ul li a .wrap h3 {
   background-color: #111;
 }
 .grid svg rect {
-  width: 36px;
-  height: 36px;
+  // width: 36px;
+  // height: 36px;
   fill: #333;
 }
 /* .grid .item {
@@ -581,12 +581,15 @@ ul li a .wrap h3 {
       <div class=grid>
         <div class=anchors>
           {{#rects}}
-          <a id=grid:{{{ax}}}-{{{ay}}} style="left: {{{x}}}px; top: {{{y}}}px;"></a>
+          <a id=grid:{{{ax}}}-{{{ay}}} style="left: {{{x}}}px; top: {{{y}}}px; width: {{{w}}}px; height: {{{h}}}px;"></a>
           {{/rects}}
           <svg>
             {{#rects}}
-            <rect x={{{x}}} y={{{y}}} />
+            <rect x={{{x}}} y={{{y}}} width={{{w}}} height={{{h}}} />
             {{/rects}}
+            {{#covers}}
+            <rect x={{{x}}} y={{{y}}} width={{{w}}} height={{{h}}} />
+            {{/covers}}
           </svg>
         </div>
         <!-- {{#channels}}

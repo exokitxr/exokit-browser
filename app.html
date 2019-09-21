@@ -3656,6 +3656,110 @@ const _makeTrayMesh = () => {
 // const trayMesh = _makeTrayMesh();
 // scene.add(trayMesh);
 
+const rects = [];
+const covers = [];
+fetch(`https://modulesio.github.io/root/index.html`)
+  .then(res => res.text())
+  .then(s => {
+    const dom = new DOMParser().parseFromString(s, 'text/html');
+    const xrIframes = dom.body.querySelectorAll('xr-iframe');
+    for (let i = 0; i < xrIframes.length; i++) {
+      const xrIframe = xrIframes[i];
+      const pixelsList = [];
+      const pixels = {};
+      let shapeIndexes = 0;
+      const iframeIndex = i;
+      const extents = xrIframe.getAttribute('extents');
+      const regex = /(?:\[([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\]|([0-9]+)\s+([0-9]+))\s*/g;
+      let match;
+      while (match = regex.exec(extents)) {
+        const shapeIndex = shapeIndexes++;
+        if (match[1]) {
+          const x1 = parseInt(match[1], 10);
+          const y1 = parseInt(match[2], 10);
+          const x2 = parseInt(match[3], 10);
+          const y2 = parseInt(match[4], 10);
+          for (let x = x1; x <= x2; x++) {
+            for (let y = y1; y <= y2; y++) {
+              pixelsList.push({x, y, iframeIndex, shapeIndex});
+              pixels[`${x}:${y}`] = {
+                iframeIndex,
+                shapeIndex,
+              };
+            }
+          }
+          rects.push({
+            ax: x1,
+            ay: y1,
+            x: x1*40 + 2,
+            y: y1*40 + 2,
+            w: (x2 - x1 + 1)*40 - 4,
+            h: (y2 - y1 + 1)*40 - 4,
+          });
+        } else if (match[5]) {
+          const x = parseInt(match[5], 10);
+          const y = parseInt(match[6], 10);
+          pixelsList.push({x, y, iframeIndex, shapeIndex});
+          pixels[`${x}:${y}`] = {
+            iframeIndex,
+            shapeIndex,
+          };
+          rects.push({
+            ax: x,
+            ay: y,
+            x: x*40 + 2,
+            y: y*40 + 2,
+            w: 40 - 4,
+            h: 40 - 4,
+          });
+        }
+      }
+      for (let i = 0; i < pixelsList.length; i++) {
+        const {x, y, iframeIndex, shapeIndex} = pixelsList[i];
+        const _check = (dx, dy) => {
+          const ax = x + dx;
+          const ay = y + dy;
+          const pixel = pixels[`${ax}:${ay}`];
+          if (pixel && pixel.iframeIndex === iframeIndex && pixel.shapeIndex !== shapeIndex) {
+            if (dx === -1) {
+              covers.push({
+                x: ax*40 + 2 + 20,
+                y: ay*40 + 2,
+                w: 40 - 4,
+                h: 40 - 4,
+              });
+            } else if (dx === 1) {
+              covers.push({
+                x: ax*40 + 2 - 20,
+                y: ay*40 + 2,
+                w: 40 - 4,
+                h: 40 - 4,
+              });
+            } else if (dy === -1) {
+              covers.push({
+                x: ax*40 + 2,
+                y: ay*40 + 2 + 20,
+                w: 40 - 4,
+                h: 40 - 4,
+              });
+            } else if (dy === 1) {
+              covers.push({
+                x: ax*40 + 2,
+                y: ay*40 + 2 - 20,
+                w: 40 - 4,
+                h: 40 - 4,
+              });
+            }
+          }
+        };
+        _check(-1, 0);
+        _check(1, 0);
+        _check(0, -1);
+        _check(0, 1);
+      }
+    }
+  });
+
 const uiSize = 2048;
 let renderIds = 0;
 const _renderUi = (searchResults, playlists, channels, selectedTab, rtcConnected) => new Promise((accept, reject) => {
@@ -3682,17 +3786,6 @@ const _renderUi = (searchResults, playlists, channels, selectedTab, rtcConnected
     }
   };
 
-  const rects = [];
-  for (let x = 0; x < 30; x++) {
-    for (let y = 0; y < 30; y++) {
-      rects.push({
-        ax: x,
-        ay: y,
-        x: x*40 + 2,
-        y: y*40 + 2,
-      });
-    }
-  }
   uiIframe.contentWindow.postMessage({
     method: 'render',
     id: ++renderIds,
@@ -3706,6 +3799,7 @@ const _renderUi = (searchResults, playlists, channels, selectedTab, rtcConnected
       tab3: selectedTab === 3,
       tab4: selectedTab === 4,
       rects,
+      covers,
       rtcDisconnected: !rtcConnected,
     },
     width: uiSize,
