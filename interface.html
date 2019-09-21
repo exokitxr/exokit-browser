@@ -305,10 +305,34 @@ ul li a .wrap h3 {
   justify-content: center;
   align-items: center;
 }
-/* .grid {
-  padding: 30px;
+.grid {
+  position: relative;
+  display: flex;
+  // padding: 30px;
+  justify-content: center;
+  align-items: center;
 }
-.grid .item {
+.grid .anchors {
+  position: relative;
+  width: 1200px;
+  height: 1200px;
+}
+.grid .anchors a {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+}
+.grid svg {
+  width: inherit;
+  height: inherit;
+  background-color: #111;
+}
+.grid svg rect {
+  width: 36px;
+  height: 36px;
+  fill: #333;
+}
+/* .grid .item {
   position: relative;
   display: flex;
   width: 300px;
@@ -555,6 +579,16 @@ ul li a .wrap h3 {
       {{/tab3}}
       {{#tab4}}
       <div class=grid>
+        <div class=anchors>
+          {{#rects}}
+          <a id=grid:{{{ax}}}-{{{ay}}} style="left: {{{x}}}px; top: {{{y}}}px;"></a>
+          {{/rects}}
+          <svg>
+            {{#rects}}
+            <rect x={{{x}}} y={{{y}}} />
+            {{/rects}}
+          </svg>
+        </div>
         <!-- {{#channels}}
         <a id="channel:{{{name}}}" class=item>
           <h3>{{{name}}}</h3>

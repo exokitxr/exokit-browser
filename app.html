@@ -3682,6 +3682,19 @@ const _renderUi = (searchResults, playlists, channels, selectedTab, rtcConnected
     }
   };
 
+  const rects = [];
+  for (let x = 0; x < 30; x++) {
+    for (let y = 0; y < 30; y++) {
+      rects.push({
+        ax: x,
+        ay: y,
+        x: x*40 + 2,
+        y: y*40 + 2,
+        /* w: 36,
+        h: 36, */
+      });
+    }
+  }
   uiIframe.contentWindow.postMessage({
     method: 'render',
     id: ++renderIds,
@@ -3694,6 +3707,7 @@ const _renderUi = (searchResults, playlists, channels, selectedTab, rtcConnected
       tab2: selectedTab === 2,
       tab3: selectedTab === 3,
       tab4: selectedTab === 4,
+      rects,
       rtcDisconnected: !rtcConnected,
     },
     width: uiSize,
@@ -4149,6 +4163,20 @@ const _makeScreenMesh = () => {
       } else if (match[1] === '-copy-site') {
         clipboard.copy(`https://${userName}.sites.exokit.org/${channelName}`);
       }
+    } else if (id && (match = id.match(/^grid:(.+?)-(.+?)$/))) {
+      const x = parseInt(match[1], 10);
+      const y = parseInt(match[2], 10);
+      console.log('got grid', x, y);
+
+      const vrCamera = renderer.vr.enabled ? renderer.vr.getCamera(camera).cameras[0] : camera;
+      const xDest = x;
+      const xDist = xDest - vrCamera.position.x;
+      const zDest = y;
+      const zDist = zDest - vrCamera.position.z;
+
+      window.document.xrOffset.position[0] -= xDist;
+      window.document.xrOffset.position[2] -= zDist;
+      window.document.xrOffset.pushUpdate();
     } /* else {
       console.log('no match', intersectionSpec, new Error().stack);
     } */
