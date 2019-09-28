@@ -1104,7 +1104,7 @@ submitSiteButton.addEventListener('click', () => {
 });
 const connectStripeButton = document.getElementById('connect-stripe-button');
 connectStripeButton.addEventListener('click', () => {
-  window.location.href = 'https://payments.exokit.org/authorize';
+  window.location.href = `https://payments.exokit.org/authorize?email=${encodeURIComponent(loginToken.email)}&token=${encodeURIComponent(loginToken.token)}`;
 });
 
 const userButton = document.getElementById('user-button');
