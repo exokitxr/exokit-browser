@@ -1080,7 +1080,8 @@ const submitSiteUrlBar = document.getElementById('site-url-bar');
 const submitSiteButton = document.getElementById('submit-site');
 submitSiteButton.addEventListener('click', () => {
   if (/^https:\/\//.test(submitSiteUrlBar.value)) {
-    window.location.href = `https://github.com/exokitxr/exoland/issues/new?title=${encodeURIComponent('URL add request')}&assignee=modulesio&body=${encodeURIComponent('URL to add:\n\n```' + submitSiteUrlBar.value + '```')}`;
+    const url = submitSiteUrlBar.value;
+    window.location.href = `https://github.com/exokitxr/exoland/issues/new?title=${encodeURIComponent(`[ADD-WORLD] ${url}`)}&assignee=modulesio&labels=add-world&body=${encodeURIComponent('URL to add:\n\n```' + url + '```')}`;
   } else {
     console.warn('only https sites are supported: ' + submitSiteUrlBar.value);
   }
