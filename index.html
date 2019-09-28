@@ -1077,6 +1077,13 @@ developersDropdown.onclick = () => {
   developersPopdown.classList.toggle('open');
 }; */
 
+const _stopPropagation = e => {
+  e.stopPropagation();
+};
+const header = document.getElementById('header');
+header.addEventListener('mousedown', _stopPropagation);
+header.addEventListener('dblclick', _stopPropagation);
+
 const submitSiteUrlBar = document.getElementById('site-url-bar');
 const submitSiteButton = document.getElementById('submit-site');
 submitSiteButton.addEventListener('click', () => {
@@ -1098,11 +1105,6 @@ userButton.addEventListener('click', () => {
   userButton.classList.toggle('open');
   userAccount.classList.toggle('open');
 });
-const _stopPropagation = e => {
-  e.stopPropagation();
-};
-userAccount.addEventListener('mousedown', _stopPropagation);
-userAccount.addEventListener('dblclick', _stopPropagation);
     </script>
   </body>
 </html>
