@@ -210,10 +210,33 @@ input[type=text]
   margin-right: 5px;
 }
 .user-account .status {
+  display: flex;
   padding: 3px 6px;
-  background-color: #5c6bc0;
   border-radius: 8px;
   color: #FFF;
+  align-items: center;
+}
+.user-account .status:not(.open) {
+  display: none;
+}
+.user-account .status.not-connected {
+  background-color: #5c6bc0;
+}
+.user-account .status.connected {
+  background-color: #66bb6a;
+}
+.user-account .status nav {
+  display: flex;
+  width: 16px;
+  height: 16px;
+  margin-left: 5px;
+  /* background-color: #ef534e; */
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+.user-account .status i {
+  
 }
 .user-account input[type=text] {
   width: 300px;
@@ -579,7 +602,8 @@ table tr {
           </div>
           <div class=row>
             <div class=text>Stripe status:</div>
-            <div class=status>Not connected</div>
+            <div class="status not-connected" id=status-not-connected>Not connected</div>
+            <div class="status connected" id=status-connected>Connected <nav id=disconnect-stripe-button><i class="fal fa-times"></i></nav></div>
             <input type=button value="Connect Stripe" id=connect-stripe-button>
           </div>
         </div>
@@ -637,6 +661,13 @@ async function doLogin(email, code) {
 
     loginNameStatic.innerText = loginToken.name;
     loginEmailStatic.innerText = loginToken.email;
+    if (loginToken.stripeState) {
+      statusConnected.classList.add('open');
+      statusNotConnected.classList.remove('open');
+    } else {
+      statusNotConnected.classList.add('open');
+      statusConnected.classList.remove('open');
+    }
 
     document.body.classList.add('logged-in');
     loginForm.classList.remove('phase-1');
@@ -743,12 +774,19 @@ import(`https://web.exokit.org/ew.js${key ? `?key=${encodeURIComponent(key)}` : 
           method: 'POST',
         })
         if (res.status >= 200 && res.status < 300) {
-          res.json();
+          loginToken = await res.json();
 
-          loginToken = localLoginToken;
+          await storage.set('loginToken', loginToken);
 
           loginNameStatic.innerText = loginToken.name;
           loginEmailStatic.innerText = loginToken.email;
+          if (loginToken.stripeState) {
+            statusConnected.classList.add('open');
+            statusNotConnected.classList.remove('open');
+          } else {
+            statusNotConnected.classList.add('open');
+            statusConnected.classList.remove('open');
+          }
 
           ga('create', 'UA-147624282-1', {
             'clientId': loginToken.email,
@@ -823,6 +861,8 @@ const loginForm = document.getElementById('login-form');
 const loginEmail = document.getElementById('login-email');
 const loginNameStatic = document.getElementById('login-name-static');
 const loginEmailStatic = document.getElementById('login-email-static');
+const statusNotConnected = document.getElementById('status-not-connected');
+const statusConnected = document.getElementById('status-connected');
 const loginVerificationCode = document.getElementById('login-verification-code');
 const loginNotice = document.getElementById('login-notice');
 const loginError = document.getElementById('login-error');
@@ -1104,7 +1144,23 @@ submitSiteButton.addEventListener('click', () => {
 });
 const connectStripeButton = document.getElementById('connect-stripe-button');
 connectStripeButton.addEventListener('click', () => {
-  window.location.href = `https://payments.exokit.org/authorize?email=${encodeURIComponent(loginToken.email)}&token=${encodeURIComponent(loginToken.token)}`;
+  window.location.href = `https://payments.exokit.org/authorize?email=${encodeURIComponent(loginToken.email)}&token=${encodeURIComponent(loginToken.token)}&redirectUrl=${window.location.href}`;
+});
+const disconnectStripeButton = document.getElementById('disconnect-stripe-button');
+disconnectStripeButton.addEventListener('click', () => {
+  const {email, token} = loginToken;
+  fetch(`https://payments.exokit.org/untoken?email=${encodeURIComponent(email)}&token=${encodeURIComponent(token)}`)
+    .then(async res => {
+      if (res.status >= 200 && res.status < 300) {
+        loginToken.stripeState = false;
+        statusNotConnected.classList.add('open');
+        statusConnected.classList.remove('open');
+
+        await storage.set('loginToken', loginToken);
+      } else {
+        console.warn('invalid status code', res.status);
+      }
+    });
 });
 
 const userButton = document.getElementById('user-button');
