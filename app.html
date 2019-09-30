@@ -5819,7 +5819,7 @@ function animate(time, frame) {
   };
   _updateMoves(); */
 
-  const _updateScene = () => {
+  /* const _updateScene = () => {
     const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
     const coords = [Math.floor((c.position.x + PARCEL_SIZE/2)/PARCEL_SIZE), Math.floor((c.position.z + PARCEL_SIZE/2)/PARCEL_SIZE)];
     if (coords[0] !== lastSceneCoords[0] || coords[1] !== lastSceneCoords[1]) {
@@ -5952,7 +5952,7 @@ function animate(time, frame) {
   };
   if (!isFinite(lastSceneCoords[0]) || loginToken) {
     _updateScene();
-  }
+  } */
 
   /* const _updateSecureScene = () => {
     loginMesh.update();
