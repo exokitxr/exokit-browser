@@ -3658,11 +3658,14 @@ const _makeTrayMesh = () => {
 
 const rects = [];
 const covers = [];
-fetch(`https://modulesio.github.io/root/index.html`)
+fetch(`https://root.exokit.org/`)
   .then(res => res.text())
   .then(s => {
     const dom = new DOMParser().parseFromString(s, 'text/html');
-    const xrIframes = dom.body.querySelectorAll('xr-iframe');
+    const xrIframes = Array.from(dom.body.querySelectorAll('xr-iframe'))
+      .concat(
+        Array.from(dom.body.querySelectorAll('template')).flatMap(template => Array.from(template.content.querySelectorAll('xr-iframe')))
+      );
     for (let i = 0; i < xrIframes.length; i++) {
       const xrIframe = xrIframes[i];
       const pixelsList = [];
