@@ -230,13 +230,19 @@ input[type=text]
   width: 16px;
   height: 16px;
   margin-left: 5px;
-  /* background-color: #ef534e; */
   justify-content: center;
   align-items: center;
   cursor: pointer;
 }
 .user-account .status i {}
-.user-account .connect-stripe-button:not(.visible) {
+.user-account .card-form {
+  display: flex;
+  align-items: center;
+}
+.user-account .connect-stripe-button:not(.visible),
+.user-account .add-card-button.added,
+.user-account .remove-card-button:not(.added),
+.user-account .card-form.added {
   display: none;
 }
 .user-account input[type=text] {
@@ -602,7 +608,21 @@ table tr {
             <input type=button value="Submit Site" id=submit-site>
           </div>
           <div class=row>
-            <div class=text>Stripe Connect status:</div>
+            <div class=text>Card:</div>
+            <div class=card-form id=card-form>
+              <input type=text placeholder=4242424242424242 id=card-number>
+              <span>Exp</span>
+              <input type=text placeholder=12 id=card-month>
+              <span>/</span>
+              <input type=text placeholder=19 id=card-year>
+              <span>CVC</span>
+              <input type=text placeholder=123 id=card-cvc>
+            </div>
+            <input type=button value="Add Card" class=add-card-button id=add-card-button>
+            <input type=button value="Remove Card" class=remove-card-button id=remove-card-button>
+          </div>
+          <div class=row>
+            <div class=text>Stripe Connect:</div>
             <div class="status not-connected" id=status-not-connected>Not connected</div>
             <div class="status connected" id=status-connected>Connected <nav id=disconnect-stripe-button><i class="fal fa-times"></i></nav></div>
             <input type=button value="Connect Stripe" class=connect-stripe-button id=connect-stripe-button>
@@ -662,6 +682,15 @@ async function doLogin(email, code) {
 
     loginNameStatic.innerText = loginToken.name;
     loginEmailStatic.innerText = loginToken.email;
+    if (loginToken.stripeState) {
+      cardForm.classList.add('added');
+      addCardButton.classList.add('added');
+      removeCardButton.classList.add('added');
+    } else {
+      cardForm.classList.remove('added');
+      addCardButton.classList.remove('added');
+      removeCardButton.classList.remove('added');
+    }
     if (loginToken.stripeConnectState) {
       statusConnected.classList.add('open');
       statusNotConnected.classList.remove('open');
@@ -783,6 +812,15 @@ import(`https://web.exokit.org/ew.js${key ? `?key=${encodeURIComponent(key)}` : 
 
           loginNameStatic.innerText = loginToken.name;
           loginEmailStatic.innerText = loginToken.email;
+          if (loginToken.stripeState) {
+            cardForm.classList.add('added');
+            addCardButton.classList.add('added');
+            removeCardButton.classList.add('added');
+          } else {
+            cardForm.classList.remove('added');
+            addCardButton.classList.remove('added');
+            removeCardButton.classList.remove('added');
+          }
           if (loginToken.stripeConnectState) {
             statusConnected.classList.add('open');
             statusNotConnected.classList.remove('open');
@@ -1137,6 +1175,51 @@ const header = document.getElementById('header');
 header.addEventListener('mousedown', _stopPropagation);
 header.addEventListener('dblclick', _stopPropagation);
 
+const cardForm = document.getElementById('card-form');
+const cardNumber = document.getElementById('card-number');
+const cardMonth = document.getElementById('card-month');
+const cardYear = document.getElementById('card-year');
+const cardCvc = document.getElementById('card-cvc');
+const addCardButton = document.getElementById('add-card-button');
+addCardButton.addEventListener('click', () => {
+  fetch(`https://payments.exokit.org/card?email=${encodeURIComponent(loginToken.email)}&token=${encodeURIComponent(loginToken.token)}&number=${cardNumber.value}&exp_month=${cardMonth.value}&exp_year=${cardYear.value}&cvc=${cardCvc.value}`, {
+    method: 'POST',
+  })
+    .then(async res => {
+      if (res.status >= 200 && res.status < 300) {
+        loginToken.stripeState = true;
+        cardForm.classList.add('added');
+        addCardButton.classList.add('added');
+        removeCardButton.classList.add('added');
+
+        await storage.set('loginToken', loginToken);
+
+        console.log('ok');
+      } else {
+        console.warn('invalid status code', res.status);
+      }
+    });
+});
+const removeCardButton = document.getElementById('remove-card-button');
+removeCardButton.addEventListener('click', () => {
+  fetch(`https://payments.exokit.org/uncard?email=${encodeURIComponent(loginToken.email)}&token=${encodeURIComponent(loginToken.token)}`, {
+    method: 'POST',
+  })
+    .then(async res => {
+      if (res.status >= 200 && res.status < 300) {
+        loginToken.stripeState = false;
+        cardForm.classList.remove('added');
+        addCardButton.classList.remove('added');
+        removeCardButton.classList.remove('added');
+
+        await storage.set('loginToken', loginToken);
+
+        console.log('ok');
+      } else {
+        console.warn('invalid status code', res.status);
+      }
+    });
+});
 const submitSiteUrlBar = document.getElementById('site-url-bar');
 const submitSiteButton = document.getElementById('submit-site');
 submitSiteButton.addEventListener('click', () => {
@@ -1154,7 +1237,9 @@ connectStripeButton.addEventListener('click', () => {
 const disconnectStripeButton = document.getElementById('disconnect-stripe-button');
 disconnectStripeButton.addEventListener('click', () => {
   const {email, token} = loginToken;
-  fetch(`https://payments.exokit.org/untoken?email=${encodeURIComponent(email)}&token=${encodeURIComponent(token)}`)
+  fetch(`https://payments.exokit.org/untoken?email=${encodeURIComponent(email)}&token=${encodeURIComponent(token)}`, {
+    method: 'POST',
+  })
     .then(async res => {
       if (res.status >= 200 && res.status < 300) {
         loginToken.stripeConnectState = false;
