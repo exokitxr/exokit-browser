@@ -235,8 +235,9 @@ input[type=text]
   align-items: center;
   cursor: pointer;
 }
-.user-account .status i {
-  
+.user-account .status i {}
+.user-account .connect-stripe-button:not(.visible) {
+  display: none;
 }
 .user-account input[type=text] {
   width: 300px;
@@ -604,7 +605,7 @@ table tr {
             <div class=text>Stripe status:</div>
             <div class="status not-connected" id=status-not-connected>Not connected</div>
             <div class="status connected" id=status-connected>Connected <nav id=disconnect-stripe-button><i class="fal fa-times"></i></nav></div>
-            <input type=button value="Connect Stripe" id=connect-stripe-button>
+            <input type=button value="Connect Stripe" class=connect-stripe-button id=connect-stripe-button>
           </div>
         </div>
       </div>
@@ -661,12 +662,14 @@ async function doLogin(email, code) {
 
     loginNameStatic.innerText = loginToken.name;
     loginEmailStatic.innerText = loginToken.email;
-    if (loginToken.stripeState) {
+    if (loginToken.stripeConnectState) {
       statusConnected.classList.add('open');
       statusNotConnected.classList.remove('open');
+      connectStripeButton.classList.remove('visible');
     } else {
       statusNotConnected.classList.add('open');
       statusConnected.classList.remove('open');
+      connectStripeButton.classList.add('visible');
     }
 
     document.body.classList.add('logged-in');
@@ -780,12 +783,14 @@ import(`https://web.exokit.org/ew.js${key ? `?key=${encodeURIComponent(key)}` : 
 
           loginNameStatic.innerText = loginToken.name;
           loginEmailStatic.innerText = loginToken.email;
-          if (loginToken.stripeState) {
+          if (loginToken.stripeConnectState) {
             statusConnected.classList.add('open');
             statusNotConnected.classList.remove('open');
+            connectStripeButton.classList.remove('visible');
           } else {
             statusNotConnected.classList.add('open');
             statusConnected.classList.remove('open');
+            connectStripeButton.classList.add('visible');
           }
 
           ga('create', 'UA-147624282-1', {
@@ -1152,9 +1157,10 @@ disconnectStripeButton.addEventListener('click', () => {
   fetch(`https://payments.exokit.org/untoken?email=${encodeURIComponent(email)}&token=${encodeURIComponent(token)}`)
     .then(async res => {
       if (res.status >= 200 && res.status < 300) {
-        loginToken.stripeState = false;
+        loginToken.stripeConnectState = false;
         statusNotConnected.classList.add('open');
         statusConnected.classList.remove('open');
+        connectStripeButton.classList.add('visible');
 
         await storage.set('loginToken', loginToken);
       } else {
