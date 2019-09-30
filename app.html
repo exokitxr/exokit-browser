@@ -6280,7 +6280,7 @@ function animate(time, frame) {
 
     for (let i = 0; i < 2; i++) {
       const gamepad = gamepads[i];
-      if (gamepad && gamepad.buttons[0].pressed) {
+      if (gamepad && (gamepad.buttons[0].pressed || gamepad.axes[1] <= -0.5 || gamepad.axes[3] <= -0.5)) {
         const controllerIndex = _getControllerIndex(gamepad);
         const teleportMesh = teleportMeshes[controllerIndex];
 
