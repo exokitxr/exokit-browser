@@ -157,3 +157,22 @@ THREE.Land = function Land(extents, color) {
   mesh.frustumCulled = false;
   return mesh;
 };
+THREE.Land.parseExtents = s => {
+  const regex = /(?:\[([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\]|([0-9]+)\s+([0-9]+))\s*/g;
+  const result = [];
+  let match;
+  while (match = regex.exec(s)) {
+    if (match[1]) {
+      const x1 = parseInt(match[1], 10);
+      const y1 = parseInt(match[2], 10);
+      const x2 = parseInt(match[3], 10);
+      const y2 = parseInt(match[4], 10);
+      result.push([x1, y1, x2, y2]);
+    } else if (match[5]) {
+      const x = parseInt(match[5], 10);
+      const y = parseInt(match[6], 10);
+      result.push([x, y, x, y]);
+    }
+  }
+  return result;
+};
