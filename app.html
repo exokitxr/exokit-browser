@@ -736,7 +736,7 @@ const _getFrontOfCamera = () => {
   };
 };
 
-const _makeGuardianMesh = (scene, color) => {
+const _makeGuardianMesh = (extents, color) => {
   const topGeometry = new THREE.BoxBufferGeometry(0.01, 1, 0.01);
   const leftGeometry = topGeometry.clone().applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(
     new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(-1, 0, 0))
@@ -751,59 +751,63 @@ const _makeGuardianMesh = (scene, color) => {
     leftGeometry.clone().applyMatrix(new THREE.Matrix4().makeTranslation(0, -0.5, -0.5)),
   ]);
   const _makeGeometry = () => {
+    const pixels = {};
+    for (let i = 0; i < extents.length; i++) {
+      const [x1, y1, x2, y2] = extents[i];
+      for (let x = x1; x <= x2; x++) {
+        for (let y = y1; y <= y2; y++) {
+          pixels[`${x}:${y}`] = true;
+        }
+      }
+    }
+
     const boxGeometries = [];
-    for (let i = 0; i < scene.coords.length; i++) {
-      const coord = scene.coords[i];
-      const hasCoords = {
-        left: scene.coords.some(coord2 => coord2[0] === coord[0]-1 && coord2[1] === coord[1]),
-        right: scene.coords.some(coord2 => coord2[0] === coord[0]+1 && coord2[1] === coord[1]),
-        up: scene.coords.some(coord2 => coord2[0] === coord[0] && coord2[1] === coord[1]-1),
-        down: scene.coords.some(coord2 => coord2[0] === coord[0] && coord2[1] === coord[1]+1),
-      };
-      if (!hasCoords.up) {
-        for (let x = coord[0]*PARCEL_SIZE - PARCEL_SIZE/2; x <= ((coord[0] + 1) * PARCEL_SIZE) - PARCEL_SIZE/2 - 1; x++) {
-          for (let y = 0; y <= 2; y++) {
-            const z = coord[1]*PARCEL_SIZE - PARCEL_SIZE/2;
-            boxGeometries.push(boxGeometry.clone()
-              .applyMatrix(new THREE.Matrix4().makeTranslation(x + 0.5, y + 0.5, z + 0.5))
-            );
+    for (let i = 0; i < extents.length; i++) {
+      const [x1, y1, x2, y2] = extents[i];
+      for (let x = x1; x <= x2; x++) {
+        for (let y = y1; y <= y2; y++) {
+          const hasCoords = {
+            left: pixels[`${x-1}:${y}`],
+            right: pixels[`${x+1}:${y}`],
+            up: pixels[`${x}:${y-1}`],
+            down: pixels[`${x}:${y+1}`],
+          };
+
+          if (!hasCoords.up) {
+            for (let h = 0; h <= 2; h++) {
+              boxGeometries.push(boxGeometry.clone()
+                .applyMatrix(new THREE.Matrix4().makeTranslation(x + 0.5, h + 0.5, y + 0.5))
+              );
+            }
           }
-        }
-      }
-      if (!hasCoords.down) {
-        for (let x = coord[0]*PARCEL_SIZE - PARCEL_SIZE/2; x <= ((coord[0] + 1) * PARCEL_SIZE) - PARCEL_SIZE/2 - 1; x++) {
-          for (let y = 0; y <= 2; y++) {
-            const z = coord[1]*PARCEL_SIZE + PARCEL_SIZE/2 - 1;
-            boxGeometries.push(boxGeometry.clone()
-              .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI)))
-              .applyMatrix(new THREE.Matrix4().makeTranslation(x + 0.5, y + 0.5, z + 0.5))
-            );
+          if (!hasCoords.down) {
+            for (let h = 0; h <= 2; h++) {
+              boxGeometries.push(boxGeometry.clone()
+                .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI)))
+                .applyMatrix(new THREE.Matrix4().makeTranslation(x + 0.5, h + 0.5, y + 0.5))
+              );
+            }
           }
-        }
-      }
-      if (!hasCoords.left) {
-        for (let z = coord[1]*PARCEL_SIZE - PARCEL_SIZE/2; z <= ((coord[1] + 1) * PARCEL_SIZE) - PARCEL_SIZE/2 - 1; z++) {
-          for (let y = 0; y <= 2; y++) {
-            const x = coord[0]*PARCEL_SIZE - PARCEL_SIZE/2;
-            boxGeometries.push(boxGeometry.clone()
-              .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI/2)))
-              .applyMatrix(new THREE.Matrix4().makeTranslation(x + 0.5, y + 0.5, z + 0.5))
-            );
+          if (!hasCoords.left) {
+            for (let h = 0; h <= 2; h++) {
+              boxGeometries.push(boxGeometry.clone()
+                .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI/2)))
+                .applyMatrix(new THREE.Matrix4().makeTranslation(x + 0.5, h + 0.5, y + 0.5))
+              );
+            }
           }
-        }
-      }
-      if (!hasCoords.right) {
-        for (let z = coord[1]*PARCEL_SIZE - PARCEL_SIZE/2; z <= ((coord[1] + 1) * PARCEL_SIZE) - PARCEL_SIZE/2 - 1; z++) {
-          for (let y = 0; y <= 2; y++) {
-            const x = coord[0]*PARCEL_SIZE + PARCEL_SIZE/2 - 1;
-            boxGeometries.push(boxGeometry.clone()
-              .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI/2)))
-              .applyMatrix(new THREE.Matrix4().makeTranslation(x + 0.5, y + 0.5, z + 0.5))
-            );
+          if (!hasCoords.right) {
+            for (let h = 0; h <= 2; h++) {
+              boxGeometries.push(boxGeometry.clone()
+                .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI/2)))
+                .applyMatrix(new THREE.Matrix4().makeTranslation(x + 0.5, h + 0.5, y + 0.5))
+              );
+            }
           }
         }
       }
     }
+
     return THREE.BufferGeometryUtils.mergeBufferGeometries(boxGeometries);
   };
   const geometry = _makeGeometry();
@@ -848,15 +852,26 @@ const _makeGuardianMesh = (scene, color) => {
   };
   return mesh;
 };
-const _makeBaseMesh = (scene, color) => {
-  const planeGeometry = new THREE.PlaneBufferGeometry(PARCEL_SIZE, PARCEL_SIZE)
+const _makeBaseMesh = (extents, color) => {
+  const planeGeometry = new THREE.PlaneBufferGeometry(1, 1)
     .applyMatrix(localMatrix.makeRotationFromQuaternion(localQuaternion.setFromAxisAngle(localVector.set(1, 0, 0), -Math.PI/2)))
-    .applyMatrix(new THREE.Matrix4().makeTranslation(0, -0.01, 0));
-  const _makeGeometry = coords => THREE.BufferGeometryUtils.mergeBufferGeometries(coords.map(coord =>
-    planeGeometry.clone()
-      .applyMatrix(new THREE.Matrix4().makeTranslation(coord[0]*PARCEL_SIZE, 0, coord[1]*PARCEL_SIZE))
-  ));
-  const geometry = _makeGeometry(scene.coords);
+    .applyMatrix(new THREE.Matrix4().makeTranslation(0.5, -0.01, 0.5));
+  const _makeGeometry = extents => {
+    const geometries = [];
+    for (let i = 0; i < extents.length; i++) {
+      const [x1, y1, x2, y2] = extents[i];
+      for (let x = x1; x <= x2; x++) {
+        for (let y = y1; y <= y2; y++) {
+          geometries.push(
+            planeGeometry.clone()
+              .applyMatrix(new THREE.Matrix4().makeTranslation(x, 0, y))
+          );
+        }
+      }
+    }
+    return THREE.BufferGeometryUtils.mergeBufferGeometries(geometries);
+  };
+  const geometry = _makeGeometry(extents);
   const baseVsh = `
     void main() {
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
@@ -883,9 +898,9 @@ const _makeBaseMesh = (scene, color) => {
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
   mesh.scene = scene;
-  mesh.refresh = () => {
+  /* mesh.refresh = () => {
     mesh.geometry = _makeGeometry(scene.coords);
-  };
+  }; */
   mesh.destroy = () => {
     // XXX
   };
@@ -3666,22 +3681,37 @@ fetch(`https://root.exokit.org/`)
       .concat(
         Array.from(dom.body.querySelectorAll('template')).flatMap(template => Array.from(template.content.querySelectorAll('xr-iframe')))
       );
-    for (let i = 0; i < xrIframes.length; i++) {
-      const xrIframe = xrIframes[i];
-      const pixelsList = [];
-      const pixels = {};
-      let shapeIndexes = 0;
-      const iframeIndex = i;
+    const xrExtents = xrIframes.map(xrIframe => {
       const extents = xrIframe.getAttribute('extents');
       const regex = /(?:\[([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\]|([0-9]+)\s+([0-9]+))\s*/g;
+      const result = [];
       let match;
       while (match = regex.exec(extents)) {
-        const shapeIndex = shapeIndexes++;
         if (match[1]) {
           const x1 = parseInt(match[1], 10);
           const y1 = parseInt(match[2], 10);
           const x2 = parseInt(match[3], 10);
           const y2 = parseInt(match[4], 10);
+          result.push([x1, y1, x2, y2]);
+        } else if (match[5]) {
+          const x = parseInt(match[5], 10);
+          const y = parseInt(match[6], 10);
+          result.push([x, y, x, y]);
+        }
+      }
+      return result;
+    });
+    const _updateMap = () => {
+      for (let i = 0; i < xrIframes.length; i++) {
+        const xrIframe = xrIframes[i];
+        const pixelsList = [];
+        const pixels = {};
+        let shapeIndexes = 0;
+        const iframeIndex = i;
+        const xrExtent = xrExtents[i];
+        for (let j = 0; j < xrExtent.length; j++) {
+          const [x1, y1, x2, y2] = xrExtent[j];
+          const shapeIndex = shapeIndexes++;
           for (let x = x1; x <= x2; x++) {
             for (let y = y1; y <= y2; y++) {
               pixelsList.push({x, y, iframeIndex, shapeIndex});
@@ -3699,68 +3729,66 @@ fetch(`https://root.exokit.org/`)
             w: (x2 - x1 + 1)*40 - 4,
             h: (y2 - y1 + 1)*40 - 4,
           });
-        } else if (match[5]) {
-          const x = parseInt(match[5], 10);
-          const y = parseInt(match[6], 10);
-          pixelsList.push({x, y, iframeIndex, shapeIndex});
-          pixels[`${x}:${y}`] = {
-            iframeIndex,
-            shapeIndex,
+        }
+        for (let i = 0; i < pixelsList.length; i++) {
+          const {x, y, iframeIndex, shapeIndex} = pixelsList[i];
+          const _check = (dx, dy) => {
+            const ax = x + dx;
+            const ay = y + dy;
+            const pixel = pixels[`${ax}:${ay}`];
+            if (pixel && pixel.iframeIndex === iframeIndex && pixel.shapeIndex !== shapeIndex) {
+              if (dx === -1) {
+                covers.push({
+                  x: ax*40 + 2 + 20,
+                  y: ay*40 + 2,
+                  w: 40 - 4,
+                  h: 40 - 4,
+                });
+              } else if (dx === 1) {
+                covers.push({
+                  x: ax*40 + 2 - 20,
+                  y: ay*40 + 2,
+                  w: 40 - 4,
+                  h: 40 - 4,
+                });
+              } else if (dy === -1) {
+                covers.push({
+                  x: ax*40 + 2,
+                  y: ay*40 + 2 + 20,
+                  w: 40 - 4,
+                  h: 40 - 4,
+                });
+              } else if (dy === 1) {
+                covers.push({
+                  x: ax*40 + 2,
+                  y: ay*40 + 2 - 20,
+                  w: 40 - 4,
+                  h: 40 - 4,
+                });
+              }
+            }
           };
-          rects.push({
-            ax: x,
-            ay: y,
-            x: x*40 + 2,
-            y: y*40 + 2,
-            w: 40 - 4,
-            h: 40 - 4,
-          });
+          _check(-1, 0);
+          _check(1, 0);
+          _check(0, -1);
+          _check(0, 1);
         }
       }
-      for (let i = 0; i < pixelsList.length; i++) {
-        const {x, y, iframeIndex, shapeIndex} = pixelsList[i];
-        const _check = (dx, dy) => {
-          const ax = x + dx;
-          const ay = y + dy;
-          const pixel = pixels[`${ax}:${ay}`];
-          if (pixel && pixel.iframeIndex === iframeIndex && pixel.shapeIndex !== shapeIndex) {
-            if (dx === -1) {
-              covers.push({
-                x: ax*40 + 2 + 20,
-                y: ay*40 + 2,
-                w: 40 - 4,
-                h: 40 - 4,
-              });
-            } else if (dx === 1) {
-              covers.push({
-                x: ax*40 + 2 - 20,
-                y: ay*40 + 2,
-                w: 40 - 4,
-                h: 40 - 4,
-              });
-            } else if (dy === -1) {
-              covers.push({
-                x: ax*40 + 2,
-                y: ay*40 + 2 + 20,
-                w: 40 - 4,
-                h: 40 - 4,
-              });
-            } else if (dy === 1) {
-              covers.push({
-                x: ax*40 + 2,
-                y: ay*40 + 2 - 20,
-                w: 40 - 4,
-                h: 40 - 4,
-              });
-            }
-          }
-        };
-        _check(-1, 0);
-        _check(1, 0);
-        _check(0, -1);
-        _check(0, 1);
+    };
+    _updateMap();
+    const _updateGuardian = () => {
+      for (let i = 0; i < xrExtents.length; i++) {
+        const xrExtent = xrExtents[i];
+        const sceneColor = 0x9ccc65;
+        const guardianMesh = _makeGuardianMesh(xrExtent, sceneColor);
+        scene.add(guardianMesh);
+        guardianMeshes.push(guardianMesh);
+        const baseMesh = _makeBaseMesh(xrExtent, sceneColor);
+        _insertBefore(baseMesh, floorMesh);
+        baseMeshes.push(baseMesh);
       }
-    }
+    };
+    _updateGuardian();
   });
 
 const uiSize = 2048;
