@@ -6121,7 +6121,7 @@ function animate(time, frame) {
         _handleTrigger(gamepad, i, pressed, lastPressed);
         lastPresseds[i] = pressed;
 
-        const pad = gamepad.buttons[0].pressed;
+        const pad = gamepad.buttons[0].pressed || gamepad.axes[1] <= -0.5 || gamepad.axes[3] <= -0.5;
         const lastPad = lastPads[i];
         _handlePad(gamepad, i, pad, lastPad);
         lastPads[i] = pad;
