@@ -3593,7 +3593,7 @@ fetch(`https://root.exokit.org/`)
       for (let i = 0; i < xrExtents.length; i++) {
         const xrExtent = xrExtents[i];
         const sceneColor = 0x9ccc65;
-        const guardianMesh = new THREE.Guardian(xrExtent, sceneColor);
+        const guardianMesh = new THREE.Guardian(xrExtent, 10, sceneColor);
         scene.add(guardianMesh);
         guardianMeshes.push(guardianMesh);
         const baseMesh = new THREE.Land(xrExtent, sceneColor);
