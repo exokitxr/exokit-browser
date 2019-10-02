@@ -6226,6 +6226,11 @@ function animate(time, frame) {
             baseMesh.material.uniforms.uAnimation.value = menuFactor;
             baseMesh.visible = true;
           }
+          for (let i = 0; i < nativeLabelMeshes.length; i++) {
+            const labelMesh = nativeLabelMeshes[i];
+            labelMesh.scale.set(menuFactor, menuFactor, menuFactor);
+            labelMesh.visible = true;
+          }
           const opening = start.factor < end.factor;
           for (let i = 0; i < sceneMeshes.length; i++) {
             sceneMeshes[i].visible = opening;
@@ -6249,6 +6254,9 @@ function animate(time, frame) {
               }
               for (let i = 0; i < baseMeshes.length; i++) {
                 baseMeshes[i].visible = false;
+              }
+              for (let i = 0; i < nativeLabelMeshes.length; i++) {
+                nativeLabelMeshes[i].visible = false;
               }
             }
             menuAnimation = null;
