@@ -172,7 +172,7 @@ XRSite.prototype.handleMutations = function handleMutations(mutations) {
     for (let j = 0; j < addedNodes.length; j++) {
       const addedNode = addedNodes[j];
 
-      if (addedNode instanceof XRIFrame) {
+      if (addedNode instanceof XRIFrame && !addedNode.native) {
         const xrIframe = addedNode;
 
         layers.push(xrIframe);
@@ -3500,20 +3500,35 @@ const _makeTrayMesh = () => {
 // const trayMesh = _makeTrayMesh();
 // scene.add(trayMesh);
 
-let landConnected = false;
+let landState = null;
 const rects = [];
 const covers = [];
+const _getChildXrIframes = xrIframe => {
+  const contentDocument = xrIframe.contentWindow.iframe.contentDocument;
+  return Array.from(xrIframe)
+    .concat(
+      Array.from(contentDocument.querySelectorAll('xr-iframe'))
+    );
+};
 const _connectLand = async () => {
-  if (!landConnected) {
-    landConnected = true;
+  if (!landState) {
+    let live = true;
+    landState = {
+      disconnect() {
+        live = false;
+      },
+    };
 
-    const res = await fetch(`https://root.exokit.org/`)
-    const s = await res.text();
-    const dom = new DOMParser().parseFromString(s, 'text/html');
-    const xrIframes = Array.from(dom.body.querySelectorAll('xr-iframe'))
-      .concat(
-        Array.from(dom.body.querySelectorAll('template')).flatMap(template => Array.from(template.content.querySelectorAll('xr-iframe')))
-      );
+    const xrIframe = document.createElement('xr-iframe');
+    xrIframe.src = 'https://root.exokit.org/';
+    xrIframe.native = true;
+    root.appendChild(xrIframe);
+    await new Promise((accept, reject) => {
+      xrIframe.addEventListener('load', accept);
+      xrIframe.addEventListener('error', reject);
+    });
+    if (!live) return;
+    const xrIframes = _getChildXrIframes(xrIframe);
     const xrExtents = xrIframes.map(xrIframe => {
       const extents = xrIframe.getAttribute('extents');
       return extents ? THREE.Land.parseExtents(extents) : [];
@@ -3609,7 +3624,10 @@ const _connectLand = async () => {
   }
 };
 const _disconnectLand = () => {
-  landConnected = false;
+  if (landState) {
+    landState.disconnect();
+    landState = null;
+  }
 };
 
 const uiSize = 2048;
@@ -3806,7 +3824,7 @@ const _makeScreenMesh = () => {
         return diff;
       }
     });
-    const result = await _renderUi(searchResults, playlists, localChannels, selectedTab, !!rtcWs, landConnected);
+    const result = await _renderUi(searchResults, playlists, localChannels, selectedTab, !!rtcWs, !!landState);
     if (result.data) {
       ctx.putImageData(new ImageData(new Uint8ClampedArray(result.data.buffer, result.data.byteOffset, result.data.byteLength), uiSize, uiSize), 0, 0);
     }
