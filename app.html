@@ -64,6 +64,19 @@ const keyboardHeight = 716;
 const keyboardMatrix = [keyboardWidth / 963.266, keyboardHeight / 337.215];
 const cursorWidth = 4;
 const armQuaternionOffset = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, -1));
+const DIRECTIONS = [
+  new THREE.Vector3(1, 0, 0),
+  new THREE.Vector3(-1, 0, 0),
+  new THREE.Vector3(0, 0, 1),
+  new THREE.Vector3(0, 0, -1),
+];
+const directionVectors = (() => {
+  const result = Array(DIRECTIONS.length);
+  for (let i = 0; i < DIRECTIONS.length; i++) {
+    result[i] = new THREE.Vector3();
+  }
+  return result;
+})();
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -6262,10 +6275,26 @@ function animate(time, frame) {
           }
         }
 
-        const {labelMesh} = moveMesh;
-        labelMesh.position.copy(moveMesh.position).add(localVector.set(0, 1, 0));
         const vrCamera = renderer.vr.enabled ? renderer.vr.getCamera(camera).cameras[0] : camera;
-        labelMesh.quaternion.copy(vrCamera.quaternion);
+        const closestPositionSpec = DIRECTIONS.map((normal, i) => {
+          const position = directionVectors[i].copy(moveMesh.position)
+            .add(
+              localVector2
+                .set(normal.x/2, 0.6, normal.z/2)
+                .applyQuaternion(moveMesh.quaternion)
+            );
+          return {
+            normal,
+            position,
+            distance: position.distanceTo(vrCamera.position),
+          };
+        }).sort((a, b) => a.distance - b.distance)[0];
+        const {labelMesh} = moveMesh;
+        labelMesh.position.copy(closestPositionSpec.position);
+        labelMesh.quaternion.setFromUnitVectors(
+          localVector.set(0, 0, 1),
+          closestPositionSpec.normal
+        ).premultiply(moveMesh.quaternion);
       }
     }
   };
