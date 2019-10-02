@@ -3623,6 +3623,7 @@ const _connectLand = async () => {
       }
     };
     _updateMap();
+
     const _updateGuardian = () => {
       for (let i = 0; i < xrExtents.length; i++) {
         const xrExtent = xrExtents[i];
@@ -3687,6 +3688,8 @@ const _renderUi = (searchResults, playlists, channels, selectedTab, rtcConnected
       covers,
       localSelected: !rtcConnected && !landConnected,
       landConnected,
+      landGridded: landConnected && rects.length > 0,
+      landNotGridded: !landConnected || rects.length === 0,
     },
     width: uiSize,
     height: uiSize,
@@ -3937,7 +3940,6 @@ const _makeScreenMesh = () => {
     } */
   };
   _updateTextureDynamic();
-  // setInterval(_updateTextureDynamic, 1000);
 
   const screenMeshVsh = `
     varying vec2 vUv;
@@ -4105,7 +4107,9 @@ const _makeScreenMesh = () => {
     } else if (id === 'channel-global') {
       _rtcDisconnect();
       root.innerHTML = '';
-      _connectLand();
+      const p = _connectLand();
+      _updateTextureDynamic();
+      await p;
       _updateTextureDynamic();
     } else if (id === 'app' && href) {
       const xrIframe = document.createElement('xr-iframe');
