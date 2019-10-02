@@ -163,33 +163,37 @@ XRSite.prototype.handleMutations = function handleMutations(mutations) {
 
         layers.splice(layers.indexOf(xrIframe), 1);
 
-        const {moveMesh} = xrIframe;
-        scene.remove(moveMesh);
-        scene.remove(moveMesh.labelMesh);
-        moveMeshes.splice(moveMeshes.indexOf(moveMesh), 1);
+        if (!xrIframe.native) {
+          const {moveMesh} = xrIframe;
+          scene.remove(moveMesh);
+          scene.remove(moveMesh.labelMesh);
+          moveMeshes.splice(moveMeshes.indexOf(moveMesh), 1);
+        }
       }
     }
     for (let j = 0; j < addedNodes.length; j++) {
       const addedNode = addedNodes[j];
 
-      if (addedNode instanceof XRIFrame && !addedNode.native) {
+      if (addedNode instanceof XRIFrame) {
         const xrIframe = addedNode;
 
         layers.push(xrIframe);
 
-        const moveMesh = _makeMoveMesh('volume');
-        moveMesh.position.fromArray(xrIframe.position);
-        moveMesh.quaternion.fromArray(xrIframe.orientation);
-        moveMesh.scale.fromArray(xrIframe.scale);
-        moveMesh.xrIframe = xrIframe;
-        moveMesh.startTime = Date.now();
-        scene.add(moveMesh);
-        moveMeshes.push(moveMesh);
-        xrIframe.moveMesh = moveMesh;
+        if (!xrIframe.native) {
+          const moveMesh = _makeMoveMesh('volume');
+          moveMesh.position.fromArray(xrIframe.position);
+          moveMesh.quaternion.fromArray(xrIframe.orientation);
+          moveMesh.scale.fromArray(xrIframe.scale);
+          moveMesh.xrIframe = xrIframe;
+          moveMesh.startTime = Date.now();
+          scene.add(moveMesh);
+          moveMeshes.push(moveMesh);
+          xrIframe.moveMesh = moveMesh;
 
-        const labelMesh = _makeLabelMesh(xrIframe.name || xrIframe.src);
-        scene.add(labelMesh);
-        moveMesh.labelMesh = labelMesh;
+          const labelMesh = _makeLabelMesh(xrIframe.name || xrIframe.src);
+          scene.add(labelMesh);
+          moveMesh.labelMesh = labelMesh;
+        }
       }
     }
   }
