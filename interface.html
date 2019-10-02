@@ -373,7 +373,7 @@ ul li a .wrap h3 {
         <a id=tab-1 class="radio {{#tab1}}selected{{/tab1}}">Apps</a>
         <a id=tab-2 class="radio {{#tab2}}selected{{/tab2}}">Scene</a>
         <a id=tab-3 class="radio {{#tab3}}selected{{/tab3}}">Channels</a>
-        <a id=tab-4 class="radio {{#tab4}}selected{{/tab4}}">Universe</a>
+        <a id=tab-4 class="radio {{#tab4}}selected{{/tab4}}">Land</a>
       </div>
       {{#tab1}}
       <input type=text class=url-input id=url-input>
@@ -543,7 +543,7 @@ ul li a .wrap h3 {
         </section>
         <section class=channel-controls>
           <!-- <h3>Connected to</h3> -->
-          <a id=channel-local class="channel {{#rtcDisconnected}}selected{{/rtcDisconnected}}">
+          <a id=channel-local class="channel {{#localSelected}}selected{{/localSelected}}">
             <div class=border></div>
             <div class=icon>
               <i class="fal fa-street-view"></i>
@@ -552,6 +552,16 @@ ul li a .wrap h3 {
             <div class=wrap>
               <h3>Local</h3>
               <p>Your home space</p>
+            </div>
+          </a>
+          <a id=channel-global class="channel {{#landConnected}}selected{{/landConnected}}">
+            <div class=border></div>
+            <div class=icon>
+              <i class="fal fa-map-marked-alt"></i>
+            </div>
+            <div class=wrap>
+              <h3>Land</h3>
+              <p>Global shared world</p>
             </div>
           </a>
           <a id=channel-shared class=channel>
@@ -564,16 +574,6 @@ ul li a .wrap h3 {
               <p>Create a new shared space</p>
             </div>
           </a>
-          <!-- <a id=channel-global class="channel {{#channel3}}selected{{/channel3}}">
-            <div class=border></div>
-            <div class=icon>
-              <i class="fal fa-map-marked-alt"></i>
-            </div>
-            <div class=wrap>
-              <h3>Universe</h3>
-              <p>@user's shared channel</p>
-            </div>
-          </a> -->
         </section>
       </div>
       {{/tab3}}
