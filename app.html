@@ -3500,11 +3500,15 @@ const _makeTrayMesh = () => {
 // const trayMesh = _makeTrayMesh();
 // scene.add(trayMesh);
 
+let landConnected = false;
 const rects = [];
 const covers = [];
-fetch(`https://root.exokit.org/`)
-  .then(res => res.text())
-  .then(s => {
+const _connectLand = async () => {
+  if (!landConnected) {
+    landConnected = true;
+
+    const res = await fetch(`https://root.exokit.org/`)
+    const s = await res.text();
     const dom = new DOMParser().parseFromString(s, 'text/html');
     const xrIframes = Array.from(dom.body.querySelectorAll('xr-iframe'))
       .concat(
@@ -3602,11 +3606,15 @@ fetch(`https://root.exokit.org/`)
       }
     };
     _updateGuardian();
-  });
+  }
+};
+const _disconnectLand = () => {
+  landConnected = false;
+};
 
 const uiSize = 2048;
 let renderIds = 0;
-const _renderUi = (searchResults, playlists, channels, selectedTab, rtcConnected) => new Promise((accept, reject) => {
+const _renderUi = (searchResults, playlists, channels, selectedTab, rtcConnected, landConnected) => new Promise((accept, reject) => {
   if (renderIds > 0) {
     uiIframe.contentWindow.postMessage({
       method: 'cancel',
@@ -3644,7 +3652,8 @@ const _renderUi = (searchResults, playlists, channels, selectedTab, rtcConnected
       tab4: selectedTab === 4,
       rects,
       covers,
-      rtcDisconnected: !rtcConnected,
+      localSelected: !rtcConnected && !landConnected,
+      landConnected,
     },
     width: uiSize,
     height: uiSize,
@@ -3797,7 +3806,7 @@ const _makeScreenMesh = () => {
         return diff;
       }
     });
-    const result = await _renderUi(searchResults, playlists, localChannels, selectedTab, !!rtcWs);
+    const result = await _renderUi(searchResults, playlists, localChannels, selectedTab, !!rtcWs, landConnected);
     if (result.data) {
       ctx.putImageData(new ImageData(new Uint8ClampedArray(result.data.buffer, result.data.byteOffset, result.data.byteLength), uiSize, uiSize), 0, 0);
     }
@@ -4043,11 +4052,13 @@ const _makeScreenMesh = () => {
       });
     } else if (id === 'channel-local') {
       _rtcDisconnect();
+      _disconnectLand();
       root.innerHTML = '';
       _updateTextureDynamic();
     } else if (id === 'channel-shared') {
       root.innerHTML = '';
       _rtcDisconnect();
+      _disconnectLand();
       const userName = loginToken.name || namegen(2).join('-'); // XXX
       const channelName = namegen(1)[0];
       _rtcConnect(userName, channelName);
@@ -4058,9 +4069,11 @@ const _makeScreenMesh = () => {
         });
       }
       mesh.setText(`${userName}/${channelName}`);
-    /* } else if (id === 'channel-global') {
+    } else if (id === 'channel-global') {
       _rtcDisconnect();
-      root.innerHTML = ''; */
+      root.innerHTML = '';
+      _connectLand();
+      _updateTextureDynamic();
     } else if (id === 'app' && href) {
       const xrIframe = document.createElement('xr-iframe');
       xrIframe.src = href;
