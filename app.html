@@ -27,7 +27,7 @@
     <script type=module>
 (async () => {
 
-let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastGripped = [false, false], lastPads = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], menuOpen = false, orbitControls = null, transformControls, currentMoveMeshes = [null, null], moveMeshes = [], rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], currentSceneToken = null, selectedSceneToken = null, guardianMeshes = [], baseMeshes = [], sceneMeshes = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null, user = null;
+let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastGripped = [false, false], lastPads = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], menuOpen = false, orbitControls = null, transformControls, currentMoveMeshes = [null, null], moveMeshes = [], nativeLabelMeshes = [], rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], currentSceneToken = null, selectedSceneToken = null, guardianMeshes = [], baseMeshes = [], sceneMeshes = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null, user = null;
 const mouse = {
   position: new THREE.Vector3(),
   quaternion: new THREE.Quaternion(),
@@ -163,7 +163,12 @@ XRSite.prototype.handleMutations = function handleMutations(mutations) {
 
         layers.splice(layers.indexOf(xrIframe), 1);
 
-        if (!xrIframe.native) {
+        if (xrIframe.native) {
+          const {labelMesh} = xrIframe;
+          scene.remove(labelMesh);
+          xrIframe.labelMesh = null;
+          nativeLabelMeshes.splice(nativeLabelMeshes.indexOf(labelMesh), 1);
+        } else {
           const {moveMesh} = xrIframe;
           scene.remove(moveMesh);
           scene.remove(moveMesh.labelMesh);
@@ -179,7 +184,12 @@ XRSite.prototype.handleMutations = function handleMutations(mutations) {
 
         layers.push(xrIframe);
 
-        if (!xrIframe.native) {
+        if (xrIframe.native) {
+          const labelMesh = _makeLabelMesh(xrIframe.name || xrIframe.src);
+          scene.add(labelMesh);
+          xrIframe.labelMesh = labelMesh;
+          nativeLabelMeshes.push(labelMesh);
+        } else {
           const moveMesh = _makeMoveMesh('volume');
           moveMesh.position.fromArray(xrIframe.position);
           moveMesh.quaternion.fromArray(xrIframe.orientation);
@@ -726,6 +736,7 @@ localforage.read = p => new Promise((accept, reject) => {
 
 const _getFrontOfCamera = () => {
   const vrCamera = renderer.vr.enabled ? renderer.vr.getCamera(camera).cameras[0] : camera;
+  localQuaternion.copy(vrCamera.quaternion);
   localVector
     .copy(vrCamera.position)
     .add(
@@ -6297,6 +6308,20 @@ function animate(time, frame) {
     }
   };
   _updateMoveMeshes();
+
+  const _updateLabelMeshes = () => {
+    for (let i = 0; i < nativeLabelMeshes.length; i++) {
+      const labelMesh = nativeLabelMeshes[i];
+      const {position, quaternion} = _getFrontOfCamera();
+      labelMesh.position.set(Math.round(position.x), 0.02, Math.round(position.z));
+      localEuler.setFromQuaternion(quaternion, localEuler.order);
+      localEuler.x = -Math.PI/2;
+      localEuler.y = Math.round(localEuler.y/(Math.PI/2))*Math.PI/2;
+      localEuler.z = 0;
+      labelMesh.quaternion.setFromEuler(localEuler);
+    }
+  };
+  _updateLabelMeshes();
 
   const _updateTeleportMeshes = () => {
     for (let i = 0; i < teleportMeshes.length; i++) {
