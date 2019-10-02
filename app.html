@@ -352,6 +352,22 @@ new MutationObserver(mutations => {
   subtree: true,
 });
 
+class RiggedModel {
+  constructor(avatarMesh) {
+    this.avatarMesh = avatarMesh;
+  }
+  setState(hmd, gamepads) {
+    this.avatarMesh.position.fromArray(hmd.position).sub(localVector.set(0, 1.5, 0));
+    localQuaternion.fromArray(hmd.quaternion);
+    localEuler.setFromQuaternion(localQuaternion, localEuler.order);
+    localEuler.y += Math.PI;
+    localEuler.x *= -1;
+    this.avatarMesh.quaternion.setFromEuler(localEuler);
+  }
+  update() {
+    // console.log('per-frame update called');
+  }
+}
 const _makePeerConnection = peerConnectionId => {
   const peerConnectionConfig = {
     iceServers: [
@@ -365,7 +381,7 @@ const _makePeerConnection = peerConnectionId => {
     console.log('got track', e);
   };
 
-  let skinMesh = null;
+  let avatarMesh = null;
   const sendChannel = peerConnection.createDataChannel('sendChannel');
   peerConnection.sendChannel = sendChannel;
   let pingInterval = 0;
@@ -373,9 +389,19 @@ const _makePeerConnection = peerConnectionId => {
   sendChannel.onopen = () => {
     // console.log('data channel local open');
 
-    skinMesh = _makeSkinMesh();
-    skinMesh.setSkinUrl(DEFAULT_SKIN_URL);
-    skinMeshes.push(skinMesh);
+    avatarMesh = new THREE.Object3D();
+    avatarMesh.riggedModel = null;
+    const loader = new THREE.GLTFLoader();
+    loader.load('https://modulesio.github.io/models/miku.glb', object => {
+      if (avatarMesh) {
+        avatarMesh.riggedModel = new RiggedModel(object.scene);
+        avatarMesh.add(object.scene);
+      }
+    }, xhr => {}, err => {
+      console.warn(err);
+    });
+    scene.add(avatarMesh);
+    avatarMeshes.push(avatarMesh);
 
     peerConnection.open = true;
 
@@ -459,9 +485,9 @@ const _makePeerConnection = peerConnectionId => {
       const data = JSON.parse(e.data);
       const {method} = data;
       if (method === 'pose') {
-        if (skinMesh) {
+        if (avatarMesh && avatarMesh.riggedModel) {
           const {hmd, gamepads} = data;
-          skinMesh.setState(hmd, gamepads);
+          avatarMesh.riggedModel.setState(hmd, gamepads);
         }
       } else if (landState && method === 'initState') {
         const {state} = data;
@@ -507,10 +533,10 @@ const _makePeerConnection = peerConnectionId => {
     if (index !== -1) {
       peerConnections.splice(index, 1);
     }
-    if (skinMesh) {
-      skinMesh.destroy();
-      skinMeshes.splice(skinMeshes.indexOf(skinMesh), 1);
-      skinMesh = null;
+    if (avatarMesh) {
+      scene.remove(avatarMesh);
+      avatarMeshes.splice(avatarMeshes.indexOf(avatarMesh), 1);
+      avatarMesh = null;
     }
     if (landState) {
       // remove owned xr-iframes
@@ -6095,12 +6121,13 @@ function animate(time, frame) {
   };
   _updateSceneMeshes(); */
 
-  const _updateSkinMeshes = () => {
-    for (let i = 0; i < skinMeshes.length; i++) {
-      skinMeshes[i].update();
+  const _updateAvatarMeshes = () => {
+    for (let i = 0; i < avatarMeshes.length; i++) {
+      const avatarMesh = avatarMeshes[i];
+      avatarMesh.riggedModel && avatarMesh.riggedModel.update();
     }
   };
-  _updateSkinMeshes();
+  _updateAvatarMeshes();
 
   const _handleTrigger = (gamepad, i, pressed, lastPressed) => {
     const start = pressed && !lastPressed;
@@ -6870,139 +6897,12 @@ _startFakeVrDisplay()
     console.warn(err.stack);
   });
 
-const skinMeshes = [];
+const avatarMeshes = [];
 const _mod = (v, d) => {
   const n = v % d;
   return n < 0 ? (d + n) : n;
 };
 const _angleDiff = (a, b) => _mod((b - a) + Math.PI, Math.PI * 2) - Math.PI;
-const _makeSkinMesh = () => {
-  const object = {};
-  let onsetstate = null;
-  const uniforms = THREE.UniformsUtils.clone(skin.SKIN_SHADER.uniforms);
-  object.setSkinUrl = skinUrl => {
-    if (skinUrl) {
-      const mesh = skin({
-        limbs: true,
-      });
-      mesh.frustumCulled = false;
-
-      mesh.onBeforeRender = (onBeforeRender => function() {
-        mesh.material.uniforms.headRotation.value.copy(uniforms.headRotation.value);
-        mesh.material.uniforms.leftArmRotation.value.copy(uniforms.leftArmRotation.value);
-        mesh.material.uniforms.rightArmRotation.value.copy(uniforms.rightArmRotation.value);
-        mesh.material.uniforms.theta.value = uniforms.theta.value;
-        mesh.material.uniforms.headVisible.value = uniforms.headVisible.value;
-        mesh.material.uniforms.hit.value = uniforms.hit.value;
-
-        onBeforeRender.apply(this, arguments);
-      })(mesh.onBeforeRender);
-
-      return new Promise((accept, reject) => {
-        const skinImg = new Image();
-        skinImg.crossOrigin = 'Anonymous';
-        skinImg.src = skinUrl;
-        skinImg.onload = () => {
-          accept(skinImg);
-        };
-        skinImg.onerror = err => {
-          reject(err);
-        };
-      })
-        .then(skinImg => {
-          mesh.setImage(skinImg);
-
-          onsetstate = (hmd, gamepads) => {
-            const hmdPosition = localVector.fromArray(hmd.position);
-            const hmdQuaternion = localQuaternion.fromArray(hmd.quaternion);
-
-            const hmdEuler = localEuler.setFromQuaternion(hmdQuaternion, localEuler.order);
-            const playerEuler = localEuler2.setFromQuaternion(mesh.quaternion, localEuler2.order);
-            const angleDiff = _angleDiff(hmdEuler.y, playerEuler.y);
-            const angleDiffAbs = Math.abs(angleDiff);
-            if (angleDiffAbs > Math.PI / 2) {
-              playerEuler.y += (angleDiffAbs - (Math.PI / 2)) * (angleDiff < 0 ? 1 : -1);
-              mesh.quaternion.setFromEuler(playerEuler);
-            }
-
-            const oldWorldPosition = mesh.getWorldPosition(localVector2);
-            mesh.position.copy(hmdPosition)
-              .sub(mesh.eye.getWorldPosition(localVector3))
-              .add(oldWorldPosition);
-
-            const playerQuaternionInverse = localQuaternion2.copy(mesh.quaternion).inverse();
-            mesh.head.quaternion.copy(playerQuaternionInverse).multiply(hmdQuaternion);
-            mesh.updateMatrixWorld();
-
-            const headQuaternionInverse = localQuaternion3.copy(mesh.head.quaternion).inverse();
-            uniforms.headRotation.value.set(headQuaternionInverse.x, headQuaternionInverse.y, headQuaternionInverse.z, headQuaternionInverse.w);
-
-            for (let i = 0; i < 2; i++) {
-              const armRotation = uniforms[i === 0 ? 'leftArmRotation' : 'rightArmRotation'];
-
-              const gamepad = gamepads[i];
-              if (gamepad.visible) {
-                const gamepadPosition = localVector.fromArray(gamepad.position);
-                const gamepadQuaternion = localQuaternion.fromArray(gamepad.quaternion);
-
-                const armQuaternionInverse = localQuaternion3.setFromRotationMatrix(
-                  localMatrix.lookAt(
-                    mesh.arms[i === 0 ? 'left' : 'right']
-                      .getWorldPosition(localVector2),
-                    gamepadPosition,
-                    localVector3
-                      .set(0, 1, 0)
-                      .applyQuaternion(gamepadQuaternion)
-                  )
-                )
-                  .multiply(armQuaternionOffset)
-                  .premultiply(playerQuaternionInverse)
-                  .inverse();
-                armRotation.value.set(armQuaternionInverse.x, armQuaternionInverse.y, armQuaternionInverse.z, armQuaternionInverse.w);
-                // console.log('arm rotation', i, armRotation.value.toArray().join(','));
-              } else {
-                armRotation.value.set(0, 0, 0, 1);
-              }
-            }
-          };
-
-          if (object.skinMesh) {
-            object.skinMesh.parent.remove(object.skinMesh);
-            object.skinMesh = null;
-          }
-
-          scene.add(mesh);
-          object.skinMesh = mesh;
-        });
-    } else {
-      onsetstate = null;
-
-      if (object.skinMesh) {
-        object.skinMesh.parent.remove(object.skinMesh);
-        object.skinMesh = null;
-      }
-    }
-  };
-  object.setState = (hmd, gamepads) => {
-    onsetstate && onsetstate(hmd, gamepads);
-  };
-  object.animate = thetaValue => {
-    uniforms.theta.value = thetaValue;
-  };
-  object.update = () => {
-    // XXX
-  };
-  object.destroy = () => {
-    onsetstate = null;
-
-    if (object.skinMesh) {
-      object.skinMesh.parent.remove(object.skinMesh);
-      object.skinMesh = null;
-    }
-  };
-  object.skinMesh = null;
-  return object;
-};
 
 scene.add(defaultGltf);
 const _loadDefaultGltf = () => {
