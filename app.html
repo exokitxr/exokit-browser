@@ -32,6 +32,10 @@ const mouse = {
   position: new THREE.Vector3(),
   quaternion: new THREE.Quaternion(),
 };
+const colors = {
+  default: 0x42a5f5,
+  highlight: 0x9ccc65,
+};
 
 const LAMBDA_URLS = {
   login: `https://login.exokit.org/`,
@@ -3627,11 +3631,15 @@ const _connectLand = async () => {
     const _updateGuardian = () => {
       for (let i = 0; i < xrExtents.length; i++) {
         const xrExtent = xrExtents[i];
-        const sceneColor = 0x9ccc65;
-        const guardianMesh = new THREE.Guardian(xrExtent, 10, sceneColor);
+        const xrIframe = xrIframes[i];
+
+        const guardianMesh = new THREE.Guardian(xrExtent, 10, colors.default);
+        guardianMesh.xrIframe = xrIframe;
         scene.add(guardianMesh);
         guardianMeshes.push(guardianMesh);
-        const baseMesh = new THREE.Land(xrExtent, sceneColor);
+
+        const baseMesh = new THREE.Land(xrExtent, colors.default);
+        baseMesh.xrIframe = xrIframe;
         _insertBefore(baseMesh, floorMesh);
         baseMeshes.push(baseMesh);
       }
@@ -6308,6 +6316,22 @@ function animate(time, frame) {
     }
   };
   _updateMoveMeshes();
+
+  const _updateGuardianMeshes = () => {
+    if (landState) {
+      for (let i = 0; i < baseMeshes.length; i++) {
+        const baseMesh = baseMeshes[i];
+        const {xrIframe} = baseMesh;
+        baseMesh.setColor(xrIframe.visible ? colors.highlight : colors.default);
+      }
+      for (let i = 0; i < guardianMeshes.length; i++) {
+        const guardianMesh = guardianMeshes[i];
+        const {xrIframe} = guardianMesh;
+        guardianMesh.setColor(xrIframe.visible ? colors.highlight : colors.default);
+      }
+    }
+  };
+  _updateGuardianMeshes();
 
   const _updateLabelMeshes = () => {
     for (let i = 0; i < nativeLabelMeshes.length; i++) {
