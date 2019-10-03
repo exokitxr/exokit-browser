@@ -27,7 +27,7 @@
     <script type=module>
 (async () => {
 
-let session, display, fakeXrDisplay, lastPresseds = [false, false], lastGripped = [false, false], lastPads = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], menuOpen = false, orbitControls = null, transformControls, currentMoveMeshes = [null, null], moveMeshes = [], assetMeshes = [], moveLabelMeshes = [], assetLabelMeshes = [], nativeLabelMeshes = [], guardianMeshes = [], baseMeshes = [], sceneMeshes = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null, user = null;
+let session, display, fakeXrDisplay, lastPresseds = [false, false], lastGripped = [false, false], lastPads = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], menuOpen = false, orbitControls = null, transformControls, currentMoveMeshes = [null, null], moveMeshes = [], assetMeshes = [], moveLabelMeshes = [], assetLabelMeshes = [], nativeLabelMeshes = [], guardianMeshes = [], baseMeshes = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null, user = null;
 const mouse = {
   position: new THREE.Vector3(),
   quaternion: new THREE.Quaternion(),
@@ -4695,7 +4695,6 @@ const _makePointMesh = (sx, sy, sz, ox, oy, oz, ow) => {
 };
 const _getIntersectionCandidates = () => renderScene === scene ?
     screenMesh.getIntersectionCandidates()
-      .concat(sceneMeshes)
   :
     [loginMesh, paymentMesh].flatMap(mesh => mesh.getIntersectionCandidates());
 const _makeBrowserMesh = (sx, sy, sz, ox, oy, oz, ow, color) => {
@@ -5753,12 +5752,12 @@ function animate(time, frame) {
   };
   _updateIntersections();
 
-  const _updateSceneMeshes = () => {
+  /* const _updateSceneMeshes = () => {
     for (const k in sceneMeshes) {
       sceneMeshes[k].update();
     }
   };
-  _updateSceneMeshes();
+  _updateSceneMeshes(); */
 
   const _updateSkinMeshes = () => {
     for (let i = 0; i < skinMeshes.length; i++) {
