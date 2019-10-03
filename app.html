@@ -27,7 +27,7 @@
     <script type=module>
 (async () => {
 
-let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastGripped = [false, false], lastPads = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], menuOpen = false, orbitControls = null, transformControls, currentMoveMeshes = [null, null], moveMeshes = [], nativeLabelMeshes = [], rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], currentSceneToken = null, selectedSceneToken = null, guardianMeshes = [], baseMeshes = [], sceneMeshes = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null, user = null;
+let session, display, fakeXrDisplay, tabs = [], tabId = 0, xrmp, lastPresseds = [false, false], lastGripped = [false, false], lastPads = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], menuOpen = false, orbitControls = null, transformControls, currentMoveMeshes = [null, null], moveMeshes = [], assetMeshes = [], moveLabelMeshes = [], assetLabelMeshes = [], nativeLabelMeshes = [], rooms = [], pointMeshes = [], pendingRooms = [null, null], roomLinks = [], roomDiagrams = [], roomLabels = [], currentSceneToken = null, selectedSceneToken = null, guardianMeshes = [], baseMeshes = [], sceneMeshes = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null, user = null;
 const mouse = {
   position: new THREE.Vector3(),
   quaternion: new THREE.Quaternion(),
@@ -176,7 +176,7 @@ XRSite.prototype.handleMutations = function handleMutations(mutations) {
           const {moveMesh} = xrIframe;
           scene.remove(moveMesh);
           scene.remove(moveMesh.labelMesh);
-          moveMeshes.splice(moveMeshes.indexOf(moveMesh), 1);
+          moveLabelMeshes.splice(moveLabelMeshes.indexOf(moveMesh), 1);
         }
       }
     }
@@ -206,7 +206,8 @@ XRSite.prototype.handleMutations = function handleMutations(mutations) {
 
           const labelMesh = _makeLabelMesh(xrIframe.name || xrIframe.src);
           scene.add(labelMesh);
-          moveMesh.labelMesh = labelMesh;
+          labelMesh.moveMesh = moveMesh;
+          moveLabelMeshes.push(labelMesh);
         }
       }
     }
@@ -3550,15 +3551,17 @@ const _connectLand = async () => {
           moveMesh.position.fromArray(worldOffset.position);
           moveMesh.quaternion.fromArray(worldOffset.orientation);
           moveMesh.scale.fromArray(worldOffset.scale);
+          moveMesh.visible = screenMesh.visible;
           moveMesh.xrIframe = childXrIframe;
-          moveMesh.startTime = Date.now();
           scene.add(moveMesh);
-          moveMeshes.push(moveMesh);
+          assetMeshes.push(moveMesh);
           childXrIframe.moveMesh = moveMesh;
 
           const labelMesh = _makeLabelMesh(childXrIframe.name || childXrIframe.src);
+          labelMesh.visible = screenMesh.visible;
+          labelMesh.moveMesh = moveMesh;
           scene.add(labelMesh);
-          moveMesh.labelMesh = labelMesh;
+          assetLabelMeshes.push(labelMesh);
         }
       });
     };
@@ -6227,13 +6230,29 @@ function animate(time, frame) {
           screenMesh.scale.copy(start.scale).lerp(end.scale, f);
           screenMesh.updateMatrixWorld();
           screenMesh.visible = true;
-          for (let i = 0; i < moveMeshes.length; i++) {
-            const moveMesh = moveMeshes[i];
+
+          const _updateMoveMesh = moveMesh => {
             moveMesh.scale.set(menuFactor, menuFactor, menuFactor);
             moveMesh.visible = true;
-            moveMesh.labelMesh.scale.set(menuFactor, menuFactor, menuFactor);
-            moveMesh.labelMesh.visible = true;
+          };
+          for (let i = 0; i < moveMeshes.length; i++) {
+            _updateMoveMesh(moveMeshes[i]);
           }
+          for (let i = 0; i < assetMeshes.length; i++) {
+            _updateMoveMesh(assetMeshes[i]);
+          }
+
+          const _updateMoveLabelMesh = labelMesh => {
+            labelMesh.scale.set(menuFactor, menuFactor, menuFactor);
+            labelMesh.visible = true;
+          };
+          for (let i = 0; i < moveLabelMeshes.length; i++) {
+            _updateMoveLabelMesh(moveLabelMeshes[i]);
+          }
+          for (let i = 0; i < assetLabelMeshes.length; i++) {
+            _updateMoveLabelMesh(assetLabelMeshes[i]);
+          }
+
           for (let i = 0; i < controllerMeshes.length; i++) {
             const controllerMesh = controllerMeshes[i];
             controllerMesh.rayMesh.scale.set(menuFactor, menuFactor, menuFactor);
@@ -6267,11 +6286,23 @@ function animate(time, frame) {
           if (f >= 1) {
             if (end.factor === 0) {
               screenMesh.visible = false;
+
               for (let i = 0; i < moveMeshes.length; i++) {
-                const moveMesh = moveMeshes[i];
-                moveMesh.visible = false;
-                moveMesh.labelMesh.visible = false;
+                moveMeshes[i].visible = false;
               }
+              for (let i = 0; i < assetMeshes.length; i++) {
+                assetMeshes[i].visible = false;
+              }
+              for (let i = 0; i < moveLabelMeshes.length; i++) {
+                moveLabelMeshes[i].visible = false;
+              }
+              for (let i = 0; i < assetLabelMeshes.length; i++) {
+                assetLabelMeshes[i].visible = false;
+              }
+              for (let i = 0; i < nativeLabelMeshes.length; i++) {
+                nativeLabelMeshes[i].visible = false;
+              }
+
               for (let i = 0; i < controllerMeshes.length; i++) {
                 controllerMeshes[i].rayMesh.visible = false;
               }
@@ -6282,9 +6313,6 @@ function animate(time, frame) {
               }
               for (let i = 0; i < baseMeshes.length; i++) {
                 baseMeshes[i].visible = false;
-              }
-              for (let i = 0; i < nativeLabelMeshes.length; i++) {
-                nativeLabelMeshes[i].visible = false;
               }
             }
             menuAnimation = null;
@@ -6307,7 +6335,15 @@ function animate(time, frame) {
             moveMesh.scale.multiplyScalar(1 + (1-Math.cos(angle))*0.2);
           }
         }
+      }
+    }
+  };
+  _updateMoveMeshes();
 
+  const _updateLabelMeshes = () => {
+    const _updateMoveLabelMesh = labelMesh => {
+      const {moveMesh} = labelMesh;
+      if (moveMesh.visible) {
         const vrCamera = renderer.vr.enabled ? renderer.vr.getCamera(camera).cameras[0] : camera;
         const closestPositionSpec = DIRECTIONS.map((normal, i) => {
           const position = directionVectors[i].copy(moveMesh.position)
@@ -6322,16 +6358,32 @@ function animate(time, frame) {
             distance: position.distanceTo(vrCamera.position),
           };
         }).sort((a, b) => a.distance - b.distance)[0];
-        const {labelMesh} = moveMesh;
+
         labelMesh.position.copy(closestPositionSpec.position);
         labelMesh.quaternion.setFromUnitVectors(
           localVector.set(0, 0, 1),
           closestPositionSpec.normal
         ).premultiply(moveMesh.quaternion);
       }
+    };
+    for (let i = 0; i < moveLabelMeshes.length; i++) {
+      _updateMoveLabelMesh(moveLabelMeshes[i]);
+    }
+    for (let i = 0; i < assetLabelMeshes.length; i++) {
+      _updateMoveLabelMesh(assetLabelMeshes[i]);
+    }
+    for (let i = 0; i < nativeLabelMeshes.length; i++) {
+      const labelMesh = nativeLabelMeshes[i];
+      const {position, quaternion} = _getFrontOfCamera();
+      labelMesh.position.set(Math.round(position.x), 0.02, Math.round(position.z));
+      localEuler.setFromQuaternion(quaternion, localEuler.order);
+      localEuler.x = -Math.PI/2;
+      localEuler.y = Math.round(localEuler.y/(Math.PI/2))*Math.PI/2;
+      localEuler.z = 0;
+      labelMesh.quaternion.setFromEuler(localEuler);
     }
   };
-  _updateMoveMeshes();
+  _updateLabelMeshes();
 
   const _updateGuardianMeshes = () => {
     if (landState) {
@@ -6348,20 +6400,6 @@ function animate(time, frame) {
     }
   };
   _updateGuardianMeshes();
-
-  const _updateLabelMeshes = () => {
-    for (let i = 0; i < nativeLabelMeshes.length; i++) {
-      const labelMesh = nativeLabelMeshes[i];
-      const {position, quaternion} = _getFrontOfCamera();
-      labelMesh.position.set(Math.round(position.x), 0.02, Math.round(position.z));
-      localEuler.setFromQuaternion(quaternion, localEuler.order);
-      localEuler.x = -Math.PI/2;
-      localEuler.y = Math.round(localEuler.y/(Math.PI/2))*Math.PI/2;
-      localEuler.z = 0;
-      labelMesh.quaternion.setFromEuler(localEuler);
-    }
-  };
-  _updateLabelMeshes();
 
   const _updateTeleportMeshes = () => {
     for (let i = 0; i < teleportMeshes.length; i++) {
