@@ -3546,6 +3546,40 @@ const _connectLand = async () => {
     });
     if (!live) return;
     const xrIframes = _getChildXrIframes(xrIframe);
+
+    const _updateMoveMeshes = () => {
+      xrIframes.forEach(async extentXrIframe => {
+        await new Promise((accept, reject) => {
+          if (extentXrIframe.loaded) {
+            accept();
+          } else {
+            extentXrIframe.addEventListener('load', accept);
+            extentXrIframe.addEventListener('error', reject);
+          }
+        });
+
+        const childXrIframes = _getChildXrIframes(extentXrIframe);
+        for (let i = 0; i < childXrIframes.length; i++) {
+          const childXrIframe = childXrIframes[i];
+          const moveMesh = _makeMoveMesh('volume');
+          const {worldOffset} = childXrIframe;
+          moveMesh.position.fromArray(worldOffset.position);
+          moveMesh.quaternion.fromArray(worldOffset.orientation);
+          moveMesh.scale.fromArray(worldOffset.scale);
+          moveMesh.xrIframe = childXrIframe;
+          moveMesh.startTime = Date.now();
+          scene.add(moveMesh);
+          moveMeshes.push(moveMesh);
+          childXrIframe.moveMesh = moveMesh;
+
+          const labelMesh = _makeLabelMesh(childXrIframe.name || childXrIframe.src);
+          scene.add(labelMesh);
+          moveMesh.labelMesh = labelMesh;
+        }
+      });
+    };
+    _updateMoveMeshes();
+
     const xrExtents = xrIframes.map(xrIframe => {
       const extents = xrIframe.getAttribute('extents');
       return extents ? THREE.Land.parseExtents(extents) : [];
