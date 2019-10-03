@@ -3526,13 +3526,7 @@ const _makeTrayMesh = () => {
 let landState = null;
 const rects = [];
 const covers = [];
-const _getChildXrIframes = xrIframe => {
-  const contentDocument = xrIframe.contentWindow.iframe.contentDocument;
-  return Array.from(xrIframe)
-    .concat(
-      Array.from(contentDocument.querySelectorAll('xr-iframe'))
-    );
-};
+const _getChildXrIframes = xrIframe => Array.from(xrIframe.contentWindow.iframe.contentDocument.querySelectorAll('xr-iframe'));
 const _connectLand = async () => {
   if (!landState) {
     let live = true;
