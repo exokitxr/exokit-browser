@@ -6240,10 +6240,10 @@ function animate(time, frame) {
             labelMesh.scale.set(menuFactor, menuFactor, menuFactor);
             labelMesh.visible = true;
           }
-          const opening = start.factor < end.factor;
+          /* const opening = start.factor < end.factor;
           for (let i = 0; i < sceneMeshes.length; i++) {
             sceneMeshes[i].visible = opening;
-          }
+          } */
 
           if (f >= 1) {
             if (end.factor === 0) {
