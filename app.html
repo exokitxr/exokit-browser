@@ -205,8 +205,10 @@ XRSite.prototype.handleMutations = function handleMutations(mutations) {
           xrIframe.moveMesh = moveMesh;
 
           const labelMesh = _makeLabelMesh(xrIframe.name || xrIframe.src);
-          scene.add(labelMesh);
           labelMesh.moveMesh = moveMesh;
+          labelMesh.xrIframe = xrIframe;
+          moveMesh.labelMesh = labelMesh;
+          scene.add(labelMesh);
           moveLabelMeshes.push(labelMesh);
         }
       }
@@ -4478,6 +4480,7 @@ const _makeScreenMesh = () => {
     [mesh, keyboardMesh]
       // .concat(appIconMeshes.children)
       .concat(moveMeshes)
+      .concat(moveLabelMeshes)
   : [];
 
   mesh.go = () => {
@@ -5713,6 +5716,86 @@ function animate(time, frame) {
   };
   _updateParcelTextMesh(); */
 
+  const _updateMoveMeshes = () => {
+    for (let i = 0; i < moveMeshes.length; i++) {
+      const moveMesh = moveMeshes[i];
+      if (moveMesh.visible) {
+        if (!menuAnimation) {
+          moveMesh.scale.set(1, 1, 1);
+          if (!moveMesh.xrIframe.loaded) {
+            const f = ((Date.now() - moveMesh.startTime) % 1000) / 1000;
+            const angle = Math.pow(f, 0.5) * Math.PI*2;
+            moveMesh.scale.multiplyScalar(1 + (1-Math.cos(angle))*0.2);
+          }
+        }
+      }
+    }
+  };
+  _updateMoveMeshes();
+
+  const _updateLabelMeshes = () => {
+    const _updateMoveLabelMesh = labelMesh => {
+      const {moveMesh} = labelMesh;
+      if (moveMesh.visible) {
+        const vrCamera = renderer.vr.enabled ? renderer.vr.getCamera(camera).cameras[0] : camera;
+        const closestPositionSpec = DIRECTIONS.map((normal, i) => {
+          const position = directionVectors[i].copy(moveMesh.position)
+            .add(
+              localVector2
+                .set(normal.x/2, 0.5 + 2/8/2, normal.z/2)
+                .applyQuaternion(moveMesh.quaternion)
+            );
+          return {
+            normal,
+            position,
+            distance: position.distanceTo(vrCamera.position),
+          };
+        }).sort((a, b) => a.distance - b.distance)[0];
+
+        labelMesh.position.copy(closestPositionSpec.position);
+        labelMesh.quaternion.setFromUnitVectors(
+          localVector.set(0, 0, 1),
+          closestPositionSpec.normal
+        ).premultiply(moveMesh.quaternion);
+        labelMesh.updateMatrixWorld();
+        labelMesh.update();
+      }
+    };
+    for (let i = 0; i < moveLabelMeshes.length; i++) {
+      _updateMoveLabelMesh(moveLabelMeshes[i]);
+    }
+    for (let i = 0; i < assetLabelMeshes.length; i++) {
+      _updateMoveLabelMesh(assetLabelMeshes[i]);
+    }
+    for (let i = 0; i < nativeLabelMeshes.length; i++) {
+      const labelMesh = nativeLabelMeshes[i];
+      const {position, quaternion} = _getFrontOfCamera();
+      labelMesh.position.set(Math.round(position.x), 0.02, Math.round(position.z));
+      localEuler.setFromQuaternion(quaternion, localEuler.order);
+      localEuler.x = -Math.PI/2;
+      localEuler.y = Math.round(localEuler.y/(Math.PI/2))*Math.PI/2;
+      localEuler.z = 0;
+      labelMesh.quaternion.setFromEuler(localEuler);
+    }
+  };
+  _updateLabelMeshes();
+
+  const _updateGuardianMeshes = () => {
+    if (landState) {
+      for (let i = 0; i < baseMeshes.length; i++) {
+        const baseMesh = baseMeshes[i];
+        const {xrIframe} = baseMesh;
+        baseMesh.setColor(xrIframe.visible ? colors.highlight : colors.default);
+      }
+      for (let i = 0; i < guardianMeshes.length; i++) {
+        const guardianMesh = guardianMeshes[i];
+        const {xrIframe} = guardianMesh;
+        guardianMesh.setColor(xrIframe.visible ? colors.highlight : colors.default);
+      }
+    }
+  };
+  _updateGuardianMeshes();
+
   const _updateIntersections = () => {
     for (let i = 0; i < 2; i++) {
       const controllerMesh = controllerMeshes[i];
@@ -5983,6 +6066,27 @@ function animate(time, frame) {
           } else if (type === 'move-mesh') {
             const {mesh} = intersectionSpec;
             currentMoveMeshes[i] = mesh;
+          } else if (type === 'label-mesh') {
+            const {id} = intersectionSpec;
+            if (id === 'remove') {
+              const {labelMesh} = intersectionSpec;
+              const {xrIframe} = labelMesh;
+
+              if (rtcWs) {
+                const index = _getChildNodeIndex(xrIframe);
+                const m = {
+                  method: 'editState',
+                  spec: {
+                    keyPath: [0],
+                    method: 'removeChild',
+                    key: index,
+                  },
+                };
+                rtcWs.send(JSON.stringify(m));
+              }
+
+              root.removeChild(xrIframe);
+            }
           } else {
             console.warn(`unknown intersection type ${type}`);
           }
@@ -6180,84 +6284,6 @@ function animate(time, frame) {
     }
   };
   _updateTrayMeshAnimation();
-
-  const _updateMoveMeshes = () => {
-    for (let i = 0; i < moveMeshes.length; i++) {
-      const moveMesh = moveMeshes[i];
-      if (moveMesh.visible) {
-        if (!menuAnimation) {
-          moveMesh.scale.set(1, 1, 1);
-          if (!moveMesh.xrIframe.loaded) {
-            const f = ((Date.now() - moveMesh.startTime) % 1000) / 1000;
-            const angle = Math.pow(f, 0.5) * Math.PI*2;
-            moveMesh.scale.multiplyScalar(1 + (1-Math.cos(angle))*0.2);
-          }
-        }
-      }
-    }
-  };
-  _updateMoveMeshes();
-
-  const _updateLabelMeshes = () => {
-    const _updateMoveLabelMesh = labelMesh => {
-      const {moveMesh} = labelMesh;
-      if (moveMesh.visible) {
-        const vrCamera = renderer.vr.enabled ? renderer.vr.getCamera(camera).cameras[0] : camera;
-        const closestPositionSpec = DIRECTIONS.map((normal, i) => {
-          const position = directionVectors[i].copy(moveMesh.position)
-            .add(
-              localVector2
-                .set(normal.x/2, 0.6, normal.z/2)
-                .applyQuaternion(moveMesh.quaternion)
-            );
-          return {
-            normal,
-            position,
-            distance: position.distanceTo(vrCamera.position),
-          };
-        }).sort((a, b) => a.distance - b.distance)[0];
-
-        labelMesh.position.copy(closestPositionSpec.position);
-        labelMesh.quaternion.setFromUnitVectors(
-          localVector.set(0, 0, 1),
-          closestPositionSpec.normal
-        ).premultiply(moveMesh.quaternion);
-      }
-    };
-    for (let i = 0; i < moveLabelMeshes.length; i++) {
-      _updateMoveLabelMesh(moveLabelMeshes[i]);
-    }
-    for (let i = 0; i < assetLabelMeshes.length; i++) {
-      _updateMoveLabelMesh(assetLabelMeshes[i]);
-    }
-    for (let i = 0; i < nativeLabelMeshes.length; i++) {
-      const labelMesh = nativeLabelMeshes[i];
-      const {position, quaternion} = _getFrontOfCamera();
-      labelMesh.position.set(Math.round(position.x), 0.02, Math.round(position.z));
-      localEuler.setFromQuaternion(quaternion, localEuler.order);
-      localEuler.x = -Math.PI/2;
-      localEuler.y = Math.round(localEuler.y/(Math.PI/2))*Math.PI/2;
-      localEuler.z = 0;
-      labelMesh.quaternion.setFromEuler(localEuler);
-    }
-  };
-  _updateLabelMeshes();
-
-  const _updateGuardianMeshes = () => {
-    if (landState) {
-      for (let i = 0; i < baseMeshes.length; i++) {
-        const baseMesh = baseMeshes[i];
-        const {xrIframe} = baseMesh;
-        baseMesh.setColor(xrIframe.visible ? colors.highlight : colors.default);
-      }
-      for (let i = 0; i < guardianMeshes.length; i++) {
-        const guardianMesh = guardianMeshes[i];
-        const {xrIframe} = guardianMesh;
-        guardianMesh.setColor(xrIframe.visible ? colors.highlight : colors.default);
-      }
-    }
-  };
-  _updateGuardianMeshes();
 
   const _updateTeleportMeshes = () => {
     for (let i = 0; i < teleportMeshes.length; i++) {
