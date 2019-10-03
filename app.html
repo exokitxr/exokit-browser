@@ -4476,7 +4476,7 @@ const _makeScreenMesh = () => {
 
   mesh.getIntersectionCandidates = () => mesh.visible ?
     [mesh, keyboardMesh]
-      .concat(appIconMeshes.children)
+      // .concat(appIconMeshes.children)
       .concat(moveMeshes)
   : [];
 
