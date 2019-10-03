@@ -1397,7 +1397,7 @@ const _removeOrbitControls = () => {
 };
 
 const _mousedown = e => {
-  if (loginToken && (e.button === 0 || e.button === 1)) {
+  if (loginToken) {
     const gamepads = navigator.getGamepads();
     const gamepad = gamepads[1];
     if (gamepad) {
@@ -1405,6 +1405,8 @@ const _mousedown = e => {
         gamepad.buttons[1].pressed = true;
       } else if (e.button === 1) {
         gamepad.buttons[0].pressed = true;
+      } else if (e.button === 2) {
+        gamepad.buttons[2].pressed = true;
       }
     }
     if (!window.document.pointerLockElement && (intersectionSpecs[1] || moveSpecs[1])) {
@@ -1415,7 +1417,7 @@ const _mousedown = e => {
   }
 };
 const _mouseup = e => {
-  if (loginToken && (e.button === 0 || e.button === 1)) {
+  if (loginToken) {
     const gamepads = navigator.getGamepads();
     const gamepad = gamepads[1];
     if (gamepad) {
@@ -1423,6 +1425,8 @@ const _mouseup = e => {
         gamepad.buttons[1].pressed = false;
       } else if (e.button === 1) {
         gamepad.buttons[0].pressed = false;
+      } else if (e.button === 2) {
+        gamepad.buttons[2].pressed = false;
       }
     }
 
