@@ -2220,6 +2220,61 @@ const _makeLabelMesh = label => {
 
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
+  mesh.plane = new THREE.Plane();
+  mesh.leftLine = new THREE.Line3();
+  mesh.topLine = new THREE.Line3();
+  mesh.update = () => {
+    mesh.leftLine.start
+      .set(-width/2, -height/2, 0)
+      .applyMatrix4(mesh.matrixWorld);
+    mesh.leftLine.end
+      .set(-width/2, height/2, 0)
+      .applyMatrix4(mesh.matrixWorld);
+
+    mesh.topLine.start
+      .set(-width/2, height/2, 0)
+      .applyMatrix4(mesh.matrixWorld);
+    mesh.topLine.end
+      .set(width/2, height/2, 0)
+      .applyMatrix4(mesh.matrixWorld);
+
+    mesh.plane.setFromCoplanarPoints(
+      mesh.leftLine.start,
+      mesh.leftLine.end,
+      mesh.topLine.end
+    );
+  };
+  mesh.intersect = ray => {
+    const intersectionPoint = ray.intersectPlane(mesh.plane, localVector);
+    if (intersectionPoint) {
+      const leftIntersectionPoint = mesh.leftLine.closestPointToPoint(intersectionPoint, true, localVector2);
+      const topIntersectionPoint = mesh.topLine.closestPointToPoint(intersectionPoint, true, localVector3);
+
+      const xFactor = topIntersectionPoint.distanceTo(mesh.topLine.start) / width;
+      const yFactor = leftIntersectionPoint.distanceTo(mesh.leftLine.start) / height;
+      const distance = ray.origin.distanceTo(intersectionPoint);
+
+      if (xFactor > 0 && xFactor < 0.99999 && yFactor > 0 && yFactor < 0.99999 && distance < rayDistance) {
+        const x = Math.floor(xFactor * uiSize);
+        const y = Math.floor(yFactor * uiSize/8);
+        const anchor = anchors.find(anchor => x >= anchor.left && x <= anchor.right && y >= anchor.top && y <= anchor.bottom) || null;
+
+        if (anchor) {
+          return {
+            type: 'label-mesh',
+            distance,
+            cancel: true,
+            id: anchor.id,
+            labelMesh: mesh,
+          };
+        } else {
+          return null;
+        }
+      } else {
+        return null;
+      }
+    }
+  };
   return mesh;
 };
 
