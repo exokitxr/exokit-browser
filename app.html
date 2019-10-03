@@ -4800,9 +4800,6 @@ const _makeVolumeMesh = (sx, sy, sz, dx, dy, dz, color) => {
 
     mesh.update();
   };
-  /* mesh.setColor = c => {
-    mesh.material.uniforms.uColor.value.setHex(c);
-  }; */
   mesh.setHighlight = highlight => {
     mesh.material.uniforms.uHighlight.value = highlight ? 0.2 : 0;
   };
@@ -5659,7 +5656,7 @@ function animate(time, frame) {
   const _updateIntersections = () => {
     for (let i = 0; i < 2; i++) {
       const controllerMesh = controllerMeshes[i];
-      if (controllerMesh.visible && !pendingRooms[i]) {
+      if (controllerMesh.visible) {
         controllerMesh.update();
 
         const candidates = _getIntersectionCandidates();
@@ -5713,12 +5710,12 @@ function animate(time, frame) {
     const start = pressed && !lastPressed;
     const end = lastPressed && !pressed;
 
-    if (pressed && !lastPressed) {
+    /* if (pressed && !lastPressed) {
       for (let i = 0; i < roomLabels.length; i++) {
         roomLabels[i].caretMesh.visible = false;
       }
       // keyboardFocus = null;
-    }
+    } */
 
     if (pressed && !lastPressed && currentMoveMeshes[i]) {
       currentMoveMeshes[i] = null;
@@ -6243,14 +6240,14 @@ function animate(time, frame) {
     /* c.matrixWorld.decompose(pointerMesh.position, localQuaternion, localVector2);
     pointerMesh.position.add(localVector.set(0, 0, -1).applyQuaternion(c.quaternion));
     pointerMesh.rotation.x += 0.1;
-    pointerMesh.rotation.z += 0.1; */
+    pointerMesh.rotation.z += 0.1;
 
     for (let i = 0; i < roomLinks.length; i++) {
       roomLinks[i].update();
     }
     for (let i = 0; i < roomDiagrams.length; i++) {
       roomDiagrams[i].update();
-    }
+    } */
 
     renderer.render(renderScene, c);
   };
