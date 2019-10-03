@@ -2192,11 +2192,15 @@ const _makeLabelMesh = label => {
   const height = 2/8;
   const geometry = new THREE.PlaneBufferGeometry(width, height);
 
+  let anchors = [];
+
   _renderLabel(label)
     .then(async result => {
       if (result.data) {
         texture.image = new ImageData(new Uint8ClampedArray(result.data.buffer, result.data.byteOffset, result.data.byteLength), uiSize, uiSize/8);
         texture.needsUpdate = true;
+
+        anchors = result.anchors;
       }
     });
   const texture = new THREE.Texture(
