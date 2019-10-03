@@ -2385,22 +2385,6 @@ const _makeIconMesh = (url, type, onclose) => {
       object = object.scene;
 
       model.add(object);
-
-      /* var box = new THREE.Box3();
-      box.setFromObject( object );
-
-      // re-center
-
-      var center = box.getCenter();
-      center.y = box.min.y;
-      object.position.sub( center );
-
-      // scale
-
-      var scaler = new THREE.Group();
-      scaler.add( object );
-      scaler.scale.setScalar( 6 / box.getSize().length() );
-      scene.add( scaler ); */
     }
     loader.load(url, onload, xhr => {}, err => {
       const loader = new THREE.LegacyGLTFLoader();
