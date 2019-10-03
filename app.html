@@ -3547,7 +3547,7 @@ const _connectLand = async () => {
     if (!live) return;
     const xrIframes = _getChildXrIframes(xrIframe);
 
-    const _updateMoveMeshes = () => {
+    const _loadMoveMeshes = () => {
       xrIframes.forEach(async extentXrIframe => {
         await new Promise((accept, reject) => {
           if (extentXrIframe.loaded) {
@@ -3578,13 +3578,13 @@ const _connectLand = async () => {
         }
       });
     };
-    _updateMoveMeshes();
+    _loadMoveMeshes();
 
     const xrExtents = xrIframes.map(xrIframe => {
       const extents = xrIframe.getAttribute('extents');
       return extents ? THREE.Land.parseExtents(extents) : [];
     });
-    const _updateMap = () => {
+    const _loadMap = () => {
       for (let i = 0; i < xrIframes.length; i++) {
         const xrIframe = xrIframes[i];
         const pixelsList = [];
@@ -3658,9 +3658,9 @@ const _connectLand = async () => {
         }
       }
     };
-    _updateMap();
+    _loadMap();
 
-    const _updateGuardian = () => {
+    const _loadGuardians = () => {
       for (let i = 0; i < xrExtents.length; i++) {
         const xrExtent = xrExtents[i];
         const xrIframe = xrIframes[i];
@@ -3676,7 +3676,7 @@ const _connectLand = async () => {
         baseMeshes.push(baseMesh);
       }
     };
-    _updateGuardian();
+    _loadGuardians();
   }
 };
 const _disconnectLand = () => {
