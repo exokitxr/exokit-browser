@@ -2345,10 +2345,10 @@ const _makeMoveMesh = (() => {
   };
 })();
 
-let selectedIconMesh = null;
+/* let selectedIconMesh = null;
 let selectedIconCoord = new THREE.Vector2(1, 0);
 let selectedIconPage = 0;
-/* const _makeIframe = (url, type) => {
+const _makeIframe = (url, type) => {
   const iframe = document.createElement('iframe');
   iframe.addEventListener('load', () => {
     console.log(`iframe loaded: ${type} ${iframe.src}`);
@@ -2359,7 +2359,7 @@ let selectedIconPage = 0;
   iframe.d = type === 'browser' ? 2 : 3;
   iframe.src = url;
   return iframe;
-}; */
+};
 const _makeIconMesh = (url, type, onclose) => {
   const mesh = new THREE.Object3D();
   mesh.localVisible = true;
@@ -2651,7 +2651,7 @@ const _destroyApp = iconMesh => {
       }
     }
   }
-};
+}; */
 
 const _makeTrayMesh = () => {
   const geometry = new THREE.PlaneBufferGeometry(2, 0.3)
