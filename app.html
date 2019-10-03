@@ -2188,7 +2188,9 @@ const _loadSceneMeshFromCoords = (x, z) => {
 };
 
 const _makeLabelMesh = label => {
-  const geometry = new THREE.PlaneBufferGeometry(2, 2/8);
+  const width = 2;
+  const height = 2/8;
+  const geometry = new THREE.PlaneBufferGeometry(width, height);
 
   _renderLabel(label)
     .then(async result => {
