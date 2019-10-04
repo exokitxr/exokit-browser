@@ -287,7 +287,7 @@ root.observer = new MutationObserver(mutations => {
 root.observer.observe(root, {
   childList: true,
 });
-root.observer2 = new MutationObserver(mutations => {
+new MutationObserver(mutations => {
   for (let i = 0; i < mutations.length; i++) {
     const mutation = mutations[i];
     const {target, attributeName} = mutation;
@@ -303,8 +303,7 @@ root.observer2 = new MutationObserver(mutations => {
       }
     }
   }
-});
-root.observer2.observe(root, {
+}).observe(root, {
   attributeFilter: ['position', 'orientation', 'scale'],
   attributes: true,
   subtree: true,
