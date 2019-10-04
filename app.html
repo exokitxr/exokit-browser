@@ -943,6 +943,7 @@ const [
   uiIframe,
   interfaceHtml,
   labelHtml,
+  backpackImgBase64,
   searchSitesJson,
   keyboardHighlightCanvasCtx,
   keyMap,
@@ -978,6 +979,15 @@ const [
     }),
     fetch('interface.html').then(res => res.text()),
     fetch('label.html').then(res => res.text()),
+    fetch('backpack.png').then(res => res.blob()).then(blob => new Promise((accept, reject) => {
+      const reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = () => {
+        // accept(reader.result.replace(/^[^,]*,/, ''));
+        accept(reader.result);
+      };
+      reader.readAsDataURL(blob);
+    })),
     fetch('sites.json')
       .then(res => res.json())
       .then(sitesJson => {
