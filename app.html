@@ -3755,7 +3755,7 @@ const _disconnectLand = () => {
 
 const uiSize = 2048;
 let renderIds = 0;
-const _renderUi = (searchResults, playlists, channels, selectedTab, rtcConnected, landConnected) => new Promise((accept, reject) => {
+const _renderUi = (searchResults, channels, selectedTab, rtcConnected, landConnected) => new Promise((accept, reject) => {
   if (renderIds > 0) {
     uiIframe.contentWindow.postMessage({
       method: 'cancel',
@@ -3785,7 +3785,6 @@ const _renderUi = (searchResults, playlists, channels, selectedTab, rtcConnected
     htmlString: interfaceHtml,
     templateData: {
       searchResults,
-      playlists,
       channels: channels.slice(0, 4),
       tab1: selectedTab === 1,
       tab2: selectedTab === 2,
@@ -3924,12 +3923,6 @@ const _makeScreenMesh = () => {
 
   let selectedTab = 1;
   let anchors = [];
-  let playlists = [ // XXX
-    {
-      name: 'Awesome Playlist',
-      user: 'user',
-    },
-  ];
   let channels = [];
   const _updateTextureDynamic = async () => {
     for (let i = 0; i < channels.length; i++) {
@@ -3951,7 +3944,7 @@ const _makeScreenMesh = () => {
         return diff;
       }
     });
-    const result = await _renderUi(searchResults, playlists, localChannels, selectedTab, !!rtcWs, !!landState);
+    const result = await _renderUi(searchResults, localChannels, selectedTab, !!rtcWs, !!landState);
     if (result.data) {
       ctx.putImageData(new ImageData(new Uint8ClampedArray(result.data.buffer, result.data.byteOffset, result.data.byteLength), uiSize, uiSize), 0, 0);
     }
