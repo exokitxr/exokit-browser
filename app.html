@@ -3776,12 +3776,19 @@ const _disconnectLand = () => {
 
 const uiSize = 2048;
 let renderIds = 0;
-const _renderUi = (searchResults, channels, selectedTab, rtcConnected, landConnected) => new Promise((accept, reject) => {
+const _renderUi = (searchResults, inventory, channels, selectedTab, rtcConnected, landConnected) => new Promise((accept, reject) => {
   if (renderIds > 0) {
     uiIframe.contentWindow.postMessage({
       method: 'cancel',
       id: renderIds,
     });
+  }
+  if (landConnected) {
+    searchResults = inventory.map(({src, name}) => ({
+      url: src,
+      label: name,
+      icon: backpackImgBase64,
+    }));
   }
 
   const start = Date.now();
@@ -3965,7 +3972,7 @@ const _makeScreenMesh = () => {
         return diff;
       }
     });
-    const result = await _renderUi(searchResults, localChannels, selectedTab, !!rtcWs, !!landState);
+    const result = await _renderUi(searchResults, inventory, localChannels, selectedTab, !!rtcWs, !!landState);
     if (result.data) {
       ctx.putImageData(new ImageData(new Uint8ClampedArray(result.data.buffer, result.data.byteOffset, result.data.byteLength), uiSize, uiSize), 0, 0);
     }
