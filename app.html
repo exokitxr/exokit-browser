@@ -189,7 +189,7 @@ XRSite.prototype.handleMutations = function handleMutations(mutations) {
         layers.push(xrIframe);
 
         if (xrIframe.native) {
-          const labelMesh = _makeLabelMesh(xrIframe.name || xrIframe.src);
+          const labelMesh = _makeLabelMesh(xrIframe.name || xrIframe.src, 'raw');
           scene.add(labelMesh);
           xrIframe.labelMesh = labelMesh;
           nativeLabelMeshes.push(labelMesh);
@@ -204,7 +204,7 @@ XRSite.prototype.handleMutations = function handleMutations(mutations) {
           moveMeshes.push(moveMesh);
           xrIframe.moveMesh = moveMesh;
 
-          const labelMesh = _makeLabelMesh(xrIframe.name || xrIframe.src);
+          const labelMesh = _makeLabelMesh(xrIframe.name || xrIframe.src, 'remove');
           labelMesh.moveMesh = moveMesh;
           labelMesh.xrIframe = xrIframe;
           moveMesh.labelMesh = labelMesh;
@@ -2189,14 +2189,14 @@ const _loadSceneMeshFromCoords = (x, z) => {
   return object;
 };
 
-const _makeLabelMesh = label => {
+const _makeLabelMesh = (label, type) => {
   const width = 2;
   const height = 2/8;
   const geometry = new THREE.PlaneBufferGeometry(width, height);
 
   let anchors = [];
 
-  _renderLabel(label)
+  _renderLabel(label, type)
     .then(async result => {
       if (result.data) {
         texture.image = new ImageData(new Uint8ClampedArray(result.data.buffer, result.data.byteOffset, result.data.byteLength), uiSize, uiSize/8);
@@ -3620,7 +3620,7 @@ const _connectLand = async () => {
           assetMeshes.push(moveMesh);
           childXrIframe.moveMesh = moveMesh;
 
-          const labelMesh = _makeLabelMesh(childXrIframe.name || childXrIframe.src);
+          const labelMesh = _makeLabelMesh(childXrIframe.name || childXrIframe.src, 'download');
           labelMesh.visible = screenMesh.visible;
           labelMesh.moveMesh = moveMesh;
           scene.add(labelMesh);
@@ -3786,7 +3786,7 @@ const _renderUi = (searchResults, playlists, channels, selectedTab, rtcConnected
     port: mc.port2,
   }, '*', [mc.port2]);
 });
-const _renderLabel = label => new Promise((accept, reject) => {
+const _renderLabel = (label, type) => new Promise((accept, reject) => {
   if (renderIds > 0) {
     uiIframe.contentWindow.postMessage({
       method: 'cancel',
@@ -3816,6 +3816,8 @@ const _renderLabel = label => new Promise((accept, reject) => {
     htmlString: labelHtml,
     templateData: {
       label,
+      remove: type === 'remove',
+      download: type === 'download',
     },
     width: uiSize,
     height: uiSize/8,
