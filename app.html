@@ -983,7 +983,6 @@ const [
       const reader = new FileReader();
       reader.onerror = reject;
       reader.onload = () => {
-        // accept(reader.result.replace(/^[^,]*,/, ''));
         accept(reader.result);
       };
       reader.readAsDataURL(blob);
