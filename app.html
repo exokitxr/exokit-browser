@@ -3626,6 +3626,23 @@ const _connectLand = async () => {
           labelMesh.xrIframe = childXrIframe;
           scene.add(labelMesh);
           assetLabelMeshes.push(labelMesh);
+
+          new childXrIframe.ownerDocument.defaultView.MutationObserver(mutations => {
+            for (let i = 0; i < mutations.length; i++) {
+              const mutation = mutations[i];
+              const {attributeName} = mutation;
+              if (attributeName === 'position') {
+                moveMesh.position.fromArray(childXrIframe.worldOffset.position);
+              } else if (attributeName === 'orientation') {
+                moveMesh.quaternion.fromArray(childXrIframe.worldOffset.orientation);
+              } else if (attributeName === 'scale') {
+                moveMesh.scale.fromArray(childXrIframe.worldOffset.scale);
+              }
+            }
+          }).observe(childXrIframe, {
+            attributeFilter: ['position', 'orientation', 'scale'],
+            attributes: true,
+          });
         }
       });
     };
