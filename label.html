@@ -37,10 +37,11 @@ body {
   align-items: center;
 }
 .icon.primary {
-  background-color: #5c6bc0;
+  background-color: #f44336;
 }
 .icon.secondary {
-  background-color: #f44336;
+  /*background-color: #5c6bc0;*/
+  background-color: #66bb6a;
 }
 .icon.margin {
   margin-right: 30px;
@@ -50,9 +51,16 @@ body {
   <body>
     <div class=wrap>
       <div class=label>{{{label}}}</div>
-      <a class="icon secondary" id=remove>
-        <i class="fal fa-trash-alt secondary"></i>
+      {{#remove}}
+      <a class="icon primary" id=remove>
+        <i class="fal fa-trash-alt"></i>
       </a>
+      {{/remove}}
+      {{#download}}
+      <a class="icon secondary" id=download>
+        <i class="fal fa-download"></i>
+      </a>
+      {{/download}}
     </div>
   </body>
 </html>
