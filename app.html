@@ -44,6 +44,7 @@ const LAMBDA_URLS = {
   coords: `https://token.exokit.org/coords`,
   presence: `https://presence.exokit.org/`,
   presenceWs: `wss://presence.exokit.org/`,
+  inventory: `https://inventory.exokit.org/`,
 };
 // const DEFAULT_URL = '/examples/tutorial.html';
 // const DEFAULT_URL = 'https://exokitxr.github.io/examples/tutorial.html';
@@ -3571,6 +3572,7 @@ const _makeTrayMesh = () => {
 // scene.add(trayMesh);
 
 let landState = null;
+let inventory = [];
 const rects = [];
 const covers = [];
 const _getChildXrIframes = xrIframe => Array.from(xrIframe.contentWindow.iframe.contentDocument.querySelectorAll('xr-iframe'));
@@ -3646,6 +3648,16 @@ const _connectLand = async () => {
       });
     };
     _loadMoveMeshes();
+
+    const _loadInventory = () => {
+      fetch(`${LAMBDA_URLS.inventory}?email=${encodeURIComponent(loginToken.email)}&token=${encodeURIComponent(loginToken.token)}`)
+        .then(res => res.json())
+        .then(newInventory => {
+          console.log('got new inventory', newInventory);
+          inventory = newInventory;
+        });
+    };
+    _loadInventory();
 
     const xrExtents = xrIframes.map(xrIframe => {
       const extents = xrIframe.getAttribute('extents');
@@ -6102,7 +6114,21 @@ function animate(time, frame) {
             } else if (id === 'download') {
               const {labelMesh} = intersectionSpec;
               const {xrIframe} = labelMesh;
-              console.log('got download', xrIframe);
+              const {src, name} = xrIframe;
+              console.log('got download', src, name);
+
+              fetch(`${LAMBDA_URLS.inventory}add?email=${encodeURIComponent(loginToken.email)}&token=${encodeURIComponent(loginToken.token)}&src=${encodeURIComponent(src)}&name=${encodeURIComponent(name)}`, {
+                method: 'POST',
+              })
+                .then(res => res.blob())
+                .then(() => {
+                  inventory.push({
+                    src,
+                    name,
+                  });
+
+                  console.log('downloaded to inventory');
+                });
             }
           } else {
             console.warn(`unknown intersection type ${type}`);
