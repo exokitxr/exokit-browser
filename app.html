@@ -6130,7 +6130,8 @@ function animate(time, frame) {
             } else if (id === 'download') {
               const {labelMesh} = intersectionSpec;
               const {xrIframe} = labelMesh;
-              const {src, name} = xrIframe;
+              let {src, name} = xrIframe;
+              src = new URL(src, xrIframe.ownerDocument.baseURI).href;
               console.log('got download', src, name);
 
               fetch(`${LAMBDA_URLS.inventory}add?email=${encodeURIComponent(loginToken.email)}&token=${encodeURIComponent(loginToken.token)}&src=${encodeURIComponent(src)}&name=${encodeURIComponent(name)}`, {
