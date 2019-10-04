@@ -3623,6 +3623,7 @@ const _connectLand = async () => {
           const labelMesh = _makeLabelMesh(childXrIframe.name || childXrIframe.src, 'download');
           labelMesh.visible = screenMesh.visible;
           labelMesh.moveMesh = moveMesh;
+          labelMesh.xrIframe = childXrIframe;
           scene.add(labelMesh);
           assetLabelMeshes.push(labelMesh);
         }
@@ -4483,6 +4484,7 @@ const _makeScreenMesh = () => {
       // .concat(appIconMeshes.children)
       .concat(moveMeshes)
       .concat(moveLabelMeshes)
+      .concat(assetLabelMeshes)
   : [];
 
   mesh.go = () => {
@@ -6088,6 +6090,10 @@ function animate(time, frame) {
               }
 
               root.removeChild(xrIframe);
+            } else if (id === 'download') {
+              const {labelMesh} = intersectionSpec;
+              const {xrIframe} = labelMesh;
+              console.log('got download', xrIframe);
             }
           } else {
             console.warn(`unknown intersection type ${type}`);
