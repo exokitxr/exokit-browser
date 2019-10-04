@@ -36,6 +36,15 @@ const colors = {
   default: 0x42a5f5,
   highlight: 0x9ccc65,
 };
+const _rewriteUrlToRaw = u => {
+  const o = new URL(u);
+  const match = o.host.match(/^(.+)\.proxy\.exokit\.org$/);
+  const raw = match[1];
+  const match2 = raw.match(/^(https?-)(.+?)(-[0-9]+)?$/);
+  o.protocol = match2[1].replace(/-/g, ':');
+  o.host = match2[2].replace(/--/g, '=').replace(/-/g, '.').replace(/=/g, '-').replace(/\.\./g, '-') + (match2[3] ? match2[3].replace(/-/g, ':') : '');
+  return o.href;
+};
 
 const LAMBDA_URLS = {
   login: `https://login.exokit.org/`,
@@ -6131,8 +6140,7 @@ function animate(time, frame) {
               const {labelMesh} = intersectionSpec;
               const {xrIframe} = labelMesh;
               let {src, name} = xrIframe;
-              src = new URL(src, xrIframe.ownerDocument.baseURI).href;
-              console.log('got download', src, name);
+              src = _rewriteUrlToRaw(new URL(src, xrIframe.ownerDocument.baseURI).href);
 
               fetch(`${LAMBDA_URLS.inventory}add?email=${encodeURIComponent(loginToken.email)}&token=${encodeURIComponent(loginToken.token)}&src=${encodeURIComponent(src)}&name=${encodeURIComponent(name)}`, {
                 method: 'POST',
@@ -6144,7 +6152,7 @@ function animate(time, frame) {
                     name,
                   });
 
-                  console.log('downloaded to inventory');
+                  console.log('downloaded to inventory', {src, name});
                 });
             }
           } else {
