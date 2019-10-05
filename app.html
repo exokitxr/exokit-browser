@@ -469,7 +469,7 @@ const _makePeerConnection = peerConnectionId => {
 let rtcWs = null;
 const connectionId = _randomString();
 const peerConnections = [];
-const _rtcConnect = (userName, channelName) => {
+const _rtcConnect = (type, userName, channelName) => {
   rtcWs = new WebSocket(`${LAMBDA_URLS.presenceWs}?u=${encodeURIComponent(userName)}&c=${encodeURIComponent(channelName)}`);
   rtcWs.onopen = () => {
     // console.log('presence socket open');
@@ -578,7 +578,11 @@ const _rtcConnect = (userName, channelName) => {
     } else if (method === 'initState') {
       const {state} = data;
       const htmlString = parse5.serialize(state);
-      root.setHTML(htmlString);
+      if (type === 'channel') {
+        root.setHTML(htmlString);
+      } else {
+        console.log('load channel', htmlString);
+      }
     } else if (method === 'editState') {
       const {spec} = data;
       const {method, keyPath, key, value, values} = spec;
@@ -620,13 +624,12 @@ const _rtcConnect = (userName, channelName) => {
   rtcWs.onclose = () => {
     clearInterval(pingInterval);
     console.log('rtc closed');
-    // setTimeout(_rtcConnect, 5000);
   };
   rtcWs.onerror = err => {
     console.warn('rtc error', err);
     clearInterval(pingInterval);
-    // setTimeout(_rtcConnect, 5000);
   };
+  rtcWs.type = type;
   rtcWs.userName = userName;
   rtcWs.channelName = channelName;
   rtcWs.pushScene = () => {
@@ -691,7 +694,7 @@ window.addEventListener('message', e => {
     }
     case 'joinChannel': {
       const {userName, channelName} = data;
-      _rtcConnect(userName, channelName);
+      _rtcConnect('channel', loginToken.name, `${userName}/${channelName}`);
       break;
     }
   }
@@ -4247,7 +4250,7 @@ const _makeScreenMesh = () => {
       _disconnectLand();
       const userName = loginToken.name || namegen(2).join('-'); // XXX
       const channelName = namegen(1)[0];
-      _rtcConnect(userName, channelName);
+      _rtcConnect('channel', loginToken.name, `${userName}/${channelName}`);
       if (!channels.some(channel => channel.user === userName && channel.channel === channelName)) {
         channels.push({
           user: userName,
@@ -4258,6 +4261,9 @@ const _makeScreenMesh = () => {
     } else if (id === 'channel-global') {
       _rtcDisconnect();
       root.innerHTML = '';
+
+      _rtcConnect('land', loginToken.name, 'land');
+
       const p = _connectLand();
       _updateTextureDynamic();
       await p;
@@ -4290,7 +4296,7 @@ const _makeScreenMesh = () => {
       const channelName = match[3];
       if (!match[1]) {
         _rtcDisconnect();
-        _rtcConnect(userName, channelName);
+        _rtcConnect('channel', loginToken.name, `${userName}/${channelName}`);
         _updateTextureDynamic();
       } else if (match[1] === '-copy-join') {
         const u = new URL(window.location.href);
