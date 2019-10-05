@@ -585,9 +585,14 @@ const _rtcConnect = (userName, channelName) => {
             }
             break;
           }
-          case 'setAttribute':
-          case 'removeAttribute':
-            throw new Error('not implemented');
+          case 'setAttribute': {
+            el.setAttribute(key, value);
+            break;
+          }
+          case 'removeAttribute': {
+            el.removeAttribute(key);
+            break;
+          }
           case 'appendChild': {
             const childNode = el.childNodes[key];
             const newNode = _parseHtml(value);
