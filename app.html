@@ -3627,59 +3627,6 @@ const _connectLand = async () => {
     if (!live) return;
     const xrIframes = _getChildXrIframes(xrIframe);
 
-    const _loadAssetMoveMeshes = () => {
-      xrIframes.forEach(async extentXrIframe => {
-        await new Promise((accept, reject) => {
-          if (extentXrIframe.loaded) {
-            accept();
-          } else {
-            extentXrIframe.addEventListener('load', accept);
-            extentXrIframe.addEventListener('error', reject);
-          }
-        });
-
-        const assetXrIframes = _getChildXrIframes(extentXrIframe);
-        for (let i = 0; i < assetXrIframes.length; i++) {
-          const assetXrIframe = assetXrIframes[i];
-          const moveMesh = _makeMoveMesh('volume');
-          const {worldOffset} = assetXrIframe;
-          moveMesh.position.fromArray(worldOffset.position);
-          moveMesh.quaternion.fromArray(worldOffset.orientation);
-          moveMesh.scale.fromArray(worldOffset.scale);
-          moveMesh.visible = screenMesh.visible;
-          moveMesh.xrIframe = assetXrIframe;
-          scene.add(moveMesh);
-          assetMeshes.push(moveMesh);
-          assetXrIframe.moveMesh = moveMesh;
-
-          const labelMesh = _makeLabelMesh(assetXrIframe.name || assetXrIframe.src, 'download');
-          labelMesh.visible = screenMesh.visible;
-          labelMesh.moveMesh = moveMesh;
-          labelMesh.xrIframe = assetXrIframe;
-          scene.add(labelMesh);
-          assetLabelMeshes.push(labelMesh);
-
-          new assetXrIframe.ownerDocument.defaultView.MutationObserver(mutations => {
-            for (let i = 0; i < mutations.length; i++) {
-              const mutation = mutations[i];
-              const {attributeName} = mutation;
-              if (attributeName === 'position') {
-                moveMesh.position.fromArray(assetXrIframe.worldOffset.position);
-              } else if (attributeName === 'orientation') {
-                moveMesh.quaternion.fromArray(assetXrIframe.worldOffset.orientation);
-              } else if (attributeName === 'scale') {
-                moveMesh.scale.fromArray(assetXrIframe.worldOffset.scale);
-              }
-            }
-          }).observe(assetXrIframe, {
-            attributeFilter: ['position', 'orientation', 'scale'],
-            attributes: true,
-          });
-        }
-      });
-    };
-    _loadAssetMoveMeshes();
-
     const _loadInventory = () => {
       fetch(`${LAMBDA_URLS.inventory}?email=${encodeURIComponent(loginToken.email)}&token=${encodeURIComponent(loginToken.token)}`)
         .then(res => res.json())
@@ -3787,6 +3734,65 @@ const _connectLand = async () => {
       }
     };
     _loadGuardians();
+
+    const _loadAssetMoveMeshes = async () => {
+      let assetXrIframes = await Promise.all(xrIframes.map(async extentXrIframe => {
+        await new Promise((accept, reject) => {
+          if (extentXrIframe.loaded) {
+            accept();
+          } else {
+            extentXrIframe.addEventListener('load', accept);
+            extentXrIframe.addEventListener('error', reject);
+          }
+        });
+
+        const assetXrIframes = _getChildXrIframes(extentXrIframe);
+        for (let i = 0; i < assetXrIframes.length; i++) {
+          const assetXrIframe = assetXrIframes[i];
+          const moveMesh = _makeMoveMesh('volume');
+          const {worldOffset} = assetXrIframe;
+          moveMesh.position.fromArray(worldOffset.position);
+          moveMesh.quaternion.fromArray(worldOffset.orientation);
+          moveMesh.scale.fromArray(worldOffset.scale);
+          moveMesh.visible = screenMesh.visible;
+          moveMesh.xrIframe = assetXrIframe;
+          scene.add(moveMesh);
+          assetMeshes.push(moveMesh);
+          assetXrIframe.moveMesh = moveMesh;
+
+          const labelMesh = _makeLabelMesh(assetXrIframe.name || assetXrIframe.src, 'download');
+          labelMesh.visible = screenMesh.visible;
+          labelMesh.moveMesh = moveMesh;
+          labelMesh.xrIframe = assetXrIframe;
+          scene.add(labelMesh);
+          assetLabelMeshes.push(labelMesh);
+
+          new assetXrIframe.ownerDocument.defaultView.MutationObserver(mutations => {
+            for (let i = 0; i < mutations.length; i++) {
+              const mutation = mutations[i];
+              const {attributeName} = mutation;
+              if (attributeName === 'position') {
+                moveMesh.position.fromArray(assetXrIframe.worldOffset.position);
+              } else if (attributeName === 'orientation') {
+                moveMesh.quaternion.fromArray(assetXrIframe.worldOffset.orientation);
+              } else if (attributeName === 'scale') {
+                moveMesh.scale.fromArray(assetXrIframe.worldOffset.scale);
+              }
+            }
+          }).observe(assetXrIframe, {
+            attributeFilter: ['position', 'orientation', 'scale'],
+            attributes: true,
+          });
+        }
+
+        return assetXrIframes;
+      }));
+      assetXrIframes = assetXrIframes.flat();
+
+      const htmlString = `<xr-site>\n${assetXrIframes.map(xrIframe => '  ' + xrIframe.outerHTML).join('\n')}\n</xr-site>\n`;
+      console.log('set html string', htmlString);
+    };
+    await _loadAssetMoveMeshes();
   }
 };
 const _disconnectLand = () => {
