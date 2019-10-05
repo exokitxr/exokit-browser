@@ -327,7 +327,7 @@ new MutationObserver(mutations => {
   subtree: true,
 });
 
-const _makePeerConnection = (peerConnectionId, isHost) => {
+const _makePeerConnection = peerConnectionId => {
   const peerConnectionConfig = {
     iceServers: [
       {'urls': 'stun:stun.stunprotocol.org:3478'},
@@ -479,7 +479,6 @@ const _rtcConnect = (userName, channelName) => {
       connectionId,
     }));
   };
-  const isHost = userName === channelName;
   const _addPeerConnection = peerConnectionId => {
     let peerConnection = peerConnections.find(peerConnection => peerConnection.connectionId === peerConnectionId);
     if (peerConnection && !peerConnection.open) {
@@ -487,7 +486,7 @@ const _rtcConnect = (userName, channelName) => {
       peerConnection = null;
     }
     if (!peerConnection) {
-      peerConnection = _makePeerConnection(peerConnectionId, isHost);
+      peerConnection = _makePeerConnection(peerConnectionId);
       peerConnection.onicecandidate = e => {
         // console.log('ice candidate', e.candidate);
 
