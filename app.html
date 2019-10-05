@@ -1638,16 +1638,14 @@ const _bindEventTarget = target => {
 
                     if (rtcWs) {
                       const index = _getChildNodeIndex(xrIframe);
-                      const m = {
+                      rtcWs.send(JSON.stringify({
                         method: 'editState',
                         spec: {
                           keyPath: [0],
                           method: 'removeChild',
                           key: index,
                         },
-                      };
-                      // console.log('send', m);
-                      rtcWs.send(JSON.stringify(m));
+                      }));
                     }
 
                     root.removeChild(xrIframe);
@@ -3629,7 +3627,7 @@ const _connectLand = async () => {
     if (!live) return;
     const xrIframes = _getChildXrIframes(xrIframe);
 
-    const _loadMoveMeshes = () => {
+    const _loadAssetMoveMeshes = () => {
       xrIframes.forEach(async extentXrIframe => {
         await new Promise((accept, reject) => {
           if (extentXrIframe.loaded) {
@@ -3640,47 +3638,47 @@ const _connectLand = async () => {
           }
         });
 
-        const childXrIframes = _getChildXrIframes(extentXrIframe);
-        for (let i = 0; i < childXrIframes.length; i++) {
-          const childXrIframe = childXrIframes[i];
+        const assetXrIframes = _getChildXrIframes(extentXrIframe);
+        for (let i = 0; i < assetXrIframes.length; i++) {
+          const assetXrIframe = assetXrIframes[i];
           const moveMesh = _makeMoveMesh('volume');
-          const {worldOffset} = childXrIframe;
+          const {worldOffset} = assetXrIframe;
           moveMesh.position.fromArray(worldOffset.position);
           moveMesh.quaternion.fromArray(worldOffset.orientation);
           moveMesh.scale.fromArray(worldOffset.scale);
           moveMesh.visible = screenMesh.visible;
-          moveMesh.xrIframe = childXrIframe;
+          moveMesh.xrIframe = assetXrIframe;
           scene.add(moveMesh);
           assetMeshes.push(moveMesh);
-          childXrIframe.moveMesh = moveMesh;
+          assetXrIframe.moveMesh = moveMesh;
 
-          const labelMesh = _makeLabelMesh(childXrIframe.name || childXrIframe.src, 'download');
+          const labelMesh = _makeLabelMesh(assetXrIframe.name || assetXrIframe.src, 'download');
           labelMesh.visible = screenMesh.visible;
           labelMesh.moveMesh = moveMesh;
-          labelMesh.xrIframe = childXrIframe;
+          labelMesh.xrIframe = assetXrIframe;
           scene.add(labelMesh);
           assetLabelMeshes.push(labelMesh);
 
-          new childXrIframe.ownerDocument.defaultView.MutationObserver(mutations => {
+          new assetXrIframe.ownerDocument.defaultView.MutationObserver(mutations => {
             for (let i = 0; i < mutations.length; i++) {
               const mutation = mutations[i];
               const {attributeName} = mutation;
               if (attributeName === 'position') {
-                moveMesh.position.fromArray(childXrIframe.worldOffset.position);
+                moveMesh.position.fromArray(assetXrIframe.worldOffset.position);
               } else if (attributeName === 'orientation') {
-                moveMesh.quaternion.fromArray(childXrIframe.worldOffset.orientation);
+                moveMesh.quaternion.fromArray(assetXrIframe.worldOffset.orientation);
               } else if (attributeName === 'scale') {
-                moveMesh.scale.fromArray(childXrIframe.worldOffset.scale);
+                moveMesh.scale.fromArray(assetXrIframe.worldOffset.scale);
               }
             }
-          }).observe(childXrIframe, {
+          }).observe(assetXrIframe, {
             attributeFilter: ['position', 'orientation', 'scale'],
             attributes: true,
           });
         }
       });
     };
-    _loadMoveMeshes();
+    _loadAssetMoveMeshes();
 
     const _loadInventory = () => {
       fetch(`${LAMBDA_URLS.inventory}?email=${encodeURIComponent(loginToken.email)}&token=${encodeURIComponent(loginToken.token)}`)
@@ -4278,16 +4276,14 @@ const _makeScreenMesh = () => {
       currentMoveMeshes[controllerIndex] = xrIframe.moveMesh;
 
       if (rtcWs) {
-        const m = {
+        rtcWs.send(JSON.stringify({
           method: 'editState',
           spec: {
             keyPath: [0],
             method: 'appendChild',
             value: xrIframe.outerHTML,
           },
-        };
-        // console.log('send', m);
-        rtcWs.send(JSON.stringify(m));
+        }));
       }
     /* } else if (id && (match = id.match(/^playlist:(.+)$/))) {
       console.log('click playlist', match[1]); // XXX */
@@ -5704,7 +5700,7 @@ function animate(time, frame) {
 
         if (rtcWs) {
           const index = _getChildNodeIndex(moveMesh.xrIframe);
-          const m = {
+          rtcWs.send(JSON.stringify({
             method: 'editState',
             spec: {
               keyPath: [0, index],
@@ -5720,9 +5716,7 @@ function animate(time, frame) {
                 },
               ],
             },
-          };
-          // console.log('send', m);
-          rtcWs.send(JSON.stringify(m));
+          }));
         }
       }
     }
@@ -6142,15 +6136,14 @@ function animate(time, frame) {
 
               if (rtcWs) {
                 const index = _getChildNodeIndex(xrIframe);
-                const m = {
+                rtcWs.send(JSON.stringify({
                   method: 'editState',
                   spec: {
                     keyPath: [0],
                     method: 'removeChild',
                     key: index,
                   },
-                };
-                rtcWs.send(JSON.stringify(m));
+                }));
               }
 
               root.removeChild(xrIframe);
