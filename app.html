@@ -639,6 +639,17 @@ const _rtcConnect = (type, userName, channelName) => {
       html,
     }));
   };
+  rtcWs.pushAssets = () => {
+    const landXrIframe = root.childNodes[0];
+    const extentXrIframes = _getChildXrIframes(landXrIframe);
+    let assetXrIframes = extentXrIframes.map(extentXrIframe => _getChildXrIframes(extentXrIframe));
+    assetXrIframes = assetXrIframes.flat();
+    const html = `<xr-site>\n${assetXrIframes.filter(xrIframe => !!xrIframe.id).map(xrIframe => '  ' + xrIframe.outerHTML).join('\n')}\n</xr-site>\n`;
+    rtcWs.send(JSON.stringify({
+      method: 'setInitialHtml',
+      html,
+    }));
+  };
   const pingInterval = setInterval(() => {
     rtcWs.send(JSON.stringify({
       method: 'ping',
@@ -4271,6 +4282,7 @@ const _makeScreenMesh = () => {
       const p = _connectLand();
       _updateTextureDynamic();
       await p;
+      rtcWs.pushAssets();
       _updateTextureDynamic();
     } else if (id === 'app' && href) {
       const xrIframe = document.createElement('xr-iframe');
