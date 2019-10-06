@@ -4285,8 +4285,11 @@ const _makeScreenMesh = () => {
       _rtcDisconnect();
       root.innerHTML = '';
 
-      _rtcConnect('land', loginToken.name, 'land', state => {
-        console.log('got land', state);
+      _rtcConnect('land', loginToken.name, 'land', async state => {
+        await p;
+        const xrSite = state.childNodes.find(childNode => childNode.nodeName === 'xr-site');
+        const xrIframes = xrSite.childNodes.filter(childNode => childNode.nodeName === 'xr-iframe');
+        console.log('got land xr iframes', state, xrIframes);
       });
 
       const p = _connectLand();
