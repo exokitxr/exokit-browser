@@ -469,7 +469,7 @@ const _makePeerConnection = peerConnectionId => {
 let rtcWs = null;
 const connectionId = _randomString();
 const peerConnections = [];
-const _rtcConnect = (type, userName, channelName) => {
+const _rtcConnect = (type, userName, channelName, onInitState) => {
   rtcWs = new WebSocket(`${LAMBDA_URLS.presenceWs}?u=${encodeURIComponent(userName)}&c=${encodeURIComponent(channelName)}`);
   rtcWs.onopen = () => {
     // console.log('presence socket open');
@@ -577,12 +577,18 @@ const _rtcConnect = (type, userName, channelName) => {
       _removePeerConnection(peerConnectionId);
     } else if (method === 'initState') {
       const {state} = data;
-      const htmlString = parse5.serialize(state);
+      onInitState(state);
+      /* rtcWs.dispatchEvent(new CustomEvent('initState', {
+        detail: {
+          state,
+        },
+      })); */
+      /* const htmlString = parse5.serialize(state);
       if (type === 'channel') {
         root.setHTML(htmlString);
       } else {
-        console.log('load channel', htmlString);
-      }
+        console.log('load channel', state, htmlString);
+      } */
     } else if (method === 'editState') {
       const {spec} = data;
       const {method, keyPath, key, value, values} = spec;
@@ -705,7 +711,10 @@ window.addEventListener('message', e => {
     }
     case 'joinChannel': {
       const {userName, channelName} = data;
-      _rtcConnect('channel', loginToken.name, `${userName}/${channelName}`);
+      _rtcConnect('channel', loginToken.name, `${userName}/${channelName}`, state => {
+        const htmlString = parse5.serialize(state);
+        root.setHTML(htmlString);
+      });
       break;
     }
   }
@@ -3746,63 +3755,59 @@ const _connectLand = async () => {
     };
     _loadGuardians();
 
-    const _loadAssetMoveMeshes = async () => {
-      let assetXrIframes = await Promise.all(xrIframes.map(async extentXrIframe => {
-        await new Promise((accept, reject) => {
-          if (extentXrIframe.loaded) {
-            accept();
-          } else {
-            extentXrIframe.addEventListener('load', accept);
-            extentXrIframe.addEventListener('error', reject);
-          }
-        });
-
-        const assetXrIframes = _getChildXrIframes(extentXrIframe);
-        for (let i = 0; i < assetXrIframes.length; i++) {
-          const assetXrIframe = assetXrIframes[i];
-          const moveMesh = _makeMoveMesh('volume');
-          const {worldOffset} = assetXrIframe;
-          moveMesh.position.fromArray(worldOffset.position);
-          moveMesh.quaternion.fromArray(worldOffset.orientation);
-          moveMesh.scale.fromArray(worldOffset.scale);
-          moveMesh.visible = screenMesh.visible;
-          moveMesh.xrIframe = assetXrIframe;
-          scene.add(moveMesh);
-          assetMeshes.push(moveMesh);
-          assetXrIframe.moveMesh = moveMesh;
-
-          const labelMesh = _makeLabelMesh(assetXrIframe.name || assetXrIframe.src, 'download');
-          labelMesh.visible = screenMesh.visible;
-          labelMesh.moveMesh = moveMesh;
-          labelMesh.xrIframe = assetXrIframe;
-          scene.add(labelMesh);
-          assetLabelMeshes.push(labelMesh);
-
-          new assetXrIframe.ownerDocument.defaultView.MutationObserver(mutations => {
-            for (let i = 0; i < mutations.length; i++) {
-              const mutation = mutations[i];
-              const {attributeName} = mutation;
-              if (attributeName === 'position') {
-                moveMesh.position.fromArray(assetXrIframe.worldOffset.position);
-              } else if (attributeName === 'orientation') {
-                moveMesh.quaternion.fromArray(assetXrIframe.worldOffset.orientation);
-              } else if (attributeName === 'scale') {
-                moveMesh.scale.fromArray(assetXrIframe.worldOffset.scale);
-              }
-            }
-          }).observe(assetXrIframe, {
-            attributeFilter: ['position', 'orientation', 'scale'],
-            attributes: true,
-          });
+    const _loadAssetMoveMeshes = () => Promise.all(xrIframes.map(async extentXrIframe => {
+      await new Promise((accept, reject) => {
+        if (extentXrIframe.loaded) {
+          accept();
+        } else {
+          extentXrIframe.addEventListener('load', accept);
+          extentXrIframe.addEventListener('error', reject);
         }
+      });
 
-        return assetXrIframes;
-      }));
-      assetXrIframes = assetXrIframes.flat();
+      const assetXrIframes = _getChildXrIframes(extentXrIframe);
+      for (let i = 0; i < assetXrIframes.length; i++) {
+        const assetXrIframe = assetXrIframes[i];
+        const moveMesh = _makeMoveMesh('volume');
+        const {worldOffset} = assetXrIframe;
+        moveMesh.position.fromArray(worldOffset.position);
+        moveMesh.quaternion.fromArray(worldOffset.orientation);
+        moveMesh.scale.fromArray(worldOffset.scale);
+        moveMesh.visible = screenMesh.visible;
+        moveMesh.xrIframe = assetXrIframe;
+        scene.add(moveMesh);
+        assetMeshes.push(moveMesh);
+        assetXrIframe.moveMesh = moveMesh;
 
-      const htmlString = `<xr-site>\n${assetXrIframes.map(xrIframe => '  ' + xrIframe.outerHTML).join('\n')}\n</xr-site>\n`;
-      console.log('set html string', htmlString);
-    };
+        const labelMesh = _makeLabelMesh(assetXrIframe.name || assetXrIframe.src, 'download');
+        labelMesh.visible = screenMesh.visible;
+        labelMesh.moveMesh = moveMesh;
+        labelMesh.xrIframe = assetXrIframe;
+        scene.add(labelMesh);
+        assetLabelMeshes.push(labelMesh);
+
+        new assetXrIframe.ownerDocument.defaultView.MutationObserver(mutations => {
+          for (let i = 0; i < mutations.length; i++) {
+            const mutation = mutations[i];
+            const {attributeName} = mutation;
+            if (attributeName === 'position') {
+              moveMesh.position.fromArray(assetXrIframe.worldOffset.position);
+            } else if (attributeName === 'orientation') {
+              moveMesh.quaternion.fromArray(assetXrIframe.worldOffset.orientation);
+            } else if (attributeName === 'scale') {
+              moveMesh.scale.fromArray(assetXrIframe.worldOffset.scale);
+            } else if (attributeName === 'data') {
+              const value = assetXrIframe.getAttribute('data');
+              console.log('got data', value);
+              // moveMesh.scale.fromArray(assetXrIframe.worldOffset.scale);
+            }
+          }
+        }).observe(assetXrIframe, {
+          attributeFilter: ['position', 'orientation', 'scale', 'data'],
+          attributes: true,
+        });
+      }
+    })).then(() => {});
     await _loadAssetMoveMeshes();
   }
 };
@@ -4265,7 +4270,10 @@ const _makeScreenMesh = () => {
       _disconnectLand();
       const userName = loginToken.name || namegen(2).join('-'); // XXX
       const channelName = namegen(1)[0];
-      _rtcConnect('channel', loginToken.name, `${userName}/${channelName}`);
+      _rtcConnect('channel', loginToken.name, `${userName}/${channelName}`, state => {
+        const htmlString = parse5.serialize(state);
+        root.setHTML(htmlString);
+      });
       if (!channels.some(channel => channel.user === userName && channel.channel === channelName)) {
         channels.push({
           user: userName,
@@ -4277,7 +4285,9 @@ const _makeScreenMesh = () => {
       _rtcDisconnect();
       root.innerHTML = '';
 
-      _rtcConnect('land', loginToken.name, 'land');
+      _rtcConnect('land', loginToken.name, 'land', state => {
+        console.log('got land', state);
+      });
 
       const p = _connectLand();
       _updateTextureDynamic();
@@ -4310,7 +4320,10 @@ const _makeScreenMesh = () => {
       const channelName = match[3];
       if (!match[1]) {
         _rtcDisconnect();
-        _rtcConnect('channel', loginToken.name, `${userName}/${channelName}`);
+        _rtcConnect('channel', loginToken.name, `${userName}/${channelName}`, state => {
+          const htmlString = parse5.serialize(state);
+          root.setHTML(htmlString);
+        });
         _updateTextureDynamic();
       } else if (match[1] === '-copy-join') {
         const u = new URL(window.location.href);
