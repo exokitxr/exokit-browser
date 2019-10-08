@@ -542,12 +542,12 @@ const _applyEditState = spec => {
       case 'setAttributes': {
         for (let i = 0; i < values.length; i++) {
           const {key, value} = values[i];
-          el.setAttribute(key, value);
+          (el.setAttributeRaw || el.setAttribute).call(el, key, value);
         }
         break;
       }
       case 'setAttribute': {
-        el.setAttribute(key, value);
+        (el.setAttributeRaw || el.setAttribute).call(el, key, value);
         break;
       }
       case 'removeAttribute': {
@@ -3874,6 +3874,35 @@ const _connectLand = async () => {
           attributeFilter: ['position', 'orientation', 'scale', 'data'],
           attributes: true,
         });
+
+        assetXrIframe.setAttributeRaw = assetXrIframe.setAttribute;
+        assetXrIframe.setAttribute = (name, value) => {
+          assetXrIframe.setAttributeRaw(name, value);
+
+          if (rtcWs) {
+            rtcWs.send(JSON.stringify({
+              method: 'editState',
+              spec: {
+                keyPath: [0, '#' + assetXrIframe.id],
+                method: 'setAttributes',
+                values: [
+                  {
+                    key: 'position',
+                    value: assetXrIframe.getAttribute('position'),
+                  },
+                  {
+                    key: 'orientation',
+                    value: assetXrIframe.getAttribute('orientation'),
+                  },
+                  {
+                    key: 'data',
+                    value: assetXrIframe.getAttribute('data'),
+                  },
+                ],
+              },
+            }));
+          }
+        };
       }
     })).then(() => {});
     await _loadAssetMoveMeshes();
@@ -4370,12 +4399,12 @@ const _makeScreenMesh = () => {
             const idAttr = stateXrIframe.attrs.find(attr => attr.name === 'id');
             if (idAttr) {
               const id = idAttr.value;
-              const xrIframe = assetXrIframes.find(xrIframe => xrIframe.id === id);
-              if (xrIframe) {
+              const assetXrIframe = assetXrIframes.find(xrIframe => xrIframe.id === id);
+              if (assetXrIframe) {
                 for (let j = 0; j < stateXrIframe.attrs.length; j++) {
                   const attr = stateXrIframe.attrs[j];
                   const {name, value} = attr;
-                  xrIframe.setAttribute(name, value);
+                  assetXrIframe.setAttributeRaw(name, value);
                 }
               }
             }
@@ -5868,34 +5897,6 @@ function animate(time, frame) {
             rtcWs.send(JSON.stringify(m));
           }
         }
-      }
-    }
-
-    if (rtcWs && landState && landState.loaded) {
-      for (let i = 0; i < assetMeshes.length; i++) {
-        const moveMesh = assetMeshes[i];
-        const {xrIframe} = moveMesh;
-        rtcWs.send(JSON.stringify({
-          method: 'editState',
-          spec: {
-            keyPath: [0, '#' + xrIframe.id],
-            method: 'setAttributes',
-            values: [
-              {
-                key: 'position',
-                value: xrIframe.getAttribute('position'),
-              },
-              {
-                key: 'orientation',
-                value: xrIframe.getAttribute('orientation'),
-              },
-              {
-                key: 'data',
-                value: xrIframe.getAttribute('data'),
-              },
-            ],
-          },
-        }));
       }
     }
   };
