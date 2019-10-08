@@ -707,8 +707,8 @@ const _rtcConnect = (type, userName, channelName, onInitState) => {
   };
   rtcWs.pushAssets = () => {
     const landXrIframe = root.childNodes[0];
-    const extentXrIframes = _getExtentXrIframes(landXrIframe);
-    const assetXrIframes = extentXrIframes.map(extentXrIframe => _getChildXrIframes(extentXrIframe)).flat();
+    const extentXrIframes = _getUnownedXrIframes(landXrIframe);
+    const assetXrIframes = extentXrIframes.map(extentXrIframe => _getUnownedXrIframes(extentXrIframe)).flat();
     const html = `<xr-site>\n${assetXrIframes.filter(xrIframe => !!xrIframe.id).map(xrIframe => '  ' + xrIframe.outerHTML).join('\n')}\n</xr-site>\n`;
     rtcWs.send(JSON.stringify({
       method: 'setInitialHtml',
@@ -3694,7 +3694,7 @@ let inventory = [];
 const rects = [];
 const covers = [];
 const _getChildXrIframes = xrIframe => Array.from(xrIframe.contentWindow.iframe.contentDocument.querySelectorAll('xr-iframe'));
-const _getExtentXrIframes = xrIframe => _getChildXrIframes(xrIframe).filter(xrIframe => !/^owned:/.test(xrIframe.id));
+const _getUnownedXrIframes = xrIframe => _getChildXrIframes(xrIframe).filter(xrIframe => !/^owned:/.test(xrIframe.id));
 const _getOwnedXrIframes = xrIframe => _getChildXrIframes(xrIframe).filter(xrIframe => /^owned:/.test(xrIframe.id));
 const _connectLand = async () => {
   if (!landState) {
@@ -3715,7 +3715,7 @@ const _connectLand = async () => {
       xrIframe.addEventListener('error', reject);
     });
     if (!live) return;
-    const xrIframes = _getExtentXrIframes(xrIframe);
+    const xrIframes = _getUnownedXrIframes(xrIframe);
 
     const _loadInventory = () => {
       fetch(`${LAMBDA_URLS.inventory}?email=${encodeURIComponent(loginToken.email)}&token=${encodeURIComponent(loginToken.token)}`)
@@ -4359,8 +4359,8 @@ const _makeScreenMesh = () => {
         // emit extent's id'd xr-iframes
 
         const landXrIframe = root.childNodes[0];
-        const extentXrIframes = _getExtentXrIframes(landXrIframe);
-        const assetXrIframes = extentXrIframes.map(extentXrIframe => _getChildXrIframes(extentXrIframe)).flat();
+        const extentXrIframes = _getUnownedXrIframes(landXrIframe);
+        const assetXrIframes = extentXrIframes.map(extentXrIframe => _getUnownedXrIframes(extentXrIframe)).flat();
 
         const stateXrSite = state.childNodes.find(node => node.tagName === 'xr-site');
         const stateXrIframes = stateXrSite ? stateXrSite.childNodes.filter(node => node.tagName === 'xr-iframe') : [];
