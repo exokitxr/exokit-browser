@@ -3630,6 +3630,7 @@ const _connectLand = async () => {
   if (!landState) {
     let live = true;
     landState = {
+      loaded: false,
       disconnect() {
         live = false;
       },
@@ -4286,9 +4287,32 @@ const _makeScreenMesh = () => {
 
       _rtcConnect('land', loginToken.name, 'land', async state => {
         await p;
-        const xrSite = state.childNodes.find(childNode => childNode.nodeName === 'xr-site');
-        const xrIframes = xrSite.childNodes.filter(childNode => childNode.nodeName === 'xr-iframe');
-        console.log('got land xr iframes', state, xrIframes);
+
+        const landXrIframe = root.childNodes[0];
+        const extentXrIframes = _getChildXrIframes(landXrIframe);
+        const assetXrIframes = extentXrIframes.map(extentXrIframe => _getChildXrIframes(extentXrIframe)).flat();
+
+        const stateXrSite = state.childNodes.find(node => node.tagName === 'xr-site');
+        const stateXrIframes = stateXrSite ? stateXrSite.childNodes.filter(node => node.tagName === 'xr-iframe') : [];
+        for (let i = 0; i < stateXrIframes.length; i++) {
+          const stateXrIframe = stateXrIframes[i];
+          if (stateXrIframe.attrs) {
+            const idAttr = stateXrIframe.attrs.find(attr => attr.name === 'id');
+            if (idAttr) {
+              const id = idAttr.value;
+              const xrIframe = assetXrIframes.find(xrIframe => xrIframe.id === id);
+              console.log('set attrs', xrIframe, stateXrIframe.attrs);
+              if (xrIframe) {
+                for (let j = 0; j < stateXrIframe.attrs.length; j++) {
+                  const attr = stateXrIframe.attrs[j];
+                  const {name, value} = attr;
+                  xrIframe.setAttribute(name, value);
+                }
+              }
+            }
+          }
+        }
+        landState.loaded = true;
       });
 
       const p = _connectLand();
@@ -5751,6 +5775,34 @@ function animate(time, frame) {
             },
           }));
         }
+      }
+    }
+
+    if (rtcWs && landState && landState.loaded) {
+      for (let i = 0; i < assetMeshes.length; i++) {
+        const moveMesh = assetMeshes[i];
+        const {xrIframe} = moveMesh;
+        rtcWs.send(JSON.stringify({
+          method: 'editState',
+          spec: {
+            keyPath: [0, '#' + xrIframe.id],
+            method: 'setAttributes',
+            values: [
+              {
+                key: 'position',
+                value: xrIframe.getAttribute('position'),
+              },
+              {
+                key: 'orientation',
+                value: xrIframe.getAttribute('orientation'),
+              },
+              {
+                key: 'data',
+                value: xrIframe.getAttribute('data'),
+              },
+            ],
+          },
+        }));
       }
     }
   };
