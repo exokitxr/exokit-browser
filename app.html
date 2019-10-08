@@ -618,17 +618,6 @@ const _rtcConnect = (type, userName, channelName, onInitState) => {
     } else if (method === 'initState') {
       const {state} = data;
       onInitState(state);
-      /* rtcWs.dispatchEvent(new CustomEvent('initState', {
-        detail: {
-          state,
-        },
-      })); */
-      /* const htmlString = parse5.serialize(state);
-      if (type === 'channel') {
-        root.setHTML(htmlString);
-      } else {
-        console.log('load channel', state, htmlString);
-      } */
     } else if (method === 'editState') {
       _applyEditState(data.spec);
     }
