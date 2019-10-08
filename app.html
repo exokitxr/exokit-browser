@@ -342,6 +342,7 @@ const _makePeerConnection = peerConnectionId => {
 
   let skinMesh = null;
   const sendChannel = peerConnection.createDataChannel('sendChannel');
+  peerConnection.sendChannel = sendChannel;
   let pingInterval = 0;
   let updateInterval = 0;
   sendChannel.onopen = () => {
@@ -432,6 +433,7 @@ const _makePeerConnection = peerConnectionId => {
 
       _kick();
     };
+    peerConnection.recvChannel = channel;
   };
   peerConnection.close = (close => function() {
     _cleanup();
