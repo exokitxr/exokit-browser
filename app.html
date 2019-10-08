@@ -366,7 +366,8 @@ const _makePeerConnection = peerConnectionId => {
 
       const landXrIframe = root.childNodes[0];
       const ownedXrIframes = _getOwnedXrIframes(landXrIframe);
-      const state = parse5.parseFragment(`<xr-site>${ownedXrIframes.map(xrIframe => xrIframe.outerHTML).join('')}</xr-site>`);
+      let state = parse5.parseFragment(`<xr-site>${ownedXrIframes.map(xrIframe => xrIframe.outerHTML).join('')}</xr-site>`);
+      state = _normalizeEl(state);
       sendChannel.send(JSON.stringify({
         method: 'initState',
         state,
