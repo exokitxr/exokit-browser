@@ -642,7 +642,7 @@ const _rtcConnect = (type, userName, channelName, onInitState) => {
   };
   rtcWs.pushAssets = () => {
     const landXrIframe = root.childNodes[0];
-    const extentXrIframes = _getChildXrIframes(landXrIframe);
+    const extentXrIframes = _getExtentXrIframes(landXrIframe);
     const assetXrIframes = extentXrIframes.map(extentXrIframe => _getChildXrIframes(extentXrIframe)).flat();
     const html = `<xr-site>\n${assetXrIframes.filter(xrIframe => !!xrIframe.id).map(xrIframe => '  ' + xrIframe.outerHTML).join('\n')}\n</xr-site>\n`;
     rtcWs.send(JSON.stringify({
@@ -3629,6 +3629,8 @@ let inventory = [];
 const rects = [];
 const covers = [];
 const _getChildXrIframes = xrIframe => Array.from(xrIframe.contentWindow.iframe.contentDocument.querySelectorAll('xr-iframe'));
+const _getExtentXrIframes = xrIframe => _getChildXrIframes(xrIframe).filter(xrIframe => !/^owned:/.test(xrIframe.id);
+const _getOwnedXrIframes = xrIframe => _getChildXrIframes(xrIframe).filter(xrIframe => /^owned:/.test(xrIframe.id);
 const _connectLand = async () => {
   if (!landState) {
     let live = true;
@@ -3648,7 +3650,7 @@ const _connectLand = async () => {
       xrIframe.addEventListener('error', reject);
     });
     if (!live) return;
-    const xrIframes = _getChildXrIframes(xrIframe);
+    const xrIframes = _getExtentXrIframes(xrIframe);
 
     const _loadInventory = () => {
       fetch(`${LAMBDA_URLS.inventory}?email=${encodeURIComponent(loginToken.email)}&token=${encodeURIComponent(loginToken.token)}`)
@@ -4291,8 +4293,10 @@ const _makeScreenMesh = () => {
       _rtcConnect('land', loginToken.name, 'land', async state => {
         await p;
 
+        // emit extent's id'd xr-iframes
+
         const landXrIframe = root.childNodes[0];
-        const extentXrIframes = _getChildXrIframes(landXrIframe);
+        const extentXrIframes = _getExtentXrIframes(landXrIframe);
         const assetXrIframes = extentXrIframes.map(extentXrIframe => _getChildXrIframes(extentXrIframe)).flat();
 
         const stateXrSite = state.childNodes.find(node => node.tagName === 'xr-site');
@@ -4328,7 +4332,7 @@ const _makeScreenMesh = () => {
       xrIframe.src = href;
       xrIframe.name = name;
       if (landState) {
-        xrIframe.id = `${connectionId}-${_randomString()}`;
+        xrIframe.id = `owned:${connectionId}-${_randomString()}`;
       }
       root.appendChild(xrIframe);
       root.update(); // force mutation observer to run
