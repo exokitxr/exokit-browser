@@ -486,6 +486,22 @@ const _makePeerConnection = peerConnectionId => {
       skinMeshes.splice(skinMeshes.indexOf(skinMesh), 1);
       skinMesh = null;
     }
+    if (landState) {
+      // remove owned xr-iframes
+
+      const landXrIframe = root.childNodes[0];
+      const ownedXrIframes = _getOwnedXrIframes(landXrIframe);
+      for (let i = 0; i < ownedXrIframes.length; i++) {
+        const ownedXrIframe = ownedXrIframes[i];
+        const match = ownedXrIframe.match(/^owned:(.*?)-/);
+        if (match) {
+          const ownerId = match[1];
+          if (ownerId === peerConnectionId) {
+            ownedXrIframe.parentNode.removeChild(ownedXrIframe);
+          }
+        }
+      }
+    }
   };
   peerConnection.connectionId = peerConnectionId;
   peerConnection.open = false;
