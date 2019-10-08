@@ -1663,14 +1663,22 @@ const _bindEventTarget = target => {
 
                     if (rtcWs) {
                       const index = _getChildNodeIndex(xrIframe);
-                      rtcWs.send(JSON.stringify({
+                      const m = {
                         method: 'editState',
                         spec: {
                           keyPath: [0],
                           method: 'removeChild',
-                          key: index,
+                          key: landState ? ('#' + xrIframe.id) : index,
                         },
-                      }));
+                      };
+                      if (landState) {
+                        for (let i = 0; i < peerConnections.length; i++) {
+                          const peerConnection = peerConnections[i];
+                          peerConnection.sendChannel && peerConnection.sendChannel.send(JSON.stringify(m));
+                        }
+                      } else {
+                        rtcWs.send(JSON.stringify(m));
+                      }
                     }
 
                     root.removeChild(xrIframe);
@@ -4330,20 +4338,31 @@ const _makeScreenMesh = () => {
       const xrIframe = document.createElement('xr-iframe');
       xrIframe.src = href;
       xrIframe.name = name;
+      if (landState) {
+        xrIframe.id = `${connectionId}-${_randomString()}`;
+      }
       root.appendChild(xrIframe);
       root.update(); // force mutation observer to run
 
       currentMoveMeshes[controllerIndex] = xrIframe.moveMesh;
 
       if (rtcWs) {
-        rtcWs.send(JSON.stringify({
+        const m = {
           method: 'editState',
           spec: {
             keyPath: [0],
             method: 'appendChild',
             value: xrIframe.outerHTML,
           },
-        }));
+        };
+        if (landState) {
+          for (let i = 0; i < peerConnections.length; i++) {
+            const peerConnection = peerConnections[i];
+            peerConnection.sendChannel && peerConnection.sendChannel.send(JSON.stringify(m));
+          }
+        } else {
+          rtcWs.send(JSON.stringify(m));
+        }
       }
     /* } else if (id && (match = id.match(/^playlist:(.+)$/))) {
       console.log('click playlist', match[1]); // XXX */
@@ -5762,11 +5781,12 @@ function animate(time, frame) {
         moveMesh.xrIframe.orientation = localQuaternion.toArray();
 
         if (rtcWs) {
-          const index = _getChildNodeIndex(moveMesh.xrIframe);
-          rtcWs.send(JSON.stringify({
+          const {xrIframe} = moveMesh;
+          const index = _getChildNodeIndex(xrIframe);
+          const m = {
             method: 'editState',
             spec: {
-              keyPath: [0, index],
+              keyPath: landState ? [0, '#' + xrIframe.id] : [0, index],
               method: 'setAttributes',
               values: [
                 {
@@ -5779,7 +5799,15 @@ function animate(time, frame) {
                 },
               ],
             },
-          }));
+          };
+          if (landState) {
+            for (let i = 0; i < peerConnections.length; i++) {
+              const peerConnection = peerConnections[i];
+              peerConnection.sendChannel && peerConnection.sendChannel.send(JSON.stringify(m));
+            }
+          } else {
+            rtcWs.send(JSON.stringify(m));
+          }
         }
       }
     }
@@ -6227,14 +6255,22 @@ function animate(time, frame) {
 
               if (rtcWs) {
                 const index = _getChildNodeIndex(xrIframe);
-                rtcWs.send(JSON.stringify({
+                const m = {
                   method: 'editState',
                   spec: {
                     keyPath: [0],
                     method: 'removeChild',
-                    key: index,
+                    key: landState ? ('#' + xrIframe.id) : index,
                   },
-                }));
+                };
+                if (landState) {
+                  for (let i = 0; i < peerConnections.length; i++) {
+                    const peerConnection = peerConnections[i];
+                    peerConnection.sendChannel && peerConnection.sendChannel.send(JSON.stringify(m));
+                  }
+                } else {
+                  rtcWs.send(JSON.stringify(m));
+                }
               }
 
               root.removeChild(xrIframe);
