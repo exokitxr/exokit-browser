@@ -354,6 +354,18 @@ const _makePeerConnection = peerConnectionId => {
 
     peerConnection.open = true;
 
+    if (landState) {
+      // emit owned xr-iframes
+
+      const landXrIframe = root.childNodes[0];
+      const ownedXrIframes = _getOwnedXrIframes(landXrIframe);
+      const state = parse5.parseFragment(`<xr-site>${ownedXrIframes.map(xrIframe => xrIframe.outerHTML).join('')}</xr-site>`);
+      sendChannel.send(JSON.stringify({
+        method: 'initState',
+        state,
+      }));
+    }
+
     pingInterval = setInterval(() => {
       sendChannel.send(JSON.stringify({
         method: 'ping',
@@ -425,7 +437,18 @@ const _makePeerConnection = peerConnectionId => {
           const {hmd, gamepads} = data;
           skinMesh.setState(hmd, gamepads);
         }
-      } else if (method === 'editState') {
+      } else if (landState && method === 'initState') {
+        const {state} = data;
+        const stateXrSite = state.childNodes.find(node => node.tagName === 'xr-site');
+        const stateXrIframes = stateXrSite ? stateXrSite.childNodes.filter(node => node.tagName === 'xr-iframe') : [];
+
+        for (let i = 0; i < stateXrIframes.length; i++) {
+          const xrIframe = document.createElement('xr-iframe');
+          root.appendChild(xrIframe);
+          const htmlString = parse5.serialize(state);
+          xrIframe.outerHTML = htmlString;
+        }
+      } else if (landState && method === 'editState') {
         _applyEditState(data.spec);
       } else if (method === 'ping') {
         // nothing
