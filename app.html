@@ -648,8 +648,7 @@ const _rtcConnect = (type, userName, channelName, onInitState) => {
   rtcWs.pushAssets = () => {
     const landXrIframe = root.childNodes[0];
     const extentXrIframes = _getChildXrIframes(landXrIframe);
-    let assetXrIframes = extentXrIframes.map(extentXrIframe => _getChildXrIframes(extentXrIframe));
-    assetXrIframes = assetXrIframes.flat();
+    const assetXrIframes = extentXrIframes.map(extentXrIframe => _getChildXrIframes(extentXrIframe)).flat();
     const html = `<xr-site>\n${assetXrIframes.filter(xrIframe => !!xrIframe.id).map(xrIframe => '  ' + xrIframe.outerHTML).join('\n')}\n</xr-site>\n`;
     rtcWs.send(JSON.stringify({
       method: 'setInitialHtml',
