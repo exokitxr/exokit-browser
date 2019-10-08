@@ -142,7 +142,25 @@ function _findElByKeyPath(el, keyPath) {
       el = el.childNodes[key] || null;
     } else if (typeof key === 'string' && (match = key.match(/^#(.+)$/))) {
       const id = match[1];
-      el = el.childNodes.find(childEl => Array.prototype.some.call(childEl.attributes, attr => attr.name === 'id' && attr.value === id)) || null;
+      const matchEl = Array.from(el.childNodes).find(childEl => childEl.id === id) || null;
+      if (matchEl) {
+        el = matchEl;
+      } else {
+        const _findRecursive = el => {
+          const xrIframes = el.querySelectorAll('xr-iframe');
+          for (let i = 0; i < xrIframes.length; i++) {
+            const xrIframe = xrIframes[i];
+            if (xrIframe.id === id) {
+              return xrIframe;
+            } else if (xrIframe.loaded) {
+              return _findRecursive(xrIframe.contentWindow.iframe.contentDocument);
+            } else {
+              return null;
+            }
+          }
+        };
+        return _findRecursive(el);
+      }
     } else {
       el = null;
     }
