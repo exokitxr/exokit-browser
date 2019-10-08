@@ -5820,11 +5820,15 @@ function animate(time, frame) {
               values: [
                 {
                   key: 'position',
-                  value: moveMesh.xrIframe.getAttribute('position'),
+                  value: xrIframe.getAttribute('position'),
                 },
                 {
                   key: 'orientation',
-                  value: moveMesh.xrIframe.getAttribute('orientation'),
+                  value: xrIframe.getAttribute('orientation'),
+                },
+                {
+                  key: 'data',
+                  value: xrIframe.getAttribute('data'),
                 },
               ],
             },
