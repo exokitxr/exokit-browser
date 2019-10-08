@@ -425,6 +425,8 @@ const _makePeerConnection = peerConnectionId => {
           const {hmd, gamepads} = data;
           skinMesh.setState(hmd, gamepads);
         }
+      } else if (method === 'editState') {
+        _applyEditState(data.spec);
       } else if (method === 'ping') {
         // nothing
       } else {
