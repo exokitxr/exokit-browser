@@ -3668,8 +3668,8 @@ let inventory = [];
 const rects = [];
 const covers = [];
 const _getChildXrIframes = xrIframe => Array.from(xrIframe.contentWindow.iframe.contentDocument.querySelectorAll('xr-iframe'));
-const _getExtentXrIframes = xrIframe => _getChildXrIframes(xrIframe).filter(xrIframe => !/^owned:/.test(xrIframe.id);
-const _getOwnedXrIframes = xrIframe => _getChildXrIframes(xrIframe).filter(xrIframe => /^owned:/.test(xrIframe.id);
+const _getExtentXrIframes = xrIframe => _getChildXrIframes(xrIframe).filter(xrIframe => !/^owned:/.test(xrIframe.id));
+const _getOwnedXrIframes = xrIframe => _getChildXrIframes(xrIframe).filter(xrIframe => /^owned:/.test(xrIframe.id));
 const _connectLand = async () => {
   if (!landState) {
     let live = true;
