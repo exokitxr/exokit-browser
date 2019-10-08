@@ -467,6 +467,42 @@ const _makePeerConnection = peerConnectionId => {
 
   return peerConnection;
 };
+const _applyEditState = spec => {
+  const {method, keyPath, key, value, values} = spec;
+  const el = _findElByKeyPath(root, keyPath.slice(1));
+  if (el) {
+    switch (method) {
+      case 'setAttributes': {
+        for (let i = 0; i < values.length; i++) {
+          const {key, value} = values[i];
+          el.setAttribute(key, value);
+        }
+        break;
+      }
+      case 'setAttribute': {
+        el.setAttribute(key, value);
+        break;
+      }
+      case 'removeAttribute': {
+        el.removeAttribute(key);
+        break;
+      }
+      case 'appendChild': {
+        const childNode = el.childNodes[key];
+        const newNode = _parseHtml(value);
+        el.insertBefore(newNode, childNode);
+        break;
+      }
+      case 'removeChild': {
+        const childNode = el.childNodes[key];
+        el.removeChild(childNode);
+        break;
+      }
+    }
+  } else {
+    console.warn('could not find element for key path', keyPath);
+  }
+};
 
 let rtcWs = null;
 const connectionId = _randomString();
@@ -592,41 +628,7 @@ const _rtcConnect = (type, userName, channelName, onInitState) => {
         console.log('load channel', state, htmlString);
       } */
     } else if (method === 'editState') {
-      const {spec} = data;
-      const {method, keyPath, key, value, values} = spec;
-      const el = _findElByKeyPath(root, keyPath.slice(1));
-      if (el) {
-        switch (method) {
-          case 'setAttributes': {
-            for (let i = 0; i < values.length; i++) {
-              const {key, value} = values[i];
-              el.setAttribute(key, value);
-            }
-            break;
-          }
-          case 'setAttribute': {
-            el.setAttribute(key, value);
-            break;
-          }
-          case 'removeAttribute': {
-            el.removeAttribute(key);
-            break;
-          }
-          case 'appendChild': {
-            const childNode = el.childNodes[key];
-            const newNode = _parseHtml(value);
-            el.insertBefore(newNode, childNode);
-            break;
-          }
-          case 'removeChild': {
-            const childNode = el.childNodes[key];
-            el.removeChild(childNode);
-            break;
-          }
-        }
-      } else {
-        console.warn('could not find element for key path', keyPath);
-      }
+      _applyEditState(data.spec);
     }
   };
   rtcWs.onclose = () => {
