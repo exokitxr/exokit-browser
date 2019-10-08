@@ -3840,11 +3840,9 @@ const _connectLand = async () => {
               moveMesh.quaternion.fromArray(assetXrIframe.worldOffset.orientation);
             } else if (attributeName === 'scale') {
               moveMesh.scale.fromArray(assetXrIframe.worldOffset.scale);
-            } else if (attributeName === 'data') {
+            } /* else if (attributeName === 'data') {
               const value = assetXrIframe.getAttribute('data');
-              console.log('got data', value);
-              // moveMesh.scale.fromArray(assetXrIframe.worldOffset.scale);
-            }
+            } */
           }
         }).observe(assetXrIframe, {
           attributeFilter: ['position', 'orientation', 'scale', 'data'],
