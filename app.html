@@ -17,6 +17,8 @@
     <!-- <script src="sprite3d.js"></script> -->
     <script src="land.js"></script>
     <!-- <script src="skin.js"></script> -->
+    <script type=module src='./proto/IKRiggedModel.js'></script>
+    <script type=module src='./proto/model.patches.js'></script>
     <script src="three-ik.js"></script>
     <script src="parse5.js"></script>
     <script src="html-beautify.js"></script>
@@ -25,9 +27,9 @@
   </head>
   <body>
     <xr-site></xr-site>
-    <script type=module>
-import RiggedModel from './avatar/proto/IKRiggedModel.js';
-import './avatar/proto/model.patches.js';
+    <script>
+// import RiggedModel from './avatar/proto/IKRiggedModel.js';
+// import './avatar/proto/model.patches.js';
 
 (async () => {
 
@@ -40,6 +42,7 @@ const colors = {
   default: 0x42a5f5,
   highlight: 0x9ccc65,
 };
+const clock = new THREE.Clock();
 const _rewriteUrlToRaw = u => {
   const o = new URL(u);
   const match = o.host.match(/^(.+)\.proxy\.exokit\.org$/);
@@ -506,7 +509,25 @@ const _makePeerConnection = peerConnectionId => {
       if (method === 'pose') {
         if (avatarMesh && avatarMesh.riggedModel) {
           const {hmd, gamepads} = data;
-          avatarMesh.riggedModel.setState(hmd, gamepads);
+
+          // this.avatarMesh.position.fromArray(hmd.position).sub(localVector.set(0, 1.5, 0));
+
+          avatarMesh.riggedModel.targets.Head.position.fromArray(hmd.position);
+          avatarMesh.riggedModel.targets.Head.quaternion.fromArray(hmd.quaternion);
+
+          const [leftGamepad, rightGamepad] = gamepads;
+          avatarMesh.riggedModel.targets.LeftHand.position.fromArray(leftGamepad.position);
+          avatarMesh.riggedModel.targets.LeftHand.quaternion.fromArray(leftGamepad.quaternion);
+          avatarMesh.riggedModel.targets.RightHand.position.fromArray(rightGamepad.position);
+          avatarMesh.riggedModel.targets.RightHand.quaternion.fromArray(rightGamepad.quaternion);
+
+          /* localQuaternion.fromArray(hmd.quaternion);
+          localEuler.setFromQuaternion(localQuaternion, localEuler.order);
+          localEuler.y += Math.PI;
+          localEuler.x *= -1;
+          this.avatarMesh.quaternion.setFromEuler(localEuler);
+
+          avatarMesh.riggedModel.setState(hmd, gamepads); */
         }
       } else if (landState && method === 'initState') {
         const {state} = data;
@@ -6143,11 +6164,11 @@ function animate(time, frame) {
   const _updateAvatarMeshes = () => {
     for (let i = 0; i < avatarMeshes.length; i++) {
       const avatarMesh = avatarMeshes[i];
-      avatarMesh.riggedModel && avatarMesh.riggedModel.update();
-      /* const timeDelta = clock.getDelta() * 1000;
+      // avatarMesh.riggedModel && avatarMesh.riggedModel.update();
+      const timeDelta = clock.getDelta() * 1000;
       const time = clock.elapsedTime * 1000;
       avatarMesh.riggedModel && avatarMesh.riggedModel.tick(time, timeDelta);
-      avatarMesh.riggedModel && avatarMesh.riggedModel.fallback(avatarMesh.riggedModel.targets, time, timeDelta); */
+      // avatarMesh.riggedModel && avatarMesh.riggedModel.fallback(avatarMesh.riggedModel.targets, time, timeDelta);
     }
   };
   _updateAvatarMeshes();
