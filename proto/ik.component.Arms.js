@@ -4,6 +4,11 @@ const VERSION = '0.0.0';
 import { Component, AutoIKComponent } from './ik.component.js';
 import { AutoIKChain, walkBoneChain } from './AutoIKChain.js';
 
+const quaternionZ180 = new THREE.Quaternion().setFromUnitVectors(
+  new THREE.Vector3(0, 1, 0),
+  new THREE.Vector3(0, -1, 0)
+);
+
 class Arm extends AutoIKComponent {
   static get version() { return VERSION; }
   constructor(rig, options) {
@@ -14,6 +19,14 @@ class Arm extends AutoIKComponent {
     // this.boneChain = walkBoneChain(this.from, this.to);
     // if (!this.boneChain.valid) throw new Error('invalid Arm bone chain: '+ [options.from, options.to]);
     // this.ik = new AutoIKChain(this.boneChain.lineage, this.target, this.options);
+    this.ik.syncTail = () => this.syncTail();
+  }
+  syncTail() {
+    const { tail, target } = this.ik;
+    if (!target) throw new Error('!target '+ tail.name);
+    tail.parent.updateMatrixWorld(true);
+    tail.quaternion.copy(getRelativeRotation(target, tail.parent)).multiply(quaternionZ180)//this._armatureRelative(target).quaternion);//));
+    tail.updateMatrixWorld(true);
   }
   // preSolve(time, deltaTime) {
   //     this.ik.tick(time, deltaTime);
