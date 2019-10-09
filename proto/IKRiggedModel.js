@@ -16,7 +16,7 @@ class LegacyRiggedModel extends RiggedModel {
   }
 };
 try {
-  const LEGACYMODE = /riggedmodeltest/.test(location.href);
+  const LEGACYMODE = true; // /riggedmodeltest/.test(location.href);
   if (LEGACYMODE) Object.assign(self, { RiggedModel: LegacyRiggedModel });
 } catch(e) {}
 //////TOREMOVE
