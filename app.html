@@ -3999,7 +3999,7 @@ const _makeScreenMesh = () => {
   const _updateTextureDynamic = async () => {
     for (let i = 0; i < channels.length; i++) {
       const channel = channels[i];
-      channel.selected = !!rtcWs && rtcWs.userName === channel.user && rtcWs.channelName === channel.channel;
+      channel.selected = !!rtcWs && rtcWs.userName === channel.user && rtcWs.channelName.replace(/^.+?\//, '') === channel.channel;
     }
     const t = text.toLowerCase();
     const localChannels = t ?
