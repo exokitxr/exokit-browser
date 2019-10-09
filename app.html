@@ -4390,6 +4390,7 @@ const _makeScreenMesh = () => {
       }
       mesh.setText(`${userName}/${channelName}`);
     } else if (id === 'channel-global') {
+      _disconnectLand();
       _rtcDisconnect();
       root.innerHTML = '';
 
