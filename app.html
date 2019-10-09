@@ -17,7 +17,7 @@
     <!-- <script src="sprite3d.js"></script> -->
     <script src="land.js"></script>
     <!-- <script src="skin.js"></script> -->
-    <script type=module src='./proto/IKRiggedModel.js'></script>
+    <script type=module src='./proto/RiggedModel.js'></script>
     <script type=module src='./proto/model.patches.js'></script>
     <script src="three-ik.js"></script>
     <script src="parse5.js"></script>
@@ -420,6 +420,7 @@ const _makePeerConnection = peerConnectionId => {
           zForward: true,
           group,
         };
+        Object.assign(o, resource);
         avatarMesh.riggedModel = new RiggedModel(model, o);
         // avatarMesh.riggedModel.rebind(o.group);
 
