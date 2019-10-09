@@ -142,7 +142,25 @@ function _findElByKeyPath(el, keyPath) {
       el = el.childNodes[key] || null;
     } else if (typeof key === 'string' && (match = key.match(/^#(.+)$/))) {
       const id = match[1];
-      el = el.childNodes.find(childEl => Array.prototype.some.call(childEl.attributes, attr => attr.name === 'id' && attr.value === id)) || null;
+      const matchEl = Array.from(el.childNodes).find(childEl => childEl.id === id) || null;
+      if (matchEl) {
+        el = matchEl;
+      } else {
+        const _findRecursive = el => {
+          const xrIframes = el.querySelectorAll('xr-iframe');
+          for (let i = 0; i < xrIframes.length; i++) {
+            const xrIframe = xrIframes[i];
+            if (xrIframe.id === id) {
+              return xrIframe;
+            } else if (xrIframe.loaded) {
+              return _findRecursive(xrIframe.contentWindow.iframe.contentDocument);
+            } else {
+              return null;
+            }
+          }
+        };
+        return _findRecursive(el);
+      }
     } else {
       el = null;
     }
@@ -295,6 +313,13 @@ const _makeNullPromise = () => {
   result.reject = reject;
   return result;
 };
+const _normalizeEl = el => ({
+  nodeName: el.nodeName,
+  tagName: el.tagName,
+  attrs: el.attrs,
+  value: el.value,
+  childNodes: el.childNodes ? el.childNodes.map(childEl => _normalizeEl(childEl)) : [],
+});
 
 const loginPromise = _makeNullPromise();
 let loginToken;
@@ -342,6 +367,7 @@ const _makePeerConnection = peerConnectionId => {
 
   let skinMesh = null;
   const sendChannel = peerConnection.createDataChannel('sendChannel');
+  peerConnection.sendChannel = sendChannel;
   let pingInterval = 0;
   let updateInterval = 0;
   sendChannel.onopen = () => {
@@ -352,6 +378,19 @@ const _makePeerConnection = peerConnectionId => {
     skinMeshes.push(skinMesh);
 
     peerConnection.open = true;
+
+    if (landState) {
+      // emit owned xr-iframes
+
+      const landXrIframe = root.childNodes[0];
+      const ownedXrIframes = _getOwnedXrIframes(landXrIframe);
+      let state = parse5.parseFragment(`<xr-site>${ownedXrIframes.map(xrIframe => xrIframe.outerHTML).join('')}</xr-site>`);
+      state = _normalizeEl(state);
+      sendChannel.send(JSON.stringify({
+        method: 'initState',
+        state,
+      }));
+    }
 
     pingInterval = setInterval(() => {
       sendChannel.send(JSON.stringify({
@@ -424,6 +463,19 @@ const _makePeerConnection = peerConnectionId => {
           const {hmd, gamepads} = data;
           skinMesh.setState(hmd, gamepads);
         }
+      } else if (landState && method === 'initState') {
+        const {state} = data;
+        const stateXrSite = state.childNodes.find(node => node.tagName === 'xr-site');
+        const stateXrIframes = stateXrSite ? stateXrSite.childNodes.filter(node => node.tagName === 'xr-iframe') : [];
+
+        for (let i = 0; i < stateXrIframes.length; i++) {
+          const xrIframe = document.createElement('xr-iframe');
+          root.appendChild(xrIframe);
+          const htmlString = parse5.serialize(state);
+          xrIframe.outerHTML = htmlString;
+        }
+      } else if (landState && method === 'editState') {
+        _applyEditState(data.spec);
       } else if (method === 'ping') {
         // nothing
       } else {
@@ -432,6 +484,7 @@ const _makePeerConnection = peerConnectionId => {
 
       _kick();
     };
+    peerConnection.recvChannel = channel;
   };
   peerConnection.close = (close => function() {
     _cleanup();
@@ -459,11 +512,73 @@ const _makePeerConnection = peerConnectionId => {
       skinMeshes.splice(skinMeshes.indexOf(skinMesh), 1);
       skinMesh = null;
     }
+    if (landState) {
+      // remove owned xr-iframes
+
+      const ownedXrIframes = Array.from(root.querySelectorAll('xr-iframe')).filter(xrIframe => /^owned:/.test(xrIframe.id));
+      for (let i = 0; i < ownedXrIframes.length; i++) {
+        const ownedXrIframe = ownedXrIframes[i];
+        const match = ownedXrIframe.id.match(/^owned:(.*?)-/);
+        if (match) {
+          const ownerId = match[1];
+          if (ownerId === peerConnectionId) {
+            ownedXrIframe.parentNode.removeChild(ownedXrIframe);
+          }
+        }
+      }
+    }
   };
   peerConnection.connectionId = peerConnectionId;
   peerConnection.open = false;
 
   return peerConnection;
+};
+const _applyEditState = spec => {
+  const {method, keyPath, key, value, values} = spec;
+  const el = _findElByKeyPath(root, keyPath.slice(1));
+  if (el) {
+    switch (method) {
+      case 'setAttributes': {
+        for (let i = 0; i < values.length; i++) {
+          const {key, value} = values[i];
+          (el.setAttributeRaw || el.setAttribute).call(el, key, value);
+        }
+        break;
+      }
+      case 'setAttribute': {
+        (el.setAttributeRaw || el.setAttribute).call(el, key, value);
+        break;
+      }
+      case 'removeAttribute': {
+        el.removeAttribute(key);
+        break;
+      }
+      case 'appendChild': {
+        const childNode = el.childNodes[key];
+        const newNode = _parseHtml(value);
+        el.insertBefore(newNode, childNode);
+        break;
+      }
+      case 'removeChild': {
+        let match, childNode;
+        if (typeof key === 'number' && key < el.childNodes.length) {
+          childNode = el.childNodes[key];
+          el.removeChild(childNode);
+        } else if (
+          typeof key === 'string' &&
+          (match = key.match(/^#(.+)$/)) &&
+          (childNode = Array.from(el.childNodes).find(node => node.id === match[1]))
+        ) {
+          el.removeChild(childNode);
+        } else {
+          console.warn('remove missing child', keyPath, key);
+        }
+        break;
+      }
+    }
+  } else {
+    console.warn('could not find element for key path', keyPath);
+  }
 };
 
 let rtcWs = null;
@@ -578,53 +693,8 @@ const _rtcConnect = (type, userName, channelName, onInitState) => {
     } else if (method === 'initState') {
       const {state} = data;
       onInitState(state);
-      /* rtcWs.dispatchEvent(new CustomEvent('initState', {
-        detail: {
-          state,
-        },
-      })); */
-      /* const htmlString = parse5.serialize(state);
-      if (type === 'channel') {
-        root.setHTML(htmlString);
-      } else {
-        console.log('load channel', state, htmlString);
-      } */
     } else if (method === 'editState') {
-      const {spec} = data;
-      const {method, keyPath, key, value, values} = spec;
-      const el = _findElByKeyPath(root, keyPath.slice(1));
-      if (el) {
-        switch (method) {
-          case 'setAttributes': {
-            for (let i = 0; i < values.length; i++) {
-              const {key, value} = values[i];
-              el.setAttribute(key, value);
-            }
-            break;
-          }
-          case 'setAttribute': {
-            el.setAttribute(key, value);
-            break;
-          }
-          case 'removeAttribute': {
-            el.removeAttribute(key);
-            break;
-          }
-          case 'appendChild': {
-            const childNode = el.childNodes[key];
-            const newNode = _parseHtml(value);
-            el.insertBefore(newNode, childNode);
-            break;
-          }
-          case 'removeChild': {
-            const childNode = el.childNodes[key];
-            el.removeChild(childNode);
-            break;
-          }
-        }
-      } else {
-        console.warn('could not find element for key path', keyPath);
-      }
+      _applyEditState(data.spec);
     }
   };
   rtcWs.onclose = () => {
@@ -647,8 +717,8 @@ const _rtcConnect = (type, userName, channelName, onInitState) => {
   };
   rtcWs.pushAssets = () => {
     const landXrIframe = root.childNodes[0];
-    const extentXrIframes = _getChildXrIframes(landXrIframe);
-    const assetXrIframes = extentXrIframes.map(extentXrIframe => _getChildXrIframes(extentXrIframe)).flat();
+    const extentXrIframes = _getUnownedXrIframes(landXrIframe);
+    const assetXrIframes = extentXrIframes.map(extentXrIframe => _getUnownedXrIframes(extentXrIframe)).flat();
     const html = `<xr-site>\n${assetXrIframes.filter(xrIframe => !!xrIframe.id).map(xrIframe => '  ' + xrIframe.outerHTML).join('\n')}\n</xr-site>\n`;
     rtcWs.send(JSON.stringify({
       method: 'setInitialHtml',
@@ -1657,14 +1727,22 @@ const _bindEventTarget = target => {
 
                     if (rtcWs) {
                       const index = _getChildNodeIndex(xrIframe);
-                      rtcWs.send(JSON.stringify({
+                      const m = {
                         method: 'editState',
                         spec: {
                           keyPath: [0],
                           method: 'removeChild',
-                          key: index,
+                          key: landState ? ('#' + xrIframe.id) : index,
                         },
-                      }));
+                      };
+                      if (landState) {
+                        for (let i = 0; i < peerConnections.length; i++) {
+                          const peerConnection = peerConnections[i];
+                          peerConnection.sendChannel && peerConnection.sendChannel.send(JSON.stringify(m));
+                        }
+                      } else {
+                        rtcWs.send(JSON.stringify(m));
+                      }
                     }
 
                     root.removeChild(xrIframe);
@@ -3626,6 +3704,8 @@ let inventory = [];
 const rects = [];
 const covers = [];
 const _getChildXrIframes = xrIframe => Array.from(xrIframe.contentWindow.iframe.contentDocument.querySelectorAll('xr-iframe'));
+const _getUnownedXrIframes = xrIframe => _getChildXrIframes(xrIframe).filter(xrIframe => !/^owned:/.test(xrIframe.id));
+const _getOwnedXrIframes = xrIframe => _getChildXrIframes(xrIframe).filter(xrIframe => /^owned:/.test(xrIframe.id));
 const _connectLand = async () => {
   if (!landState) {
     let live = true;
@@ -3645,7 +3725,7 @@ const _connectLand = async () => {
       xrIframe.addEventListener('error', reject);
     });
     if (!live) return;
-    const xrIframes = _getChildXrIframes(xrIframe);
+    const xrIframes = _getUnownedXrIframes(xrIframe);
 
     const _loadInventory = () => {
       fetch(`${LAMBDA_URLS.inventory}?email=${encodeURIComponent(loginToken.email)}&token=${encodeURIComponent(loginToken.token)}`)
@@ -3796,19 +3876,47 @@ const _connectLand = async () => {
               moveMesh.quaternion.fromArray(assetXrIframe.worldOffset.orientation);
             } else if (attributeName === 'scale') {
               moveMesh.scale.fromArray(assetXrIframe.worldOffset.scale);
-            } else if (attributeName === 'data') {
+            } /* else if (attributeName === 'data') {
               const value = assetXrIframe.getAttribute('data');
-              console.log('got data', value);
-              // moveMesh.scale.fromArray(assetXrIframe.worldOffset.scale);
-            }
+            } */
           }
         }).observe(assetXrIframe, {
           attributeFilter: ['position', 'orientation', 'scale', 'data'],
           attributes: true,
         });
+
+        assetXrIframe.setAttributeRaw = assetXrIframe.setAttribute;
+        assetXrIframe.setAttribute = (name, value) => {
+          assetXrIframe.setAttributeRaw(name, value);
+
+          if (rtcWs) {
+            rtcWs.send(JSON.stringify({
+              method: 'editState',
+              spec: {
+                keyPath: [0, '#' + assetXrIframe.id],
+                method: 'setAttributes',
+                values: [
+                  {
+                    key: 'position',
+                    value: assetXrIframe.getAttribute('position'),
+                  },
+                  {
+                    key: 'orientation',
+                    value: assetXrIframe.getAttribute('orientation'),
+                  },
+                  {
+                    key: 'data',
+                    value: assetXrIframe.getAttribute('data'),
+                  },
+                ],
+              },
+            }));
+          }
+        };
       }
     })).then(() => {});
     await _loadAssetMoveMeshes();
+    if (!live) return;
   }
 };
 const _disconnectLand = () => {
@@ -4282,15 +4390,18 @@ const _makeScreenMesh = () => {
       }
       mesh.setText(`${userName}/${channelName}`);
     } else if (id === 'channel-global') {
+      _disconnectLand();
       _rtcDisconnect();
       root.innerHTML = '';
 
       _rtcConnect('land', loginToken.name, 'land', async state => {
         await p;
 
+        // emit extent's id'd xr-iframes
+
         const landXrIframe = root.childNodes[0];
-        const extentXrIframes = _getChildXrIframes(landXrIframe);
-        const assetXrIframes = extentXrIframes.map(extentXrIframe => _getChildXrIframes(extentXrIframe)).flat();
+        const extentXrIframes = _getUnownedXrIframes(landXrIframe);
+        const assetXrIframes = extentXrIframes.map(extentXrIframe => _getUnownedXrIframes(extentXrIframe)).flat();
 
         const stateXrSite = state.childNodes.find(node => node.tagName === 'xr-site');
         const stateXrIframes = stateXrSite ? stateXrSite.childNodes.filter(node => node.tagName === 'xr-iframe') : [];
@@ -4300,13 +4411,12 @@ const _makeScreenMesh = () => {
             const idAttr = stateXrIframe.attrs.find(attr => attr.name === 'id');
             if (idAttr) {
               const id = idAttr.value;
-              const xrIframe = assetXrIframes.find(xrIframe => xrIframe.id === id);
-              // console.log('set attrs', xrIframe, stateXrIframe.attrs);
-              if (xrIframe) {
+              const assetXrIframe = assetXrIframes.find(xrIframe => xrIframe.id === id);
+              if (assetXrIframe) {
                 for (let j = 0; j < stateXrIframe.attrs.length; j++) {
                   const attr = stateXrIframe.attrs[j];
                   const {name, value} = attr;
-                  xrIframe.setAttribute(name, value);
+                  assetXrIframe.setAttributeRaw(name, value);
                 }
               }
             }
@@ -4324,20 +4434,31 @@ const _makeScreenMesh = () => {
       const xrIframe = document.createElement('xr-iframe');
       xrIframe.src = href;
       xrIframe.name = name;
+      if (landState) {
+        xrIframe.id = `owned:${connectionId}-${_randomString()}`;
+      }
       root.appendChild(xrIframe);
       root.update(); // force mutation observer to run
 
       currentMoveMeshes[controllerIndex] = xrIframe.moveMesh;
 
       if (rtcWs) {
-        rtcWs.send(JSON.stringify({
+        const m = {
           method: 'editState',
           spec: {
             keyPath: [0],
             method: 'appendChild',
             value: xrIframe.outerHTML,
           },
-        }));
+        };
+        if (landState) {
+          for (let i = 0; i < peerConnections.length; i++) {
+            const peerConnection = peerConnections[i];
+            peerConnection.sendChannel && peerConnection.sendChannel.send(JSON.stringify(m));
+          }
+        } else {
+          rtcWs.send(JSON.stringify(m));
+        }
       }
     /* } else if (id && (match = id.match(/^playlist:(.+)$/))) {
       console.log('click playlist', match[1]); // XXX */
@@ -5756,53 +5877,38 @@ function animate(time, frame) {
         moveMesh.xrIframe.orientation = localQuaternion.toArray();
 
         if (rtcWs) {
-          const index = _getChildNodeIndex(moveMesh.xrIframe);
-          rtcWs.send(JSON.stringify({
+          const {xrIframe} = moveMesh;
+          const index = _getChildNodeIndex(xrIframe);
+          const m = {
             method: 'editState',
             spec: {
-              keyPath: [0, index],
+              keyPath: landState ? [0, '#' + xrIframe.id] : [0, index],
               method: 'setAttributes',
               values: [
                 {
                   key: 'position',
-                  value: moveMesh.xrIframe.getAttribute('position'),
+                  value: xrIframe.getAttribute('position'),
                 },
                 {
                   key: 'orientation',
-                  value: moveMesh.xrIframe.getAttribute('orientation'),
+                  value: xrIframe.getAttribute('orientation'),
+                },
+                {
+                  key: 'data',
+                  value: xrIframe.getAttribute('data'),
                 },
               ],
             },
-          }));
+          };
+          if (landState) {
+            for (let i = 0; i < peerConnections.length; i++) {
+              const peerConnection = peerConnections[i];
+              peerConnection.sendChannel && peerConnection.sendChannel.send(JSON.stringify(m));
+            }
+          } else {
+            rtcWs.send(JSON.stringify(m));
+          }
         }
-      }
-    }
-
-    if (rtcWs && landState && landState.loaded) {
-      for (let i = 0; i < assetMeshes.length; i++) {
-        const moveMesh = assetMeshes[i];
-        const {xrIframe} = moveMesh;
-        rtcWs.send(JSON.stringify({
-          method: 'editState',
-          spec: {
-            keyPath: [0, '#' + xrIframe.id],
-            method: 'setAttributes',
-            values: [
-              {
-                key: 'position',
-                value: xrIframe.getAttribute('position'),
-              },
-              {
-                key: 'orientation',
-                value: xrIframe.getAttribute('orientation'),
-              },
-              {
-                key: 'data',
-                value: xrIframe.getAttribute('data'),
-              },
-            ],
-          },
-        }));
       }
     }
   };
@@ -6221,14 +6327,22 @@ function animate(time, frame) {
 
               if (rtcWs) {
                 const index = _getChildNodeIndex(xrIframe);
-                rtcWs.send(JSON.stringify({
+                const m = {
                   method: 'editState',
                   spec: {
                     keyPath: [0],
                     method: 'removeChild',
-                    key: index,
+                    key: landState ? ('#' + xrIframe.id) : index,
                   },
-                }));
+                };
+                if (landState) {
+                  for (let i = 0; i < peerConnections.length; i++) {
+                    const peerConnection = peerConnections[i];
+                    peerConnection.sendChannel && peerConnection.sendChannel.send(JSON.stringify(m));
+                  }
+                } else {
+                  rtcWs.send(JSON.stringify(m));
+                }
               }
 
               root.removeChild(xrIframe);
