@@ -26,6 +26,9 @@
   <body>
     <xr-site></xr-site>
     <script type=module>
+import RiggedModel from './avatar/proto/IKRiggedModel.js';
+import './avatar/proto/model.patches.js';
+
 (async () => {
 
 let session, display, fakeXrDisplay, lastPresseds = [false, false], lastGripped = [false, false], lastPads = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], menuOpen = false, orbitControls = null, transformControls, currentMoveMeshes = [null, null], moveMeshes = [], assetMeshes = [], moveLabelMeshes = [], assetLabelMeshes = [], nativeLabelMeshes = [], guardianMeshes = [], baseMeshes = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null, user = null;
