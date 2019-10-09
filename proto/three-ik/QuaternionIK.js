@@ -1,4 +1,7 @@
-import { IK, IKChain, IKJoint } from './ephemeral-three-ik.js';
+// QuaternionIK.js [wip] initial plumbing/cloning to add constraint integration points to THREE.IK
+// in terms that maintain better quaternion distributions down joint chains
+
+const { IK, IKChain, IKJoint } = THREE;
 export { QuaternionIKChain, QuaternionIKJoint };
 
 class QuaternionIKChain extends IKChain {

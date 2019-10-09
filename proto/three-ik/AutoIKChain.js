@@ -1,6 +1,6 @@
 // ik.AutoIKChain.js -- extended THREE.IK class supporting automated lineage 
 
-import { IK, IKChain, IKJoint } from './ephemeral-three-ik.js';
+const { IK, IKChain, IKJoint } = THREE;
 import { QuaternionIKChain, QuaternionIKJoint } from './QuaternionIK.js';
 
 class AutoIKChain extends IK {

@@ -1,18 +1,152 @@
 // RiggedModel.js -- extended IK Rig class with SkinnedMesh retargeting support
 
-const VERSION = '0.0.1a';
-console.info('RiggedModel...', VERSION);
+import { fixSkeletonZForward } from './three-ik/modified.AxisUtils.js';
+import { clamp, getRelativeRotation, extractSkeleton, quatFromDegrees } from './utils.js';
+import { BindPoseExtractor, RelativeHelper, SpaceHelper } from './experiments.js';
+import { Armature } from './Armature.js';
+import {
+  Head, Hips, OldFeet, Feet as Feet2, Shoulders, Arms, RigState
+} from './IKComponents.js';
 
-import THREE from './ephemeral-three.js';
-import Rig from './Rig.js';
-import { fixSkeletonZForward } from './modified.AxisUtils.js';
-import { extractSkeleton, quatFromDegrees } from './armature.utils.js';
-import { BindPoseExtractor, RelativeHelper } from './experiments.js';
+console.table && console.table({
+  RigState: RigState.version,
+  Armature: Armature.version,
+  Head: Head.version,
+  Hips: Hips.version,
+  Feet: Feet.version,
+  Shoulders: Shoulders.version,
+  Arms: Arms.version,
+});
 
-//import { IKHingeConstraint, IKBallConstraint } from './ephemeral-three-ik.js';
+// Rig.js == base rigging class that comprehends joints across an Armature and helps coordinates IK integration
+class Rig {
+  static get version() { return '0.0.1'; }
 
-export default class RiggedModel extends Rig {
-  static get version() { return VERSION; }
+  constructor(skeleton, options, targets) {
+    options = options || {};
+    this.skeleton = skeleton;
+    this.state = new RigState(this, 'standing');
+    this.options = options;
+    this.targets = targets || options.targets || { empty: true };
+    this.config = Object.assign(options.config||{}, Object.assign({
+      ik: true,
+      backpropagate: true,
+      grounding: true,
+    }, options.config || {}));
+    console.info('RIG', Rig.version, this.config);
+    this.chains = options.chains || {};
+    this.constraints = options.constraints || Rig.DefaultConstraints;
+
+    this.armature = new Armature(this.skeleton, options);
+    this.armature.armatureObject.updateMatrixWorld(true);
+    this.armature.armatureObject.matrixAutoUpdate=false;
+    this.armature.hips.matrixAutoUpdate=false;
+    this.Armature = new SpaceHelper(this.armature.armatureObject);
+
+    //skeleton.pose();
+    //skeleton.calculateInverses();
+    //skeleton.update();
+    this.metrics = this.armature.metrics;
+    this.backup = this.armature.backup;
+    this.poseBones = this.armature.bones;
+
+    this.scale = this.backup.metrics.scale;
+    
+    this.head = new Head(this, { from: 'Neck', to: 'Head', target: this.targets.Head });
+    if (0) {
+      this.feet = new OldFeet(this, {
+        left: { name: 'LeftFoot', target: this.targets.LeftFoot },
+        right: { name: 'RightFoot', target: this.targets.RightFoot },
+      });
+    } else {
+      this.feet = new Feet2(this, {
+        left: { from: 'LeftUpLeg', to: 'LeftFoot', target: this.targets.LeftFoot },
+        right: { from: 'RightUpLeg', to: 'RightFoot', target: this.targets.RightFoot },
+      });
+    }
+    this.hips = new Hips(this);
+    this.shoulders = new Shoulders(this);
+    this.arms = new Arms(this, {
+      left: { from: 'LeftArm', to: 'LeftHand', target: this.targets.LeftHand },
+      right: { from: 'RightArm', to: 'RightHand', target: this.targets.RightHand },
+    });
+    
+    this.sync = {
+      enabled: true,
+      postSolve: (time, deltaTime) => {
+        // coordinate world <=> armature <=> hips space
+        this.syncReferenceFrames(time, deltaTime);
+      },
+    };
+  }
+  get components() { return [ this.head, this.hips, this.shoulders, this.arms, this.feet, this.state, this.sync ]; }
+  get activeComponents() { return this.components.filter((x)=>x.enabled); }
+
+  execute(method, ...args) {
+    return this.activeComponents.map((component)=> (component[method] && component[method](...args)));
+  }
+  tick(time, deltaTime) {
+    this.feet.enabled = this.config.grounding;
+    //this.hips.enabled = this.config.fallback;
+    if (this.config.ik) {
+      for (const method of ['preSolve', 'tick', 'postSolve']) {
+        this.execute(method, time, deltaTime);
+      }
+    }
+  }
+  syncReferenceFrames(time, deltaTime) {
+    // FIXME: this ~works but Armature vs. hips vs. head compete and sometimes spaz out
+    var p = this.armature.virtual.position;
+    //console.info(p)
+    //var tmp = this.armature.virtual.rotation.clone();
+    this.Armature.position.set(p.x,0,p.z);
+    var core = this.armature.armatureObject;
+    var hips = this.armature.hips;
+    var tmp = this.armature.virtual.rotation.clone();
+    var b = core.quaternion.clone().inverse();
+    tmp.x = tmp.z = 0;
+    //tmp.y *= -1;
+    core.rotation.copy(tmp);
+    hips.quaternion.slerp(hips.quaternion.multiply(b.multiply(core.quaternion)), 1);
+    hips.updateMatrix(true);
+    hips.updateMatrixWorld(true);
+    core.updateMatrix(true);
+    core.updateMatrixWorld(true);
+  }
+
+  // _armatureRelative(thing) {
+  //   var relative = new THREE.Object3D();
+  //   relative.position.copy(this.$armature.worldToLocal(thing.getWorldPosition(new THREE.Vector3())));
+  //   relative.quaternion.copy(this.$armature.world.quatTo(thing));
+  //   relative.parent = this.$armature.object;
+  //   return relative;
+  // }
+
+  getBone(name) { return this.armature.get(name); }
+  getIKTarget(name) { return typeof name === 'string' ? this.targets[name] : name; }
+
+  get iks() {
+    return this.components.reduce((iks, c) => {
+      return iks.concat([c.ik, c.left && c.left.ik, c.right && c.right.ik].filter((x)=>(x && x instanceof AutoIKChain)));
+    }, []);
+    }
+  get ikJoints() {
+    var ikJoints = [];
+    this.iks.forEach((ik) => {
+      ik && ik.joints && ik.joints.forEach((j) => {
+        ikJoints.push(ikJoints[j.bone.name]=j);
+      });
+    });
+    return ikJoints;
+  }
+};
+
+export { Rig };
+
+// ----------------------------------------------------------------------------
+
+class RiggedModel extends Rig {
+  static get version() { return '0.0.1b'; }
   static get DefaultTargets() { return [
     'Head', 'LeftHand', 'RightHand', 'Hips', 'LeftFoot', 'RightFoot'
   ]; }
@@ -181,4 +315,4 @@ function createInternalIKTargets(names, props) {
 
 export { RiggedModel, createInternalIKTargets };
 try { Object.assign(window, { RiggedModel, createInternalIKTargets }); } catch (e) {}
-console.info('//RiggedModel...', RiggedModel.version);
+
