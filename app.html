@@ -356,7 +356,7 @@ new MutationObserver(mutations => {
   subtree: true,
 });
 
-class RiggedModel {
+/* class RiggedModel {
   constructor(avatarMesh) {
     this.avatarMesh = avatarMesh;
   }
@@ -371,7 +371,7 @@ class RiggedModel {
   update() {
     // console.log('per-frame update called');
   }
-}
+} */
 const _makePeerConnection = peerConnectionId => {
   const peerConnectionConfig = {
     iceServers: [
@@ -396,10 +396,25 @@ const _makePeerConnection = peerConnectionId => {
     avatarMesh = new THREE.Object3D();
     avatarMesh.riggedModel = null;
     const loader = new THREE.GLTFLoader();
-    loader.load('https://modulesio.github.io/models/miku.glb', object => {
+    // const u = 'https://modulesio.github.io/models/miku.glb';
+    // const u = 'model4.glb';
+    const resource = model_patches.model4;
+    loader.load(resource.url, object => {
       if (avatarMesh) {
-        avatarMesh.riggedModel = new RiggedModel(object.scene);
-        avatarMesh.add(object.scene);
+        const model = object.scene;
+        const group = new THREE.Group();
+        const o = {
+          url: resource.url,
+          model,
+          resource,
+          zForward: true,
+          group,
+        };
+        avatarMesh.riggedModel = new RiggedModel(model, o);
+        // avatarMesh.riggedModel.rebind(o.group);
+
+        console.log('got mesh', model);
+        avatarMesh.add(group);
       }
     }, xhr => {}, err => {
       console.warn(err);
@@ -6129,6 +6144,10 @@ function animate(time, frame) {
     for (let i = 0; i < avatarMeshes.length; i++) {
       const avatarMesh = avatarMeshes[i];
       avatarMesh.riggedModel && avatarMesh.riggedModel.update();
+      /* const timeDelta = clock.getDelta() * 1000;
+      const time = clock.elapsedTime * 1000;
+      avatarMesh.riggedModel && avatarMesh.riggedModel.tick(time, timeDelta);
+      avatarMesh.riggedModel && avatarMesh.riggedModel.fallback(avatarMesh.riggedModel.targets, time, timeDelta); */
     }
   };
   _updateAvatarMeshes();
