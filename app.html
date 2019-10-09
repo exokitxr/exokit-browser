@@ -405,6 +405,13 @@ const _makePeerConnection = peerConnectionId => {
     loader.load(resource.url, object => {
       if (avatarMesh) {
         const model = object.scene;
+
+        model.traverse(o => {
+          if (o.isMesh) {
+            o.frustumCulled = false;
+          }
+        });
+
         const group = new THREE.Group();
         const o = {
           url: resource.url,
