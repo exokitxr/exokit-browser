@@ -3916,6 +3916,7 @@ const _connectLand = async () => {
       }
     })).then(() => {});
     await _loadAssetMoveMeshes();
+    if (!live) return;
   }
 };
 const _disconnectLand = () => {
