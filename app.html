@@ -515,11 +515,10 @@ const _makePeerConnection = peerConnectionId => {
     if (landState) {
       // remove owned xr-iframes
 
-      const landXrIframe = root.childNodes[0];
-      const ownedXrIframes = _getOwnedXrIframes(landXrIframe);
+      const ownedXrIframes = Array.from(root.querySelectorAll('xr-iframe')).filter(xrIframe => /^owned:/.test(xrIframe.id));
       for (let i = 0; i < ownedXrIframes.length; i++) {
         const ownedXrIframe = ownedXrIframes[i];
-        const match = ownedXrIframe.match(/^owned:(.*?)-/);
+        const match = ownedXrIframe.id.match(/^owned:(.*?)-/);
         if (match) {
           const ownerId = match[1];
           if (ownerId === peerConnectionId) {
@@ -561,8 +560,19 @@ const _applyEditState = spec => {
         break;
       }
       case 'removeChild': {
-        const childNode = el.childNodes[key];
-        el.removeChild(childNode);
+        let match, childNode;
+        if (typeof key === 'number' && key < el.childNodes.length) {
+          childNode = el.childNodes[key];
+          el.removeChild(childNode);
+        } else if (
+          typeof key === 'string' &&
+          (match = key.match(/^#(.+)$/)) &&
+          (childNode = Array.from(el.childNodes).find(node => node.id === match[1]))
+        ) {
+          el.removeChild(childNode);
+        } else {
+          console.warn('remove missing child', keyPath, key);
+        }
         break;
       }
     }
