@@ -518,8 +518,6 @@ const _makePeerConnection = peerConnectionId => {
         if (avatarMesh && avatarMesh.riggedModel) {
           const {hmd, gamepads} = data;
 
-          // this.avatarMesh.position.fromArray(hmd.position).sub(localVector.set(0, 1.5, 0));
-
           avatarMesh.riggedModel.targets.Head.position.fromArray(hmd.position);
           avatarMesh.riggedModel.targets.Head.quaternion.fromArray(hmd.quaternion);
 
@@ -528,14 +526,6 @@ const _makePeerConnection = peerConnectionId => {
           avatarMesh.riggedModel.targets.LeftHand.quaternion.fromArray(leftGamepad.quaternion);
           avatarMesh.riggedModel.targets.RightHand.position.fromArray(rightGamepad.position);
           avatarMesh.riggedModel.targets.RightHand.quaternion.fromArray(rightGamepad.quaternion);
-
-          /* localQuaternion.fromArray(hmd.quaternion);
-          localEuler.setFromQuaternion(localQuaternion, localEuler.order);
-          localEuler.y += Math.PI;
-          localEuler.x *= -1;
-          this.avatarMesh.quaternion.setFromEuler(localEuler);
-
-          avatarMesh.riggedModel.setState(hmd, gamepads); */
         }
       } else if (landState && method === 'initState') {
         const {state} = data;
@@ -6172,11 +6162,9 @@ function animate(time, frame) {
   const _updateAvatarMeshes = () => {
     for (let i = 0; i < avatarMeshes.length; i++) {
       const avatarMesh = avatarMeshes[i];
-      // avatarMesh.riggedModel && avatarMesh.riggedModel.update();
       const timeDelta = clock.getDelta() * 1000;
       const time = clock.elapsedTime * 1000;
       avatarMesh.riggedModel && avatarMesh.riggedModel.tick(time, timeDelta);
-      // avatarMesh.riggedModel && avatarMesh.riggedModel.fallback(avatarMesh.riggedModel.targets, time, timeDelta);
     }
   };
   _updateAvatarMeshes();
