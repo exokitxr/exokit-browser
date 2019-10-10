@@ -147,6 +147,21 @@ var model_patches = {
           RightHand: [0,180,0],
         },
     },
+    anne: {
+      url: 'anne.glb',
+      preRotations: {
+        /* Armature: [0,180,0], */
+        // Head: [-90,180,0],
+        // Spine: [-180,0,0],
+        // Spine1: [-180,0,0],
+        // Armature: [-180, 0, 0],
+        // Hips: [-180,0,0],
+        /* LeftEye: [90,0,0],
+        RightEye: [90,0,0],
+        LeftHand: [0,180,0],
+        RightHand: [0,180,0],  */
+      },
+    }
 };
 
 try { self.model_patches = model_patches; } catch(e) {}
