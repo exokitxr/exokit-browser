@@ -400,8 +400,8 @@ const _makePeerConnection = peerConnectionId => {
     avatarMesh.riggedModel = null;
     const loader = new THREE.GLTFLoader();
     // const u = 'https://modulesio.github.io/models/miku.glb';
-    // const u = 'model4.glb';
     const resource = model_patches.model4;
+    // const resource = model_patches.anne;
     loader.load(resource.url, object => {
       if (avatarMesh) {
         const model = object.scene;
