@@ -35,6 +35,40 @@ Object.assign(schemes, {
             .replace('Chest', 'Spine1');
     },
   },
+  vrm: {
+    __proto__: schemes,
+    //Hips,Spine,Chest,Neck,Head,LeftEye,RightEye,ShoulderL,Upper_armL,Lower_armL,HandL,Upper_pointerL,Mid_pointerL,Upper_midL,Mid_midL,Upper_ringL,Mid_ringL,Upper_pinkieL,Lower_pinkieL,Upper_thumbL,Lower_thumbL,ShoulderR,Upper_armR,Lower_armR,HandR,Upper_pointerR,Mid_pointerR,Upper_midR,Mid_midR,Upper_ringR,Mid_ringR,Upper_pinkieR,Lower_pinkieR,Upper_thumbR,Lower_thumbR,Upper_legL,Lower_legL,FootL,ToeL,Upper_tail,Lower_tail,Upper_legR,Lower_legR,FootR,ToeR    
+    re: /^J_Bip_C_Hips$/,
+    remap: function(from) {
+        return from
+            .replace('J_Bip_C_Hips', 'Hips')
+            .replace('J_Bip_C_Spine', 'Spine')
+            .replace('J_Bip_C_Chest', 'Spine1')
+            .replace('J_Bip_C_Neck', 'Neck')
+            .replace('J_Bip_C_Head', 'Head')
+
+            .replace('J_Adj_L_FaceEye', 'LeftEye')
+            .replace('J_Adj_R_FaceEye', 'RightEye')
+
+            .replace('J_Bip_L_Shoulder', 'LeftShoulder')
+            .replace('J_Bip_L_UpperArm', 'LeftArm')
+            .replace('J_Bip_L_LowerArm', 'LeftForeArm')
+            .replace('J_Bip_L_Hand', 'LeftHand')
+
+            .replace('J_Bip_R_Shoulder', 'RightShoulder')
+            .replace('J_Bip_R_UpperArm', 'RightArm')
+            .replace('J_Bip_R_LowerArm', 'RightForeArm')
+            .replace('J_Bip_R_Hand', 'RightHand')
+
+            .replace('J_Bip_L_UpperLeg', 'LeftUpLeg')
+            .replace('J_Bip_L_LowerLeg', 'LeftLeg')
+            .replace('J_Bip_L_Foot', 'LeftFoot')
+
+            .replace('J_Bip_R_UpperLeg', 'RightUpLeg')
+            .replace('J_Bip_R_LowerLeg', 'RightLeg')
+            .replace('J_Bip_R_Foot', 'RightFoot');
+    },
+  },
   side_winder: {
     __proto__: schemes,
     re: /^Left_wrist$/,
@@ -86,6 +120,7 @@ function remapJointNames(skeleton, remapper) {
         schemes.mixamo,
         schemes.side_winder,
         schemes.knuckles,
+        schemes.vrm,
     ].map(function(x) {
         return typeof x === 'function' ? x : (x && x.match(skeleton));
     }).filter(Boolean);
