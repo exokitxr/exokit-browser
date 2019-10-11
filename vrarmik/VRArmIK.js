@@ -4,63 +4,87 @@ import ShoulderPoser from './ShoulderPoser.js';
 
 class ArmIKElbowSettings
 {
-	public bool calcElbowAngle = true;
-	public bool clampElbowAngle = true;
-	public bool softClampElbowAngle = true;
-	public float maxAngle = 175f, minAngle = 13f, softClampRange = 10f;
-	public float offsetAngle = 135f;
-	public float yWeight = -60f;
-	public float zWeightTop = 260, zWeightBottom = -100, zBorderY = -.25f, zDistanceStart = .6f;
-	public float xWeight = -50f, xDistanceStart = .1f;
+	constructor() {
+		this.calcElbowAngle = true;
+		this.clampElbowAngle = true;
+		this.softClampElbowAngle = true;
+		this.maxAngle = 175;
+		this.minAngle = 13;
+		this.softClampRange = 10;
+		this.offsetAngle = 135;
+		this.yWeight = -60;
+		this.zWeightTop = 260;
+		this.zWeightBottom = -100;
+		this.zBorderY = -.25;
+		this.zDistanceStart = .6;
+		this.xWeight = -50;
+		this.xDistanceStart = .1;
+	}
 }
 
 class BeforePositioningSettings
 {
-	public bool correctElbowOutside = true;
-	public float weight = -0.5f;
-	public float startBelowZ = .4f;
-	public float startAboveY = 0.1f;
+	constructor() {
+		this.correctElbowOutside = true;
+		this.weight = -0.5;
+		this.startBelowZ = .4;
+		this.startAboveY = 0.1;
+	}
 }
 
 class ElbowCorrectionSettings
 {
-	public bool useFixedElbowWhenNearShoulder = true;
-	public float startBelowDistance = .5f;
-	public float startBelowY = 0.1f;
-	public float weight = 2f;
-	public Vector3 localElbowPos = new Vector3(0.3f, -1f, -2f);
+	constructor() {
+		this.useFixedElbowWhenNearShoulder = true;
+		this.startBelowDistance = .5;
+		this.startBelowY = 0.1;
+		this.weight = 2;
+		this.localElbowPos = new Vector3(0.3, -1, -2);
+	}
 }
 
 class HandSettings
 {
-	public bool useWristRotation = true;
-	public bool rotateElbowWithHandRight = true;
-	public bool rotateElbowWithHandForward = true;
-	public float handDeltaPow = 1.5f, handDeltaFactor = -.3f, handDeltaOffset = 45f;
-	// todo fix rotateElbowWithHandForward with factor != 1 -> horrible jumps. good value would be between [0.4, 0.6]
-	public float handDeltaForwardPow = 2f, handDeltaForwardFactor = 1f, handDeltaForwardOffset = 0f, handDeltaForwardDeadzone = .3f;
-	public float rotateElbowWithHandDelay = .08f;
+	constructor() {
+		this.useWristRotation = true;
+		this.rotateElbowWithHandRight = true;
+		this.rotateElbowWithHandForward = true;
+		this.handDeltaPow = 1.5;
+		this.handDeltaFactor = -.3;
+		this.handDeltaOffset = 45;
+		// todo fix rotateElbowWithHandForward with factor != 1 -> horrible jumps. good value would be between [0.4, 0.6]
+		this.handDeltaForwardPow = 2;
+		this.handDeltaForwardFactor = 1;
+		this.handDeltaForwardOffset = 0;
+		this.handDeltaForwardDeadzone = .3;
+		this.rotateElbowWithHandDelay = .08;
+	}
 }
 
 	class VRArmIK
 	{
-		public ArmTransforms arm;
-		public ShoulderTransforms shoulder;
-		public ShoulderPoser shoulderPoser;
-		public Transform target;
-		public bool left = true;
+		constructor() {
+			this.arm = new ArmTransforms(); // XXX these need to be this'd below
+			this.shoulder = ShoulderTransforms();
+			this.shoulderPoser = new ShoulderPoser();
+			this.target = new Transform();
+			this.left = true;
 
-		public ArmIKElbowSettings elbowSettings;
-		public BeforePositioningSettings beforePositioningSettings;
-		public ElbowCorrectionSettings elbowCorrectionSettings;
-		public HandSettings handSettings;
+			this.elbowSettings = new ArmIKElbowSettings();
+			this.beforePositioningSettings = new BeforePositioningSettings();
+			this.elbowCorrectionSettings = ElbowCorrectionSettings();
+			this.handSettings = new HandSettings();
 
-		Vector3 nextLowerArmAngle;
+			this.nextLowerArmAngle = new Vector3();
 
-		Quaternion upperArmStartRotation, lowerArmStartRotation, wristStartRotation, handStartRotation;
+		  this.upperArmStartRotation = new Quaternion();
+		  this.lowerArmStartRotation = new Quaternion();
+		  this.wristStartRotation = new Quaternion();
+		  this.handStartRotation = new Quaternion();
 
-		float interpolatedDeltaElbow;
-		float interpolatedDeltaElbowForward;
+			this.interpolatedDeltaElbow = 0;
+      this.interpolatedDeltaElbowForward = 0;
+    }
 
 		Awake()
 		{
@@ -119,19 +143,19 @@ class HandSettings
 
 			if (targetShoulderDistance > arm.armLength)
 			{
-				innerAngle = 0f;
+				innerAngle = 0;
 			}
 			else
 			{
-				innerAngle = Mathf.Acos(Mathf.Clamp((Mathf.Pow(arm.upperArmLength, 2f) + Mathf.Pow(arm.lowerArmLength, 2f) -
-												Mathf.Pow(targetShoulderDistance, 2f)) / (2f * arm.upperArmLength * arm.lowerArmLength), -1f, 1f)) * Mathf.Rad2Deg;
+				innerAngle = Mathf.Acos(Mathf.Clamp((Mathf.Pow(arm.upperArmLength, 2) + Mathf.Pow(arm.lowerArmLength, 2) -
+												Mathf.Pow(targetShoulderDistance, 2)) / (2 * arm.upperArmLength * arm.lowerArmLength), -1, 1)) * Mathf.Rad2Deg;
 				if (left)
-					innerAngle = 180f - innerAngle;
+					innerAngle = 180 - innerAngle;
 				else
-					innerAngle = 180f + innerAngle;
+					innerAngle = 180 + innerAngle;
 				if (float.IsNaN(innerAngle))
 				{
-					innerAngle = 180f;
+					innerAngle = 180;
 				}
 			}
 
@@ -146,11 +170,11 @@ class HandSettings
 			Vector3 targetShoulderDirection = (target.position - upperArmPos).normalized;
 			float targetShoulderDistance = (target.position - upperArmPos).magnitude;
 
-			eulerAngles.y = (left ? -1f : 1f) *
-				Mathf.Acos(Mathf.Clamp((Mathf.Pow(targetShoulderDistance, 2f) + Mathf.Pow(arm.upperArmLength, 2f) -
-							Mathf.Pow(arm.lowerArmLength, 2f)) / (2f * targetShoulderDistance * arm.upperArmLength), -1f, 1f)) * Mathf.Rad2Deg;
+			eulerAngles.y = (left ? -1 : 1) *
+				Mathf.Acos(Mathf.Clamp((Mathf.Pow(targetShoulderDistance, 2) + Mathf.Pow(arm.upperArmLength, 2) -
+							Mathf.Pow(arm.lowerArmLength, 2)) / (2 * targetShoulderDistance * arm.upperArmLength), -1, 1)) * Mathf.Rad2Deg;
 			if (float.IsNaN(eulerAngles.y))
-				eulerAngles.y = 0f;
+				eulerAngles.y = 0;
 
 
 			Quaternion shoulderRightRotation = Quaternion.FromToRotation(armDirection, targetShoulderDirection);
@@ -170,13 +194,13 @@ class HandSettings
 			/*angle += Mathf.Lerp(elbowSettings.zWeightBottom, elbowSettings.zWeightTop, Mathf.Clamp01((localHandPosNormalized.y + 1f) - elbowSettings.zBorderY)) *
 					 (Mathf.Max(elbowSettings.zDistanceStart - localHandPosNormalized.z, 0f));*/
 			if (localHandPosNormalized.y > 0)
-				angle += elbowSettings.zWeightTop * (Mathf.Max(elbowSettings.zDistanceStart - localHandPosNormalized.z, 0f) * Mathf.Max(localHandPosNormalized.y, 0f));
+				angle += elbowSettings.zWeightTop * (Mathf.Max(elbowSettings.zDistanceStart - localHandPosNormalized.z, 0) * Mathf.Max(localHandPosNormalized.y, 0));
 			else
-				angle += elbowSettings.zWeightBottom * (Mathf.Max(elbowSettings.zDistanceStart - localHandPosNormalized.z, 0f) * Mathf.Max(-localHandPosNormalized.y, 0f));
+				angle += elbowSettings.zWeightBottom * (Mathf.Max(elbowSettings.zDistanceStart - localHandPosNormalized.z, 0) * Mathf.Max(-localHandPosNormalized.y, 0));
 
 
 			// angle from X
-			angle += elbowSettings.xWeight * Mathf.Max(localHandPosNormalized.x * (left ? 1.0f : -1.0f) + elbowSettings.xDistanceStart, 0f);
+			angle += elbowSettings.xWeight * Mathf.Max(localHandPosNormalized.x * (left ? 1.0 : -1.0) + elbowSettings.xDistanceStart, 0);
 
 			if (elbowSettings.clampElbowAngle)
 			{
@@ -185,7 +209,7 @@ class HandSettings
 					if (angle < elbowSettings.minAngle + elbowSettings.softClampRange)
 					{
 						float a = elbowSettings.minAngle + elbowSettings.softClampRange - angle;
-						angle = elbowSettings.minAngle + elbowSettings.softClampRange * (1f - Mathf.Log(1f + a) * 3f);
+						angle = elbowSettings.minAngle + elbowSettings.softClampRange * (1 - Mathf.Log(1 + a) * 3);
 					}
 				}
 				else
@@ -195,7 +219,7 @@ class HandSettings
 			}
 
 			if (left)
-				angle *= -1f;
+				angle *= -1;
 
 			return angle;
 		}
@@ -207,20 +231,20 @@ class HandSettings
 			Vector3 localTargetPos = shoulderAnker.InverseTransformPoint(target.position) / arm.armLength;
 			float elbowOutsideFactor = Mathf.Clamp01(
 									 Mathf.Clamp01((s.startBelowZ - localTargetPos.z) /
-												   Mathf.Abs(s.startBelowZ) * .5f) *
+												   Mathf.Abs(s.startBelowZ) * .5) *
 									 Mathf.Clamp01((localTargetPos.y - s.startAboveY) /
 												   Mathf.Abs(s.startAboveY)) *
-									 Mathf.Clamp01(1f - localTargetPos.x * (left ? -1f : 1f))
+									 Mathf.Clamp01(1 - localTargetPos.x * (left ? -1 : 1))
 								 ) * s.weight;
 
 			Vector3 shoulderHandDirection = (upperArmPos - handPos).normalized;
-			Vector3 targetDir = shoulder.transform.rotation * (Vector3.up + (s.correctElbowOutside ? (armDirection + Vector3.forward * -.2f) * elbowOutsideFactor : Vector3.zero));
-			Vector3 cross = Vector3.Cross(shoulderHandDirection, targetDir * 1000f);
+			Vector3 targetDir = shoulder.transform.rotation * (Vector3.up + (s.correctElbowOutside ? (armDirection + Vector3.forward * -.2) * elbowOutsideFactor : Vector3.zero));
+			Vector3 cross = Vector3.Cross(shoulderHandDirection, targetDir * 1000);
 
 			Vector3 upperArmUp = upperArmRotation * Vector3.up;
 
 			float elbowTargetUp = Vector3.Dot(upperArmUp, targetDir);
-			float elbowAngle = Vector3.Angle(cross, upperArmUp) + (left ? 0f : 180f);
+			float elbowAngle = Vector3.Angle(cross, upperArmUp) + (left ? 0 : 180);
 			Quaternion rotation = Quaternion.AngleAxis(elbowAngle * Mathf.Sign(elbowTargetUp), shoulderHandDirection);
 			arm.upperArm.rotation = rotation * arm.upperArm.rotation;
 		}
@@ -236,7 +260,7 @@ class HandSettings
 			Vector3 elbowPos = s.localElbowPos;
 
 			if (left)
-				elbowPos.x *= -1f;
+				elbowPos.x *= -1;
 
 			Vector3 targetDir = shoulder.transform.rotation * elbowPos.normalized;
 			Vector3 cross = Vector3.Cross(shoulderHandDirection, targetDir);
@@ -248,13 +272,13 @@ class HandSettings
 			distance = distance.magnitude * shoulder.transform.InverseTransformDirection(distance / distance.magnitude);
 
 			float weight = Mathf.Clamp01(Mathf.Clamp01((s.startBelowDistance - distance.xz().magnitude / arm.armLength) /
-						   s.startBelowDistance) * s.weight + Mathf.Clamp01((-distance.z + .1f) * 3)) *
+						   s.startBelowDistance) * s.weight + Mathf.Clamp01((-distance.z + .1) * 3)) *
 						   Mathf.Clamp01((s.startBelowY - localTargetPos.y) /
 										 s.startBelowY);
 
 			float elbowTargetUp = Vector3.Dot(upperArmUp, targetDir);
-			float elbowAngle2 = Vector3.Angle(cross, upperArmUp) + (left ? 0f : 180f);
-			Quaternion rotation = Quaternion.AngleAxis((elbowAngle2 * Mathf.Sign(elbowTargetUp)).toSignedEulerAngle() * Mathf.Clamp(weight, 0, 1f), shoulderHandDirection);
+			float elbowAngle2 = Vector3.Angle(cross, upperArmUp) + (left ? 0 : 180);
+			Quaternion rotation = Quaternion.AngleAxis((elbowAngle2 * Mathf.Sign(elbowTargetUp)).toSignedEulerAngle() * Mathf.Clamp(weight, 0, 1), shoulderHandDirection);
 			arm.upperArm.rotation = rotation * arm.upperArm.rotation;
 		}
 
@@ -288,9 +312,9 @@ class HandSettings
 			float elbowTargetAngle = VectorHelpers.getAngleBetween(lowerArmRotation * Vector3.up, handUpVec,
 				lowerArmRotation * Vector3.forward, lowerArmRotation * armDirection);
 
-			float deltaElbow = (elbowTargetAngle + (left ? -s.handDeltaOffset : s.handDeltaOffset)) / 180f;
+			float deltaElbow = (elbowTargetAngle + (left ? -s.handDeltaOffset : s.handDeltaOffset)) / 180;
 
-			deltaElbow = Mathf.Sign(deltaElbow) * Mathf.Pow(Mathf.Abs(deltaElbow), s.handDeltaPow) * 180f * s.handDeltaFactor;
+			deltaElbow = Mathf.Sign(deltaElbow) * Mathf.Pow(Mathf.Abs(deltaElbow), s.handDeltaPow) * 180 * s.handDeltaFactor;
 			interpolatedDeltaElbow =
 				Mathf.LerpAngle(interpolatedDeltaElbow, deltaElbow, Time.deltaTime / s.rotateElbowWithHandDelay);
 			rotateElbow(interpolatedDeltaElbow);
@@ -304,16 +328,16 @@ class HandSettings
 			float elbowTargetAngleForward = VectorHelpers.getAngleBetween(lowerArmRotation * armDirection, handRightVec,
 				lowerArmRotation * Vector3.up, lowerArmRotation * Vector3.forward);
 
-			float deltaElbowForward = (elbowTargetAngleForward + (left ? -s.handDeltaForwardOffset : s.handDeltaForwardOffset)) / 180f;
+			float deltaElbowForward = (elbowTargetAngleForward + (left ? -s.handDeltaForwardOffset : s.handDeltaForwardOffset)) / 180;
 
 			if (Mathf.Abs(deltaElbowForward) < s.handDeltaForwardDeadzone)
-				deltaElbowForward = 0f;
+				deltaElbowForward = 0;
 			else
 			{
-				deltaElbowForward = (deltaElbowForward - Mathf.Sign(deltaElbowForward) * s.handDeltaForwardDeadzone) / (1f - s.handDeltaForwardDeadzone);
+				deltaElbowForward = (deltaElbowForward - Mathf.Sign(deltaElbowForward) * s.handDeltaForwardDeadzone) / (1 - s.handDeltaForwardDeadzone);
 			}
 
-			deltaElbowForward = Mathf.Sign(deltaElbowForward) * Mathf.Pow(Mathf.Abs(deltaElbowForward), s.handDeltaForwardPow) * 180f;
+			deltaElbowForward = Mathf.Sign(deltaElbowForward) * Mathf.Pow(Mathf.Abs(deltaElbowForward), s.handDeltaForwardPow) * 180;
 			interpolatedDeltaElbowForward = Mathf.LerpAngle(interpolatedDeltaElbowForward, deltaElbowForward, Time.deltaTime / s.rotateElbowWithHandDelay);
 
 			float signedInterpolated = interpolatedDeltaElbowForward.toSignedEulerAngle();
@@ -335,11 +359,11 @@ class HandSettings
 				float elbowTargetAngle = VectorHelpers.getAngleBetween(lowerArmRotation * Vector3.up, handUpVec,
 					lowerArmRotation * Vector3.forward, lowerArmRotation * armDirection);
 
-				elbowTargetAngle = Mathf.Clamp(elbowTargetAngle, -90f, 90f);
+				elbowTargetAngle = Mathf.Clamp(elbowTargetAngle, -90, 90);
 				if (arm.wrist1 != null)
-					setWrist1Rotation(Quaternion.AngleAxis(elbowTargetAngle * .3f, lowerArmRotation * armDirection) * lowerArmRotation);
+					setWrist1Rotation(Quaternion.AngleAxis(elbowTargetAngle * .3, lowerArmRotation * armDirection) * lowerArmRotation);
 				if (arm.wrist2 != null)
-					setWrist2Rotation(Quaternion.AngleAxis(elbowTargetAngle * .8f, lowerArmRotation * armDirection) * lowerArmRotation);
+					setWrist2Rotation(Quaternion.AngleAxis(elbowTargetAngle * .8, lowerArmRotation * armDirection) * lowerArmRotation);
 			}
 			setHandRotation(target.rotation);
 		}
