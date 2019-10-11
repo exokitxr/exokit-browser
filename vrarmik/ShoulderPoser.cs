@@ -1,52 +1,41 @@
-﻿using UnityEngine;
-
-namespace VRArmIK
-{
-	public class ShoulderPoser : MonoBehaviour
+﻿class ShoulderPoser
 	{
-		public ShoulderTransforms shoulder;
-		public VRTrackingReferences vrTrackingReferences;
-		public AvatarVRTrackingReferences avatarTrackingReferences;
+		ShoulderTransforms shoulder;
+		VRTrackingReferences vrTrackingReferences;
+		AvatarVRTrackingReferences avatarTrackingReferences;
 
-		public float headNeckDistance = 0.03f;
-		public Vector3 neckShoulderDistance = new Vector3(0f, -.1f, -0.02f);
+		float headNeckDistance = 0.03f;
+		Vector3 neckShoulderDistance = new Vector3(0f, -.1f, -0.02f);
 
-		public float maxDeltaHeadRotation = 80f;
+		float maxDeltaHeadRotation = 80f;
 
-		[LabelOverride("max forward rotation")]
-		public float distinctShoulderRotationLimitForward = 33f;
+		float distinctShoulderRotationLimitForward = 33f;
 
-		[LabelOverride("max backward rotation")]
-		public float distinctShoulderRotationLimitBackward = 0f;
+		float distinctShoulderRotationLimitBackward = 0f;
 
-		[LabelOverride("max upward rotation")] public float distinctShoulderRotationLimitUpward = 33f;
-		public float distinctShoulderRotationMultiplier = 30;
+		float distinctShoulderRotationLimitUpward = 33f;
+		float distinctShoulderRotationMultiplier = 30;
 
-		public float rightRotationStartHeight = 0f;
-		public float rightRotationHeightFactor = 142f;
-		public float rightRotationHeadRotationFactor = 0.3f;
-		public float rightRotationHeadRotationOffset = -20f;
+		float rightRotationStartHeight = 0f;
+		float rightRotationHeightFactor = 142f;
+		float rightRotationHeadRotationFactor = 0.3f;
+		float rightRotationHeadRotationOffset = -20f;
 
-		public Vector3 headNeckDirectionVector = new Vector3(0f, -1f, -.05f);
-		public float startShoulderDislocationBefore = 0.005f;
+		Vector3 headNeckDirectionVector = new Vector3(0f, -1f, -.05f);
+		float startShoulderDislocationBefore = 0.005f;
 
-		[Header("Features")] public bool ignoreYPos = true;
-		public bool autoDetectHandsBehindHead = true;
-		public bool clampRotationToHead = true;
-		public bool enableDistinctShoulderRotation = true;
-		public bool enableShoulderDislocation = true;
+		bool ignoreYPos = true;
+		bool autoDetectHandsBehindHead = true;
+		bool clampRotationToHead = true;
+	  bool enableDistinctShoulderRotation = true;
+		bool enableShoulderDislocation = true;
 
 
-		[Header("Debug")]
-		[DisplayOnly]
-		[SerializeField]
 		bool handsBehindHead = false;
 
-		[DisplayOnly] [SerializeField] bool clampingHeadRotation = false;
-#pragma warning disable 414
-		[DisplayOnly] [SerializeField] bool shoulderDislocated = false;
-#pragma warning restore 414
-		public float shoulderRightRotation;
+		bool clampingHeadRotation = false;
+		bool shoulderDislocated = false;
+		float shoulderRightRotation;
 
 
 		Vector3 lastAngle = Vector3.zero;
@@ -54,7 +43,7 @@ namespace VRArmIK
 
 		Vector3 leftShoulderAnkerStartLocalPosition, rightShoulderAnkerStartLocalPosition;
 
-		void Start()
+		Start()
 		{
 			if (vrTrackingReferences == null)
 				vrTrackingReferences = PoseManager.Instance.vrTransforms;
@@ -64,7 +53,7 @@ namespace VRArmIK
 				shoulder.transform.InverseTransformPoint(shoulder.rightShoulderAnchor.position);
 		}
 
-		void onCalibrate()
+		onCalibrate()
 		{
 			shoulder.leftArm.setArmLength((avatarTrackingReferences.leftHand.transform.position - shoulder.leftShoulderAnchor.position)
 				.magnitude);
@@ -72,7 +61,7 @@ namespace VRArmIK
 				.magnitude);
 		}
 
-		protected virtual void Update()
+		Update()
 		{
 			shoulder.transform.rotation = Quaternion.identity;
 			positionShoulder();
@@ -98,20 +87,20 @@ namespace VRArmIK
 			Debug.DrawRay(shoulder.transform.position, shoulder.transform.forward);
 		}
 
-		protected virtual void rotateLeftShoulder()
+		rotateLeftShoulder()
 		{
 			rotateShoulderUp(shoulder.leftShoulder, shoulder.leftArm, avatarTrackingReferences.leftHand.transform,
 				leftShoulderAnkerStartLocalPosition, 1f);
 
 		}
 
-		protected virtual void rotateRightShoulder()
+		rotateRightShoulder()
 		{
 			rotateShoulderUp(shoulder.rightShoulder, shoulder.rightArm, avatarTrackingReferences.rightHand.transform,
 				rightShoulderAnkerStartLocalPosition, -1f);
 		}
 
-		void rotateShoulderUp(Transform shoulderSide, ArmTransforms arm, Transform targetHand,
+		rotateShoulderUp(Transform shoulderSide, ArmTransforms arm, Transform targetHand,
 			Vector3 initialShoulderLocalPos, float angleSign)
 		{
 			Vector3 initialShoulderPos = shoulder.transform.TransformPoint(initialShoulderLocalPos);
@@ -140,7 +129,7 @@ namespace VRArmIK
 		}
 
 
-		void positionShoulder()
+		positionShoulder()
 		{
 			Vector3 headNeckOffset = avatarTrackingReferences.hmd.transform.rotation * headNeckDirectionVector;
 			Vector3 targetPosition = avatarTrackingReferences.head.transform.position + headNeckOffset * headNeckDistance;
@@ -148,7 +137,7 @@ namespace VRArmIK
 				shoulder.transform.parent.InverseTransformPoint(targetPosition) + neckShoulderDistance;
 		}
 
-		protected virtual void rotateShoulderUp()
+		rotateShoulderUp()
 		{
 			float angle = getCombinedDirectionAngleUp();
 
@@ -167,7 +156,7 @@ namespace VRArmIK
 			shoulder.transform.eulerAngles = targetRotation;
 		}
 
-		protected virtual void rotateShoulderRight()
+		rotateShoulderRight()
 		{
 			float heightDiff = vrTrackingReferences.hmd.transform.position.y - PoseManager.Instance.vrSystemOffsetHeight;
 			float relativeHeightDiff = -heightDiff / PoseManager.Instance.playerHeightHmd;
@@ -188,14 +177,14 @@ namespace VRArmIK
 			positionShoulderRelative();
 		}
 
-		protected void positionShoulderRelative()
+		positionShoulderRelative()
 		{
 			Quaternion deltaRot = Quaternion.AngleAxis(shoulderRightRotation, shoulder.transform.right);
 			Vector3 shoulderHeadDiff = shoulder.transform.position - avatarTrackingReferences.head.transform.position;
 			shoulder.transform.position = deltaRot * shoulderHeadDiff + avatarTrackingReferences.head.transform.position;
 		}
 
-		float getCombinedDirectionAngleUp()
+		getCombinedDirectionAngleUp()
 		{
 			Transform leftHand = avatarTrackingReferences.leftHand.transform, rightHand = avatarTrackingReferences.rightHand.transform;
 
@@ -216,7 +205,7 @@ namespace VRArmIK
 			return Mathf.Atan2(combinedDirection.x, combinedDirection.z) * 180f / Mathf.PI;
 		}
 
-		void detectHandsBehindHead(ref Vector3 targetRotation)
+		detectHandsBehindHead(ref Vector3 targetRotation)
 		{
 			float delta = Mathf.Abs(targetRotation.y - lastAngle.y + 360f) % 360f;
 			if (delta > 150f && delta < 210f && lastAngle.magnitude > 0.000001f && !clampingHeadRotation)
@@ -232,7 +221,7 @@ namespace VRArmIK
 			}
 		}
 
-		void clampHeadRotationDeltaUp(ref Vector3 targetRotation)
+		clampHeadRotationDeltaUp(ref Vector3 targetRotation)
 		{
 			float headUpRotation = (avatarTrackingReferences.head.transform.eulerAngles.y + 360f) % 360f;
 			float targetUpRotation = (targetRotation.y + 360f) % 360f;
@@ -255,7 +244,7 @@ namespace VRArmIK
 			}
 		}
 
-		void clampShoulderHandDistance()
+		clampShoulderHandDistance()
 		{
 			Vector3 leftHandVector = avatarTrackingReferences.leftHand.transform.position - shoulder.leftShoulderAnchor.position;
 			Vector3 rightHandVector = avatarTrackingReferences.rightHand.transform.position - shoulder.rightShoulderAnchor.position;
@@ -290,4 +279,3 @@ namespace VRArmIK
 			}
 		}
 	}
-}

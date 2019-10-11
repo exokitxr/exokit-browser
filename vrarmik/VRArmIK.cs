@@ -1,13 +1,10 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
+﻿import ArmTransforms from './ArmTransforms.js';
+import ShoulderTransforms from './ShoulderTransforms.js';
+import ShoulderPoser from './ShoulderPoser.js';
 
-namespace VRArmIK
-{
-
-	public class VRArmIK : MonoBehaviour
+	public class VRArmIK
 	{
-		[System.Serializable]
-		public class ArmIKElbowSettings
+		class ArmIKElbowSettings
 		{
 			public bool calcElbowAngle = true;
 			public bool clampElbowAngle = true;
@@ -19,8 +16,7 @@ namespace VRArmIK
 			public float xWeight = -50f, xDistanceStart = .1f;
 		}
 
-		[System.Serializable]
-		public class BeforePositioningSettings
+		class BeforePositioningSettings
 		{
 			public bool correctElbowOutside = true;
 			public float weight = -0.5f;
@@ -28,8 +24,7 @@ namespace VRArmIK
 			public float startAboveY = 0.1f;
 		}
 
-		[System.Serializable]
-		public class ElbowCorrectionSettings
+		class ElbowCorrectionSettings
 		{
 			public bool useFixedElbowWhenNearShoulder = true;
 			public float startBelowDistance = .5f;
@@ -38,8 +33,7 @@ namespace VRArmIK
 			public Vector3 localElbowPos = new Vector3(0.3f, -1f, -2f);
 		}
 
-		[System.Serializable]
-		public class HandSettings
+		class HandSettings
 		{
 			public bool useWristRotation = true;
 			public bool rotateElbowWithHandRight = true;
@@ -49,7 +43,6 @@ namespace VRArmIK
 			public float handDeltaForwardPow = 2f, handDeltaForwardFactor = 1f, handDeltaForwardOffset = 0f, handDeltaForwardDeadzone = .3f;
 			public float rotateElbowWithHandDelay = .08f;
 		}
-
 
 		public ArmTransforms arm;
 		public ShoulderTransforms shoulder;
@@ -69,7 +62,7 @@ namespace VRArmIK
 		float interpolatedDeltaElbow;
 		float interpolatedDeltaElbowForward;
 
-		void Awake()
+		Awake()
 		{
 			upperArmStartRotation = arm.upperArm.rotation;
 			lowerArmStartRotation = arm.lowerArm.rotation;
@@ -79,14 +72,14 @@ namespace VRArmIK
 			handStartRotation = arm.hand.rotation;
 		}
 
-		void OnEnable()
+		OnEnable()
 		{
 			setUpperArmRotation(Quaternion.identity);
 			setLowerArmRotation(Quaternion.identity);
 			setHandRotation(Quaternion.identity);
 		}
 
-		void LateUpdate()
+		LateUpdate()
 		{
 			updateUpperArmPosition();
 			calcElbowInnerAngle();
@@ -105,7 +98,7 @@ namespace VRArmIK
 			}
 		}
 
-		public void updateArmAndTurnElbowUp()
+		updateArmAndTurnElbowUp()
 		{
 			updateUpperArmPosition();
 			calcElbowInnerAngle();
@@ -113,12 +106,12 @@ namespace VRArmIK
 			correctElbowRotation();
 		}
 
-		void updateUpperArmPosition()
+		updateUpperArmPosition()
 		{
 			//arm.upperArm.position = shoulderAnker.transform.position;
 		}
 
-		void calcElbowInnerAngle()
+		calcElbowInnerAngle()
 		{
 			Vector3 eulerAngles = new Vector3();
 			float targetShoulderDistance = (target.position - upperArmPos).magnitude;
@@ -147,7 +140,7 @@ namespace VRArmIK
 		}
 
 		//source: https://github.com/NickHardeman/ofxIKArm/blob/master/src/ofxIKArm.cpp
-		void rotateShoulder()
+		rotateShoulder()
 		{
 			Vector3 eulerAngles = new Vector3();
 			Vector3 targetShoulderDirection = (target.position - upperArmPos).normalized;
@@ -166,7 +159,7 @@ namespace VRArmIK
 			setLowerArmLocalRotation(Quaternion.Euler(nextLowerArmAngle));
 		}
 
-		float getElbowTargetAngle()
+		getElbowTargetAngle()
 		{
 			Vector3 localHandPosNormalized = shoulderAnker.InverseTransformPoint(handPos) / arm.armLength;
 
@@ -207,7 +200,7 @@ namespace VRArmIK
 			return angle;
 		}
 
-		void correctElbowRotation()
+		correctElbowRotation()
 		{
 			var s = beforePositioningSettings;
 
@@ -235,7 +228,7 @@ namespace VRArmIK
 		/// <summary>
 		/// reduces calculation problems when hand is moving around shoulder XZ coordinates -> forces elbow to be outside of body
 		/// </summary>
-		void correctElbowAfterPositioning()
+		correctElbowAfterPositioning()
 		{
 			var s = elbowCorrectionSettings;
 			Vector3 localTargetPos = shoulderAnker.InverseTransformPoint(target.position) / arm.armLength;
@@ -265,7 +258,7 @@ namespace VRArmIK
 			arm.upperArm.rotation = rotation * arm.upperArm.rotation;
 		}
 
-		public void rotateElbow(float angle)
+		rotateElbow(float angle)
 		{
 			Vector3 shoulderHandDirection = (upperArmPos - handPos).normalized;
 
@@ -274,14 +267,14 @@ namespace VRArmIK
 		}
 
 		//source: https://github.com/NickHardeman/ofxIKArm/blob/master/src/ofxIKArm.cpp
-		void positionElbow()
+		positionElbow()
 		{
 			float targetElbowAngle = getElbowTargetAngle();
 			rotateElbow(targetElbowAngle);
 		}
 
 
-		void rotateElbowWithHandRight()
+		rotateElbowWithHandRight()
 		{
 			var s = handSettings;
 			Vector3 handUpVec = target.rotation * Vector3.up;
@@ -303,7 +296,7 @@ namespace VRArmIK
 			rotateElbow(interpolatedDeltaElbow);
 		}
 
-		void rotateElbowWithHandFoward()
+		rotateElbowWithHandFoward()
 		{
 			var s = handSettings;
 			Vector3 handRightVec = target.rotation * armDirection;
@@ -327,7 +320,7 @@ namespace VRArmIK
 			rotateElbow(signedInterpolated * s.handDeltaForwardFactor);
 		}
 
-		public void rotateHand()
+		rotateHand()
 		{
 			if (handSettings.useWristRotation)
 			{
@@ -351,29 +344,55 @@ namespace VRArmIK
 			setHandRotation(target.rotation);
 		}
 
-		Vector3 removeShoulderRightRotation(Vector3 direction) => Quaternion.AngleAxis(-shoulderPoser.shoulderRightRotation, shoulder.transform.right) * direction;
+		removeShoulderRightRotation(Vector3 direction) {
+			return Quaternion.AngleAxis(-shoulderPoser.shoulderRightRotation, shoulder.transform.right) * direction;
+		}
 
-		Vector3 armDirection => left ? Vector3.left : Vector3.right;
-		Vector3 upperArmPos => arm.upperArm.position;
-		Vector3 lowerArmPos => arm.lowerArm.position;
-		Vector3 handPos => arm.hand.position;
-		Transform shoulderAnker => left ? shoulder.leftShoulderAnchor : shoulder.rightShoulderAnchor;
+		get armDirection() {
+			return left ? Vector3.left : Vector3.right;
+		}
+		get upperArmPos() {
+			return arm.upperArm.position;
+		}
+		get lowerArmPos() {
+			return arm.lowerArm.position;
+		}
+		get handPos() {
+			return arm.hand.position;
+		}
+		get shoulderAnker() {
+			return left ? shoulder.leftShoulderAnchor : shoulder.rightShoulderAnchor;
+		}
 
-		Quaternion upperArmRotation => arm.upperArm.rotation * Quaternion.Inverse(upperArmStartRotation);
-		Quaternion lowerArmRotation => arm.lowerArm.rotation * Quaternion.Inverse(lowerArmStartRotation);
-		Quaternion handRotation => arm.hand.rotation * Quaternion.Inverse(handStartRotation);
+		get upperArmRotation() {
+			return arm.upperArm.rotation * Quaternion.Inverse(upperArmStartRotation);
+		}
+		get lowerArmRotation() {
+			return arm.lowerArm.rotation * Quaternion.Inverse(lowerArmStartRotation);
+		}
+		get handRotation() {
+			return arm.hand.rotation * Quaternion.Inverse(handStartRotation);
+		}
 
-		void setUpperArmRotation(Quaternion rotation) => arm.upperArm.rotation = rotation * upperArmStartRotation;
-		void setLowerArmRotation(Quaternion rotation) => arm.lowerArm.rotation = rotation * lowerArmStartRotation;
-		void setLowerArmLocalRotation(Quaternion rotation) => arm.lowerArm.rotation = upperArmRotation * rotation * lowerArmStartRotation;
-		void setWrist1Rotation(Quaternion rotation) => arm.wrist1.rotation = rotation * wristStartRotation;
-		void setWrist2Rotation(Quaternion rotation) => arm.wrist2.rotation = rotation * wristStartRotation;
-		void setWristLocalRotation(Quaternion rotation) => arm.wrist1.rotation = arm.lowerArm.rotation * rotation * wristStartRotation;
-
-		void setHandRotation(Quaternion rotation) =>
-			arm.hand.rotation = arm.hand.rotation = rotation * handStartRotation;
+		setUpperArmRotation(Quaternion rotation) {
+			return arm.upperArm.rotation = rotation * upperArmStartRotation;
+		}
+		setLowerArmRotation(Quaternion rotation) {
+			return arm.lowerArm.rotation = rotation * lowerArmStartRotation;
+		}
+		setLowerArmLocalRotation(Quaternion rotation) {
+			return arm.lowerArm.rotation = upperArmRotation * rotation * lowerArmStartRotation;
+		}
+		setWrist1Rotation(Quaternion rotation) {
+			return arm.wrist1.rotation = rotation * wristStartRotation;
+		}
+		setWrist2Rotation(Quaternion rotation) {
+			return arm.wrist2.rotation = rotation * wristStartRotation;
+		}
+		setWristLocalRotation(Quaternion rotation) {
+			return arm.wrist1.rotation = arm.lowerArm.rotation * rotation * wristStartRotation;
+    }
+		setHandRotation(Quaternion rotation) {
+			return arm.hand.rotation = arm.hand.rotation = rotation * handStartRotation;
+		}
 	}
-
-
-
-}

@@ -1,16 +1,12 @@
-﻿using UnityEngine;
-
-namespace VRArmIK
-{
-	public class ShoulderTransforms : MonoBehaviour
+﻿class ShoulderTransforms
 	{
-		public Transform leftShoulder, rightShoulder;
-		public Transform leftShoulderRenderer, rightShoulderRenderer;
-		public Transform leftShoulderAnchor, rightShoulderAnchor;
-		public ArmTransforms leftArmDummy, rightArmDummy;
-		public ArmTransforms leftArm, rightArm;
+		Transform leftShoulder, rightShoulder;
+		Transform leftShoulderRenderer, rightShoulderRenderer;
+		Transform leftShoulderAnchor, rightShoulderAnchor;
+		ArmTransforms leftArmDummy, rightArmDummy;
+		ArmTransforms leftArm, rightArm;
 
-		void Awake()
+		Awake()
 		{
 			if (leftArm == null)
 			{
@@ -30,12 +26,12 @@ namespace VRArmIK
 			}
 		}
 
-		void Start()
+		Start()
 		{
 			setShoulderWidth(PoseManager.Instance.playerWidthShoulders);
 		}
 
-		public void setShoulderWidth(float width)
+		setShoulderWidth(float width)
 		{
 			Vector3 localScale = new Vector3(width * .5f, .05f, .05f);
 			Vector3 localPosition = new Vector3(width * .25f, 0f, 0f);
@@ -47,5 +43,3 @@ namespace VRArmIK
 			rightShoulderRenderer.localPosition = localPosition;
 		}
 	}
-
-}

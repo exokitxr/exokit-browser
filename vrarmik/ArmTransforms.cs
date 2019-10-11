@@ -1,35 +1,33 @@
-﻿using UnityEngine;
-
-namespace VRArmIK
-{
-	public class ArmTransforms : MonoBehaviour
+﻿class ArmTransforms
 	{
-		public Transform upperArm, lowerArm, wrist1, wrist2, hand;
+		Transform upperArm, lowerArm, wrist1, wrist2, hand;
 
-		public float upperArmLength => distance(upperArm, lowerArm);
-		public float lowerArmLength => distance(lowerArm, hand);
-		public float armLength => upperArmLength + lowerArmLength;
+		float upperArmLength => distance(upperArm, lowerArm);
+		float lowerArmLength => distance(lowerArm, hand);
+		float armLength => upperArmLength + lowerArmLength;
 
-		public bool armLengthByScale = false;
-		public Vector3 scaleAxis = Vector3.one;
-		public float scaleHandFactor = .7f;
+		bool armLengthByScale = false;
+		Vector3 scaleAxis = Vector3.one;
+		float scaleHandFactor = .7f;
 
-		float distance(Transform a, Transform b) => (a.position - b.position).magnitude;
+		distance(Transform a, Transform b) {
+			return (a.position - b.position).magnitude;
+		}
 
-		void Start()
+	  Start()
 		{
 			PoseManager.Instance.onCalibrate += updateArmLengths;
 			updateArmLengths();
 		}
 
-		void updateArmLengths()
+		updateArmLengths()
 		{
 			var shoulderWidth = (upperArm.position - lowerArm.position).magnitude;
 			var _armLength = (PoseManager.Instance.playerWidthWrist - shoulderWidth) / 2f;
 			setArmLength(_armLength);
 		}
 
-		public void setUpperArmLength(float length)
+		setUpperArmLength(float length)
 		{
 			if (armLengthByScale)
 			{
@@ -50,7 +48,7 @@ namespace VRArmIK
 			}
 		}
 
-		public void setLowerArmLength(float length)
+		setLowerArmLength(float length)
 		{
 			if (armLengthByScale)
 			{
@@ -63,7 +61,7 @@ namespace VRArmIK
 			}
 		}
 
-		public void setArmLength(float length)
+		setArmLength(float length)
 		{
 			float upperArmFactor = .48f;
 			if (armLengthByScale)
@@ -78,4 +76,3 @@ namespace VRArmIK
 			}
 		}
 	}
-}
