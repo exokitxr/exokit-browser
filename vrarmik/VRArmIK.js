@@ -66,7 +66,7 @@ class HandSettings
 	{
 		constructor() {
 			this.arm = new ArmTransforms(); // XXX these need to be this'd below
-			this.shoulder = ShoulderTransforms();
+			this.shoulder = new ShoulderTransforms();
 			this.shoulderPoser = new ShoulderPoser();
 			this.target = new Transform();
 			this.left = true;
