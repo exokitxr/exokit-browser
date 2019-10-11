@@ -1,6 +1,7 @@
 import ArmTransforms from './ArmTransforms.js';
 import ShoulderTransforms from './ShoulderTransforms.js';
 import ShoulderPoser from './ShoulderPoser.js';
+import VectorHelpers from 'Utils/VectorHelpers.js';
 
 class ArmIKElbowSettings
 {
