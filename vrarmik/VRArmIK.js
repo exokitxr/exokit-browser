@@ -2,48 +2,48 @@
 import ShoulderTransforms from './ShoulderTransforms.js';
 import ShoulderPoser from './ShoulderPoser.js';
 
-	public class VRArmIK
+class ArmIKElbowSettings
+{
+	public bool calcElbowAngle = true;
+	public bool clampElbowAngle = true;
+	public bool softClampElbowAngle = true;
+	public float maxAngle = 175f, minAngle = 13f, softClampRange = 10f;
+	public float offsetAngle = 135f;
+	public float yWeight = -60f;
+	public float zWeightTop = 260, zWeightBottom = -100, zBorderY = -.25f, zDistanceStart = .6f;
+	public float xWeight = -50f, xDistanceStart = .1f;
+}
+
+class BeforePositioningSettings
+{
+	public bool correctElbowOutside = true;
+	public float weight = -0.5f;
+	public float startBelowZ = .4f;
+	public float startAboveY = 0.1f;
+}
+
+class ElbowCorrectionSettings
+{
+	public bool useFixedElbowWhenNearShoulder = true;
+	public float startBelowDistance = .5f;
+	public float startBelowY = 0.1f;
+	public float weight = 2f;
+	public Vector3 localElbowPos = new Vector3(0.3f, -1f, -2f);
+}
+
+class HandSettings
+{
+	public bool useWristRotation = true;
+	public bool rotateElbowWithHandRight = true;
+	public bool rotateElbowWithHandForward = true;
+	public float handDeltaPow = 1.5f, handDeltaFactor = -.3f, handDeltaOffset = 45f;
+	// todo fix rotateElbowWithHandForward with factor != 1 -> horrible jumps. good value would be between [0.4, 0.6]
+	public float handDeltaForwardPow = 2f, handDeltaForwardFactor = 1f, handDeltaForwardOffset = 0f, handDeltaForwardDeadzone = .3f;
+	public float rotateElbowWithHandDelay = .08f;
+}
+
+	class VRArmIK
 	{
-		class ArmIKElbowSettings
-		{
-			public bool calcElbowAngle = true;
-			public bool clampElbowAngle = true;
-			public bool softClampElbowAngle = true;
-			public float maxAngle = 175f, minAngle = 13f, softClampRange = 10f;
-			public float offsetAngle = 135f;
-			public float yWeight = -60f;
-			public float zWeightTop = 260, zWeightBottom = -100, zBorderY = -.25f, zDistanceStart = .6f;
-			public float xWeight = -50f, xDistanceStart = .1f;
-		}
-
-		class BeforePositioningSettings
-		{
-			public bool correctElbowOutside = true;
-			public float weight = -0.5f;
-			public float startBelowZ = .4f;
-			public float startAboveY = 0.1f;
-		}
-
-		class ElbowCorrectionSettings
-		{
-			public bool useFixedElbowWhenNearShoulder = true;
-			public float startBelowDistance = .5f;
-			public float startBelowY = 0.1f;
-			public float weight = 2f;
-			public Vector3 localElbowPos = new Vector3(0.3f, -1f, -2f);
-		}
-
-		class HandSettings
-		{
-			public bool useWristRotation = true;
-			public bool rotateElbowWithHandRight = true;
-			public bool rotateElbowWithHandForward = true;
-			public float handDeltaPow = 1.5f, handDeltaFactor = -.3f, handDeltaOffset = 45f;
-			// todo fix rotateElbowWithHandForward with factor != 1 -> horrible jumps. good value would be between [0.4, 0.6]
-			public float handDeltaForwardPow = 2f, handDeltaForwardFactor = 1f, handDeltaForwardOffset = 0f, handDeltaForwardDeadzone = .3f;
-			public float rotateElbowWithHandDelay = .08f;
-		}
-
 		public ArmTransforms arm;
 		public ShoulderTransforms shoulder;
 		public ShoulderPoser shoulderPoser;
@@ -396,3 +396,5 @@ import ShoulderPoser from './ShoulderPoser.js';
 			return arm.hand.rotation = arm.hand.rotation = rotation * handStartRotation;
 		}
 	}
+
+export default VRArmIK;
