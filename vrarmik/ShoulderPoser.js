@@ -1,47 +1,52 @@
-﻿class ShoulderPoser
+import ShoulderTransforms from './ShoulderTransforms.js';
+
+class ShoulderPoser
 	{
-		ShoulderTransforms shoulder;
-		VRTrackingReferences vrTrackingReferences;
-		AvatarVRTrackingReferences avatarTrackingReferences;
+		constructor() {
+			this.shoulder = new ShoulderTransforms();
+			this.vrTrackingReferences = new VRTrackingReferences();
+			this.avatarTrackingReferences = AvatarVRTrackingReferences();
 
-		float headNeckDistance = 0.03f;
-		Vector3 neckShoulderDistance = new Vector3(0f, -.1f, -0.02f);
+			this.headNeckDistance = 0.03;
+			this.neckShoulderDistance = new Vector3(0, -.1, -0.02);
 
-		float maxDeltaHeadRotation = 80f;
+			this.maxDeltaHeadRotation = 80;
 
-		float distinctShoulderRotationLimitForward = 33f;
+			this.distinctShoulderRotationLimitForward = 33;
 
-		float distinctShoulderRotationLimitBackward = 0f;
+			this.distinctShoulderRotationLimitBackward = 0;
 
-		float distinctShoulderRotationLimitUpward = 33f;
-		float distinctShoulderRotationMultiplier = 30;
+			this.distinctShoulderRotationLimitUpward = 33;
+			this.distinctShoulderRotationMultiplier = 30;
 
-		float rightRotationStartHeight = 0f;
-		float rightRotationHeightFactor = 142f;
-		float rightRotationHeadRotationFactor = 0.3f;
-		float rightRotationHeadRotationOffset = -20f;
+	  	this.rightRotationStartHeight = 0;
+			this.rightRotationHeightFactor = 142;
+			this.rightRotationHeadRotationFactor = 0.3;
+			this.rightRotationHeadRotationOffset = -20;
 
-		Vector3 headNeckDirectionVector = new Vector3(0f, -1f, -.05f);
-		float startShoulderDislocationBefore = 0.005f;
+			this.headNeckDirectionVector = new Vector3(0, -1, -.05);
+			this.startShoulderDislocationBefore = 0.005;
 
-		bool ignoreYPos = true;
-		bool autoDetectHandsBehindHead = true;
-		bool clampRotationToHead = true;
-	  bool enableDistinctShoulderRotation = true;
-		bool enableShoulderDislocation = true;
-
-
-		bool handsBehindHead = false;
-
-		bool clampingHeadRotation = false;
-		bool shoulderDislocated = false;
-		float shoulderRightRotation;
+			this.ignoreYPos = true;
+		  this.autoDetectHandsBehindHead = true;
+			this.clampRotationToHead = true;
+		  this.enableDistinctShoulderRotation = true;
+			this.enableShoulderDislocation = true;
 
 
-		Vector3 lastAngle = Vector3.zero;
+			this.handsBehindHead = false;
+
+			this.clampingHeadRotation = false;
+			this.shoulderDislocated = false;
+			this.shoulderRightRotation;
 
 
-		Vector3 leftShoulderAnkerStartLocalPosition, rightShoulderAnkerStartLocalPosition;
+			this.lastAngle = Vector3.zero;
+
+
+			this.leftShoulderAnkerStartLocalPosition = new Vector3();
+			this.rightShoulderAnkerStartLocalPosition = new Vector3();
+		}
 
 		Start()
 		{
@@ -90,14 +95,14 @@
 		rotateLeftShoulder()
 		{
 			rotateShoulderUp(shoulder.leftShoulder, shoulder.leftArm, avatarTrackingReferences.leftHand.transform,
-				leftShoulderAnkerStartLocalPosition, 1f);
+				leftShoulderAnkerStartLocalPosition, 1);
 
 		}
 
 		rotateRightShoulder()
 		{
 			rotateShoulderUp(shoulder.rightShoulder, shoulder.rightArm, avatarTrackingReferences.rightHand.transform,
-				rightShoulderAnkerStartLocalPosition, -1f);
+				rightShoulderAnkerStartLocalPosition, -1);
 		}
 
 		rotateShoulderUp(Transform shoulderSide, ArmTransforms arm, Transform targetHand,
@@ -111,19 +116,19 @@
 
 			float forwardDistanceRatio = Vector3.Dot(handShoulderOffset, shoulder.transform.forward) / armLength;
 			float upwardDistanceRatio = Vector3.Dot(handShoulderOffset, shoulder.transform.up) / armLength;
-			if (forwardDistanceRatio > 0f)
+			if (forwardDistanceRatio > 0)
 			{
-				targetAngle.y = Mathf.Clamp((forwardDistanceRatio - 0.5f) * distinctShoulderRotationMultiplier, 0f,
+				targetAngle.y = Mathf.Clamp((forwardDistanceRatio - 0.5) * distinctShoulderRotationMultiplier, 0,
 					distinctShoulderRotationLimitForward);
 			}
 			else
 			{
-				targetAngle.y = Mathf.Clamp(-(forwardDistanceRatio + 0.08f) * distinctShoulderRotationMultiplier * 10f,
-					-distinctShoulderRotationLimitBackward, 0f);
+				targetAngle.y = Mathf.Clamp(-(forwardDistanceRatio + 0.08) * distinctShoulderRotationMultiplier * 10,
+					-distinctShoulderRotationLimitBackward, 0);
 			}
 
-			targetAngle.z = Mathf.Clamp(-(upwardDistanceRatio - 0.5f) * distinctShoulderRotationMultiplier,
-				-distinctShoulderRotationLimitUpward, 0f);
+			targetAngle.z = Mathf.Clamp(-(upwardDistanceRatio - 0.5) * distinctShoulderRotationMultiplier,
+				-distinctShoulderRotationLimitUpward, 0);
 
 			shoulderSide.localEulerAngles = targetAngle * angleSign;
 		}
@@ -141,7 +146,7 @@
 		{
 			float angle = getCombinedDirectionAngleUp();
 
-			Vector3 targetRotation = new Vector3(0f, angle, 0f);
+			Vector3 targetRotation = new Vector3(0, angle, 0);
 
 			if (autoDetectHandsBehindHead)
 			{
@@ -164,11 +169,11 @@
 			float headRightRotation = VectorHelpers.getAngleBetween(shoulder.transform.forward,
 										  avatarTrackingReferences.hmd.transform.forward,
 										  Vector3.up, shoulder.transform.right) + rightRotationHeadRotationOffset;
-			float heightFactor = Mathf.Clamp(relativeHeightDiff - rightRotationStartHeight, 0f, 1f);
+			float heightFactor = Mathf.Clamp(relativeHeightDiff - rightRotationStartHeight, 0, 1);
 			shoulderRightRotation = heightFactor * rightRotationHeightFactor;
-			shoulderRightRotation += Mathf.Clamp(headRightRotation * rightRotationHeadRotationFactor * heightFactor, 0f, 50f);
+			shoulderRightRotation += Mathf.Clamp(headRightRotation * rightRotationHeadRotationFactor * heightFactor, 0, 50);
 
-            shoulderRightRotation = Mathf.Clamp(shoulderRightRotation, 0f, 50f);
+            shoulderRightRotation = Mathf.Clamp(shoulderRightRotation, 0, 50);
 
 			Quaternion deltaRot = Quaternion.AngleAxis(shoulderRightRotation, shoulder.transform.right);
 
@@ -202,13 +207,13 @@
 
 			Vector3 combinedDirection = directionLeftHand + directionRightHand;
 
-			return Mathf.Atan2(combinedDirection.x, combinedDirection.z) * 180f / Mathf.PI;
+			return Mathf.Atan2(combinedDirection.x, combinedDirection.z) * 180 / Mathf.PI;
 		}
 
 		detectHandsBehindHead(ref Vector3 targetRotation)
 		{
-			float delta = Mathf.Abs(targetRotation.y - lastAngle.y + 360f) % 360f;
-			if (delta > 150f && delta < 210f && lastAngle.magnitude > 0.000001f && !clampingHeadRotation)
+			float delta = Mathf.Abs(targetRotation.y - lastAngle.y + 360) % 360;
+			if (delta > 150 && delta < 210 && lastAngle.magnitude > 0.000001 && !clampingHeadRotation)
 			{
 				handsBehindHead = !handsBehindHead;
 			}
@@ -217,23 +222,23 @@
 
 			if (handsBehindHead)
 			{
-				targetRotation.y += 180f;
+				targetRotation.y += 180;
 			}
 		}
 
 		clampHeadRotationDeltaUp(ref Vector3 targetRotation)
 		{
-			float headUpRotation = (avatarTrackingReferences.head.transform.eulerAngles.y + 360f) % 360f;
-			float targetUpRotation = (targetRotation.y + 360f) % 360f;
+			float headUpRotation = (avatarTrackingReferences.head.transform.eulerAngles.y + 360) % 360;
+			float targetUpRotation = (targetRotation.y + 360) % 360;
 
 			float delta = headUpRotation - targetUpRotation;
 
-			if (delta > maxDeltaHeadRotation && delta < 180f || delta < -180f && delta >= -360f + maxDeltaHeadRotation)
+			if (delta > maxDeltaHeadRotation && delta < 180 || delta < -180 && delta >= -360 + maxDeltaHeadRotation)
 			{
 				targetRotation.y = headUpRotation - maxDeltaHeadRotation;
 				clampingHeadRotation = true;
 			}
-			else if (delta < -maxDeltaHeadRotation && delta > -180 || delta > 180f && delta < 360f - maxDeltaHeadRotation)
+			else if (delta < -maxDeltaHeadRotation && delta > -180 || delta > 180 && delta < 360 - maxDeltaHeadRotation)
 			{
 				targetRotation.y = headUpRotation + maxDeltaHeadRotation;
 				clampingHeadRotation = true;
@@ -251,7 +256,7 @@
 			float leftShoulderHandDistance = leftHandVector.magnitude, rightShoulderHandDistance = rightHandVector.magnitude;
 			shoulderDislocated = false;
 
-			float startBeforeFactor = (1f - startShoulderDislocationBefore);
+			float startBeforeFactor = (1 - startShoulderDislocationBefore);
 
 			if (leftShoulderHandDistance > shoulder.leftArm.armLength * startBeforeFactor)
 			{

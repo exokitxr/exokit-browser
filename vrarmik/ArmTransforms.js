@@ -1,14 +1,26 @@
-﻿class ArmTransforms
+class ArmTransforms
 	{
-		Transform upperArm, lowerArm, wrist1, wrist2, hand;
+		constructor() {
+			this.upperArm = new Transform();
+			this.lowerArm = new Transform();
+			this.wrist1 = new Transform();
+			this.wrist2 = new Transform();
+			this.hand = new Transform();
 
-		float upperArmLength => distance(upperArm, lowerArm);
-		float lowerArmLength => distance(lowerArm, hand);
-		float armLength => upperArmLength + lowerArmLength;
+			this.armLengthByScale = false;
+			this.scaleAxis = Vector3.one;
+			this.scaleHandFactor = .7;
+		}
 
-		bool armLengthByScale = false;
-		Vector3 scaleAxis = Vector3.one;
-		float scaleHandFactor = .7f;
+		get upperArmLength() {
+			return distance(upperArm, lowerArm);
+		}
+		get lowerArmLength() {
+			return distance(lowerArm, hand);
+		}
+		get armLength() {
+			return upperArmLength + lowerArmLength;
+		}
 
 		distance(Transform a, Transform b) {
 			return (a.position - b.position).magnitude;
@@ -23,7 +35,7 @@
 		updateArmLengths()
 		{
 			var shoulderWidth = (upperArm.position - lowerArm.position).magnitude;
-			var _armLength = (PoseManager.Instance.playerWidthWrist - shoulderWidth) / 2f;
+			var _armLength = (PoseManager.Instance.playerWidthWrist - shoulderWidth) / 2;
 			setArmLength(_armLength);
 		}
 
@@ -63,16 +75,16 @@
 
 		setArmLength(float length)
 		{
-			float upperArmFactor = .48f;
+			float upperArmFactor = .48;
 			if (armLengthByScale)
 			{
 				upperArm.localScale = upperArm.localScale / armLength * length;
-				hand.localScale = Vector3.one / (1f - (1f - scaleHandFactor) * (1f - upperArm.localScale.x));
+				hand.localScale = Vector3.one / (1 - (1 - scaleHandFactor) * (1 - upperArm.localScale.x));
 			}
 			else
 			{
 				setUpperArmLength(length * upperArmFactor);
-				setLowerArmLength(length * (1f - upperArmFactor));
+				setLowerArmLength(length * (1 - upperArmFactor));
 			}
 		}
 	}

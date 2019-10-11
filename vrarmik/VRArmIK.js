@@ -1,4 +1,4 @@
-﻿import ArmTransforms from './ArmTransforms.js';
+import ArmTransforms from './ArmTransforms.js';
 import ShoulderTransforms from './ShoulderTransforms.js';
 import ShoulderPoser from './ShoulderPoser.js';
 

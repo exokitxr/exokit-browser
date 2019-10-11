@@ -1,10 +1,19 @@
-﻿class ShoulderTransforms
+import ArmTransforms from './ArmTransforms.js';
+
+class ShoulderTransforms
 	{
-		Transform leftShoulder, rightShoulder;
-		Transform leftShoulderRenderer, rightShoulderRenderer;
-		Transform leftShoulderAnchor, rightShoulderAnchor;
-		ArmTransforms leftArmDummy, rightArmDummy;
-		ArmTransforms leftArm, rightArm;
+		constructor() {
+			this.leftShoulder = new Transform();
+			this.rightShoulder = new Transform();
+			this.leftShoulderRenderer = new Transform();
+			this.rightShoulderRenderer = new Transform();
+			this.leftShoulderAnchor = Transform();
+			this.rightShoulderAnchor = Transform();
+		  this.leftArmDummy = new ArmTransforms();
+		  this.rightArmDummy = new ArmTransforms();
+			this.leftArm = new ArmTransforms();
+			this.rightArm = new ArmTransforms();
+		}
 
 		Awake()
 		{
@@ -33,8 +42,8 @@
 
 		setShoulderWidth(float width)
 		{
-			Vector3 localScale = new Vector3(width * .5f, .05f, .05f);
-			Vector3 localPosition = new Vector3(width * .25f, 0f, 0f);
+			Vector3 localScale = new Vector3(width * .5, .05, .05);
+			Vector3 localPosition = new Vector3(width * .25, 0, 0);
 
 			leftShoulderRenderer.localScale = localScale;
 			leftShoulderRenderer.localPosition = -localPosition;
