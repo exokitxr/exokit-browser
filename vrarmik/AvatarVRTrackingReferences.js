@@ -1,24 +1,25 @@
-using UnityEngine;
 
-namespace VRArmIK
-{
-	public class AvatarVRTrackingReferences : MonoBehaviour
+	class AvatarVRTrackingReferences
 	{
-		public StaticOffsetTransform head, hmd, leftHand, rightHand;
+		constructor() {
+			this.head = new StaticOffsetTransform();
+			this.hmd = new StaticOffsetTransform();
+			this.leftHand = new StaticOffsetTransform();
+			this.rightHand = new StaticOffsetTransform();
+		}
 
-		void Start()
+		Start()
 		{
 			initTransforms();
 		}
 
-		[ContextMenu("init transforms")]
-		public void initTransforms()
+		initTransforms()
 		{
 			createTransforms();
 			connectTransforms();
 		}
 
-		void setStaticOffsetSettings(StaticOffsetTransform s)
+		setStaticOffsetSettings(StaticOffsetTransform s)
 		{
 			s.referenceLocalPosition = false;
 			s.referenceLocalRotation = false;
@@ -30,7 +31,7 @@ namespace VRArmIK
 		}
 
 
-		void createTransform(ref StaticOffsetTransform t, string name)
+		createTransform(ref StaticOffsetTransform t, string name)
 		{
 			if (t == null)
 			{
@@ -40,7 +41,7 @@ namespace VRArmIK
 			}
 		}
 
-		void createHandTransform(ref Transform t, string name, Transform parent)
+		createHandTransform(ref Transform t, string name, Transform parent)
 		{
 			if (t == null)
 			{
@@ -50,7 +51,7 @@ namespace VRArmIK
 			}
 		}
 
-		void createTransforms()
+		createTransforms()
 		{
 			createTransform(ref head, nameof(head));
 			createTransform(ref leftHand, nameof(leftHand));
@@ -58,7 +59,7 @@ namespace VRArmIK
 			createTransform(ref hmd, nameof(hmd));
 		}
 
-		void connectTransforms()
+		connectTransforms()
 		{
 			StaticOffsetTransform sot = this.GetOrAddComponent<StaticOffsetTransform>();
 			if (sot.reference == null)
@@ -76,4 +77,5 @@ namespace VRArmIK
 				: PoseManager.Instance.vrTransforms.rightHand;
 		}
 	}
-}
+
+export default AvatarVRTrackingReferences;

@@ -1,11 +1,11 @@
-using UnityEngine;
-
-namespace VRArmIK
-{
-
-	public class VRTrackingReferences : MonoBehaviour
+	class VRTrackingReferences
 	{
-		public Transform leftController, rightController, hmd;
-		public Transform leftHand, rightHand, head;
+		this.leftController = new Transform();
+    this.rightController = new Transform();
+    this.hmd = new Transform();
+		this.leftHand = new Transform();
+    this.rightHand = new Transform();
+    this.head = new Transform();
 	}
-}
+
+export default VRTrackingReferences;

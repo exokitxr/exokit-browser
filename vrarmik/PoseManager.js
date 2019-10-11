@@ -1,30 +1,24 @@
-using UnityEngine;
-using UnityEngine.XR;
+import VRTrackingReferences from './VRTrackingReferences.js';
 
-namespace VRArmIK
-{
-	[ExecuteInEditMode]
-	public class PoseManager : MonoBehaviour
+class PoseManager
 	{
-		public static PoseManager Instance = null;
-		public VRTrackingReferences vrTransforms;
+		constructor() {
+			this.vrTransforms = new VRTrackingReferences();
+		  this.OnCalibrateListener = null;
 
-		public delegate void OnCalibrateListener();
+      // Oculus uses a different reference position -> 0 is the reference head position if the user is standing in the middle of the room. 
+      // In OpenVR, the 0 position is the ground position and the user is then at (0, playerHeightHmd, 0) if he is in the middle of the room, so I need to correct this for shoulder calculation 
+      this.vrSystemOffsetHeight = 0.0;
 
-		public event OnCalibrateListener onCalibrate;
+			this.referencePlayerHeightHmd = 1.7;
+			this.referencePlayerWidthWrist = 1.39;
+			this.playerHeightHmd = 1.70;
+			this.playerWidthWrist = 1.39;
+			this.playerWidthShoulders = 0.31;
+      this.loadPlayerSizeOnAwake = false;
+    }
 
-        // Oculus uses a different reference position -> 0 is the reference head position if the user is standing in the middle of the room. 
-        // In OpenVR, the 0 position is the ground position and the user is then at (0, playerHeightHmd, 0) if he is in the middle of the room, so I need to correct this for shoulder calculation 
-        public float vrSystemOffsetHeight = 0.0f;
-
-		public const float referencePlayerHeightHmd = 1.7f;
-		public const float referencePlayerWidthWrist = 1.39f;
-		public float playerHeightHmd = 1.70f;
-		public float playerWidthWrist = 1.39f;
-		public float playerWidthShoulders = 0.31f;
-        public bool loadPlayerSizeOnAwake = false;
-
-		void OnEnable()
+		OnEnable()
 		{
 			if (Instance == null)
 			{
@@ -36,7 +30,7 @@ namespace VRArmIK
 			}
 		}
 
-		void Awake()
+		Awake()
 		{
             if (loadPlayerSizeOnAwake)
             {
@@ -46,36 +40,34 @@ namespace VRArmIK
             vrSystemOffsetHeight = string.IsNullOrEmpty(device) || device == "OpenVR" ? 0 : playerHeightHmd;
         }
 
-		void Start()
+		Start()
 		{
 			onCalibrate += OnCalibrate;
 		}
 
-		[ContextMenu("calibrate")]
-		void OnCalibrate()
+		OnCalibrate()
 		{
 			playerHeightHmd = Camera.main.transform.position.y;
 		}
 
-		void loadPlayerWidthShoulders()
+		loadPlayerWidthShoulders()
 		{
-			playerWidthShoulders = PlayerPrefs.GetFloat("VRArmIK_PlayerWidthShoulders", 0.31f);
+			playerWidthShoulders = PlayerPrefs.GetFloat("VRArmIK_PlayerWidthShoulders", 0.31);
 		}
 
-		public void savePlayerWidthShoulders(float width)
+		savePlayerWidthShoulders(float width)
 		{
 			PlayerPrefs.SetFloat("VRArmIK_PlayerWidthShoulders", width);
 		}
 
-		[ContextMenu("setArmLength")]
-		public void calibrateIK()
+		calibrateIK()
 		{
 			playerWidthWrist = (vrTransforms.leftHand.position - vrTransforms.rightHand.position).magnitude;
 			playerHeightHmd = vrTransforms.hmd.position.y;
 			savePlayerSize(playerHeightHmd, playerWidthWrist);
 		}
 
-		public void savePlayerSize(float heightHmd, float widthWrist)
+		savePlayerSize(float heightHmd, float widthWrist)
 		{
 			PlayerPrefs.SetFloat("VRArmIK_PlayerHeightHmd", heightHmd);
 			PlayerPrefs.SetFloat("VRArmIK_PlayerWidthWrist", widthWrist);
@@ -83,10 +75,12 @@ namespace VRArmIK
 			onCalibrate?.Invoke();
 		}
 
-		public void loadPlayerSize()
+		loadPlayerSize()
 		{
 			playerHeightHmd = PlayerPrefs.GetFloat("VRArmIK_PlayerHeightHmd", referencePlayerHeightHmd);
 			playerWidthWrist = PlayerPrefs.GetFloat("VRArmIK_PlayerWidthWrist", referencePlayerWidthWrist);
 		}
 	}
-}
+	PoseManager.Instance = null;
+
+export default PoseManager;

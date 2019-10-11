@@ -1,4 +1,5 @@
 import ShoulderTransforms from './ShoulderTransforms.js';
+import VRTrackingReferences from './VRTrackingReferences.js';
 
 class ShoulderPoser
 	{

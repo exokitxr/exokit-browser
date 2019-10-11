@@ -1,34 +1,33 @@
-using UnityEngine;
+const EulerOrder = {
+	XYZ: 'XYZ',
+	XZY: 'XZY',
+	YXZ: 'YXZ',
+	YZX: 'YZX',
+	ZXY: 'ZXY',
+	ZYX: 'ZYX',
+};
 
-namespace VRArmIK
-{
-	public class StaticOffsetTransform : MonoBehaviour
+class StaticOffsetTransform
 	{
-		public enum EulerOrder
-		{
-			XYZ,
-			XZY,
-			YXZ,
-			YZX,
-			ZXY,
-			ZYX
-		};
+		constructor() {
+			this.reference = null;
+			this.offsetPosition = new Vector3();
+			this.offsetRotation = new Vector3();
+			this.orientationalOffset = new Vector3();
+			this.referenceRotationMultiplicator = Vector3.one;
 
-		public Transform reference = null;
-		public Vector3 offsetPosition;
-		public Vector3 offsetRotation;
-		public Vector3 orientationalOffset;
-		public Vector3 referenceRotationMultiplicator = Vector3.one;
+			this.axisOrder = new EulerOrder();
 
-		public EulerOrder axisOrder;
+			this.referenceLocalPosition = false;
+			this.referenceLocalRotation = false;
+			this.applyLocalPosition = false;
+			this.applyLocalRotation = false;
+			this.applyPosition = true;
+			this.applyRotation = true;
+			this.applyForwardOffsetAfterRotationOffset = false;
+    }
 
-		public bool referenceLocalPosition = false, referenceLocalRotation = false;
-		public bool applyLocalPosition = false, applyLocalRotation = false;
-		public bool applyPosition = true, applyRotation = true;
-		public bool applyForwardOffsetAfterRotationOffset = false;
-
-
-		public static Vector3 switchAxis(Vector3 r, EulerOrder order)
+		switchAxis(Vector3 r, EulerOrder order)
 		{
 			switch (order)
 			{
@@ -50,17 +49,17 @@ namespace VRArmIK
 			}
 		}
 
-		void Awake()
+		Awake()
 		{
 			updatePosition();
 		}
 
-		void Update()
+		Update()
 		{
 			updatePosition();
 		}
 
-		void updatePosition()
+		updatePosition()
 		{
 			if (reference == null)
 				return;
@@ -113,4 +112,5 @@ namespace VRArmIK
 			}
 		}
 	}
-}
+
+export default StaticOffsetTransform;
