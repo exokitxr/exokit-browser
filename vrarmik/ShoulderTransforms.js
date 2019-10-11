@@ -43,3 +43,5 @@
 			rightShoulderRenderer.localPosition = localPosition;
 		}
 	}
+
+export default ShoulderTransforms;

@@ -279,3 +279,5 @@
 			}
 		}
 	}
+
+export default ShoulderPoser;
