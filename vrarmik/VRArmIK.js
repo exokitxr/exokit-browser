@@ -155,7 +155,7 @@ class HandSettings
 					innerAngle = 180 - innerAngle;
 				else
 					innerAngle = 180 + innerAngle;
-				if (float.IsNaN(innerAngle))
+				if (isNaN(innerAngle))
 				{
 					innerAngle = 180;
 				}
@@ -175,7 +175,7 @@ class HandSettings
 			eulerAngles.y = (this.left ? -1 : 1) *
 				Mathf.Acos(Mathf.Clamp((Mathf.Pow(targetShoulderDistance, 2) + Mathf.Pow(this.arm.upperArmLength, 2) -
 							Mathf.Pow(this.arm.lowerArmLength, 2)) / (2 * targetShoulderDistance * this.arm.upperArmLength), -1, 1)) * Mathf.Rad2Deg;
-			if (float.IsNaN(eulerAngles.y))
+			if (isNaN(eulerAngles.y))
 				eulerAngles.y = 0;
 
 
