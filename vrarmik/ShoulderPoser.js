@@ -1,3 +1,4 @@
+import {Vector3, Quaternion} from './Unity.js';
 import ShoulderTransforms from './ShoulderTransforms.js';
 import VRTrackingReferences from './VRTrackingReferences.js';
 import PoseManager from './PoseManager.js';

@@ -1,4 +1,4 @@
-import Transform from './Transform.js';
+import {Vector3, Quaternion, Transform} from './Unity.js';
 import ArmTransforms from './ArmTransforms.js';
 import ShoulderTransforms from './ShoulderTransforms.js';
 import ShoulderPoser from './ShoulderPoser.js';

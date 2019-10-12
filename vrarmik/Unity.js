@@ -18,6 +18,9 @@ class Vector3 extends THREE.Vector3 {
     return new Vector3(0, 0, 1);
   }
 
+  get magnitude() {
+    return this.length();
+  }
   get normalized() {
     return this.clone().normalize();
   }

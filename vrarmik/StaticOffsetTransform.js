@@ -1,4 +1,4 @@
-import {Vector3} from './Unity.js';
+import {Vector3, Quaternion} from './Unity.js';
 
 const EulerOrder = {
 	XYZ: 'XYZ',

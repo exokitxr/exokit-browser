@@ -1,3 +1,4 @@
+import {Vector3, Transform} from './Unity.js';
 import ArmTransforms from './ArmTransforms.js';
 
 class ShoulderTransforms

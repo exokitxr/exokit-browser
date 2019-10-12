@@ -1,4 +1,4 @@
-import Transform from './Transform.js';
+import {Vector3, Transform} from './Unity.js';
 import PoseManager from './PoseManager.js';
 
 class ArmTransforms

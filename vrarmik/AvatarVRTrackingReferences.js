@@ -1,3 +1,5 @@
+import {Vector3} from './Unity.js';
+
 import StaticOffsetTransform from './StaticOffsetTransform.js';
 
 	class AvatarVRTrackingReferences
