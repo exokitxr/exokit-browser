@@ -1,3 +1,6 @@
+import Transform from './Transform.js';
+import PoseManager from './PoseManager.js';
+
 class ArmTransforms
 	{
 		constructor() {
@@ -13,78 +16,78 @@ class ArmTransforms
 		}
 
 		get upperArmLength() {
-			return distance(upperArm, lowerArm);
+			return distance(this.upperArm, this.lowerArm);
 		}
 		get lowerArmLength() {
-			return distance(lowerArm, hand);
+			return distance(this.lowerArm, this.hand);
 		}
 		get armLength() {
-			return upperArmLength + lowerArmLength;
+			return this.upperArmLength + this.lowerArmLength;
 		}
 
-		distance(Transform a, Transform b) {
+		distance(a, b) {
 			return (a.position - b.position).magnitude;
 		}
 
 	  Start()
 		{
-			PoseManager.Instance.onCalibrate += updateArmLengths;
-			updateArmLengths();
+			PoseManager.Instance.onCalibrate += this.updateArmLengths;
+			this.updateArmLengths();
 		}
 
 		updateArmLengths()
 		{
-			var shoulderWidth = (upperArm.position - lowerArm.position).magnitude;
-			var _armLength = (PoseManager.Instance.playerWidthWrist - shoulderWidth) / 2;
-			setArmLength(_armLength);
+			const shoulderWidth = (this.upperArm.position - this.lowerArm.position).magnitude;
+			const _armLength = (PoseManager.Instance.playerWidthWrist - shoulderWidth) / 2;
+			this.setArmLength(_armLength);
 		}
 
-		setUpperArmLength(float length)
+		setUpperArmLength(length)
 		{
 			if (armLengthByScale)
 			{
-				float oldLowerArmLength = distance(lowerArm, hand);
+				const oldLowerArmLength = distance(this.lowerArm, this.hand);
 
-				Vector3 newScale = upperArm.localScale - Vector3.Scale(upperArm.localScale, scaleAxis).magnitude * scaleAxis;
-				float scaleFactor = Vector3.Scale(upperArm.localScale, scaleAxis).magnitude / upperArmLength * length;
-				newScale += scaleAxis * scaleFactor;
-				upperArm.localScale = newScale;
+				let newScale = this.upperArm.localScale - Vector3.Scale(this.upperArm.localScale, this.scaleAxis).magnitude * this.scaleAxis;
+				const scaleFactor = Vector3.Scale(this.upperArm.localScale, this.scaleAxis).magnitude / upperArmLength * length;
+				newScale += this.scaleAxis * scaleFactor;
+				this.upperArm.localScale = newScale;
 
-				setLowerArmLength(oldLowerArmLength);
+				this.setLowerArmLength(oldLowerArmLength);
 			}
 			else
 			{
-				Vector3 pos = lowerArm.localPosition;
+				const pos = this.lowerArm.localPosition;
 				pos.x = Mathf.Sign(pos.x) * length;
-				lowerArm.localPosition = pos;
+				this.lowerArm.localPosition = pos;
 			}
 		}
 
-		setLowerArmLength(float length)
+		setLowerArmLength(length)
 		{
-			if (armLengthByScale)
+			if (this.armLengthByScale)
 			{
 			}
 			else
 			{
-				Vector3 pos = hand.localPosition;
+				const pos = this.hand.localPosition;
 				pos.x = Mathf.Sign(pos.x) * length;
-				hand.localPosition = pos;
+				this.hand.localPosition = pos;
 			}
 		}
 
-		setArmLength(float length)
+		setArmLength(length)
 		{
-			float upperArmFactor = .48;
+			const upperArmFactor = .48;
 			if (armLengthByScale)
 			{
-				upperArm.localScale = upperArm.localScale / armLength * length;
-				hand.localScale = Vector3.one / (1 - (1 - scaleHandFactor) * (1 - upperArm.localScale.x));
+				this.upperArm.localScale = this.upperArm.localScale / this.armLength * length;
+				this.hand.localScale = Vector3.one / (1 - (1 - this.scaleHandFactor) * (1 - this.upperArm.localScale.x));
 			}
 			else
 			{
-				setUpperArmLength(length * upperArmFactor);
-				setLowerArmLength(length * (1 - upperArmFactor));
+				this.setUpperArmLength(length * upperArmFactor);
+				this.setLowerArmLength(length * (1 - upperArmFactor));
 			}
 		}
 	}

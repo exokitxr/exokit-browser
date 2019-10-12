@@ -1,3 +1,4 @@
+import StaticOffsetTransform from './StaticOffsetTransform.js';
 
 	class AvatarVRTrackingReferences
 	{
@@ -10,16 +11,16 @@
 
 		Start()
 		{
-			initTransforms();
+			this.initTransforms();
 		}
 
 		initTransforms()
 		{
-			createTransforms();
-			connectTransforms();
+			this.createTransforms();
+			this.connectTransforms();
 		}
 
-		setStaticOffsetSettings(StaticOffsetTransform s)
+		setStaticOffsetSettings(s)
 		{
 			s.referenceLocalPosition = false;
 			s.referenceLocalRotation = false;
@@ -31,19 +32,19 @@
 		}
 
 
-		createTransform(ref StaticOffsetTransform t, string name)
+		createTransform(t, name)
 		{
-			if (t == null)
+			if (t === null)
 			{
 				t = new GameObject(name).AddComponent<StaticOffsetTransform>();
 				t.transform.parent = transform;
-				setStaticOffsetSettings(t);
+				this.setStaticOffsetSettings(t);
 			}
 		}
 
-		createHandTransform(ref Transform t, string name, Transform parent)
+		createHandTransform(t, name, parent)
 		{
-			if (t == null)
+			if (t === null)
 			{
 				t = new GameObject(name).transform;
 				t.transform.localPosition = Vector3.zero;
@@ -53,27 +54,27 @@
 
 		createTransforms()
 		{
-			createTransform(ref head, nameof(head));
-			createTransform(ref leftHand, nameof(leftHand));
-			createTransform(ref rightHand, nameof(rightHand));
-			createTransform(ref hmd, nameof(hmd));
+			this.createTransform(head, nameof(head));
+			this.createTransform(leftHand, nameof(leftHand));
+			this.createTransform(rightHand, nameof(rightHand));
+			this.createTransform(hmd, nameof(hmd));
 		}
 
 		connectTransforms()
 		{
-			StaticOffsetTransform sot = this.GetOrAddComponent<StaticOffsetTransform>();
+			/*StaticOffsetTransform */const sot = this.GetOrAddComponent/*<StaticOffsetTransform>*/();
 			if (sot.reference == null)
 			{
 				sot.reference = transform.parent;
 			}
 
-			head.reference = head.reference != null ? head.reference : PoseManager.Instance.vrTransforms.head;
-			hmd.reference = hmd.reference != null ? hmd.reference : PoseManager.Instance.vrTransforms.hmd;
-			leftHand.reference = leftHand.reference != null
-				? leftHand.reference
+			this.head.reference = this.head.reference !== null ? this.head.reference : PoseManager.Instance.vrTransforms.head;
+			this.hmd.reference = this.hmd.reference !== null ? this.hmd.reference : PoseManager.Instance.vrTransforms.hmd;
+			this.leftHand.reference = leftHand.reference !== null
+				? this.leftHand.reference
 				: PoseManager.Instance.vrTransforms.leftHand;
-			rightHand.reference = rightHand.reference != null
-				? rightHand.reference
+			this.rightHand.reference = this.rightHand.reference !== null
+				? this.rightHand.reference
 				: PoseManager.Instance.vrTransforms.rightHand;
 		}
 	}

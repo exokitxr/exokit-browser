@@ -1,3 +1,4 @@
+import Transform from './Transform.js';
 import ArmTransforms from './ArmTransforms.js';
 import ShoulderTransforms from './ShoulderTransforms.js';
 import ShoulderPoser from './ShoulderPoser.js';
@@ -89,46 +90,46 @@ class HandSettings
 
 		Awake()
 		{
-			upperArmStartRotation = arm.upperArm.rotation;
-			lowerArmStartRotation = arm.lowerArm.rotation;
-			wristStartRotation = Quaternion.identity;
-			if (arm.wrist1 != null)
-				wristStartRotation = arm.wrist1.rotation;
-			handStartRotation = arm.hand.rotation;
+			this.upperArmStartRotation = this.arm.upperArm.rotation;
+			this.lowerArmStartRotation = this.arm.lowerArm.rotation;
+			this.wristStartRotation = Quaternion.identity;
+			if (this.arm.wrist1 != null)
+				wthis.ristStartRotation = arm.wrist1.rotation;
+			this.handStartRotation = arm.hand.rotation;
 		}
 
 		OnEnable()
 		{
-			setUpperArmRotation(Quaternion.identity);
-			setLowerArmRotation(Quaternion.identity);
-			setHandRotation(Quaternion.identity);
+			this.setUpperArmRotation(Quaternion.identity);
+			this.setLowerArmRotation(Quaternion.identity);
+			this.setHandRotation(Quaternion.identity);
 		}
 
 		LateUpdate()
 		{
-			updateUpperArmPosition();
-			calcElbowInnerAngle();
-			rotateShoulder();
-			correctElbowRotation();
-			if (elbowSettings.calcElbowAngle)
+			this.updateUpperArmPosition();
+			this.calcElbowInnerAngle();
+			this.rotateShoulder();
+			this.correctElbowRotation();
+			if (this.elbowSettings.calcElbowAngle)
 			{
-				positionElbow();
-				if (elbowCorrectionSettings.useFixedElbowWhenNearShoulder)
-					correctElbowAfterPositioning();
-				if (handSettings.rotateElbowWithHandRight)
-					rotateElbowWithHandRight();
-				if (handSettings.rotateElbowWithHandForward)
-					rotateElbowWithHandFoward();
-				rotateHand();
+				this.positionElbow();
+				if (this.elbowCorrectionSettings.useFixedElbowWhenNearShoulder)
+					this.correctElbowAfterPositioning();
+				if (this.handSettings.rotateElbowWithHandRight)
+					this.rotateElbowWithHandRight();
+				if (this.handSettings.rotateElbowWithHandForward)
+					this.rotateElbowWithHandFoward();
+				this.rotateHand();
 			}
 		}
 
 		updateArmAndTurnElbowUp()
 		{
-			updateUpperArmPosition();
-			calcElbowInnerAngle();
-			rotateShoulder();
-			correctElbowRotation();
+			this.updateUpperArmPosition();
+			this.calcElbowInnerAngle();
+			this.rotateShoulder();
+			this.correctElbowRotation();
 		}
 
 		updateUpperArmPosition()
@@ -138,19 +139,19 @@ class HandSettings
 
 		calcElbowInnerAngle()
 		{
-			Vector3 eulerAngles = new Vector3();
-			float targetShoulderDistance = (target.position - upperArmPos).magnitude;
-			float innerAngle;
+		  const eulerAngles = new Vector3();
+			const targetShoulderDistance = (this.target.position - this.upperArmPos).magnitude;
+			let innerAngle;
 
-			if (targetShoulderDistance > arm.armLength)
+			if (targetShoulderDistance > this.arm.armLength)
 			{
 				innerAngle = 0;
 			}
 			else
 			{
-				innerAngle = Mathf.Acos(Mathf.Clamp((Mathf.Pow(arm.upperArmLength, 2) + Mathf.Pow(arm.lowerArmLength, 2) -
-												Mathf.Pow(targetShoulderDistance, 2)) / (2 * arm.upperArmLength * arm.lowerArmLength), -1, 1)) * Mathf.Rad2Deg;
-				if (left)
+				innerAngle = Mathf.Acos(Mathf.Clamp((Mathf.Pow(this.arm.upperArmLength, 2) + Mathf.Pow(this.arm.lowerArmLength, 2) -
+												Mathf.Pow(targetShoulderDistance, 2)) / (2 * this.arm.upperArmLength * this.arm.lowerArmLength), -1, 1)) * Mathf.Rad2Deg;
+				if (this.left)
 					innerAngle = 180 - innerAngle;
 				else
 					innerAngle = 180 + innerAngle;
@@ -161,65 +162,65 @@ class HandSettings
 			}
 
 			eulerAngles.y = innerAngle;
-			nextLowerArmAngle = eulerAngles;
+			this.nextLowerArmAngle = eulerAngles;
 		}
 
 		//source: https://github.com/NickHardeman/ofxIKArm/blob/master/src/ofxIKArm.cpp
 		rotateShoulder()
 		{
-			Vector3 eulerAngles = new Vector3();
-			Vector3 targetShoulderDirection = (target.position - upperArmPos).normalized;
-			float targetShoulderDistance = (target.position - upperArmPos).magnitude;
+			const eulerAngles = new Vector3();
+			const targetShoulderDirection = (target.position - upperArmPos).normalized;
+			const targetShoulderDistance = (target.position - upperArmPos).magnitude;
 
-			eulerAngles.y = (left ? -1 : 1) *
-				Mathf.Acos(Mathf.Clamp((Mathf.Pow(targetShoulderDistance, 2) + Mathf.Pow(arm.upperArmLength, 2) -
-							Mathf.Pow(arm.lowerArmLength, 2)) / (2 * targetShoulderDistance * arm.upperArmLength), -1, 1)) * Mathf.Rad2Deg;
+			eulerAngles.y = (this.left ? -1 : 1) *
+				Mathf.Acos(Mathf.Clamp((Mathf.Pow(targetShoulderDistance, 2) + Mathf.Pow(this.arm.upperArmLength, 2) -
+							Mathf.Pow(this.arm.lowerArmLength, 2)) / (2 * targetShoulderDistance * this.arm.upperArmLength), -1, 1)) * Mathf.Rad2Deg;
 			if (float.IsNaN(eulerAngles.y))
 				eulerAngles.y = 0;
 
 
-			Quaternion shoulderRightRotation = Quaternion.FromToRotation(armDirection, targetShoulderDirection);
-			setUpperArmRotation(shoulderRightRotation);
-			arm.upperArm.rotation = Quaternion.AngleAxis(eulerAngles.y, lowerArmRotation * Vector3.up) * arm.upperArm.rotation;
-			setLowerArmLocalRotation(Quaternion.Euler(nextLowerArmAngle));
+			const shoulderRightRotation = Quaternion.FromToRotation(this.armDirection, targetShoulderDirection);
+			this.setUpperArmRotation(shoulderRightRotation);
+			this.arm.upperArm.rotation = Quaternion.AngleAxis(eulerAngles.y, lowerArmRotation * Vector3.up) * this.arm.upperArm.rotation;
+			this.setLowerArmLocalRotation(Quaternion.Euler(this.nextLowerArmAngle));
 		}
 
 		getElbowTargetAngle()
 		{
-			Vector3 localHandPosNormalized = shoulderAnker.InverseTransformPoint(handPos) / arm.armLength;
+			const localHandPosNormalized = this.shoulderAnker.InverseTransformPoint(this.handPos) / this.arm.armLength;
 
 			// angle from Y
-			var angle = elbowSettings.yWeight * localHandPosNormalized.y + elbowSettings.offsetAngle;
+			let angle = this.elbowSettings.yWeight * localHandPosNormalized.y + this.elbowSettings.offsetAngle;
 
 			// angle from Z
 			/*angle += Mathf.Lerp(elbowSettings.zWeightBottom, elbowSettings.zWeightTop, Mathf.Clamp01((localHandPosNormalized.y + 1f) - elbowSettings.zBorderY)) *
 					 (Mathf.Max(elbowSettings.zDistanceStart - localHandPosNormalized.z, 0f));*/
 			if (localHandPosNormalized.y > 0)
-				angle += elbowSettings.zWeightTop * (Mathf.Max(elbowSettings.zDistanceStart - localHandPosNormalized.z, 0) * Mathf.Max(localHandPosNormalized.y, 0));
+				angle += this.elbowSettings.zWeightTop * (Mathf.Max(this.elbowSettings.zDistanceStart - localHandPosNormalized.z, 0) * Mathf.Max(localHandPosNormalized.y, 0));
 			else
-				angle += elbowSettings.zWeightBottom * (Mathf.Max(elbowSettings.zDistanceStart - localHandPosNormalized.z, 0) * Mathf.Max(-localHandPosNormalized.y, 0));
+				angle += this.elbowSettings.zWeightBottom * (Mathf.Max(this.elbowSettings.zDistanceStart - localHandPosNormalized.z, 0) * Mathf.Max(-localHandPosNormalized.y, 0));
 
 
 			// angle from X
-			angle += elbowSettings.xWeight * Mathf.Max(localHandPosNormalized.x * (left ? 1.0 : -1.0) + elbowSettings.xDistanceStart, 0);
+			angle += this.elbowSettings.xWeight * Mathf.Max(localHandPosNormalized.x * (this.left ? 1.0 : -1.0) + this.elbowSettings.xDistanceStart, 0);
 
-			if (elbowSettings.clampElbowAngle)
+			if (this.elbowSettings.clampElbowAngle)
 			{
-				if (elbowSettings.softClampElbowAngle)
+				if (this.elbowSettings.softClampElbowAngle)
 				{
-					if (angle < elbowSettings.minAngle + elbowSettings.softClampRange)
+					if (angle < this.elbowSettings.minAngle + this.elbowSettings.softClampRange)
 					{
-						float a = elbowSettings.minAngle + elbowSettings.softClampRange - angle;
-						angle = elbowSettings.minAngle + elbowSettings.softClampRange * (1 - Mathf.Log(1 + a) * 3);
+						const a = this.elbowSettings.minAngle + this.elbowSettings.softClampRange - angle;
+						angle = this.elbowSettings.minAngle + this.elbowSettings.softClampRange * (1 - Mathf.Log(1 + a) * 3);
 					}
 				}
 				else
 				{
-					angle = Mathf.Clamp(angle, elbowSettings.minAngle, elbowSettings.maxAngle);
+					angle = Mathf.Clamp(angle, this.elbowSettings.minAngle, this.elbowSettings.maxAngle);
 				}
 			}
 
-			if (left)
+			if (this.left)
 				angle *= -1;
 
 			return angle;
@@ -227,27 +228,27 @@ class HandSettings
 
 		correctElbowRotation()
 		{
-			var s = beforePositioningSettings;
+			const s = beforePositioningSettings;
 
-			Vector3 localTargetPos = shoulderAnker.InverseTransformPoint(target.position) / arm.armLength;
-			float elbowOutsideFactor = Mathf.Clamp01(
+			const localTargetPos = this.shoulderAnker.InverseTransformPoint(target.position) / arm.armLength;
+			const elbowOutsideFactor = Mathf.Clamp01(
 									 Mathf.Clamp01((s.startBelowZ - localTargetPos.z) /
 												   Mathf.Abs(s.startBelowZ) * .5) *
 									 Mathf.Clamp01((localTargetPos.y - s.startAboveY) /
 												   Mathf.Abs(s.startAboveY)) *
-									 Mathf.Clamp01(1 - localTargetPos.x * (left ? -1 : 1))
+									 Mathf.Clamp01(1 - localTargetPos.x * (this.left ? -1 : 1))
 								 ) * s.weight;
 
-			Vector3 shoulderHandDirection = (upperArmPos - handPos).normalized;
-			Vector3 targetDir = shoulder.transform.rotation * (Vector3.up + (s.correctElbowOutside ? (armDirection + Vector3.forward * -.2) * elbowOutsideFactor : Vector3.zero));
-			Vector3 cross = Vector3.Cross(shoulderHandDirection, targetDir * 1000);
+			const shoulderHandDirection = (this.upperArmPos - this.handPos).normalized;
+		  const targetDir = this.shoulder.transform.rotation * (Vector3.up + (s.correctElbowOutside ? (this.armDirection + Vector3.forward * -.2) * elbowOutsideFactor : Vector3.zero));
+			const cross = Vector3.Cross(shoulderHandDirection, targetDir * 1000);
 
-			Vector3 upperArmUp = upperArmRotation * Vector3.up;
+			const upperArmUp = upperArmRotation * Vector3.up;
 
-			float elbowTargetUp = Vector3.Dot(upperArmUp, targetDir);
-			float elbowAngle = Vector3.Angle(cross, upperArmUp) + (left ? 0 : 180);
-			Quaternion rotation = Quaternion.AngleAxis(elbowAngle * Mathf.Sign(elbowTargetUp), shoulderHandDirection);
-			arm.upperArm.rotation = rotation * arm.upperArm.rotation;
+			const elbowTargetUp = Vector3.Dot(upperArmUp, targetDir);
+			const elbowAngle = Vector3.Angle(cross, upperArmUp) + (this.left ? 0 : 180);
+			const rotation = Quaternion.AngleAxis(elbowAngle * Mathf.Sign(elbowTargetUp), shoulderHandDirection);
+			this.arm.upperArm.rotation = rotation * this.arm.upperArm.rotation;
 		}
 
 		/// <summary>
@@ -255,81 +256,81 @@ class HandSettings
 		/// </summary>
 		correctElbowAfterPositioning()
 		{
-			var s = elbowCorrectionSettings;
-			Vector3 localTargetPos = shoulderAnker.InverseTransformPoint(target.position) / arm.armLength;
-			Vector3 shoulderHandDirection = (upperArmPos - handPos).normalized;
-			Vector3 elbowPos = s.localElbowPos;
+			const s = this.elbowCorrectionSettings;
+			const localTargetPos = this.shoulderAnker.InverseTransformPoint(this.target.position) / this.arm.armLength;
+			const shoulderHandDirection = (this.upperArmPos - this.handPos).normalized;
+			const elbowPos = s.localElbowPos;
 
-			if (left)
+			if (this.left)
 				elbowPos.x *= -1;
 
-			Vector3 targetDir = shoulder.transform.rotation * elbowPos.normalized;
-			Vector3 cross = Vector3.Cross(shoulderHandDirection, targetDir);
+			const targetDir = this.shoulder.transform.rotation * elbowPos.normalized;
+  		const cross = Vector3.Cross(shoulderHandDirection, targetDir);
 
-			Vector3 upperArmUp = upperArmRotation * Vector3.up;
+			const upperArmUp = this.upperArmRotation * Vector3.up;
 
 
-			Vector3 distance = target.position - upperArmPos;
-			distance = distance.magnitude * shoulder.transform.InverseTransformDirection(distance / distance.magnitude);
+			let distance = this.target.position - this.upperArmPos;
+			distance = distance.magnitude * this.shoulder.transform.InverseTransformDirection(distance / distance.magnitude);
 
-			float weight = Mathf.Clamp01(Mathf.Clamp01((s.startBelowDistance - distance.xz().magnitude / arm.armLength) /
+			const weight = Mathf.Clamp01(Mathf.Clamp01((s.startBelowDistance - distance.xz().magnitude / arm.armLength) /
 						   s.startBelowDistance) * s.weight + Mathf.Clamp01((-distance.z + .1) * 3)) *
 						   Mathf.Clamp01((s.startBelowY - localTargetPos.y) /
 										 s.startBelowY);
 
-			float elbowTargetUp = Vector3.Dot(upperArmUp, targetDir);
-			float elbowAngle2 = Vector3.Angle(cross, upperArmUp) + (left ? 0 : 180);
-			Quaternion rotation = Quaternion.AngleAxis((elbowAngle2 * Mathf.Sign(elbowTargetUp)).toSignedEulerAngle() * Mathf.Clamp(weight, 0, 1), shoulderHandDirection);
-			arm.upperArm.rotation = rotation * arm.upperArm.rotation;
+		  const elbowTargetUp = Vector3.Dot(upperArmUp, targetDir);
+  		const elbowAngle2 = Vector3.Angle(cross, upperArmUp) + (this.left ? 0 : 180);
+			const rotation = Quaternion.AngleAxis((elbowAngle2 * Mathf.Sign(elbowTargetUp)).toSignedEulerAngle() * Mathf.Clamp(weight, 0, 1), shoulderHandDirection);
+			this.arm.upperArm.rotation = rotation * this.arm.upperArm.rotation;
 		}
 
-		rotateElbow(float angle)
+		rotateElbow(angle)
 		{
-			Vector3 shoulderHandDirection = (upperArmPos - handPos).normalized;
+			const shoulderHandDirection = (this.upperArmPos - this.handPos).normalized;
 
-			Quaternion rotation = Quaternion.AngleAxis(angle, shoulderHandDirection);
-			setUpperArmRotation(rotation * upperArmRotation);
+			const rotation = Quaternion.AngleAxis(angle, shoulderHandDirection);
+			this.setUpperArmRotation(rotation * this.upperArmRotation);
 		}
 
 		//source: https://github.com/NickHardeman/ofxIKArm/blob/master/src/ofxIKArm.cpp
 		positionElbow()
 		{
-			float targetElbowAngle = getElbowTargetAngle();
-			rotateElbow(targetElbowAngle);
+			const targetElbowAngle = this.getElbowTargetAngle();
+			this.rotateElbow(targetElbowAngle);
 		}
 
 
 		rotateElbowWithHandRight()
 		{
-			var s = handSettings;
-			Vector3 handUpVec = target.rotation * Vector3.up;
-			float forwardAngle = VectorHelpers.getAngleBetween(lowerArmRotation * Vector3.right, target.rotation * Vector3.right,
+			const s = this.handSettings;
+			let handUpVec = this.target.rotation * Vector3.up;
+			const forwardAngle = VectorHelpers.getAngleBetween(lowerArmRotation * Vector3.right, this.target.rotation * Vector3.right,
 				lowerArmRotation * Vector3.up, lowerArmRotation * Vector3.forward);
 
 			// todo reduce influence if hand local forward rotation is high (hand tilted inside)
-			Quaternion handForwardRotation = Quaternion.AngleAxis(-forwardAngle, lowerArmRotation * Vector3.forward);
+			const handForwardRotation = Quaternion.AngleAxis(-forwardAngle, lowerArmRotation * Vector3.forward);
 			handUpVec = handForwardRotation * handUpVec;
 
-			float elbowTargetAngle = VectorHelpers.getAngleBetween(lowerArmRotation * Vector3.up, handUpVec,
-				lowerArmRotation * Vector3.forward, lowerArmRotation * armDirection);
+			const elbowTargetAngle = VectorHelpers.getAngleBetween(this.lowerArmRotation * Vector3.up, handUpVec,
+				this.lowerArmRotation * Vector3.forward, this.lowerArmRotation * this.armDirection);
 
-			float deltaElbow = (elbowTargetAngle + (left ? -s.handDeltaOffset : s.handDeltaOffset)) / 180;
+			let deltaElbow = (elbowTargetAngle + (this.left ? -s.handDeltaOffset : s.handDeltaOffset)) / 180;
 
 			deltaElbow = Mathf.Sign(deltaElbow) * Mathf.Pow(Mathf.Abs(deltaElbow), s.handDeltaPow) * 180 * s.handDeltaFactor;
-			interpolatedDeltaElbow =
-				Mathf.LerpAngle(interpolatedDeltaElbow, deltaElbow, Time.deltaTime / s.rotateElbowWithHandDelay);
-			rotateElbow(interpolatedDeltaElbow);
+			this.interpolatedDeltaElbow =
+				Mathf.LerpAngle(this.interpolatedDeltaElbow, deltaElbow, Time.deltaTime / s.rotateElbowWithHandDelay);
+			this.rotateElbow(this.interpolatedDeltaElbow);
 		}
 
 		rotateElbowWithHandFoward()
 		{
-			var s = handSettings;
-			Vector3 handRightVec = target.rotation * armDirection;
+			const s = this.handSettings;
+			const handRightVec = this.target.rotation * this.armDirection;
 
-			float elbowTargetAngleForward = VectorHelpers.getAngleBetween(lowerArmRotation * armDirection, handRightVec,
-				lowerArmRotation * Vector3.up, lowerArmRotation * Vector3.forward);
+		  const elbowTargetAngleForward = VectorHelpers.getAngleBetween(this.lowerArmRotation * armDirection, handRightVec,
+				this.lowerArmRotation * Vector3.up, this.lowerArmRotation * Vector3.forward);
 
-			float deltaElbowForward = (elbowTargetAngleForward + (left ? -s.handDeltaForwardOffset : s.handDeltaForwardOffset)) / 180;
+			let deltaElbowForward = (elbowTargetAngleForward + (this.left ? -s.handDeltaForwardOffset : s.handDeltaForwardOffset)) / 180;
 
 			if (Mathf.Abs(deltaElbowForward) < s.handDeltaForwardDeadzone)
 				deltaElbowForward = 0;
@@ -339,86 +340,86 @@ class HandSettings
 			}
 
 			deltaElbowForward = Mathf.Sign(deltaElbowForward) * Mathf.Pow(Mathf.Abs(deltaElbowForward), s.handDeltaForwardPow) * 180;
-			interpolatedDeltaElbowForward = Mathf.LerpAngle(interpolatedDeltaElbowForward, deltaElbowForward, Time.deltaTime / s.rotateElbowWithHandDelay);
+			this.interpolatedDeltaElbowForward = Mathf.LerpAngle(this.interpolatedDeltaElbowForward, deltaElbowForward, Time.deltaTime / s.rotateElbowWithHandDelay);
 
-			float signedInterpolated = interpolatedDeltaElbowForward.toSignedEulerAngle();
-			rotateElbow(signedInterpolated * s.handDeltaForwardFactor);
+			const signedInterpolated = this.interpolatedDeltaElbowForward.toSignedEulerAngle();
+			this.rotateElbow(signedInterpolated * s.handDeltaForwardFactor);
 		}
 
 		rotateHand()
 		{
-			if (handSettings.useWristRotation)
+			if (this.handSettings.useWristRotation)
 			{
-				Vector3 handUpVec = target.rotation * Vector3.up;
-				float forwardAngle = VectorHelpers.getAngleBetween(lowerArmRotation * Vector3.right, target.rotation * Vector3.right,
-					lowerArmRotation * Vector3.up, lowerArmRotation * Vector3.forward);
+				let handUpVec = this.target.rotation * Vector3.up;
+				const forwardAngle = VectorHelpers.getAngleBetween(this.lowerArmRotation * Vector3.right, target.rotation * Vector3.right,
+					this.lowerArmRotation * Vector3.up, this.lowerArmRotation * Vector3.forward);
 
 				// todo reduce influence if hand local forward rotation is high (hand tilted inside)
-				Quaternion handForwardRotation = Quaternion.AngleAxis(-forwardAngle, lowerArmRotation * Vector3.forward);
+				const handForwardRotation = Quaternion.AngleAxis(-forwardAngle, this.lowerArmRotation * Vector3.forward);
 				handUpVec = handForwardRotation * handUpVec;
 
-				float elbowTargetAngle = VectorHelpers.getAngleBetween(lowerArmRotation * Vector3.up, handUpVec,
-					lowerArmRotation * Vector3.forward, lowerArmRotation * armDirection);
+				let elbowTargetAngle = VectorHelpers.getAngleBetween(this.lowerArmRotation * Vector3.up, handUpVec,
+					this.lowerArmRotation * Vector3.forward, this.lowerArmRotation * this.armDirection);
 
 				elbowTargetAngle = Mathf.Clamp(elbowTargetAngle, -90, 90);
 				if (arm.wrist1 != null)
-					setWrist1Rotation(Quaternion.AngleAxis(elbowTargetAngle * .3, lowerArmRotation * armDirection) * lowerArmRotation);
+					this.setWrist1Rotation(Quaternion.AngleAxis(elbowTargetAngle * .3, this.lowerArmRotation * this.armDirection) * this.lowerArmRotation);
 				if (arm.wrist2 != null)
-					setWrist2Rotation(Quaternion.AngleAxis(elbowTargetAngle * .8, lowerArmRotation * armDirection) * lowerArmRotation);
+					this.setWrist2Rotation(Quaternion.AngleAxis(elbowTargetAngle * .8, this.lowerArmRotation * this.armDirection) * this.lowerArmRotation);
 			}
-			setHandRotation(target.rotation);
+			this.setHandRotation(target.rotation);
 		}
 
-		removeShoulderRightRotation(Vector3 direction) {
-			return Quaternion.AngleAxis(-shoulderPoser.shoulderRightRotation, shoulder.transform.right) * direction;
+		removeShoulderRightRotation(direction) {
+			return Quaternion.AngleAxis(-this.shoulderPoser.shoulderRightRotation, this.shoulder.transform.right) * this.direction;
 		}
 
 		get armDirection() {
-			return left ? Vector3.left : Vector3.right;
+			return this.left ? Vector3.left : Vector3.right;
 		}
 		get upperArmPos() {
-			return arm.upperArm.position;
+			return this.arm.upperArm.position;
 		}
 		get lowerArmPos() {
-			return arm.lowerArm.position;
+			return this.arm.lowerArm.position;
 		}
 		get handPos() {
-			return arm.hand.position;
+			return this.arm.hand.position;
 		}
 		get shoulderAnker() {
-			return left ? shoulder.leftShoulderAnchor : shoulder.rightShoulderAnchor;
+			return this.left ? this.shoulder.leftShoulderAnchor : this.shoulder.rightShoulderAnchor;
 		}
 
 		get upperArmRotation() {
-			return arm.upperArm.rotation * Quaternion.Inverse(upperArmStartRotation);
+			return this.arm.upperArm.rotation * Quaternion.Inverse(this.upperArmStartRotation);
 		}
 		get lowerArmRotation() {
-			return arm.lowerArm.rotation * Quaternion.Inverse(lowerArmStartRotation);
+			return this.arm.lowerArm.rotation * Quaternion.Inverse(this.lowerArmStartRotation);
 		}
 		get handRotation() {
-			return arm.hand.rotation * Quaternion.Inverse(handStartRotation);
+			return this.arm.hand.rotation * Quaternion.Inverse(this.handStartRotation);
 		}
 
-		setUpperArmRotation(Quaternion rotation) {
-			return arm.upperArm.rotation = rotation * upperArmStartRotation;
+		setUpperArmRotation(rotation) {
+			return this.arm.upperArm.rotation = rotation * this.upperArmStartRotation;
 		}
-		setLowerArmRotation(Quaternion rotation) {
-			return arm.lowerArm.rotation = rotation * lowerArmStartRotation;
+		setLowerArmRotation(rotation) {
+			return this.arm.lowerArm.rotation = rotation * this.lowerArmStartRotation;
 		}
-		setLowerArmLocalRotation(Quaternion rotation) {
-			return arm.lowerArm.rotation = upperArmRotation * rotation * lowerArmStartRotation;
+		setLowerArmLocalRotation(rotation) {
+			return this.arm.lowerArm.rotation = this.upperArmRotation * rotation * this.lowerArmStartRotation;
 		}
-		setWrist1Rotation(Quaternion rotation) {
-			return arm.wrist1.rotation = rotation * wristStartRotation;
+		setWrist1Rotation(rotation) {
+			return this.arm.wrist1.rotation = rotation * this.wristStartRotation;
 		}
-		setWrist2Rotation(Quaternion rotation) {
-			return arm.wrist2.rotation = rotation * wristStartRotation;
+		setWrist2Rotation(rotation) {
+			return this.arm.wrist2.rotation = rotation * this.wristStartRotation;
 		}
-		setWristLocalRotation(Quaternion rotation) {
-			return arm.wrist1.rotation = arm.lowerArm.rotation * rotation * wristStartRotation;
+		setWristLocalRotation(rotation) {
+			return this.arm.wrist1.rotation = this.arm.lowerArm.rotation * rotation * this.wristStartRotation;
     }
-		setHandRotation(Quaternion rotation) {
-			return arm.hand.rotation = arm.hand.rotation = rotation * handStartRotation;
+		setHandRotation(rotation) {
+			return this.arm.hand.rotation = this.arm.hand.rotation = rotation * this.handStartRotation;
 		}
 	}
 

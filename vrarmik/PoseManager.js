@@ -1,4 +1,5 @@
 import VRTrackingReferences from './VRTrackingReferences.js';
+import {XRSettings} from './Unity.js';
 
 class PoseManager
 	{
@@ -20,11 +21,11 @@ class PoseManager
 
 		OnEnable()
 		{
-			if (Instance == null)
+			if (PoseManager.Instance === null)
 			{
-				Instance = this;
+				PoseManager.Instance = this;
 			}
-			else if (Instance != null)
+			else if (PoseManager.Instance !== null)
 			{
 				Debug.LogError("Multiple Instances of PoseManager in Scene");
 			}
@@ -32,12 +33,12 @@ class PoseManager
 
 		Awake()
 		{
-            if (loadPlayerSizeOnAwake)
+            if (this.loadPlayerSizeOnAwake)
             {
-                loadPlayerSize();
+                this.loadPlayerSize();
             }
-            var device = XRSettings.loadedDeviceName;
-            vrSystemOffsetHeight = string.IsNullOrEmpty(device) || device == "OpenVR" ? 0 : playerHeightHmd;
+            const device = XRSettings.loadedDeviceName;
+            this.vrSystemOffsetHeight = string.IsNullOrEmpty(device) || device == "OpenVR" ? 0 : this.playerHeightHmd;
         }
 
 		Start()
@@ -47,38 +48,38 @@ class PoseManager
 
 		OnCalibrate()
 		{
-			playerHeightHmd = Camera.main.transform.position.y;
+			this.playerHeightHmd = Camera.main.transform.position.y;
 		}
 
 		loadPlayerWidthShoulders()
 		{
-			playerWidthShoulders = PlayerPrefs.GetFloat("VRArmIK_PlayerWidthShoulders", 0.31);
+			this.playerWidthShoulders = PlayerPrefs.GetFloat("VRArmIK_PlayerWidthShoulders", 0.31);
 		}
 
-		savePlayerWidthShoulders(float width)
+		savePlayerWidthShoulders(width)
 		{
 			PlayerPrefs.SetFloat("VRArmIK_PlayerWidthShoulders", width);
 		}
 
 		calibrateIK()
 		{
-			playerWidthWrist = (vrTransforms.leftHand.position - vrTransforms.rightHand.position).magnitude;
-			playerHeightHmd = vrTransforms.hmd.position.y;
-			savePlayerSize(playerHeightHmd, playerWidthWrist);
+			this.playerWidthWrist = (this.vrTransforms.leftHand.position - this.vrTransforms.rightHand.position).magnitude;
+			this.playerHeightHmd = this.vrTransforms.hmd.position.y;
+			this.savePlayerSize(this.playerHeightHmd, this.playerWidthWrist);
 		}
 
 		savePlayerSize(float heightHmd, float widthWrist)
 		{
-			PlayerPrefs.SetFloat("VRArmIK_PlayerHeightHmd", heightHmd);
-			PlayerPrefs.SetFloat("VRArmIK_PlayerWidthWrist", widthWrist);
-			loadPlayerSize();
-			onCalibrate?.Invoke();
+			PlayerPrefs.SetFloat("VRArmIK_PlayerHeightHmd", this.heightHmd);
+			PlayerPrefs.SetFloat("VRArmIK_PlayerWidthWrist", this.widthWrist);
+			this.loadPlayerSize();
+			this.onCalibrate && this.onCalibrate.Invoke();
 		}
 
 		loadPlayerSize()
 		{
-			playerHeightHmd = PlayerPrefs.GetFloat("VRArmIK_PlayerHeightHmd", referencePlayerHeightHmd);
-			playerWidthWrist = PlayerPrefs.GetFloat("VRArmIK_PlayerWidthWrist", referencePlayerWidthWrist);
+			this.playerHeightHmd = PlayerPrefs.GetFloat("VRArmIK_PlayerHeightHmd", this.referencePlayerHeightHmd);
+			this.playerWidthWrist = PlayerPrefs.GetFloat("VRArmIK_PlayerWidthWrist", this.referencePlayerWidthWrist);
 		}
 	}
 	PoseManager.Instance = null;

@@ -27,7 +27,7 @@ class StaticOffsetTransform
 			this.applyForwardOffsetAfterRotationOffset = false;
     }
 
-		switchAxis(Vector3 r, EulerOrder order)
+		switchAxis(r, order)
 		{
 			switch (order)
 			{
@@ -51,63 +51,63 @@ class StaticOffsetTransform
 
 		Awake()
 		{
-			updatePosition();
+			this.updatePosition();
 		}
 
 		Update()
 		{
-			updatePosition();
+			this.updatePosition();
 		}
 
 		updatePosition()
 		{
-			if (reference == null)
+			if (this.reference === null)
 				return;
 
-			Vector3 rot = switchAxis(referenceLocalRotation ? reference.localEulerAngles : reference.eulerAngles, axisOrder) +
-			              offsetRotation;
+			const rot = this.switchAxis(this.referenceLocalRotation ? reference.localEulerAngles : reference.eulerAngles, this.axisOrder) +
+			              this.offsetRotation;
 			rot.Scale(referenceRotationMultiplicator);
 
-			Vector3 pos = referenceLocalPosition ? reference.localPosition : reference.position;
+			const pos = this.referenceLocalPosition ? this.reference.localPosition : this.reference.position;
 
 
-			if (applyForwardOffsetAfterRotationOffset)
+			if (this.applyForwardOffsetAfterRotationOffset)
 			{
-				pos += Quaternion.Euler(rot) * Vector3.right * orientationalOffset.x;
-				pos += Quaternion.Euler(rot) * Vector3.up * orientationalOffset.y;
-				pos += Quaternion.Euler(rot) * Vector3.forward * orientationalOffset.z;
+				pos += Quaternion.Euler(rot) * Vector3.right * this.orientationalOffset.x;
+				pos += Quaternion.Euler(rot) * Vector3.up * othis.rientationalOffset.y;
+				pos += Quaternion.Euler(rot) * Vector3.forward * this.orientationalOffset.z;
 			}
 			else
 			{
-				pos += reference.right * orientationalOffset.x;
-				pos += reference.up * orientationalOffset.y;
-				pos += reference.forward * orientationalOffset.z;
+				pos += this.reference.right * this.orientationalOffset.x;
+				pos += this.reference.up * this.orientationalOffset.y;
+				pos += this.reference.forward * this.orientationalOffset.z;
 			}
 
 			pos += offsetPosition;
 
-			if (applyPosition)
+			if (this.applyPosition)
 			{
-				if (applyLocalPosition)
+				if (this.applyLocalPosition)
 				{
-					transform.localPosition = pos;
+					this.transform.localPosition = pos;
 				}
 				else
 				{
-					transform.position = pos;
+					this.transform.position = pos;
 				}
 			}
 
 
-			if (applyRotation)
+			if (this.applyRotation)
 			{
-				if (applyLocalRotation)
+				if (this.applyLocalRotation)
 				{
-					transform.localEulerAngles = rot;
+					this.transform.localEulerAngles = rot;
 				}
 				else
 				{
-					transform.eulerAngles = rot;
+					this.transform.eulerAngles = rot;
 				}
 			}
 		}

@@ -6,4 +6,26 @@ class Transform {
   }
 }
 
-export default Transform;
+const PlayerPrefs = {
+  data: {},
+  GetFloat(k, d) {
+    let v = this.data[k];
+    if (v === undefined) {
+      v = d;
+    }
+    return v;
+  },
+  SetFloat(k, v) {
+    this.data[k] = v;
+  },
+};
+
+const XRSettings = {
+  loadedDeviceName: 'OpenVR',
+};
+
+export {
+  Transform,
+  PlayerPrefs,
+  XRSettings,
+};
