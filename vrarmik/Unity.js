@@ -21,6 +21,9 @@ class Vector3 extends THREE.Vector3 {
   get normalized() {
     return this.clone().normalize();
   }
+  Scale(a, b) {
+    return new Vector3(a.x + b.x, a.y + b.y, a.z + b.z);
+  }
   Dot(v) {
     return this.dot(v);
   }
