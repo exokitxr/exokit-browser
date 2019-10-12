@@ -68,7 +68,7 @@ class PoseManager
 			this.savePlayerSize(this.playerHeightHmd, this.playerWidthWrist);
 		}
 
-		savePlayerSize(float heightHmd, float widthWrist)
+		savePlayerSize(heightHmd, widthWrist)
 		{
 			PlayerPrefs.SetFloat("VRArmIK_PlayerHeightHmd", this.heightHmd);
 			PlayerPrefs.SetFloat("VRArmIK_PlayerWidthWrist", this.widthWrist);

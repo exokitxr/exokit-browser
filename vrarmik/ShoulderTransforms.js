@@ -41,7 +41,7 @@ class ShoulderTransforms
 			setShoulderWidth(PoseManager.Instance.playerWidthShoulders);
 		}
 
-		setShoulderWidth(float width)
+		setShoulderWidth(width)
 		{
 			Vector3 localScale = new Vector3(width * .5, .05, .05);
 			Vector3 localPosition = new Vector3(width * .25, 0, 0);
