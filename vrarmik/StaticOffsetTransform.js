@@ -1,3 +1,5 @@
+import {Vector3} from './Unity.js';
+
 const EulerOrder = {
 	XYZ: 'XYZ',
 	XZY: 'XZY',
