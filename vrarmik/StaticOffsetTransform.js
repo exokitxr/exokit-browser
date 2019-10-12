@@ -16,7 +16,7 @@ class StaticOffsetTransform
 			this.orientationalOffset = new Vector3();
 			this.referenceRotationMultiplicator = Vector3.one;
 
-			this.axisOrder = new EulerOrder();
+			this.axisOrder = EulerOrder.XYZ;
 
 			this.referenceLocalPosition = false;
 			this.referenceLocalRotation = false;
