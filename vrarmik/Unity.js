@@ -82,6 +82,8 @@ const XRSettings = {
 };
 
 export {
+  Vector3,
+  Quaternion,
   Transform,
   PlayerPrefs,
   XRSettings,
