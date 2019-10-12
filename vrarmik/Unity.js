@@ -67,6 +67,14 @@ class Transform {
     const e = new THREE.Euler().setFromQuaternion(this.rotation, 'ZXY');
     return new Vector3(e.x, e.y, e.z);
   }
+  TransformPoint(v) {
+    return v.applyMatrix4(new THREE.Matrix4().compose(this.position, this.rotation, this.scale));
+  }
+  InverseTransformPoint(v) {
+    const m = new THREE.Matrix4().compose(this.position, this.rotation, this.scale);
+    m.getInverse(m);
+    return v.applyMatrix4(m);
+  }
 }
 
 const Mathf = {
