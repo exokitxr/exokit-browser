@@ -1,4 +1,4 @@
-import Transform from './Transform.js';
+import {Transform} from './Unity.js';
 
   class VRTrackingReferences
 	{
