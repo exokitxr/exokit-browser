@@ -239,6 +239,17 @@ class Transform {
   }
 }
 
+class GameObject {
+  constructor(name) {
+    this.name = name;
+    this.transform = new Transform();
+  }
+
+  AddComponent(Constructor) {
+    return new Constructor(this.transform);
+  }
+}
+
 class MonoBehavior {
   constructor(transform = new Transform()) {
     this.transform = transform;
@@ -342,6 +353,7 @@ export {
   Vector3,
   Quaternion,
   Transform,
+  GameObject,
   MonoBehavior,
   Mathf,
   PlayerPrefs,
