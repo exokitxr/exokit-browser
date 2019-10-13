@@ -2,6 +2,46 @@ const DEG2RAD = Math.PI/180;
 const RAD2DEG = 180/Math.PI;
 
 class Vector3 extends THREE.Vector3 {
+  set(x, y, z) {
+    super.set(x, y, z);
+    this.onchange && this.onchange();
+  }
+  copy(p) {
+    super.copy(p);
+    this.onchange && this.onchange();
+  }
+
+  bindOnchange(onchange) {
+    let x = this.x, y = this.y, z = this.z;
+    Object.defineProperty(this, 'x', {
+      get() {
+        return x;
+      },
+      set(newX) {
+        x = newX;
+        onchange();
+      },
+    });
+    Object.defineProperty(this, 'y', {
+      get() {
+        return y;
+      },
+      set(newY) {
+        y = newY;
+        onchange();
+      },
+    });
+    Object.defineProperty(this, 'z', {
+      get() {
+        return z;
+      },
+      set(newZ) {
+        z = newZ;
+        onchange();
+      },
+    });
+  }
+
   static get zero() {
     return new Vector3(0, 0, 0);
   }
@@ -17,7 +57,6 @@ class Vector3 extends THREE.Vector3 {
   static get forward() {
     return new Vector3(0, 0, 1);
   }
-
   get magnitude() {
     return this.length();
   }
@@ -38,7 +77,56 @@ class Vector3 extends THREE.Vector3 {
   }
 }
 
-class Quaternion extends THREE.Quaternion() {
+class Quaternion extends THREE.Quaternion {
+  set(x, y, z, w) {
+    super.set(x, y, z, w);
+    this.onchange && this.onchange();
+  }
+  copy(p) {
+    super.copy(p);
+    this.onchange && this.onchange();
+  }
+
+  bindOnchange(onchange) {
+    let x = this.x, y = this.y, z = this.z, w = this.w;
+    Object.defineProperty(this, 'x', {
+      get() {
+        return x;
+      },
+      set(newX) {
+        x = newX;
+        onchange();
+      },
+    });
+    Object.defineProperty(this, 'y', {
+      get() {
+        return y;
+      },
+      set(newY) {
+        y = newY;
+        onchange();
+      },
+    });
+    Object.defineProperty(this, 'z', {
+      get() {
+        return z;
+      },
+      set(newZ) {
+        z = newZ;
+        onchange();
+      },
+    });
+    Object.defineProperty(this, 'w', {
+      get() {
+        return w;
+      },
+      set(newW) {
+        w = newW;
+        onchange();
+      },
+    });
+  }
+
   static get identity() {
     return new Quaternion(0, 0, 0, 1);
   }
@@ -59,10 +147,84 @@ class Quaternion extends THREE.Quaternion() {
 
 class Transform {
   constructor() {
-    this.position = new Vector3();
-    this.rotation = new Quaternion();
-    this.scale = new Vector3(1, 1, 1);
+    this._position = new Vector3();
+    this._rotation = new Quaternion();
+    this._scale = new Vector3(1, 1, 1);
+
+    this._localPosition = new Vector3();
+    const localChange = this.localChange.bind(this);
+    this._localPosition.bindOnchange(localChange);
+    this._localRotation = new Quaternion();
+    this._localRotation.bindOnchange(localChange);
+    this._localScale = new Vector3(1, 1, 1);
+    this._localScale.bindOnchange(localChange);
+
+    this._parent = null;
+
+    this._matrix = new THREE,Matrix4();
+    this._matrixWorld = new THREE,Matrix4();
   }
+
+  get position() {
+    this.updateMatrixWorld();
+    return this._position;
+  }
+  set position(position) {
+    this._position.copy(position);
+  }
+  get rotation() {
+    this.updateMatrixWorld();
+    return this._rotation;
+  }
+  set rotation(rotation) {
+    this._rotation.copy(rotation);
+  }
+  get scale() {
+    this.updateMatrixWorld();
+    return this._scale;
+  }
+  set scale(scale) {
+    this._scale.copy(scale);
+  }
+
+  get localPosition() {
+    return this._localPosition;
+  }
+  set localPosition(localPosition) {
+    this._localPosition.copy(localPosition);
+  }
+  get localRotation() {
+    return this._localRotation;
+  }
+  set localRotation(localRotation) {
+    this._localRotation.copy(localRotation);
+  }
+  get localScale() {
+    return this._localScale;
+  }
+  set localScale(localScale) {
+    this._localScale.copy(localScale);
+  }
+
+  updateMatrixWorld() {
+    if (this.matrixWorldNeedsUpdate) {
+      this._matrix.compose(this._position, this._rotation, this._scale);
+      this._matrixWorld.copy(this._matrix);
+
+      if (t.parent) {
+        t.parent.updateMatrixWorld();
+        this._matrixWorld.premultiply(t.parent._matrixWorld);
+      }
+
+      this._matrixWorld.decompose(this._position, this._rotation, this._scale);
+
+      this.matrixWorldNeedsUpdate = false;
+    }
+  }
+  localChange() {
+    this.matrixWorldNeedsUpdate = true;
+  }
+
   get eulerAngles() {
     const e = new THREE.Euler().setFromQuaternion(this.rotation, 'ZXY');
     return new Vector3(e.x, e.y, e.z);
