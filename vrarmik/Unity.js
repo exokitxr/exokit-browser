@@ -239,6 +239,28 @@ class Transform {
   }
 }
 
+class MonoBehavior {
+  constructor(transform = new Transform()) {
+    this.transform = transform;
+    this.components = new Map();
+  }
+
+  GetComponent(Constructor) {
+    let component = this.components.get(Constructor);
+    if (component === undefined) {
+      component = new Constructor(this.transform);
+      this.components.set(Constructor, component);
+    }
+    return component;
+  }
+  GetOrAddComponent(Constructor) {
+    return this.GetComponent(Constructor);
+  }
+  GetComponentInChildren(Constructor) {
+    return this.GetComponent(Constructor);
+  }
+}
+
 const Mathf = {
   Deg2Rad: DEG2RAD,
   Rad2Deg: RAD2DEG,
@@ -320,6 +342,7 @@ export {
   Vector3,
   Quaternion,
   Transform,
+  MonoBehavior,
   Mathf,
   PlayerPrefs,
   XRSettings,
