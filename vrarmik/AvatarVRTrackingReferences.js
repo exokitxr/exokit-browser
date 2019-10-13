@@ -44,7 +44,7 @@ import StaticOffsetTransform from './StaticOffsetTransform.js';
 			}
 		}
 
-		createHandTransform(t, name, parent)
+		/* createHandTransform(t, name, parent)
 		{
 			if (t === null)
 			{
@@ -52,7 +52,7 @@ import StaticOffsetTransform from './StaticOffsetTransform.js';
 				t.transform.localPosition = Vector3.zero;
 				t.transform.parent = parent;
 			}
-		}
+		} */
 
 		createTransforms()
 		{
