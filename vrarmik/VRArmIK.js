@@ -96,7 +96,7 @@ class HandSettings
 			this.lowerArmStartRotation = this.arm.lowerArm.rotation;
 			this.wristStartRotation = Quaternion.identity;
 			if (this.arm.wrist1 !== null)
-				wthis.ristStartRotation = arm.wrist1.rotation;
+				this.wristStartRotation = arm.wrist1.rotation;
 			this.handStartRotation = arm.hand.rotation;
 		}
 
