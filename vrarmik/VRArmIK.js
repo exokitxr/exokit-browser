@@ -1,8 +1,8 @@
-import {Vector3, Quaternion, Transform} from './Unity.js';
+import {Vector3, Quaternion, Transform, MonoBehavior} from './Unity.js';
 import ArmTransforms from './ArmTransforms.js';
 import ShoulderTransforms from './ShoulderTransforms.js';
 import ShoulderPoser from './ShoulderPoser.js';
-import VectorHelpers from 'Utils/VectorHelpers.js';
+import VectorHelpers from './Utils/VectorHelpers.js';
 
 class ArmIKElbowSettings
 {
@@ -63,10 +63,12 @@ class HandSettings
 	}
 }
 
-	class VRArmIK
+	class VRArmIK extends MonoBehavior
 	{
-		constructor() {
-			this.arm = new ArmTransforms(); // XXX these need to be this'd below
+		constructor(transform) {
+      super(transform);
+
+			this.arm = new ArmTransforms();
 			this.shoulder = new ShoulderTransforms();
 			this.shoulderPoser = new ShoulderPoser();
 			this.target = new Transform();
@@ -93,7 +95,7 @@ class HandSettings
 			this.upperArmStartRotation = this.arm.upperArm.rotation;
 			this.lowerArmStartRotation = this.arm.lowerArm.rotation;
 			this.wristStartRotation = Quaternion.identity;
-			if (this.arm.wrist1 != null)
+			if (this.arm.wrist1 !== null)
 				wthis.ristStartRotation = arm.wrist1.rotation;
 			this.handStartRotation = arm.hand.rotation;
 		}

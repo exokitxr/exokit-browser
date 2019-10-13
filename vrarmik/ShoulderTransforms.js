@@ -1,44 +1,49 @@
-import {Vector3, Transform} from './Unity.js';
+import {Vector3, Transform, MonoBehavior} from './Unity.js';
 import ArmTransforms from './ArmTransforms.js';
+import ShoulderPoser from './ShoulderPoser.js';
 
-class ShoulderTransforms
+function Instantiate() {
+  // XXX	
+}
+
+class ShoulderTransforms extends MonoBehavior
 	{
-		constructor() {
+		constructor(transform) {
+      constructor(transform);
+
 			this.leftShoulder = new Transform();
 			this.rightShoulder = new Transform();
 			this.leftShoulderRenderer = new Transform();
 			this.rightShoulderRenderer = new Transform();
 			this.leftShoulderAnchor = Transform();
 			this.rightShoulderAnchor = Transform();
-		  this.leftArmDummy = new ArmTransforms();
-		  this.rightArmDummy = new ArmTransforms();
-			this.leftArm = new ArmTransforms();
-			this.rightArm = new ArmTransforms();
+			this.leftArm = null;
+			this.rightArm = null;
 		}
 
 		Awake()
 		{
 			if (leftArm == null)
 			{
-				leftArm = Instantiate(leftArmDummy, leftShoulderAnchor.position, leftShoulderAnchor.rotation, leftShoulderAnchor);
-				var armIk = leftArm.GetComponentInChildren<VRArmIK>();
+				this.leftArm = new ArmTransforms();
+				const armIk = leftArm.GetComponentInChildren(VRArmIK);
 				armIk.shoulder = this;
-				armIk.shoulderPoser = GetComponent<ShoulderPoser>();
+				armIk.shoulderPoser = this.GetComponent(ShoulderPoser);
 				armIk.target = armIk.shoulderPoser.avatarTrackingReferences.leftHand.transform;
 			}
 			if (rightArm == null)
 			{
-				rightArm = Instantiate(rightArmDummy, leftShoulderAnchor.position, rightShoulderAnchor.rotation, rightShoulderAnchor);
-				var armIk = rightArm.GetComponentInChildren<VRArmIK>();
+				this.rightArm = new ArmTransforms();
+				const armIk = rightArm.GetComponentInChildren(VRArmIK);
 				armIk.shoulder = this;
-				armIk.shoulderPoser = GetComponent<ShoulderPoser>();
+				armIk.shoulderPoser = this.GetComponent(ShoulderPoser);
 				armIk.target = armIk.shoulderPoser.avatarTrackingReferences.rightHand.transform;
 			}
 		}
 
 		Start()
 		{
-			setShoulderWidth(PoseManager.Instance.playerWidthShoulders);
+			this.setShoulderWidth(PoseManager.Instance.playerWidthShoulders);
 		}
 
 		setShoulderWidth(width)

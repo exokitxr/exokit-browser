@@ -1,14 +1,16 @@
-import {Vector3} from './Unity.js';
+import {Vector3, GameObject, MonoBehaviour} from './Unity.js';
 
 import StaticOffsetTransform from './StaticOffsetTransform.js';
 
-	class AvatarVRTrackingReferences
+	class AvatarVRTrackingReferences extends MonoBehaviour
 	{
-		constructor() {
-			this.head = new StaticOffsetTransform();
-			this.hmd = new StaticOffsetTransform();
-			this.leftHand = new StaticOffsetTransform();
-			this.rightHand = new StaticOffsetTransform();
+		constructor(transform) {
+      super(transform);
+
+			this.head = null;
+			this.hmd = null;
+			this.leftHand = null;
+			this.rightHand = null;
 		}
 
 		Start()
@@ -34,13 +36,15 @@ import StaticOffsetTransform from './StaticOffsetTransform.js';
 		}
 
 
-		createTransform(t, name)
+		createTransform(k)
 		{
+			let t = this[k];
 			if (t === null)
 			{
-				t = new GameObject(name).AddComponent<StaticOffsetTransform>();
+				t = new GameObject(name).AddComponent(StaticOffsetTransform);
 				t.transform.parent = transform;
 				this.setStaticOffsetSettings(t);
+				this[k] = t;
 			}
 		}
 
@@ -56,10 +60,10 @@ import StaticOffsetTransform from './StaticOffsetTransform.js';
 
 		createTransforms()
 		{
-			this.createTransform(head, nameof(head));
-			this.createTransform(leftHand, nameof(leftHand));
-			this.createTransform(rightHand, nameof(rightHand));
-			this.createTransform(hmd, nameof(hmd));
+			this.createTransform('head');
+			this.createTransform('leftHand');
+			this.createTransform('rightHand');
+			this.createTransform('hmd');
 		}
 
 		connectTransforms()

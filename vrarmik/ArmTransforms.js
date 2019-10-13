@@ -1,9 +1,11 @@
-import {Vector3, Transform} from './Unity.js';
+import {Vector3, Transform, MonoBehavior} from './Unity.js';
 import PoseManager from './PoseManager.js';
 
-class ArmTransforms
+class ArmTransforms extends MonoBehavior
 	{
-		constructor() {
+		constructor(transform) {
+      super(transform);
+
 			this.upperArm = new Transform();
 			this.lowerArm = new Transform();
 			this.wrist1 = new Transform();
