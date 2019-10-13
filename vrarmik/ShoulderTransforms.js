@@ -9,14 +9,14 @@ function Instantiate() {
 class ShoulderTransforms extends MonoBehavior
 	{
 		constructor(transform) {
-      constructor(transform);
+      super(transform);
 
 			this.leftShoulder = new Transform();
 			this.rightShoulder = new Transform();
 			this.leftShoulderRenderer = new Transform();
 			this.rightShoulderRenderer = new Transform();
-			this.leftShoulderAnchor = Transform();
-			this.rightShoulderAnchor = Transform();
+			this.leftShoulderAnchor = new Transform();
+			this.rightShoulderAnchor = new Transform();
 			this.leftArm = null;
 			this.rightArm = null;
 		}

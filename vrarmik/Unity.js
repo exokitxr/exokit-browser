@@ -161,8 +161,8 @@ class Transform {
 
     this._parent = null;
 
-    this._matrix = new THREE,Matrix4();
-    this._matrixWorld = new THREE,Matrix4();
+    this._matrix = new THREE.Matrix4();
+    this._matrixWorld = new THREE.Matrix4();
   }
 
   get position() {

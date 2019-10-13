@@ -1,8 +1,8 @@
-import {Vector3, GameObject, MonoBehaviour} from './Unity.js';
+import {Vector3, GameObject, MonoBehavior} from './Unity.js';
 
 import StaticOffsetTransform from './StaticOffsetTransform.js';
 
-	class AvatarVRTrackingReferences extends MonoBehaviour
+	class AvatarVRTrackingReferences extends MonoBehavior
 	{
 		constructor(transform) {
       super(transform);

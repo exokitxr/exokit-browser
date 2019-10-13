@@ -1,14 +1,17 @@
-import {Vector3, Quaternion} from './Unity.js';
+import {Vector3, Quaternion, MonoBehavior} from './Unity.js';
 import ShoulderTransforms from './ShoulderTransforms.js';
 import VRTrackingReferences from './VRTrackingReferences.js';
+import AvatarVRTrackingReferences from './AvatarVRTrackingReferences.js';
 import PoseManager from './PoseManager.js';
 
-class ShoulderPoser
+class ShoulderPoser extends MonoBehavior
 	{
-		constructor() {
+		constructor(transform) {
+      super(transform);
+
 			this.shoulder = new ShoulderTransforms();
 			this.vrTrackingReferences = new VRTrackingReferences();
-			this.avatarTrackingReferences = AvatarVRTrackingReferences();
+			this.avatarTrackingReferences = new AvatarVRTrackingReferences();
 
 			this.headNeckDistance = 0.03;
 			this.neckShoulderDistance = new Vector3(0, -.1, -0.02);
