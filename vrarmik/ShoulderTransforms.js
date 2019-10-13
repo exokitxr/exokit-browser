@@ -43,8 +43,8 @@ class ShoulderTransforms
 
 		setShoulderWidth(width)
 		{
-			Vector3 localScale = new Vector3(width * .5, .05, .05);
-			Vector3 localPosition = new Vector3(width * .25, 0, 0);
+			const localScale = new Vector3(width * .5, .05, .05);
+			const localPosition = new Vector3(width * .25, 0, 0);
 
 			leftShoulderRenderer.localScale = localScale;
 			leftShoulderRenderer.localPosition = -localPosition;
