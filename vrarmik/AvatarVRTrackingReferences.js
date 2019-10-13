@@ -64,11 +64,11 @@ import StaticOffsetTransform from './StaticOffsetTransform.js';
 
 		connectTransforms()
 		{
-			/*StaticOffsetTransform */const sot = this.GetOrAddComponent/*<StaticOffsetTransform>*/();
-			if (sot.reference == null)
+			/* const sot = this.GetOrAddComponent(StaticOffsetTransform);
+			if (sot.reference === null)
 			{
 				sot.reference = transform.parent;
-			}
+			} */
 
 			this.head.reference = this.head.reference !== null ? this.head.reference : PoseManager.Instance.vrTransforms.head;
 			this.hmd.reference = this.hmd.reference !== null ? this.hmd.reference : PoseManager.Instance.vrTransforms.hmd;
