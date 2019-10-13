@@ -92,7 +92,7 @@ class ShoulderPoser
 				this.shoulder.rightArm.transform.localPosition = Vector3.zero;
 			}
 
-			Debug.DrawRay(this.shoulder.transform.position, this.shoulder.transform.forward);
+			// Debug.DrawRay(this.shoulder.transform.position, this.shoulder.transform.forward);
 		}
 
 		rotateLeftShoulder()
