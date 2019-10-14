@@ -1,6 +1,15 @@
 const DEG2RAD = Math.PI/180;
 const RAD2DEG = 180/Math.PI;
 
+class Vector2 extends THREE.Vector2 {
+  get magnitude() {
+    return this.length();
+  }
+  get normalized() {
+    return this.clone().normalize();
+  }
+}
+
 class Vector3 extends THREE.Vector3 {
   bindOnchange(onchange) {
     let x = this.x, y = this.y, z = this.z;
@@ -47,14 +56,23 @@ class Vector3 extends THREE.Vector3 {
   static get one() {
     return new Vector3(1, 1, 1);
   }
+  static get left() {
+    return new Vector3(-1, 0, 0);
+  }
   static get right() {
     return new Vector3(1, 0, 0);
   }
   static get up() {
     return new Vector3(0, 1, 0);
   }
+  static get down() {
+    return new Vector3(0, -1, 0);
+  }
   static get forward() {
     return new Vector3(0, 0, 1);
+  }
+  static get back() {
+    return new Vector3(0, 0, -1);
   }
   get magnitude() {
     return this.length();
@@ -62,17 +80,23 @@ class Vector3 extends THREE.Vector3 {
   get normalized() {
     return this.clone().normalize();
   }
-  Scale(a, b) {
+  xz() {
+    return new Vector2(this.x, this.z);
+  }
+  static Scale(a, b) {
     return new Vector3(a.x + b.x, a.y + b.y, a.z + b.z);
   }
-  Dot(v) {
-    return this.dot(v);
+  Scale(v) {
+    return new Vector3(this.x + v.x, this.y + v.y, this.z + v.z);
   }
-  Cross(v) {
-    return this.clone().cross(v);
+  static Dot(a, b) {
+    return a.dot(b);
   }
-  Angle(v) {
-    return this.angleTo(v) * RAD2DEG;
+  static Cross(a, b) {
+    return a.clone().cross(b);
+  }
+  static Angle(a, b) {
+    return a.angleTo(b) * RAD2DEG;
   }
 }
 
