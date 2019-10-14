@@ -1,8 +1,10 @@
-import {Transform} from './Unity.js';
+import {Transform, MonoBehavior} from './Unity.js';
 
-  class VRTrackingReferences
+  class VRTrackingReferences extends MonoBehavior
 	{
-    constructor() {
+    constructor(transform) {
+      super(transform);
+
       this.leftController = new Transform();
       this.rightController = new Transform();
       this.hmd = new Transform();
