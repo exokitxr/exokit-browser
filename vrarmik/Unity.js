@@ -159,7 +159,10 @@ class Quaternion extends THREE.Quaternion {
     return new Quaternion().setFromUnitVectors(a, b);
   }
   static Euler(v) {
-    return new Quaternion().setFromEuler(new Euler(v.x, v.y, v.z, 'ZXY'));
+    return new Quaternion().setFromEuler(new THREE.Euler(v.x, v.y, v.z, 'ZXY'));
+  }
+  static Inverse(q) {
+    return q.clone().inverse();
   }
 
   Inverse() {
