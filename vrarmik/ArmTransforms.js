@@ -1,4 +1,4 @@
-import {Vector3, Transform, MonoBehavior} from './Unity.js';
+import {Vector3, Transform, MonoBehavior, Mathf} from './Unity.js';
 import PoseManager from './PoseManager.js';
 
 class ArmTransforms extends MonoBehavior

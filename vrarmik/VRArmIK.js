@@ -1,4 +1,4 @@
-import {Vector3, Quaternion, Transform, MonoBehavior} from './Unity.js';
+import {Vector3, Quaternion, Transform, GameObject, MonoBehavior, Mathf} from './Unity.js';
 import ArmTransforms from './ArmTransforms.js';
 import ShoulderTransforms from './ShoulderTransforms.js';
 import ShoulderPoser from './ShoulderPoser.js';

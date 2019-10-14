@@ -2,6 +2,8 @@ import {Vector3, Transform, GameObject, MonoBehavior} from './Unity.js';
 import ArmTransforms from './ArmTransforms.js';
 import ShoulderPoser from './ShoulderPoser.js';
 import VRArmIK from './VRArmIK.js';
+import PoseManager from './PoseManager.js';
+
 
 class ShoulderTransforms extends MonoBehavior
 	{
