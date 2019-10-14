@@ -1,11 +1,15 @@
 import VRTrackingReferences from './VRTrackingReferences.js';
-import {XRSettings} from './Unity.js';
+import AvatarVRTrackingReferences from './AvatarVRTrackingReferences.js';
+import {GameObject, MonoBehavior, XRSettings} from './Unity.js';
 
-class PoseManager
+class PoseManager extends MonoBehavior
 	{
-		constructor() {
-			this.vrTransforms = new VRTrackingReferences();
-		  this.OnCalibrateListener = null;
+		constructor(transform) {
+      super(transform);
+
+			this.vrTransforms = new GameObject().AddComponent(VRTrackingReferences);
+			this.avatarVrTransforms = new GameObject().AddComponent(AvatarVRTrackingReferences);
+		  // this.OnCalibrateListener = null;
 
       // Oculus uses a different reference position -> 0 is the reference head position if the user is standing in the middle of the room. 
       // In OpenVR, the 0 position is the ground position and the user is then at (0, playerHeightHmd, 0) if he is in the middle of the room, so I need to correct this for shoulder calculation 
@@ -38,7 +42,7 @@ class PoseManager
                 this.loadPlayerSize();
             }
             const device = XRSettings.loadedDeviceName;
-            this.vrSystemOffsetHeight = string.IsNullOrEmpty(device) || device == "OpenVR" ? 0 : this.playerHeightHmd;
+            this.vrSystemOffsetHeight = /*string.IsNullOrEmpty(device) || */device == "OpenVR" ? 0 : this.playerHeightHmd;
         }
 
 		/* Start()
