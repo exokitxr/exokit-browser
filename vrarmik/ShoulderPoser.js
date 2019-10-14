@@ -105,14 +105,14 @@ class ShoulderPoser extends MonoBehavior
 
 		rotateLeftShoulder()
 		{
-			this.rotateShoulderUp(shoulder.leftShoulder, this.shoulder.leftArm, this.avatarTrackingReferences.leftHand.transform,
+			this.rotateShoulderUp(this.shoulder.leftShoulder, this.shoulder.leftArm, this.avatarTrackingReferences.leftHand.transform,
 				this.leftShoulderAnkerStartLocalPosition, 1);
 
 		}
 
 		rotateRightShoulder()
 		{
-			this.rotateShoulderUp(shoulder.rightShoulder, this.shoulder.rightArm, this.avatarTrackingReferences.rightHand.transform,
+			this.rotateShoulderUp(this.shoulder.rightShoulder, this.shoulder.rightArm, this.avatarTrackingReferences.rightHand.transform,
 				this.rightShoulderAnkerStartLocalPosition, -1);
 		}
 
@@ -120,7 +120,7 @@ class ShoulderPoser extends MonoBehavior
 			initialShoulderLocalPos, angleSign)
 		{
 			const initialShoulderPos = this.shoulder.transform.TransformPoint(initialShoulderLocalPos);
-			const handShoulderOffset = targetHand.position - this.initialShoulderPos;
+			const handShoulderOffset = new Vector3().subVectors(targetHand.position, this.initialShoulderPos);
 			const armLength = arm.armLength;
 
 			const targetAngle = Vector3.zero;
@@ -147,15 +147,15 @@ class ShoulderPoser extends MonoBehavior
 
 		positionShoulder()
 		{
-			const headNeckOffset = this.avatarTrackingReferences.hmd.transform.rotation * this.headNeckDirectionVector;
-			const targetPosition = this.avatarTrackingReferences.head.transform.position + headNeckOffset * this.headNeckDistance;
+			const headNeckOffset = this.headNeckDirectionVector.clone().applyQuaternion(this.avatarTrackingReferences.hmd.transform.rotation);
+			const targetPosition = new Vector3().addVectors(this.avatarTrackingReferences.head.transform.position, headNeckOffset.clone().multiplyScalar(this.headNeckDistance));
 			this.shoulder.transform.localPosition =
-				this.shoulder.transform.parent.InverseTransformPoint(targetPosition) + this.neckShoulderDistance;
+				new Vector3().addVectors(this.shoulder.transform.parent.InverseTransformPoint(targetPosition), this.neckShoulderDistance);
 		}
 
 		rotateShoulderUp()
 		{
-			const angle = getCombinedDirectionAngleUp();
+			const angle = this.getCombinedDirectionAngleUp();
 
 			const targetRotation = new Vector3(0, angle, 0);
 
@@ -169,12 +169,13 @@ class ShoulderPoser extends MonoBehavior
 				this.clampHeadRotationDeltaUp(targetRotation);
 			}
 
-			shouldthis.er.transform.eulerAngles = targetRotation;
+			this.shoulder.transform.eulerAngles = targetRotation;
 		}
 
 		rotateShoulderRight()
 		{
-			const heightDiff = this.vrTrackingReferences.hmd.transform.position.y - PoseManager.Instance.vrSystemOffsetHeight;
+
+			const heightDiff = this.vrTrackingReferences.hmd.position.y - PoseManager.Instance.vrSystemOffsetHeight;
 			const relativeHeightDiff = -heightDiff / PoseManager.Instance.playerHeightHmd;
 
 			const headRightRotation = VectorHelpers.getAngleBetween(this.shoulder.transform.forward,
@@ -189,15 +190,15 @@ class ShoulderPoser extends MonoBehavior
 			const deltaRot = Quaternion.AngleAxis(this.shoulderRightRotation, this.shoulder.transform.right);
 
 
-			this.shoulder.transform.rotation = deltaRot * this.shoulder.transform.rotation;
+			this.shoulder.transform.rotation = new Quaternion().multiplyQuaternions(deltaRot,  this.shoulder.transform.rotation);
 			this.positionShoulderRelative();
 		}
 
 		positionShoulderRelative()
 		{
 			const deltaRot = Quaternion.AngleAxis(this.shoulderRightRotation, this.shoulder.transform.right);
-			const shoulderHeadDiff = this.shoulder.transform.position - this.avatarTrackingReferences.head.transform.position;
-			this.shoulder.transform.position = deltaRot * shoulderHeadDiff + this.avatarTrackingReferences.head.transform.position;
+			const shoulderHeadDiff = new Vector3().subVectors(this.shoulder.transform.position, this.avatarTrackingReferences.head.transform.position);
+			this.shoulder.transform.position = new Vector3().addVectors(shoulderHeadDiff.clone().applyQuaternion(deltaRot), this.avatarTrackingReferences.head.transform.position);
 		}
 
 		getCombinedDirectionAngleUp()
@@ -205,19 +206,19 @@ class ShoulderPoser extends MonoBehavior
 			const leftHand = this.avatarTrackingReferences.leftHand.transform;
       const rightHand = this.avatarTrackingReferences.rightHand.transform;
 
-			const distanceLeftHand = leftHand.position - this.shoulder.transform.position;
-			const distanceRightHand = rightHand.position - this.shoulder.transform.position;
+			const distanceLeftHand = new Vector3().subVectors(leftHand.position, this.shoulder.transform.position);
+			const distanceRightHand = new Vector3().subVectors(rightHand.position, this.shoulder.transform.position);
 
 			if (this.ignoreYPos)
 			{
-				this.distanceLeftHand.y = 0;
-				this.distanceRightHand.y = 0;
+				distanceLeftHand.y = 0;
+				distanceRightHand.y = 0;
 			}
 
 			const directionLeftHand = distanceLeftHand.normalized;
 			const directionRightHand = distanceRightHand.normalized;
 
-			const combinedDirection = directionLeftHand + directionRightHand;
+			const combinedDirection = new Vector3().addVectors(directionLeftHand, directionRightHand);
 
 			return Mathf.Atan2(combinedDirection.x, combinedDirection.z) * 180 / Mathf.PI;
 		}
@@ -263,8 +264,8 @@ class ShoulderPoser extends MonoBehavior
 
 		clampShoulderHandDistance()
 		{
-			const leftHandVector = this.avatarTrackingReferences.leftHand.transform.position - this.shoulder.leftShoulderAnchor.position;
-			const rightHandVector = this.avatarTrackingReferences.rightHand.transform.position - this.shoulder.rightShoulderAnchor.position;
+			const leftHandVector = new Vector3().subVectors(this.avatarTrackingReferences.leftHand.transform.position, this.shoulder.leftShoulderAnchor.position);
+			const rightHandVector = new Vector3().subVectors(this.avatarTrackingReferences.rightHand.transform.position, this.shoulder.rightShoulderAnchor.position);
 			const leftShoulderHandDistance = leftHandVector.magnitude;
       const rightShoulderHandDistance = rightHandVector.magnitude;
 			this.shoulderDislocated = false;
@@ -274,9 +275,8 @@ class ShoulderPoser extends MonoBehavior
 			if (leftShoulderHandDistance > this.shoulder.leftArm.armLength * startBeforeFactor)
 			{
 				this.shoulderDislocated = true;
-				this.shoulder.leftArm.transform.position = this.shoulder.leftShoulderAnchor.position +
-													  leftHandVector.normalized *
-													  (leftShoulderHandDistance - this.shoulder.leftArm.armLength * startBeforeFactor);
+				this.shoulder.leftArm.transform.position = new Vector3().addVectors(this.shoulder.leftShoulderAnchor.position,
+													  leftHandVector.normalized.multiplyScalar(leftShoulderHandDistance - this.shoulder.leftArm.armLength * startBeforeFactor));
 			}
 			else
 			{
@@ -286,10 +286,8 @@ class ShoulderPoser extends MonoBehavior
 			if (rightShoulderHandDistance > this.shoulder.rightArm.armLength * this.startBeforeFactor)
 			{
 				this.shoulderDislocated = true;
-				this.shoulder.rightArm.transform.position = this.shoulder.rightShoulderAnchor.position +
-													   rightHandVector.normalized *
-													   (rightShoulderHandDistance -
-														this.shoulder.rightArm.armLength * startBeforeFactor);
+				this.shoulder.rightArm.transform.position = new Vector3().addVectors(this.shoulder.rightShoulderAnchor.position,
+													   rightHandVector.normalized.multiplyScalar(rightShoulderHandDistance - this.shoulder.rightArm.armLength * startBeforeFactor));
 			}
 			else
 			{

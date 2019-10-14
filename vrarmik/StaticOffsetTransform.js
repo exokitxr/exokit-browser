@@ -68,27 +68,27 @@ class StaticOffsetTransform extends MonoBehavior
 			if (this.reference === null)
 				return;
 
-			const rot = this.switchAxis(this.referenceLocalRotation ? this.reference.localEulerAngles : this.reference.eulerAngles, this.axisOrder) +
-			              this.offsetRotation;
-			rot.Scale(referenceRotationMultiplicator);
+			const rot = new Vector3().addVectors(this.switchAxis(this.referenceLocalRotation ? this.reference.localEulerAngles : this.reference.eulerAngles, this.axisOrder),
+			              this.offsetRotation);
+			rot.multiply(this.referenceRotationMultiplicator);
 
 			const pos = this.referenceLocalPosition ? this.reference.localPosition : this.reference.position;
 
 
 			if (this.applyForwardOffsetAfterRotationOffset)
 			{
-				pos += Quaternion.Euler(rot) * Vector3.right * this.orientationalOffset.x;
-				pos += Quaternion.Euler(rot) * Vector3.up * othis.rientationalOffset.y;
-				pos += Quaternion.Euler(rot) * Vector3.forward * this.orientationalOffset.z;
+				pos.add(Vector3.right.applyQuaternion(Quaternion.Euler(rot)).multiplyScalar(this.orientationalOffset.x));
+				pos.add(Vector3.up.applyQuaternion(Quaternion.Euler(rot)).multiplyScalar(this.orientationalOffset.y));
+				pos.add(Vector3.forward.applyQuaternion(Quaternion.Euler(rot)).multiplyScalar(this.orientationalOffset.z));
 			}
 			else
 			{
-				pos += this.reference.right * this.orientationalOffset.x;
-				pos += this.reference.up * this.orientationalOffset.y;
-				pos += this.reference.forward * this.orientationalOffset.z;
+				pos.add(this.reference.right.multiplyScalar(this.orientationalOffset.x));
+				pos.add(this.reference.up.multiplyScalar(this.orientationalOffset.y));
+				pos.add(this.reference.forward.multiplyScalar(this.orientationalOffset.z));
 			}
 
-			pos += offsetPosition;
+			pos.add(this.offsetPosition);
 
 			if (this.applyPosition)
 			{

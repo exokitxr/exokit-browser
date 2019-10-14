@@ -155,7 +155,7 @@ function toPositiveEulerAngle(n)
 		calcElbowInnerAngle()
 		{
 		  const eulerAngles = new Vector3();
-			const targetShoulderDistance = (this.target.position - this.upperArmPos).magnitude;
+			const targetShoulderDistance = new Vector3().subVectors(this.target.position, this.upperArmPos).magnitude;
 			let innerAngle;
 
 			if (targetShoulderDistance > this.arm.armLength)
@@ -184,8 +184,8 @@ function toPositiveEulerAngle(n)
 		rotateShoulder()
 		{
 			const eulerAngles = new Vector3();
-			const targetShoulderDirection = (target.position - upperArmPos).normalized;
-			const targetShoulderDistance = (target.position - upperArmPos).magnitude;
+			const targetShoulderDirection = new Vector3().subVectors(this.target.position, this.upperArmPos).normalized;
+			const targetShoulderDistance = new Vector3().subVectors(this.target.position, this.upperArmPos).magnitude;
 
 			eulerAngles.y = (this.left ? -1 : 1) *
 				Mathf.Acos(Mathf.Clamp((Mathf.Pow(targetShoulderDistance, 2) + Mathf.Pow(this.arm.upperArmLength, 2) -
@@ -193,16 +193,15 @@ function toPositiveEulerAngle(n)
 			if (isNaN(eulerAngles.y))
 				eulerAngles.y = 0;
 
-
 			const shoulderRightRotation = Quaternion.FromToRotation(this.armDirection, targetShoulderDirection);
 			this.setUpperArmRotation(shoulderRightRotation);
-			this.arm.upperArm.rotation = Quaternion.AngleAxis(eulerAngles.y, lowerArmRotation * Vector3.up) * this.arm.upperArm.rotation;
+			this.arm.upperArm.rotation = new Quaternion().multiplyQuaternions(Quaternion.AngleAxis(eulerAngles.y, new Vector3().multiplyVectors(this.lowerArmRotation, Vector3.up)), this.arm.upperArm.rotation);
 			this.setLowerArmLocalRotation(Quaternion.Euler(this.nextLowerArmAngle));
 		}
 
 		getElbowTargetAngle()
 		{
-			const localHandPosNormalized = this.shoulderAnker.InverseTransformPoint(this.handPos) / this.arm.armLength;
+			const localHandPosNormalized = this.shoulderAnker.InverseTransformPoint(this.handPos).divideScalar(this.arm.armLength);
 
 			// angle from Y
 			let angle = this.elbowSettings.yWeight * localHandPosNormalized.y + this.elbowSettings.offsetAngle;
@@ -243,9 +242,9 @@ function toPositiveEulerAngle(n)
 
 		correctElbowRotation()
 		{
-			const s = beforePositioningSettings;
+			const s = this.beforePositioningSettings;
 
-			const localTargetPos = this.shoulderAnker.InverseTransformPoint(target.position) / arm.armLength;
+			const localTargetPos = this.shoulderAnker.InverseTransformPoint(this.target.position).divideScalar(this.arm.armLength);
 			const elbowOutsideFactor = Mathf.Clamp01(
 									 Mathf.Clamp01((s.startBelowZ - localTargetPos.z) /
 												   Mathf.Abs(s.startBelowZ) * .5) *
@@ -254,16 +253,16 @@ function toPositiveEulerAngle(n)
 									 Mathf.Clamp01(1 - localTargetPos.x * (this.left ? -1 : 1))
 								 ) * s.weight;
 
-			const shoulderHandDirection = (this.upperArmPos - this.handPos).normalized;
-		  const targetDir = this.shoulder.transform.rotation * (Vector3.up + (s.correctElbowOutside ? (this.armDirection + Vector3.forward * -.2) * elbowOutsideFactor : Vector3.zero));
+			const shoulderHandDirection = new Vector3().subVectors(this.upperArmPos, this.handPos).normalized;
+		  const targetDir = new Vector3().addVectors(Vector3.up, (s.correctElbowOutside ? new Vector3().addVectors(this.armDirection, Vector3.forward.multiplyScalar(-.2)) * elbowOutsideFactor : Vector3.zero)).applyQuaternion(this.shoulder.transform.rotation);
 			const cross = Vector3.Cross(shoulderHandDirection, targetDir * 1000);
 
-			const upperArmUp = upperArmRotation * Vector3.up;
+			const upperArmUp = new Vector3().multiplyVectors(this.upperArmRotation, Vector3.up);
 
 			const elbowTargetUp = Vector3.Dot(upperArmUp, targetDir);
 			const elbowAngle = Vector3.Angle(cross, upperArmUp) + (this.left ? 0 : 180);
 			const rotation = Quaternion.AngleAxis(elbowAngle * Mathf.Sign(elbowTargetUp), shoulderHandDirection);
-			this.arm.upperArm.rotation = rotation * this.arm.upperArm.rotation;
+			this.arm.upperArm.rotation = new Quaternion().multiplyQuaternions(rotation, this.arm.upperArm.rotation);
 		}
 
 		/// <summary>
@@ -272,39 +271,39 @@ function toPositiveEulerAngle(n)
 		correctElbowAfterPositioning()
 		{
 			const s = this.elbowCorrectionSettings;
-			const localTargetPos = this.shoulderAnker.InverseTransformPoint(this.target.position) / this.arm.armLength;
-			const shoulderHandDirection = (this.upperArmPos - this.handPos).normalized;
+			const localTargetPos = this.shoulderAnker.InverseTransformPoint(this.target.position).divideScalar(this.arm.armLength);
+			const shoulderHandDirection = new Vector3().subVectors(this.upperArmPos, this.handPos).normalized;
 			const elbowPos = s.localElbowPos;
 
 			if (this.left)
 				elbowPos.x *= -1;
 
-			const targetDir = this.shoulder.transform.rotation * elbowPos.normalized;
+			const targetDir = elbowPos.normalized.applyQuaternion(this.shoulder.transform.rotation);
   		const cross = Vector3.Cross(shoulderHandDirection, targetDir);
 
-			const upperArmUp = this.upperArmRotation * Vector3.up;
+			const upperArmUp = new Vector3().multiplyVectors(this.upperArmRotation, Vector3.up);
 
 
-			let distance = this.target.position - this.upperArmPos;
-			distance = distance.magnitude * this.shoulder.transform.InverseTransformDirection(distance / distance.magnitude);
+			let distance = new Vector3().subVectors(this.target.position, this.upperArmPos);
+			distance = this.shoulder.transform.InverseTransformDirection(distance.clone().divideScalar(distance.magnitude)).multiplyScalar(distance.magnitude);
 
-			const weight = Mathf.Clamp01(Mathf.Clamp01((s.startBelowDistance - distance.xz().magnitude / arm.armLength) /
+			const weight = Mathf.Clamp01(Mathf.Clamp01((s.startBelowDistance - distance.xz().magnitude / this.arm.armLength) /
 						   s.startBelowDistance) * s.weight + Mathf.Clamp01((-distance.z + .1) * 3)) *
 						   Mathf.Clamp01((s.startBelowY - localTargetPos.y) /
 										 s.startBelowY);
 
 		  const elbowTargetUp = Vector3.Dot(upperArmUp, targetDir);
   		const elbowAngle2 = Vector3.Angle(cross, upperArmUp) + (this.left ? 0 : 180);
-			const rotation = Quaternion.AngleAxis((elbowAngle2 * Mathf.Sign(elbowTargetUp)).toSignedEulerAngle() * Mathf.Clamp(weight, 0, 1), shoulderHandDirection);
-			this.arm.upperArm.rotation = rotation * this.arm.upperArm.rotation;
+			const rotation = Quaternion.AngleAxis(toSignedEulerAngle(elbowAngle2 * Mathf.Sign(elbowTargetUp)) * Mathf.Clamp(weight, 0, 1), shoulderHandDirection);
+			this.arm.upperArm.rotation = new Quaternion().multiplyQuaternions(rotation, this.arm.upperArm.rotation);
 		}
 
 		rotateElbow(angle)
 		{
-			const shoulderHandDirection = (this.upperArmPos - this.handPos).normalized;
+			const shoulderHandDirection = new Vector3().subVectors(this.upperArmPos, this.handPos).normalized;
 
 			const rotation = Quaternion.AngleAxis(angle, shoulderHandDirection);
-			this.setUpperArmRotation(rotation * this.upperArmRotation);
+			this.setUpperArmRotation(new Quaternion().multiplyQuaternions(rotation, this.upperArmRotation));
 		}
 
 		//source: https://github.com/NickHardeman/ofxIKArm/blob/master/src/ofxIKArm.cpp
@@ -318,16 +317,16 @@ function toPositiveEulerAngle(n)
 		rotateElbowWithHandRight()
 		{
 			const s = this.handSettings;
-			let handUpVec = this.target.rotation * Vector3.up;
-			const forwardAngle = VectorHelpers.getAngleBetween(lowerArmRotation * Vector3.right, this.target.rotation * Vector3.right,
-				lowerArmRotation * Vector3.up, lowerArmRotation * Vector3.forward);
+			let handUpVec = Vector3.up.applyQuaternion(this.target.rotation);
+			const forwardAngle = VectorHelpers.getAngleBetween(Vector3.right.applyQuaternion(this.lowerArmRotation), Vector3.right.applyQuaternion(this.target.rotation),
+				Vector3.up.applyQuaternion(this.lowerArmRotation), Vector3.forward.applyQuaternion(this.lowerArmRotation));
 
 			// todo reduce influence if hand local forward rotation is high (hand tilted inside)
-			const handForwardRotation = Quaternion.AngleAxis(-forwardAngle, lowerArmRotation * Vector3.forward);
-			handUpVec = handForwardRotation * handUpVec;
+			const handForwardRotation = Quaternion.AngleAxis(-forwardAngle, this.lowerArmRotation * Vector3.forward);
+			handUpVec = handUpVec.applyQuaternion(handForwardRotation);
 
-			const elbowTargetAngle = VectorHelpers.getAngleBetween(this.lowerArmRotation * Vector3.up, handUpVec,
-				this.lowerArmRotation * Vector3.forward, this.lowerArmRotation * this.armDirection);
+			const elbowTargetAngle = VectorHelpers.getAngleBetween(Vector3.up.applyQuaternion(this.lowerArmRotation), handUpVec,
+				Vector3.forward.applyQuaternion(this.lowerArmRotation), this.armDirection.clone().applyQuaternion(this.lowerArmRotation));
 
 			let deltaElbow = (elbowTargetAngle + (this.left ? -s.handDeltaOffset : s.handDeltaOffset)) / 180;
 
@@ -340,10 +339,10 @@ function toPositiveEulerAngle(n)
 		rotateElbowWithHandFoward()
 		{
 			const s = this.handSettings;
-			const handRightVec = this.target.rotation * this.armDirection;
+			const handRightVec = this.armDirection.clone().applyQuaternion(this.target.rotation);
 
-		  const elbowTargetAngleForward = VectorHelpers.getAngleBetween(this.lowerArmRotation * armDirection, handRightVec,
-				this.lowerArmRotation * Vector3.up, this.lowerArmRotation * Vector3.forward);
+		  const elbowTargetAngleForward = VectorHelpers.getAngleBetween(this.armDirection.clone().applyQuaternion(this.lowerArmRotation), handRightVec,
+				Vector3.up.applyQuaternion(this.lowerArmRotation), Vector3.forward.applyQuaternion(this.lowerArmRotation));
 
 			let deltaElbowForward = (elbowTargetAngleForward + (this.left ? -s.handDeltaForwardOffset : s.handDeltaForwardOffset)) / 180;
 
@@ -357,7 +356,7 @@ function toPositiveEulerAngle(n)
 			deltaElbowForward = Mathf.Sign(deltaElbowForward) * Mathf.Pow(Mathf.Abs(deltaElbowForward), s.handDeltaForwardPow) * 180;
 			this.interpolatedDeltaElbowForward = Mathf.LerpAngle(this.interpolatedDeltaElbowForward, deltaElbowForward, Time.deltaTime / s.rotateElbowWithHandDelay);
 
-			const signedInterpolated = this.interpolatedDeltaElbowForward.toSignedEulerAngle();
+			const signedInterpolated = toSignedEulerAngle(this.interpolatedDeltaElbowForward);
 			this.rotateElbow(signedInterpolated * s.handDeltaForwardFactor);
 		}
 
@@ -365,28 +364,28 @@ function toPositiveEulerAngle(n)
 		{
 			if (this.handSettings.useWristRotation)
 			{
-				let handUpVec = this.target.rotation * Vector3.up;
-				const forwardAngle = VectorHelpers.getAngleBetween(this.lowerArmRotation * Vector3.right, target.rotation * Vector3.right,
-					this.lowerArmRotation * Vector3.up, this.lowerArmRotation * Vector3.forward);
+				let handUpVec = Vector3.up.applyQuaternion(this.target.rotation);
+				const forwardAngle = VectorHelpers.getAngleBetween(Vector3.right.applyQuaternion(this.lowerArmRotation), Vector3.right.applyQuaternion(this.target.rotation),
+					Vector3.up.applyQuaternion(this.lowerArmRotation), Vector3.forward.applyQuaternion(this.lowerArmRotation));
 
 				// todo reduce influence if hand local forward rotation is high (hand tilted inside)
-				const handForwardRotation = Quaternion.AngleAxis(-forwardAngle, this.lowerArmRotation * Vector3.forward);
-				handUpVec = handForwardRotation * handUpVec;
+				const handForwardRotation = Quaternion.AngleAxis(-forwardAngle, Vector3.forward.applyQuaternion(this.lowerArmRotation));
+				handUpVec = handUpVec.applyQuaternion(handForwardRotation);
 
-				let elbowTargetAngle = VectorHelpers.getAngleBetween(this.lowerArmRotation * Vector3.up, handUpVec,
-					this.lowerArmRotation * Vector3.forward, this.lowerArmRotation * this.armDirection);
+				let elbowTargetAngle = VectorHelpers.getAngleBetween(Vector3.up.applyQuaternion(this.lowerArmRotation), handUpVec,
+					Vector3.forward.applyQuaternion(this.lowerArmRotation), this.armDirection.clone().applyQuaternion(this.lowerArmRotation));
 
 				elbowTargetAngle = Mathf.Clamp(elbowTargetAngle, -90, 90);
-				if (arm.wrist1 != null)
-					this.setWrist1Rotation(Quaternion.AngleAxis(elbowTargetAngle * .3, this.lowerArmRotation * this.armDirection) * this.lowerArmRotation);
-				if (arm.wrist2 != null)
-					this.setWrist2Rotation(Quaternion.AngleAxis(elbowTargetAngle * .8, this.lowerArmRotation * this.armDirection) * this.lowerArmRotation);
+				if (this.arm.wrist1 !== null)
+					this.setWrist1Rotation(new Quaternion().multiplyQuaternions(Quaternion.AngleAxis(elbowTargetAngle * .3, this.armDirection.clone().applyQuaternion(this.lowerArmRotation)), this.lowerArmRotation));
+				if (this.arm.wrist2 !== null)
+					this.setWrist2Rotation(new Quaternion().multiplyQuaternions(Quaternion.AngleAxis(elbowTargetAngle * .8, this.armDirection.clone().applyQuaternion(this.lowerArmRotation)), this.lowerArmRotation));
 			}
-			this.setHandRotation(target.rotation);
+			this.setHandRotation(this.target.rotation);
 		}
 
 		removeShoulderRightRotation(direction) {
-			return Quaternion.AngleAxis(-this.shoulderPoser.shoulderRightRotation, this.shoulder.transform.right) * this.direction;
+			return this.direction.clone().applyQuaternion(Quaternion.AngleAxis(-this.shoulderPoser.shoulderRightRotation, this.shoulder.transform.right));
 		}
 
 		get armDirection() {
@@ -406,35 +405,35 @@ function toPositiveEulerAngle(n)
 		}
 
 		get upperArmRotation() {
-			return this.arm.upperArm.rotation * Quaternion.Inverse(this.upperArmStartRotation);
+			return new Quaternion().multiplyQuaternions(this.arm.upperArm.rotation, Quaternion.Inverse(this.upperArmStartRotation));
 		}
 		get lowerArmRotation() {
-			return this.arm.lowerArm.rotation * Quaternion.Inverse(this.lowerArmStartRotation);
+			return new Quaternion().multiplyQuaternions(this.arm.lowerArm.rotation, Quaternion.Inverse(this.lowerArmStartRotation));
 		}
 		get handRotation() {
-			return this.arm.hand.rotation * Quaternion.Inverse(this.handStartRotation);
+			return new Quaternion().multiplyQuaternions(this.arm.hand.rotation, Quaternion.Inverse(this.handStartRotation));
 		}
 
 		setUpperArmRotation(rotation) {
-			return this.arm.upperArm.rotation = rotation * this.upperArmStartRotation;
+			return this.arm.upperArm.rotation = new Quaternion().multiplyQuaternions(rotation, this.upperArmStartRotation);
 		}
 		setLowerArmRotation(rotation) {
-			return this.arm.lowerArm.rotation = rotation * this.lowerArmStartRotation;
+			return this.arm.lowerArm.rotation = new Quaternion().multiplyQuaternions(rotation, this.lowerArmStartRotation);
 		}
 		setLowerArmLocalRotation(rotation) {
-			return this.arm.lowerArm.rotation = this.upperArmRotation * rotation * this.lowerArmStartRotation;
+			return this.arm.lowerArm.rotation = new Quaternion().multiplyQuaternions(new Quaternion().multiplyQuaternions(this.upperArmRotation, rotation), this.lowerArmStartRotation);
 		}
 		setWrist1Rotation(rotation) {
-			return this.arm.wrist1.rotation = rotation * this.wristStartRotation;
+			return this.arm.wrist1.rotation = new Quaternion().multiplyQuaternions(rotation, this.wristStartRotation);
 		}
 		setWrist2Rotation(rotation) {
-			return this.arm.wrist2.rotation = rotation * this.wristStartRotation;
+			return this.arm.wrist2.rotation = new Quaternion().multiplyQuaternions(rotation, this.wristStartRotation);
 		}
 		setWristLocalRotation(rotation) {
-			return this.arm.wrist1.rotation = this.arm.lowerArm.rotation * rotation * this.wristStartRotation;
+			return this.arm.wrist1.rotation = new Quaternion().multiplyQuaternions(new Quaternion().multiplyQuaternions(this.arm.lowerArm.rotation, rotation), this.wristStartRotation);
     }
 		setHandRotation(rotation) {
-			return this.arm.hand.rotation = this.arm.hand.rotation = rotation * this.handStartRotation;
+			return this.arm.hand.rotation = /* this.arm.hand.rotation = */ new Quaternion().multiplyQuaternions(rotation, this.handStartRotation);
 		}
 	}
 

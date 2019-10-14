@@ -18,17 +18,17 @@ class ArmTransforms extends MonoBehavior
 		}
 
 		get upperArmLength() {
-			return distance(this.upperArm, this.lowerArm);
+			return this.distance(this.upperArm, this.lowerArm);
 		}
 		get lowerArmLength() {
-			return distance(this.lowerArm, this.hand);
+			return this.distance(this.lowerArm, this.hand);
 		}
 		get armLength() {
 			return this.upperArmLength + this.lowerArmLength;
 		}
 
 		distance(a, b) {
-			return (a.position - b.position).magnitude;
+			return a.position.distanceTo(b.position);
 		}
 
 	  Start()
@@ -39,7 +39,7 @@ class ArmTransforms extends MonoBehavior
 
 		updateArmLengths()
 		{
-			const shoulderWidth = (this.upperArm.position - this.lowerArm.position).magnitude;
+			const shoulderWidth = new Vector3().subVectors(this.upperArm.position, this.lowerArm.position).magnitude;
 			const _armLength = (PoseManager.Instance.playerWidthWrist - shoulderWidth) / 2;
 			this.setArmLength(_armLength);
 		}
@@ -50,7 +50,7 @@ class ArmTransforms extends MonoBehavior
 			{
 				const oldLowerArmLength = distance(this.lowerArm, this.hand);
 
-				let newScale = this.upperArm.localScale - Vector3.Scale(this.upperArm.localScale, this.scaleAxis).magnitude * this.scaleAxis;
+				let newScale = new Vector3().subVectors(this.upperArm.localScale, this.scaleAxis.clone().multiplyScalar(Vector3.Scale(this.upperArm.localScale, this.scaleAxis).magnitude));
 				const scaleFactor = Vector3.Scale(this.upperArm.localScale, this.scaleAxis).magnitude / upperArmLength * length;
 				newScale += this.scaleAxis * scaleFactor;
 				this.upperArm.localScale = newScale;
@@ -83,8 +83,8 @@ class ArmTransforms extends MonoBehavior
 			const upperArmFactor = .48;
 			if (this.armLengthByScale)
 			{
-				this.upperArm.localScale = this.upperArm.localScale / this.armLength * length;
-				this.hand.localScale = Vector3.one / (1 - (1 - this.scaleHandFactor) * (1 - this.upperArm.localScale.x));
+				this.upperArm.localScale = this.upperArm.localScale.clone().divideScalar(this.armLength).multiplyScalar(length);
+				this.hand.localScale = Vector3.one.divideScalar(1 - (1 - this.scaleHandFactor) * (1 - this.upperArm.localScale.x));
 			}
 			else
 			{
