@@ -249,7 +249,11 @@ class GameObject {
 }
 
 class MonoBehavior {
-  constructor(transform = new Transform()) {
+  constructor(transform) {
+    if (!transform) {
+      throw new Error('bad component initialization');
+    }
+
     this.transform = transform;
     this.components = new Map();
   }
