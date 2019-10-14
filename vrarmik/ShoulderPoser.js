@@ -10,7 +10,7 @@ class ShoulderPoser extends MonoBehavior
 		constructor(...args) {
       super(...args);
 
-			this.shoulder = new GameObject().GetComponent(ShoulderTransforms);
+			this.shoulder = this.GetComponent(ShoulderTransforms);
 			this.vrTrackingReferences = null;
 			this.avatarTrackingReferences = null;
 

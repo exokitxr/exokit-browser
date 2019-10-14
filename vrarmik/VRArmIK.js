@@ -68,7 +68,7 @@ class HandSettings
 		constructor(...args) {
       super(...args);
 
-			this.arm = new GameObject().GetComponent(ArmTransforms);
+			this.arm = new GameObject().AddComponent(ArmTransforms);
 			this.shoulder = null;
 			this.shoulderPoser = null;
 			this.target = new Transform();

@@ -42,7 +42,7 @@ import StaticOffsetTransform from './StaticOffsetTransform.js';
 			let t = this[k];
 			if (t === null)
 			{
-				t = new GameObject(name).GetComponent(StaticOffsetTransform);
+				t = new GameObject(name).AddComponent(StaticOffsetTransform);
 				t.transform.parent = this.transform;
 				this.setStaticOffsetSettings(t);
 				this[k] = t;
