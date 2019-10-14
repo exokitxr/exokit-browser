@@ -64,13 +64,13 @@ class ShoulderPoser extends MonoBehavior
 				this.shoulder.transform.InverseTransformPoint(this.shoulder.rightShoulderAnchor.position);
 		}
 
-		onCalibrate()
+		/* onCalibrate()
 		{
 			this.shoulder.leftArm.setArmLength((avatarTrackingReferences.leftHand.transform.position - this.shoulder.leftShoulderAnchor.position)
 				.magnitude);
 			this.shoulder.rightArm.setArmLength((avatarTrackingReferences.rightHand.transform.position - this.shoulder.rightShoulderAnchor.position)
 				.magnitude);
-		}
+		} */
 
 		Update()
 		{

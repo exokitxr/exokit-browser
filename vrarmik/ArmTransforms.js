@@ -33,7 +33,7 @@ class ArmTransforms extends MonoBehavior
 
 	  Start()
 		{
-			PoseManager.Instance.onCalibrate += this.updateArmLengths;
+			// PoseManager.Instance.onCalibrate += this.updateArmLengths;
 			this.updateArmLengths();
 		}
 

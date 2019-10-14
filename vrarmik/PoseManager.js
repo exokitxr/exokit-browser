@@ -41,7 +41,7 @@ class PoseManager
             this.vrSystemOffsetHeight = string.IsNullOrEmpty(device) || device == "OpenVR" ? 0 : this.playerHeightHmd;
         }
 
-		Start()
+		/* Start()
 		{
 			onCalibrate += OnCalibrate;
 		}
@@ -49,7 +49,7 @@ class PoseManager
 		OnCalibrate()
 		{
 			this.playerHeightHmd = Camera.main.transform.position.y;
-		}
+		} */
 
 		loadPlayerWidthShoulders()
 		{
@@ -61,7 +61,7 @@ class PoseManager
 			PlayerPrefs.SetFloat("VRArmIK_PlayerWidthShoulders", width);
 		}
 
-		calibrateIK()
+		/* calibrateIK()
 		{
 			this.playerWidthWrist = (this.vrTransforms.leftHand.position - this.vrTransforms.rightHand.position).magnitude;
 			this.playerHeightHmd = this.vrTransforms.hmd.position.y;
@@ -74,7 +74,7 @@ class PoseManager
 			PlayerPrefs.SetFloat("VRArmIK_PlayerWidthWrist", this.widthWrist);
 			this.loadPlayerSize();
 			this.onCalibrate && this.onCalibrate.Invoke();
-		}
+		} */
 
 		loadPlayerSize()
 		{
