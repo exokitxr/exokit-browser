@@ -1,10 +1,7 @@
-import {Vector3, Transform, MonoBehavior} from './Unity.js';
+import {Vector3, Transform, GameObject, MonoBehavior} from './Unity.js';
 import ArmTransforms from './ArmTransforms.js';
 import ShoulderPoser from './ShoulderPoser.js';
-
-function Instantiate() {
-  // XXX	
-}
+import VRArmIK from './VRArmIK.js';
 
 class ShoulderTransforms extends MonoBehavior
 	{
@@ -23,18 +20,18 @@ class ShoulderTransforms extends MonoBehavior
 
 		Awake()
 		{
-			if (leftArm == null)
+			if (this.leftArm === null)
 			{
-				this.leftArm = new ArmTransforms();
-				const armIk = leftArm.GetComponentInChildren(VRArmIK);
+				this.leftArm = new GameObject().AddComponent(ArmTransforms);
+				const armIk = this.leftArm.GetComponentInChildren(VRArmIK);
 				armIk.shoulder = this;
 				armIk.shoulderPoser = this.GetComponent(ShoulderPoser);
 				armIk.target = armIk.shoulderPoser.avatarTrackingReferences.leftHand.transform;
 			}
-			if (rightArm == null)
+			if (rightArm === null)
 			{
-				this.rightArm = new ArmTransforms();
-				const armIk = rightArm.GetComponentInChildren(VRArmIK);
+				this.rightArm = new GameObject().AddComponent(ArmTransforms);
+				const armIk = this.rightArm.GetComponentInChildren(VRArmIK);
 				armIk.shoulder = this;
 				armIk.shoulderPoser = this.GetComponent(ShoulderPoser);
 				armIk.target = armIk.shoulderPoser.avatarTrackingReferences.rightHand.transform;
