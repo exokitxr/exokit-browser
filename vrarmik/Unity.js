@@ -272,13 +272,32 @@ class Transform {
     const e = new THREE.Euler().setFromQuaternion(this.rotation, 'ZXY');
     return new Vector3(e.x, e.y, e.z);
   }
+  set eulerAngles(v) {
+    this.rotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(v.x, v.y, v.z, 'ZXY'));
+  }
+  get localEulerAngles() {
+    const e = new THREE.Euler().setFromQuaternion(this.localRotation, 'ZXY');
+    return new Vector3(e.x, e.y, e.z);
+  }
+  set localEulerAngles(v) {
+    this.localRotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(v.x, v.y, v.z, 'ZXY'));
+  }
+
   TransformPoint(v) {
-    return v.applyMatrix4(new THREE.Matrix4().compose(this.position, this.rotation, this.scale));
+    this.updateMatrixWorld();
+    return v.clone().applyMatrix4(this._matrixWorld);
   }
   InverseTransformPoint(v) {
-    const m = new THREE.Matrix4().compose(this.position, this.rotation, this.scale);
-    m.getInverse(m);
-    return v.applyMatrix4(m);
+    this.updateMatrixWorld();
+    return v.clone().applyMatrix4(new THREE.Matrix4().getInverse(this._matrixWorld));
+  }
+  TransformDirection(v) {
+    this.updateMatrixWorld();
+    return v.clone().applyMatrix4(this._matrixWorld).normalize();
+  }
+  InverseTransformDirection(v) {
+    this.updateMatrixWorld();
+    return v.clone().applyMatrix4(new THREE.Matrix4().getInverse(this._matrixWorld)).normalize();
   }
 }
 
