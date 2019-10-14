@@ -68,15 +68,15 @@ class HandSettings
 		constructor(transform) {
       super(transform);
 
-			this.arm = new ArmTransforms();
-			this.shoulder = new ShoulderTransforms();
-			this.shoulderPoser = new ShoulderPoser();
+			this.arm = new GameObject().GetComponent(ArmTransforms);
+			this.shoulder = null;
+			this.shoulderPoser = null;
 			this.target = new Transform();
 			this.left = true;
 
 			this.elbowSettings = new ArmIKElbowSettings();
 			this.beforePositioningSettings = new BeforePositioningSettings();
-			this.elbowCorrectionSettings = ElbowCorrectionSettings();
+			this.elbowCorrectionSettings = new ElbowCorrectionSettings();
 			this.handSettings = new HandSettings();
 
 			this.nextLowerArmAngle = new Vector3();
@@ -96,8 +96,8 @@ class HandSettings
 			this.lowerArmStartRotation = this.arm.lowerArm.rotation;
 			this.wristStartRotation = Quaternion.identity;
 			if (this.arm.wrist1 !== null)
-				this.wristStartRotation = arm.wrist1.rotation;
-			this.handStartRotation = arm.hand.rotation;
+				this.wristStartRotation = this.arm.wrist1.rotation;
+			this.handStartRotation = this.arm.hand.rotation;
 		}
 
 		OnEnable()
