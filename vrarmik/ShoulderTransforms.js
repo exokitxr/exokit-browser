@@ -11,9 +11,10 @@ class ShoulderTransforms extends MonoBehavior
       super(...args);
 
 			this.leftShoulder = new Transform();
+
 			this.rightShoulder = new Transform();
-			this.leftShoulderRenderer = new Transform();
-			this.rightShoulderRenderer = new Transform();
+			/* this.leftShoulderRenderer = new Transform();
+			this.rightShoulderRenderer = new Transform(); */
 			this.leftShoulderAnchor = new Transform();
 			this.rightShoulderAnchor = new Transform();
 			this.leftArm = null;
@@ -30,7 +31,7 @@ class ShoulderTransforms extends MonoBehavior
 				armIk.shoulderPoser = this.GetComponent(ShoulderPoser);
 				armIk.target = armIk.shoulderPoser.avatarTrackingReferences.leftHand.transform;
 			}
-			if (rightArm === null)
+			if (this.rightArm === null)
 			{
 				this.rightArm = new GameObject().AddComponent(ArmTransforms);
 				const armIk = this.rightArm.GetComponentInChildren(VRArmIK);
@@ -40,7 +41,7 @@ class ShoulderTransforms extends MonoBehavior
 			}
 		}
 
-		Start()
+		/* Start()
 		{
 			this.setShoulderWidth(PoseManager.Instance.playerWidthShoulders);
 		}
@@ -51,11 +52,11 @@ class ShoulderTransforms extends MonoBehavior
 			const localPosition = new Vector3(width * .25, 0, 0);
 
 			leftShoulderRenderer.localScale = localScale;
-			leftShoulderRenderer.localPosition = -localPosition;
+			leftShoulderRenderer.localPosition = localPosition.clone().multiplyScalar(-1);
 
 			rightShoulderRenderer.localScale = localScale;
 			rightShoulderRenderer.localPosition = localPosition;
-		}
+		} */
 	}
 
 export default ShoulderTransforms;

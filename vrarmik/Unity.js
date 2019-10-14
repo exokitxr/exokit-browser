@@ -388,6 +388,10 @@ class MonoBehavior {
   LateUpdate() {}
 }
 
+const Time = {
+  deltaTime: 1/90,
+};
+
 const Mathf = {
   Deg2Rad: DEG2RAD,
   Rad2Deg: RAD2DEG,
@@ -471,6 +475,7 @@ export {
   Transform,
   GameObject,
   MonoBehavior,
+  Time,
   Mathf,
   PlayerPrefs,
   XRSettings,

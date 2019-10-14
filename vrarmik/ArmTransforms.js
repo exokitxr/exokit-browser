@@ -46,7 +46,7 @@ class ArmTransforms extends MonoBehavior
 
 		setUpperArmLength(length)
 		{
-			if (armLengthByScale)
+			if (this.armLengthByScale)
 			{
 				const oldLowerArmLength = distance(this.lowerArm, this.hand);
 
@@ -81,7 +81,7 @@ class ArmTransforms extends MonoBehavior
 		setArmLength(length)
 		{
 			const upperArmFactor = .48;
-			if (armLengthByScale)
+			if (this.armLengthByScale)
 			{
 				this.upperArm.localScale = this.upperArm.localScale / this.armLength * length;
 				this.hand.localScale = Vector3.one / (1 - (1 - this.scaleHandFactor) * (1 - this.upperArm.localScale.x));

@@ -21,9 +21,11 @@ class PoseManager extends MonoBehavior
 			this.playerWidthWrist = 1.39;
 			this.playerWidthShoulders = 0.31;
       this.loadPlayerSizeOnAwake = false;
+
+      PoseManager.Instance = this;
     }
 
-		OnEnable()
+		/* OnEnable()
 		{
 			if (PoseManager.Instance === null)
 			{
@@ -33,7 +35,7 @@ class PoseManager extends MonoBehavior
 			{
 				Debug.LogError("Multiple Instances of PoseManager in Scene");
 			}
-		}
+		} */
 
 		Awake()
 		{
