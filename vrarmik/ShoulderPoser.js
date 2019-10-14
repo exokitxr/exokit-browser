@@ -9,9 +9,9 @@ class ShoulderPoser extends MonoBehavior
 		constructor(transform) {
       super(transform);
 
-			this.shoulder = new ShoulderTransforms();
-			this.vrTrackingReferences = new VRTrackingReferences();
-			this.avatarTrackingReferences = new AvatarVRTrackingReferences();
+			this.shoulder = new GameObject().GetComponent(ShoulderTransforms);
+			this.vrTrackingReferences = null;
+			this.avatarTrackingReferences = null;
 
 			this.headNeckDistance = 0.03;
 			this.neckShoulderDistance = new Vector3(0, -.1, -0.02);
@@ -52,12 +52,16 @@ class ShoulderPoser extends MonoBehavior
 
 			this.leftShoulderAnkerStartLocalPosition = new Vector3();
 			this.rightShoulderAnkerStartLocalPosition = new Vector3();
+
+			this.Start();
 		}
 
 		Start()
 		{
 			if (this.vrTrackingReferences === null)
 				this.vrTrackingReferences = PoseManager.Instance.vrTransforms;
+			if (this.avatarTrackingReferences === null)
+				this.avatarTrackingReferences = PoseManager.Instance.avatarVrTransforms;
 
 			this.leftShoulderAnkerStartLocalPosition = this.shoulder.transform.InverseTransformPoint(this.shoulder.leftShoulderAnchor.position);
 			this.rightShoulderAnkerStartLocalPosition =
