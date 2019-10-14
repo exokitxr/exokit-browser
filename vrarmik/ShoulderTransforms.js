@@ -7,8 +7,8 @@ import PoseManager from './PoseManager.js';
 
 class ShoulderTransforms extends MonoBehavior
 	{
-		constructor(transform) {
-      super(transform);
+		constructor(...args) {
+      super(...args);
 
 			this.leftShoulder = new Transform();
 			this.rightShoulder = new Transform();

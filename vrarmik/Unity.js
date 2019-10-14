@@ -165,43 +165,61 @@ class Transform {
 
   get position() {
     this.updateMatrixWorld();
-    return this._position;
+    return this._position.clone();
   }
   set position(position) {
     this._position.copy(position);
   }
   get rotation() {
     this.updateMatrixWorld();
-    return this._rotation;
+    return this._rotation.clone();
   }
   set rotation(rotation) {
     this._rotation.copy(rotation);
   }
   get scale() {
     this.updateMatrixWorld();
-    return this._scale;
+    return this._scale.clone();
   }
   set scale(scale) {
     this._scale.copy(scale);
   }
 
   get localPosition() {
-    return this._localPosition;
+    return this._localPosition.clone();
   }
   set localPosition(localPosition) {
     this._localPosition.copy(localPosition);
   }
   get localRotation() {
-    return this._localRotation;
+    return this._localRotation.clone();
   }
   set localRotation(localRotation) {
     this._localRotation.copy(localRotation);
   }
   get localScale() {
-    return this._localScale;
+    return this._localScale.clone();
   }
   set localScale(localScale) {
     this._localScale.copy(localScale);
+  }
+
+  get parent() {
+    return this._parent;
+  }
+  set parent(parent) {
+    this._parent = parent;
+    this.matrixWorldNeedsUpdate = true;
+  }
+
+  get right() {
+    return this.TransformPoint(Vector3.right);
+  }
+  get up() {
+    return this.TransformPoint(Vector3.up);
+  }
+  get forward() {
+    return this.TransformPoint(Vector3.forward);
   }
 
   updateMatrixWorld() {
@@ -209,9 +227,9 @@ class Transform {
       this._matrix.compose(this._position, this._rotation, this._scale);
       this._matrixWorld.copy(this._matrix);
 
-      if (t.parent) {
-        t.parent.updateMatrixWorld();
-        this._matrixWorld.premultiply(t.parent._matrixWorld);
+      if (this._parent) {
+        this._parent.updateMatrixWorld();
+        this._matrixWorld.premultiply(this._parent._matrixWorld);
       }
 
       this._matrixWorld.decompose(this._position, this._rotation, this._scale);
@@ -241,19 +259,38 @@ const gameObjects = [];
 class GameObject {
   constructor(name) {
     this.name = name;
+
     this.transform = new Transform();
+    this.components = new Map();
+    this.children = [];
+
+    gameObjects.push(this);
   }
   AddComponent(Constructor) {
-    return new Constructor(this.transform);
+    let component = this.components.get(Constructor);
+    if (component === undefined) {
+      component = new Constructor(this.transform, this.components);
+      this.components.set(Constructor, component);
+    }
+    return component;
   }
   AddChild(child) {
-    child.transform.parent = this;
+    this.children.push(child);
+    child.transform.parent = this.transform;
   }
   static startAll() {
     for (let i = 0; i < gameObjects.length; i++) {
       gameObjects[i].components.forEach(value => {
         value.Awake();
+      });
+    }
+    for (let i = 0; i < gameObjects.length; i++) {
+      gameObjects[i].components.forEach(value => {
         value.OnEnable();
+      });
+    }
+    for (let i = 0; i < gameObjects.length; i++) {
+      gameObjects[i].components.forEach(value => {
         value.Start();
       });
     }
@@ -262,6 +299,10 @@ class GameObject {
     for (let i = 0; i < gameObjects.length; i++) {
       gameObjects[i].components.forEach(value => {
         value.Update();
+      });
+    }
+    for (let i = 0; i < gameObjects.length; i++) {
+      gameObjects[i].components.forEach(value => {
         value.LateUpdate();
       });
     }
@@ -269,19 +310,19 @@ class GameObject {
 }
 
 class MonoBehavior {
-  constructor(transform) {
-    if (!transform) {
+  constructor(transform, components) {
+    if (!transform || !components) {
       throw new Error('bad component initialization');
     }
 
     this.transform = transform;
-    this.components = new Map();
+    this.components = components;
   }
 
   GetComponent(Constructor) {
     let component = this.components.get(Constructor);
     if (component === undefined) {
-      component = new Constructor(this.transform);
+      component = new Constructor(this.transform, this.components);
       this.components.set(Constructor, component);
     }
     return component;

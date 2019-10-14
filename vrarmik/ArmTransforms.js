@@ -3,8 +3,8 @@ import PoseManager from './PoseManager.js';
 
 class ArmTransforms extends MonoBehavior
 	{
-		constructor(transform) {
-      super(transform);
+		constructor(...args) {
+      super(...args);
 
 			this.upperArm = new Transform();
 			this.lowerArm = new Transform();

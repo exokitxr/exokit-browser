@@ -65,8 +65,8 @@ class HandSettings
 
 	class VRArmIK extends MonoBehavior
 	{
-		constructor(transform) {
-      super(transform);
+		constructor(...args) {
+      super(...args);
 
 			this.arm = new GameObject().GetComponent(ArmTransforms);
 			this.shoulder = null;

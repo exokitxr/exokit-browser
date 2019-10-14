@@ -11,8 +11,8 @@ const EulerOrder = {
 
 class StaticOffsetTransform extends MonoBehavior
 	{
-		constructor(transform) {
-      super(transform);
+		constructor(...args) {
+      super(...args);
 
 			this.reference = null;
 			this.offsetPosition = new Vector3();

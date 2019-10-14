@@ -7,8 +7,8 @@ import VectorHelpers from './Utils/VectorHelpers.js';
 
 class ShoulderPoser extends MonoBehavior
 	{
-		constructor(transform) {
-      super(transform);
+		constructor(...args) {
+      super(...args);
 
 			this.shoulder = new GameObject().GetComponent(ShoulderTransforms);
 			this.vrTrackingReferences = null;

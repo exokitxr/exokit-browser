@@ -4,8 +4,8 @@ import {GameObject, MonoBehavior, XRSettings} from './Unity.js';
 
 class PoseManager extends MonoBehavior
 	{
-		constructor(transform) {
-      super(transform);
+		constructor(...args) {
+      super(...args);
 
 			this.vrTransforms = new GameObject().AddComponent(VRTrackingReferences);
 			this.avatarVrTransforms = new GameObject().AddComponent(AvatarVRTrackingReferences);

@@ -2,8 +2,8 @@ import {Transform, MonoBehavior} from './Unity.js';
 
   class VRTrackingReferences extends MonoBehavior
 	{
-    constructor(transform) {
-      super(transform);
+    constructor(...args) {
+      super(...args);
 
       this.leftController = new Transform();
       this.rightController = new Transform();

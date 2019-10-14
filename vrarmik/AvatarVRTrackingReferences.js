@@ -5,8 +5,8 @@ import StaticOffsetTransform from './StaticOffsetTransform.js';
 
 	class AvatarVRTrackingReferences extends MonoBehavior
 	{
-		constructor(transform) {
-      super(transform);
+		constructor(...args) {
+      super(...args);
 
 			this.head = null;
 			this.hmd = null;
