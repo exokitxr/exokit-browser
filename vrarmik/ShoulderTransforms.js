@@ -21,7 +21,7 @@ class ShoulderTransforms extends MonoBehavior
 			this.rightArm = null;
 		}
 
-		Awake()
+		OnEnable()
 		{
 			if (this.leftArm === null)
 			{

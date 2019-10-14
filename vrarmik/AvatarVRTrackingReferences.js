@@ -14,7 +14,7 @@ import StaticOffsetTransform from './StaticOffsetTransform.js';
 			this.rightHand = null;
 		}
 
-		Start()
+		Awake()
 		{
 			this.initTransforms();
 		}
