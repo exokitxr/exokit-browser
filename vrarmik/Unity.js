@@ -2,15 +2,6 @@ const DEG2RAD = Math.PI/180;
 const RAD2DEG = 180/Math.PI;
 
 class Vector3 extends THREE.Vector3 {
-  set(x, y, z) {
-    super.set(x, y, z);
-    this.onchange && this.onchange();
-  }
-  copy(p) {
-    super.copy(p);
-    this.onchange && this.onchange();
-  }
-
   bindOnchange(onchange) {
     let x = this.x, y = this.y, z = this.z;
     Object.defineProperty(this, 'x', {
@@ -40,6 +31,14 @@ class Vector3 extends THREE.Vector3 {
         onchange();
       },
     });
+    this.set = (_set => function set() {
+      _set.apply(this, arguments);
+      onchange();
+    })(this.set);
+    this.copy = (_copy => function copy() {
+      _copy.apply(this, arguments);
+      onchange();
+    })(this.copy);
   }
 
   static get zero() {
