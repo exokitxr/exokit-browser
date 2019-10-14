@@ -77,15 +77,6 @@ class Vector3 extends THREE.Vector3 {
 }
 
 class Quaternion extends THREE.Quaternion {
-  set(x, y, z, w) {
-    super.set(x, y, z, w);
-    this.onchange && this.onchange();
-  }
-  copy(p) {
-    super.copy(p);
-    this.onchange && this.onchange();
-  }
-
   bindOnchange(onchange) {
     let x = this.x, y = this.y, z = this.z, w = this.w;
     Object.defineProperty(this, 'x', {
@@ -124,6 +115,14 @@ class Quaternion extends THREE.Quaternion {
         onchange();
       },
     });
+    this.set = (_set => function set() {
+      _set.apply(this, arguments);
+      onchange();
+    })(this.set);
+    this.copy = (_copy => function copy() {
+      _copy.apply(this, arguments);
+      onchange();
+    })(this.copy);
   }
 
   static get identity() {
