@@ -237,14 +237,34 @@ class Transform {
   }
 }
 
+const gameObjects = [];
 class GameObject {
   constructor(name) {
     this.name = name;
     this.transform = new Transform();
   }
-
   AddComponent(Constructor) {
     return new Constructor(this.transform);
+  }
+  AddChild(child) {
+    child.transform.parent = this;
+  }
+  static startAll() {
+    for (let i = 0; i < gameObjects.length; i++) {
+      gameObjects[i].components.forEach(value => {
+        value.Awake();
+        value.OnEnable();
+        value.Start();
+      });
+    }
+  }
+  static updateAll() {
+    for (let i = 0; i < gameObjects.length; i++) {
+      gameObjects[i].components.forEach(value => {
+        value.Update();
+        value.LateUpdate();
+      });
+    }
   }
 }
 
@@ -272,6 +292,13 @@ class MonoBehavior {
   GetComponentInChildren(Constructor) {
     return this.GetComponent(Constructor);
   }
+
+  Awake() {}
+  OnEnable() {}
+  Start() {}
+
+  Update() {}
+  LateUpdate() {}
 }
 
 const Mathf = {
