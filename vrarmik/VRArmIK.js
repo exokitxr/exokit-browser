@@ -63,6 +63,19 @@ class HandSettings
 	}
 }
 
+function toSignedEulerAngle(n)
+{
+  let result = toPositiveEulerAngle(n);
+  if (result > 180)
+    result = result - 360;
+  return result;
+}
+function toPositiveEulerAngle(n)
+{
+  const result = (n % 360 + 360) % 360;
+  return result;
+}
+
 	class VRArmIK extends MonoBehavior
 	{
 		constructor(...args) {
