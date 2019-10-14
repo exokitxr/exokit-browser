@@ -68,7 +68,7 @@ class StaticOffsetTransform extends MonoBehavior
 			if (this.reference === null)
 				return;
 
-			const rot = this.switchAxis(this.referenceLocalRotation ? reference.localEulerAngles : reference.eulerAngles, this.axisOrder) +
+			const rot = this.switchAxis(this.referenceLocalRotation ? this.reference.localEulerAngles : this.reference.eulerAngles, this.axisOrder) +
 			              this.offsetRotation;
 			rot.Scale(referenceRotationMultiplicator);
 
