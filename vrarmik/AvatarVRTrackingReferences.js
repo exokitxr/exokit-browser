@@ -1,4 +1,5 @@
 import {Vector3, GameObject, MonoBehavior} from './Unity.js';
+import PoseManager from './PoseManager.js';
 
 import StaticOffsetTransform from './StaticOffsetTransform.js';
 
@@ -41,8 +42,8 @@ import StaticOffsetTransform from './StaticOffsetTransform.js';
 			let t = this[k];
 			if (t === null)
 			{
-				t = new GameObject(name).AddComponent(StaticOffsetTransform);
-				t.transform.parent = transform;
+				t = new GameObject(name).GetComponent(StaticOffsetTransform);
+				t.transform.parent = this.transform;
 				this.setStaticOffsetSettings(t);
 				this[k] = t;
 			}
@@ -76,7 +77,7 @@ import StaticOffsetTransform from './StaticOffsetTransform.js';
 
 			this.head.reference = this.head.reference !== null ? this.head.reference : PoseManager.Instance.vrTransforms.head;
 			this.hmd.reference = this.hmd.reference !== null ? this.hmd.reference : PoseManager.Instance.vrTransforms.hmd;
-			this.leftHand.reference = leftHand.reference !== null
+			this.leftHand.reference = this.leftHand.reference !== null
 				? this.leftHand.reference
 				: PoseManager.Instance.vrTransforms.leftHand;
 			this.rightHand.reference = this.rightHand.reference !== null
