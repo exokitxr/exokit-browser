@@ -81,7 +81,7 @@ function toPositiveEulerAngle(n)
 		constructor(...args) {
       super(...args);
 
-			this.arm = new GameObject().AddComponent(ArmTransforms);
+			this.arm = this.GetOrAddComponent(ArmTransforms);
 			this.shoulder = null;
 			this.shoulderPoser = null;
 			this.target = new Transform();
@@ -126,6 +126,7 @@ function toPositiveEulerAngle(n)
 			this.calcElbowInnerAngle();
 			this.rotateShoulder();
 			this.correctElbowRotation();
+
 			if (this.elbowSettings.calcElbowAngle)
 			{
 				this.positionElbow();
@@ -149,7 +150,7 @@ function toPositiveEulerAngle(n)
 
 		updateUpperArmPosition()
 		{
-			//arm.upperArm.position = shoulderAnker.transform.position;
+			//this.arm.upperArm.position = this.shoulderAnker.position;
 		}
 
 		calcElbowInnerAngle()
