@@ -1,5 +1,6 @@
 const DEG2RAD = Math.PI/180;
 const RAD2DEG = 180/Math.PI;
+const ORDER = 'ZXY';
 
 class Vector2 extends THREE.Vector2 {
   get magnitude() {
@@ -159,7 +160,7 @@ class Quaternion extends THREE.Quaternion {
     return new Quaternion().setFromUnitVectors(a, b);
   }
   static Euler(v) {
-    return new Quaternion().setFromEuler(new THREE.Euler(v.x, v.y, v.z, 'ZXY'));
+    return new Quaternion().setFromEuler(new THREE.Euler(v.x * DEG2RAD, v.y * DEG2RAD, v.z * DEG2RAD, ORDER));
   }
   static Inverse(q) {
     return q.clone().inverse();
@@ -184,6 +185,7 @@ class Transform {
     this._localScale = new Vector3(1, 1, 1);
     this._localScale.bindOnchange(localChange);
 
+    this._children = [];
     this._parent = null;
 
     this._matrix = new THREE.Matrix4();
@@ -195,21 +197,27 @@ class Transform {
     return this._position.clone();
   }
   set position(position) {
+    this.updateMatrixWorld();
     this._position.copy(position);
+    this.updateLocalMatrix();
   }
   get rotation() {
     this.updateMatrixWorld();
     return this._rotation.clone();
   }
   set rotation(rotation) {
+    this.updateMatrixWorld();
     this._rotation.copy(rotation);
+    this.updateLocalMatrix();
   }
   get scale() {
     this.updateMatrixWorld();
     return this._scale.clone();
   }
   set scale(scale) {
+    this.updateMatrixWorld();
     this._scale.copy(scale);
+    this.updateLocalMatrix();
   }
 
   get localPosition() {
@@ -236,7 +244,7 @@ class Transform {
   }
   set parent(parent) {
     this._parent = parent;
-    this.matrixWorldNeedsUpdate = true;
+    this.localChange();
   }
 
   get right() {
@@ -249,9 +257,23 @@ class Transform {
     return this.TransformPoint(Vector3.forward);
   }
 
+  AddChild(child) {
+    this._children.push(child);
+    child.parent = this;
+  }
+
+  updateLocalMatrix() {
+    this._matrixWorld.compose(this._position, this._rotation, this._scale);
+    this._matrix.copy(this._matrixWorld);
+    if (this._parent) {
+      this._matrix.premultiply(new THREE.Matrix4().getInverse(this._parent._matrixWorld));
+    }
+    this._matrix.decompose(this._localPosition, this._localRotation, this._localScale);
+    this.matrixWorldNeedsUpdate = false;
+  }
   updateMatrixWorld() {
     if (this.matrixWorldNeedsUpdate) {
-      this._matrix.compose(this._position, this._rotation, this._scale);
+      this._matrix.compose(this._localPosition, this._localRotation, this._localScale);
       this._matrixWorld.copy(this._matrix);
 
       if (this._parent) {
@@ -266,21 +288,24 @@ class Transform {
   }
   localChange() {
     this.matrixWorldNeedsUpdate = true;
+    for (let i = 0; i < this._children.length; i++) {
+      this._children[i].localChange();
+    }
   }
 
   get eulerAngles() {
-    const e = new THREE.Euler().setFromQuaternion(this.rotation, 'ZXY');
-    return new Vector3(e.x, e.y, e.z);
+    const e = new THREE.Euler().setFromQuaternion(this.rotation, ORDER);
+    return new Vector3(e.x * RAD2DEG, e.y * RAD2DEG, e.z * RAD2DEG);
   }
   set eulerAngles(v) {
-    this.rotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(v.x, v.y, v.z, 'ZXY'));
+    this.rotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(v.x * DEG2RAD, v.y * DEG2RAD, v.z * DEG2RAD, ORDER));
   }
   get localEulerAngles() {
-    const e = new THREE.Euler().setFromQuaternion(this.localRotation, 'ZXY');
-    return new Vector3(e.x, e.y, e.z);
+    const e = new THREE.Euler().setFromQuaternion(this.localRotation, ORDER);
+    return new Vector3(e.x * RAD2DEG, e.y * RAD2DEG, e.z * RAD2DEG);
   }
   set localEulerAngles(v) {
-    this.localRotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(v.x, v.y, v.z, 'ZXY'));
+    this.localRotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(v.x * DEG2RAD, v.y * DEG2RAD, v.z * DEG2RAD, ORDER));
   }
 
   TransformPoint(v) {
@@ -308,7 +333,6 @@ class GameObject {
 
     this.transform = new Transform();
     this.components = new Map();
-    this.children = [];
 
     gameObjects.push(this);
   }
@@ -321,8 +345,7 @@ class GameObject {
     return component;
   }
   AddChild(child) {
-    this.children.push(child);
-    child.transform.parent = this.transform;
+    this.transform.AddChild(child.transform);
   }
   static startAll() {
     for (let i = 0; i < gameObjects.length; i++) {
@@ -411,11 +434,18 @@ const Mathf = {
   Abs(v) {
     return Math.abs(v);
   },
+  Log(a, b) {
+    let result = Math.log(a);
+    if (b !== undefined) {
+      result /= Math.log(b);
+    }
+    return result;
+  },
   Lerp(a, b, t) {
     return a*(1-v) + b*v;
   },
   LerpAngle(a, b, t) {
-    const num = Mathf.Repeat(b - a, 360);
+    let num = Mathf.Repeat(b - a, 360);
     if (num > 180) {
       num -= 360;
     }
