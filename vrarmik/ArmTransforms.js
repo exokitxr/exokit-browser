@@ -1,4 +1,4 @@
-import {Vector3, Transform, MonoBehavior, Mathf} from './Unity.js';
+import {Vector3, Quaternion, Transform, MonoBehavior, Mathf} from './Unity.js';
 import PoseManager from './PoseManager.js';
 
 class ArmTransforms extends MonoBehavior
@@ -7,10 +7,19 @@ class ArmTransforms extends MonoBehavior
       super(...args);
 
 			this.upperArm = new Transform();
+			this.upperArm.localPosition = new Vector3(0, 0, 0);
 			this.lowerArm = new Transform();
+			this.lowerArm.localPosition = new Vector3(-0.3, 0, 0);
 			this.wrist1 = new Transform();
 			this.wrist2 = new Transform();
 			this.hand = new Transform();
+			this.hand.localPosition = new Vector3(-0.3, 0, 0);
+
+      this.transform.AddChild(this.upperArm);
+			this.upperArm.AddChild(this.lowerArm);
+			// this.lowerArm.AddChild(this.wrist1);
+			// this.lowerArm.AddChild(this.wrist2);
+			this.lowerArm.AddChild(this.hand);
 
 			this.armLengthByScale = false;
 			this.scaleAxis = Vector3.one;
