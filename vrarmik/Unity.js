@@ -508,6 +508,7 @@ const XRSettings = {
 };
 
 export {
+  Vector2,
   Vector3,
   Quaternion,
   Transform,
