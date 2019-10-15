@@ -148,6 +148,10 @@ class Quaternion extends THREE.Quaternion {
       _copy.apply(this, arguments);
       onchange();
     })(this.copy);
+    /* this.setFromAxisAngle = (_setFromAxisAngle => function setFromAxisAngle() {
+      _setFromAxisAngle.apply(this, arguments);
+      onchange();
+    })(this.setFromAxisAngle); */
   }
 
   static get identity() {

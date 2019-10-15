@@ -19,9 +19,9 @@ class Rig {
 		GameObject.startAll();
 
 		this.inputs = {
-      hmd: new THREE.Object3D(),
-			leftGamepad: new THREE.Object3D(),
-			rightGamepad: new THREE.Object3D(),
+      hmd: this.poseManager.vrTransforms.head,
+			leftGamepad: this.poseManager.vrTransforms.leftHand,
+			rightGamepad: this.poseManager.vrTransforms.rightHand,
 		};
 		this.outputs = {
       hmd: this.poseManager.vrTransforms.head,
@@ -37,13 +37,6 @@ class Rig {
 		};
 	}
 	update() {
-	  this.poseManager.vrTransforms.head.position = this.inputs.hmd.position;
-	  this.poseManager.vrTransforms.head.rotation = this.inputs.hmd.quaternion;
-	  this.poseManager.vrTransforms.leftHand.position = this.inputs.leftGamepad.position;
-	  this.poseManager.vrTransforms.leftHand.rotation = this.inputs.leftGamepad.quaternion;
-	  this.poseManager.vrTransforms.rightHand.position = this.inputs.rightGamepad.position;
-	  this.poseManager.vrTransforms.rightHand.rotation = this.inputs.rightGamepad.quaternion;
-
 	  GameObject.updateAll();
 	}
 }

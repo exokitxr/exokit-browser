@@ -10,6 +10,7 @@ body {
     <script src="OrbitControls.js"></script>
     <script type=module>
 import Rig from './vrarmik/Rig.js';
+import {Vector3, Quaternion} from './vrarmik/Unity.js';
 
 const scene = new THREE.Scene();
 
@@ -91,15 +92,15 @@ orbitControls.enableMiddleZoom = false;
 orbitControls.update();
 
 const rig = new Rig();
-rig.inputs.hmd.position.y = 0.5;
-rig.inputs.leftGamepad.position.set(-0.3, 0, 0.3);
-rig.inputs.rightGamepad.position.set(0.5, -0.5, 0.3);
+// rig.inputs.hmd.position = new Vector3(0, 0.5, 0);
+// rig.inputs.leftGamepad.position = new Vector3(-0.3, 0, 0.3);
+// rig.inputs.rightGamepad.position = new Vector3(0.5, -0.5, 0.3);
 
 function animate() {
-  rig.inputs.hmd.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.sin((Date.now()%2000)/2000*Math.PI)*Math.PI*0.2);
-  rig.inputs.leftGamepad.position.x = -0.5 + Math.sin((Date.now()%2000)/2000*Math.PI) * 0.3;
-  rig.inputs.rightGamepad.position.y = Math.sin((Date.now()%2000)/2000*Math.PI) * 0.3;
-  rig.inputs.rightGamepad.position.z = Math.sin((Date.now()%2000)/2000*Math.PI) * 0.3;
+  rig.inputs.hmd.position = new Vector3(0, 0.5, 0);
+  rig.inputs.hmd.rotation = new Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.sin((Date.now()%2000)/2000*Math.PI)*Math.PI*0.2);
+  rig.inputs.leftGamepad.position = new Vector3(-0.5 + Math.sin((Date.now()%2000)/2000*Math.PI) * 0.3, 0, 0.3);
+  rig.inputs.rightGamepad.position = new Vector3(0.5, Math.sin((Date.now()%2000)/2000*Math.PI) * 0.3, Math.sin((Date.now()%2000)/2000*Math.PI) * 0.3);
 
   rig.update();
 
