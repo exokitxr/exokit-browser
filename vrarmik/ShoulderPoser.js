@@ -119,7 +119,7 @@ class ShoulderPoser extends MonoBehavior
 			initialShoulderLocalPos, angleSign)
 		{
 			const initialShoulderPos = this.shoulder.transform.TransformPoint(initialShoulderLocalPos);
-			const handShoulderOffset = new Vector3().subVectors(targetHand.position, this.initialShoulderPos);
+			const handShoulderOffset = new Vector3().subVectors(targetHand.position, initialShoulderPos);
 			const armLength = arm.armLength;
 
 			const targetAngle = Vector3.zero;
@@ -137,8 +137,8 @@ class ShoulderPoser extends MonoBehavior
 					-this.distinctShoulderRotationLimitBackward, 0);
 			}
 
-			targetAngle.z = Mathf.Clamp(-(upwardDistanceRatio - 0.5) * distinctShoulderRotationMultiplier,
-				-distinctShoulderRotationLimitUpward, 0);
+			targetAngle.z = Mathf.Clamp(-(upwardDistanceRatio - 0.5) * this.distinctShoulderRotationMultiplier,
+				-this.distinctShoulderRotationLimitUpward, 0);
 
 			shoulderSide.localEulerAngles = targetAngle * angleSign;
 		}
