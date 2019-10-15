@@ -80,8 +80,8 @@ class ShoulderPoser extends MonoBehavior
 		{
 			this.shoulder.transform.rotation = Quaternion.identity;
 			this.positionShoulder();
-			this.rotateShoulderUp();
-			this.rotateShoulderRight();
+			this.rotateShoulderUpBase();
+			this.rotateShoulderRightBase();
 
 			if (this.enableDistinctShoulderRotation)
 			{
@@ -152,7 +152,7 @@ class ShoulderPoser extends MonoBehavior
 				new Vector3().addVectors(this.shoulder.transform.parent.InverseTransformPoint(targetPosition), this.neckShoulderDistance);
 		}
 
-		rotateShoulderUp()
+		rotateShoulderUpBase()
 		{
 			const angle = this.getCombinedDirectionAngleUp();
 
@@ -171,7 +171,7 @@ class ShoulderPoser extends MonoBehavior
 			this.shoulder.transform.eulerAngles = targetRotation;
 		}
 
-		rotateShoulderRight()
+		rotateShoulderRightBase()
 		{
 
 			const heightDiff = this.vrTrackingReferences.hmd.position.y - PoseManager.Instance.vrSystemOffsetHeight;
