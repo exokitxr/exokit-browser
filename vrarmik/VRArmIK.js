@@ -184,20 +184,21 @@ function toPositiveEulerAngle(n)
 		//source: https://github.com/NickHardeman/ofxIKArm/blob/master/src/ofxIKArm.cpp
 		rotateShoulder()
 		{
-			const eulerAngles = new Vector3();
-			const targetShoulderDirection = new Vector3().subVectors(this.target.position, this.upperArmPos).normalized;
-			const targetShoulderDistance = new Vector3().subVectors(this.target.position, this.upperArmPos).magnitude;
+      const eulerAngles = new Vector3();
+      const targetShoulderDirection = new Vector3().subVectors(this.target.position, this.upperArmPos).normalized;
+      const targetShoulderDistance = new Vector3().subVectors(this.target.position, this.upperArmPos).magnitude;
 
-			eulerAngles.y = (this.left ? -1 : 1) *
-				Mathf.Acos(Mathf.Clamp((Mathf.Pow(targetShoulderDistance, 2) + Mathf.Pow(this.arm.upperArmLength, 2) -
-							Mathf.Pow(this.arm.lowerArmLength, 2)) / (2 * targetShoulderDistance * this.arm.upperArmLength), -1, 1)) * Mathf.Rad2Deg;
-			if (isNaN(eulerAngles.y))
-				eulerAngles.y = 0;
+      eulerAngles.y = (this.left ? -1 : 1) *
+              Mathf.Acos(Mathf.Clamp((Mathf.Pow(targetShoulderDistance, 2) + Mathf.Pow(this.arm.upperArmLength, 2) -
+                                      Mathf.Pow(this.arm.lowerArmLength, 2)) / (2 * targetShoulderDistance * this.arm.upperArmLength), -1, 1)) * Mathf.Rad2Deg;
+      if (isNaN(eulerAngles.y))
+              eulerAngles.y = 0;
 
-			const shoulderRightRotation = Quaternion.FromToRotation(this.armDirection, targetShoulderDirection);
-			this.setUpperArmRotation(shoulderRightRotation);
-			this.arm.upperArm.rotation = new Quaternion().multiplyQuaternions(Quaternion.AngleAxis(eulerAngles.y, new Vector3().multiplyVectors(this.lowerArmRotation, Vector3.up)), this.arm.upperArm.rotation);
-			this.setLowerArmLocalRotation(Quaternion.Euler(this.nextLowerArmAngle));
+
+      const shoulderRightRotation = Quaternion.FromToRotation(this.armDirection, targetShoulderDirection);
+      this.setUpperArmRotation(shoulderRightRotation);
+      this.arm.upperArm.rotation = new Quaternion().multiplyQuaternions(Quaternion.AngleAxis(eulerAngles.y, Vector3.up.applyQuaternion(this.lowerArmRotation)), this.arm.upperArm.rotation);
+      this.setLowerArmLocalRotation(Quaternion.Euler(this.nextLowerArmAngle));
 		}
 
 		getElbowTargetAngle()
@@ -255,13 +256,13 @@ function toPositiveEulerAngle(n)
 								 ) * s.weight;
 
 			const shoulderHandDirection = new Vector3().subVectors(this.upperArmPos, this.handPos).normalized;
-		  const targetDir = new Vector3().addVectors(Vector3.up, (s.correctElbowOutside ? new Vector3().addVectors(this.armDirection, Vector3.forward.multiplyScalar(-.2)) * elbowOutsideFactor : Vector3.zero)).applyQuaternion(this.shoulder.transform.rotation);
-			const cross = Vector3.Cross(shoulderHandDirection, targetDir * 1000);
+		  const targetDir = new Vector3().addVectors(Vector3.up, (s.correctElbowOutside ? new Vector3().addVectors(this.armDirection, Vector3.forward.multiplyScalar(-.2)).multiplyScalar(elbowOutsideFactor) : Vector3.zero)).applyQuaternion(this.shoulder.transform.rotation);
+			const cross = Vector3.Cross(shoulderHandDirection, targetDir.clone().multiplyScalar(1000));
 
-			const upperArmUp = new Vector3().multiplyVectors(this.upperArmRotation, Vector3.up);
+			const upperArmUp = Vector3.up.applyQuaternion(this.upperArmRotation);
 
 			const elbowTargetUp = Vector3.Dot(upperArmUp, targetDir);
-			const elbowAngle = Vector3.Angle(cross, upperArmUp) + (this.left ? 0 : 180);
+			const elbowAngle = (cross.equals(Vector3.zero) ? 0 : Vector3.Angle(cross, upperArmUp)) + (this.left ? 0 : 180);
 			const rotation = Quaternion.AngleAxis(elbowAngle * Mathf.Sign(elbowTargetUp), shoulderHandDirection);
 			this.arm.upperArm.rotation = new Quaternion().multiplyQuaternions(rotation, this.arm.upperArm.rotation);
 		}
@@ -282,7 +283,7 @@ function toPositiveEulerAngle(n)
 			const targetDir = elbowPos.normalized.applyQuaternion(this.shoulder.transform.rotation);
   		const cross = Vector3.Cross(shoulderHandDirection, targetDir);
 
-			const upperArmUp = new Vector3().multiplyVectors(this.upperArmRotation, Vector3.up);
+			const upperArmUp = Vector3.up.applyQuaternion(this.upperArmRotation);
 
 
 			let distance = new Vector3().subVectors(this.target.position, this.upperArmPos);
@@ -323,7 +324,7 @@ function toPositiveEulerAngle(n)
 				Vector3.up.applyQuaternion(this.lowerArmRotation), Vector3.forward.applyQuaternion(this.lowerArmRotation));
 
 			// todo reduce influence if hand local forward rotation is high (hand tilted inside)
-			const handForwardRotation = Quaternion.AngleAxis(-forwardAngle, this.lowerArmRotation * Vector3.forward);
+			const handForwardRotation = Quaternion.AngleAxis(-forwardAngle, Vector3.forward.applyQuaternion(this.lowerArmRotation));
 			handUpVec = handUpVec.applyQuaternion(handForwardRotation);
 
 			const elbowTargetAngle = VectorHelpers.getAngleBetween(Vector3.up.applyQuaternion(this.lowerArmRotation), handUpVec,
