@@ -30,6 +30,9 @@ scene.add(directionalLight);
 directionalLight2.position.set(0, -0.25, -0.25);
 scene.add(directionalLight2); */
 
+const gridHelper = new THREE.GridHelper(10, 10);
+scene.add(gridHelper);
+
 const cubeGeometry = new THREE.ConeBufferGeometry(0.05, 0.2, 3)
   .applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(
     new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1)))
