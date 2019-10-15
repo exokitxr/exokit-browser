@@ -9,22 +9,7 @@ body {
     <script src="three.js"></script>
     <script src="OrbitControls.js"></script>
     <script type=module>
-import {Vector3, Quaternion, GameObject} from './vrarmik/Unity.js';
-import PoseManager from './vrarmik/PoseManager.js';
-import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
-
-// VRArmIK
-
-const root = new GameObject('root');
-const rig = new GameObject('rig');
-root.AddChild(rig);
-const poseManager = rig.AddComponent(PoseManager);
-const shoulderTransforms = rig.AddComponent(ShoulderTransforms);
-window.shoulderTransforms = shoulderTransforms;
-
-GameObject.startAll();
-
-// THREE
+import Rig from './vrarmik/Rig.js';
 
 const scene = new THREE.Scene();
 
@@ -67,7 +52,7 @@ const _makeCubeMesh = (color = 0x0000FF) => {
 };
 const meshes = {
   hmd: _makeCubeMesh(0xFF0000),
-  upperChest: _makeCubeMesh(0xFFFF00),
+  chest: _makeCubeMesh(0xFFFF00),
   shoulderLeft: _makeCubeMesh(0x00FF00),
   shoulderRight: _makeCubeMesh(0x008000),
   upperArmLeft: _makeCubeMesh(0x00FFFF),
@@ -105,68 +90,42 @@ orbitControls.screenSpacePanning = true;
 orbitControls.enableMiddleZoom = false;
 orbitControls.update();
 
-const poses = {
-  hmd: new THREE.Object3D(),
-  leftGamepad: new THREE.Object3D(),
-  rightGamepad: new THREE.Object3D(),
-};
-poses.hmd.position.y = 0.5;
-poses.leftGamepad.position.set(-0.3, 0, 0.3);
-poses.rightGamepad.position.set(0.5, -0.5, 0.3);
-for (const k in poses) {
-  scene.add(poses[k]);
-}
+const rig = new Rig();
+rig.inputs.hmd.position.y = 0.5;
+rig.inputs.leftGamepad.position.set(-0.3, 0, 0.3);
+rig.inputs.rightGamepad.position.set(0.5, -0.5, 0.3);
 
 function animate() {
-  poses.hmd.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.sin((Date.now()%2000)/2000*Math.PI)*Math.PI*0.2);
-  poses.leftGamepad.position.x = -0.5 + Math.sin((Date.now()%2000)/2000*Math.PI) * 0.3;
-  poses.rightGamepad.position.y = Math.sin((Date.now()%2000)/2000*Math.PI) * 0.3;
-  poses.rightGamepad.position.z = Math.sin((Date.now()%2000)/2000*Math.PI) * 0.3;
+  rig.inputs.hmd.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.sin((Date.now()%2000)/2000*Math.PI)*Math.PI*0.2);
+  rig.inputs.leftGamepad.position.x = -0.5 + Math.sin((Date.now()%2000)/2000*Math.PI) * 0.3;
+  rig.inputs.rightGamepad.position.y = Math.sin((Date.now()%2000)/2000*Math.PI) * 0.3;
+  rig.inputs.rightGamepad.position.z = Math.sin((Date.now()%2000)/2000*Math.PI) * 0.3;
 
-  poseManager.vrTransforms.hmd.position = poses.hmd.position;
-  poseManager.vrTransforms.hmd.rotation = poses.hmd.quaternion;
-  poseManager.vrTransforms.leftController.position = poses.leftGamepad.position;
-  poseManager.vrTransforms.leftController.rotation = poses.leftGamepad.quaternion;
-  poseManager.vrTransforms.rightController.position = poses.rightGamepad.position;
-  poseManager.vrTransforms.rightController.rotation = poses.rightGamepad.quaternion;
+  rig.update();
 
-  poseManager.vrTransforms.head.position = poses.hmd.position;
-  poseManager.vrTransforms.head.rotation = poses.hmd.quaternion;
-  poseManager.vrTransforms.leftHand.position = poses.leftGamepad.position;
-  poseManager.vrTransforms.leftHand.rotation = poses.leftGamepad.quaternion;
-  poseManager.vrTransforms.rightHand.position = poses.rightGamepad.position;
-  poseManager.vrTransforms.rightHand.rotation = poses.rightGamepad.quaternion;
+  meshes.hmd.position.copy(rig.outputs.hmd.position);
+  meshes.hmd.quaternion.copy(rig.outputs.hmd.rotation);
 
-  GameObject.updateAll();
+  meshes.chest.position.copy(rig.outputs.chest.position);
+  meshes.chest.quaternion.copy(rig.outputs.chest.rotation);
 
-  // console.log('load rot', shoulderTransforms.leftArm.upperArm.rotation.toArray().join(','));
-  /* if (!shoulderTransforms.leftArm.upperArm.rotation.equals(new Quaternion())) {
-    debugger;
-  } */
+  meshes.shoulderLeft.position.copy(rig.outputs.leftShoulder.position);
+  meshes.shoulderLeft.quaternion.copy(rig.outputs.leftShoulder.rotation);
+  meshes.upperArmLeft.position.copy(rig.outputs.leftUpperArm.position);
+  meshes.upperArmLeft.quaternion.copy(rig.outputs.leftUpperArm.rotation);
+  meshes.lowerArmLeft.position.copy(rig.outputs.leftLowerArm.position);
+  meshes.lowerArmLeft.quaternion.copy(rig.outputs.leftLowerArm.rotation);
+  meshes.handLeft.position.copy(rig.outputs.leftHand.position);
+  meshes.handLeft.quaternion.copy(rig.outputs.leftHand.rotation);
 
-  meshes.hmd.position.copy(poseManager.vrTransforms.hmd.position);
-  meshes.hmd.quaternion.copy(poseManager.vrTransforms.hmd.rotation);
-
-  meshes.upperChest.position.copy(shoulderTransforms.transform.position);
-  meshes.upperChest.quaternion.copy(shoulderTransforms.transform.rotation);
-
-  meshes.shoulderLeft.position.copy(shoulderTransforms.leftShoulderAnchor.position);
-  meshes.shoulderLeft.quaternion.copy(shoulderTransforms.leftShoulderAnchor.rotation);
-  meshes.upperArmLeft.position.copy(shoulderTransforms.leftArm.upperArm.position);
-  meshes.upperArmLeft.quaternion.copy(shoulderTransforms.leftArm.upperArm.rotation);
-  meshes.lowerArmLeft.position.copy(shoulderTransforms.leftArm.lowerArm.position);
-  meshes.lowerArmLeft.quaternion.copy(shoulderTransforms.leftArm.lowerArm.rotation);
-  meshes.handLeft.position.copy(shoulderTransforms.leftArm.hand.position);
-  meshes.handLeft.quaternion.copy(shoulderTransforms.leftArm.hand.rotation);
-
-  meshes.shoulderRight.position.copy(shoulderTransforms.rightShoulderAnchor.position);
-  meshes.shoulderRight.quaternion.copy(shoulderTransforms.rightShoulderAnchor.rotation);
-  meshes.upperArmRight.position.copy(shoulderTransforms.rightArm.upperArm.position);
-  meshes.upperArmRight.quaternion.copy(shoulderTransforms.rightArm.upperArm.rotation);
-  meshes.lowerArmRight.position.copy(shoulderTransforms.rightArm.lowerArm.position);
-  meshes.lowerArmRight.quaternion.copy(shoulderTransforms.rightArm.lowerArm.rotation);
-  meshes.handRight.position.copy(shoulderTransforms.rightArm.hand.position);
-  meshes.handRight.quaternion.copy(shoulderTransforms.rightArm.hand.rotation);
+  meshes.shoulderRight.position.copy(rig.outputs.rightShoulder.position);
+  meshes.shoulderRight.quaternion.copy(rig.outputs.rightShoulder.rotation);
+  meshes.upperArmRight.position.copy(rig.outputs.rightUpperArm.position);
+  meshes.upperArmRight.quaternion.copy(rig.outputs.rightUpperArm.rotation);
+  meshes.lowerArmRight.position.copy(rig.outputs.rightLowerArm.position);
+  meshes.lowerArmRight.quaternion.copy(rig.outputs.rightLowerArm.rotation);
+  meshes.handRight.position.copy(rig.outputs.rightHand.position);
+  meshes.handRight.quaternion.copy(rig.outputs.rightHand.rotation);
 
   renderer.render(scene, camera);
 }
