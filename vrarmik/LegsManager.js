@@ -26,6 +26,7 @@ class Leg extends MonoBehavior {
     this.lowerLegLength = 0.5;
 
     this.left = true;
+    this.standing = true;
 
     this.hmdTransformRef = null
   }
@@ -72,10 +73,14 @@ class Leg extends MonoBehavior {
 
       this.foot.position = footPosition;
       this.foot.rotation = footRotation;
+
+      this.standing = true;
     } else {
       const direction = this.foot.position.sub(this.upperLeg.position).normalize();
       this.lowerLeg.position = this.upperLeg.position.add(direction.clone().multiplyScalar(this.upperLegLength));
       this.foot.position = this.lowerLeg.position.add(direction.clone().multiplyScalar(this.lowerLegLength));
+
+      this.standing = false;
     }
 	}
 }
