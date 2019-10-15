@@ -91,8 +91,6 @@ class LegsManager extends MonoBehavior
     this.rightLeg = new GameObject().AddComponent(Leg);
     this.hips.AddChild(this.rightLeg.transform);
 
-    console.log('upper left leg', this.leftLeg.upperLeg.localPosition.toArray().join(','), this.leftLeg.upperLeg.position.toArray().join(','));
-
     this.rightLeg.upperLeg.localPosition = new Vector3(0.2, 0, 0);
     this.rightLeg.left = false;
 
