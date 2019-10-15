@@ -43,7 +43,7 @@ import StaticOffsetTransform from './StaticOffsetTransform.js';
 			if (t === null)
 			{
 				t = new GameObject(name).AddComponent(StaticOffsetTransform);
-				t.transform.parent = this.transform;
+				this.transform.AddChild(t.transform);
 				this.setStaticOffsetSettings(t);
 				this[k] = t;
 			}
@@ -55,7 +55,7 @@ import StaticOffsetTransform from './StaticOffsetTransform.js';
 			{
 				t = new GameObject(name).transform;
 				t.transform.localPosition = Vector3.zero;
-				t.transform.parent = parent;
+				this.transform.AddChild(t.transform);
 			}
 		} */
 
