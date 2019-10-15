@@ -274,6 +274,10 @@ class Transform {
     }
     this._matrix.decompose(this._localPosition, this._localRotation, this._localScale);
     this.matrixWorldNeedsUpdate = false;
+
+    for (let i = 0; i < this._children.length; i++) {
+      this._children[i].localChange();
+    }
   }
   updateMatrixWorld() {
     if (this.matrixWorldNeedsUpdate) {
