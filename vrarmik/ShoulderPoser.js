@@ -1,7 +1,6 @@
 import {Vector3, Quaternion, GameObject, MonoBehavior, Mathf} from './Unity.js';
 import ShoulderTransforms from './ShoulderTransforms.js';
 import VRTrackingReferences from './VRTrackingReferences.js';
-import AvatarVRTrackingReferences from './AvatarVRTrackingReferences.js';
 import PoseManager from './PoseManager.js';
 import VectorHelpers from './Utils/VectorHelpers.js';
 
