@@ -1,6 +1,7 @@
 import {Vector3, Quaternion, GameObject} from './Unity.js';
 import PoseManager from './PoseManager.js';
 import ShoulderTransforms from './ShoulderTransforms.js';
+import LegsManager from './LegsManager.js';
 
 const poses = {
   hmd: new THREE.Object3D(),
@@ -15,6 +16,7 @@ class Rig {
 		root.AddChild(rig);
 		this.poseManager = rig.AddComponent(PoseManager);
 		this.shoulderTransforms = rig.AddComponent(ShoulderTransforms);
+		this.legsManager = rig.AddComponent(LegsManager);
 
 		GameObject.startAll();
 
@@ -22,6 +24,9 @@ class Rig {
       hmd: this.poseManager.vrTransforms.head,
 			leftGamepad: this.poseManager.vrTransforms.leftHand,
 			rightGamepad: this.poseManager.vrTransforms.rightHand,
+			hips: this.legsManager.hips,
+			leftFoot: this.legsManager.leftLeg.foot,
+			rightFoot: this.legsManager.rightLeg.foot,
 		};
 		this.outputs = {
       hmd: this.poseManager.vrTransforms.head,
@@ -34,6 +39,13 @@ class Rig {
       rightUpperArm: this.shoulderTransforms.rightArm.upperArm,
       rightLowerArm: this.shoulderTransforms.rightArm.lowerArm,
       rightHand: this.shoulderTransforms.rightArm.hand,
+      hips: this.legsManager.hips,
+      leftUpperLeg: this.legsManager.leftLeg.upperLeg,
+      leftLowerLeg: this.legsManager.leftLeg.lowerLeg,
+      leftFoot: this.legsManager.leftLeg.foot,
+      rightUpperLeg: this.legsManager.rightLeg.upperLeg,
+      rightLowerLeg: this.legsManager.rightLeg.lowerLeg,
+      rightFoot: this.legsManager.rightLeg.foot,
 		};
 	}
 	update() {

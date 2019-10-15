@@ -56,6 +56,7 @@ const _makeCubeMesh = (color = 0x0000FF) => {
 };
 const meshes = {
   hmd: _makeCubeMesh(0xFF0000),
+
   chest: _makeCubeMesh(0xFFFF00),
   shoulderLeft: _makeCubeMesh(0x00FF00),
   shoulderRight: _makeCubeMesh(0x008000),
@@ -65,6 +66,14 @@ const meshes = {
   lowerArmRight: _makeCubeMesh(0x000080),
   handLeft: _makeCubeMesh(0xFFFFFF),
   handRight: _makeCubeMesh(0x808080),
+
+  hips: _makeCubeMesh(0xFF0000),
+  upperLegLeft: _makeCubeMesh(0xFFFF00),
+  upperLegRight: _makeCubeMesh(0x808000),
+  lowerLegLeft: _makeCubeMesh(0x00FF00),
+  lowerLegRight: _makeCubeMesh(0x008000),
+  footLeft: _makeCubeMesh(0xFFFFFF),
+  footRight: _makeCubeMesh(0x808080),
 };
 for (const k in meshes) {
   scene.add(meshes[k]);
@@ -77,6 +86,10 @@ scene.remove(meshes.shoulderRight);
 scene.remove(meshes.upperArmRight);
 scene.remove(meshes.lowerArmRight);
 scene.remove(meshes.handRight); */
+/* scene.remove(meshes.shoulderRight);
+scene.remove(meshes.upperLegRight);
+scene.remove(meshes.lowerLegRight);
+scene.remove(meshes.footRight); */
 
 const renderer = new THREE.WebGLRenderer({
   // canvas: document.getElementById('canvas'),
@@ -95,15 +108,19 @@ orbitControls.enableMiddleZoom = false;
 orbitControls.update();
 
 const rig = new Rig();
-// rig.inputs.hmd.position = new Vector3(0, 0.5, 0);
-// rig.inputs.leftGamepad.position = new Vector3(-0.3, 0, 0.3);
-// rig.inputs.rightGamepad.position = new Vector3(0.5, -0.5, 0.3);
 
 function animate() {
-  rig.inputs.hmd.position = new Vector3(0, 0.5, 0);
-  rig.inputs.hmd.rotation = new Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.sin((Date.now()%2000)/2000*Math.PI)*Math.PI*0.2);
-  rig.inputs.leftGamepad.position = new Vector3(-0.5 + Math.sin((Date.now()%2000)/2000*Math.PI) * 0.3, 0, 0.3);
-  rig.inputs.rightGamepad.position = new Vector3(0.5, Math.sin((Date.now()%2000)/2000*Math.PI) * 0.3, Math.sin((Date.now()%2000)/2000*Math.PI) * 0.3);
+  const standFactor = 0.2 + (Math.sin((Date.now()%2000)/2000*Math.PI*2) + 1) / 2;
+
+  rig.inputs.hmd.position = new Vector3(0, 0.6 + standFactor, 0);
+  rig.inputs.hmd.rotation = new Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.sin((Date.now()%2000)/2000*Math.PI*2)*Math.PI*0.2)
+    .premultiply(new Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin((Date.now()%2000)/2000*Math.PI*2)*Math.PI*0.2));
+  rig.inputs.leftGamepad.position = new Vector3(-0.5 + Math.sin((Date.now()%2000)/2000*Math.PI*2) * 0.3, 0.2 + standFactor, 0.3);
+  rig.inputs.rightGamepad.position = new Vector3(0.5, standFactor + Math.sin((Date.now()%2000)/2000*Math.PI*2) * 0.3, 0.1 + Math.sin((Date.now()%2000)/2000*Math.PI*2) * 0.3);
+  rig.inputs.hips.position = new Vector3(0, standFactor, 0);
+  rig.inputs.leftFoot.position = new Vector3(-0.3, Math.max(standFactor - 1, 0), 0);
+  rig.inputs.leftFoot.rotation = new Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.sin((Date.now()%2000)/2000*Math.PI*2)*Math.PI*0.2);
+  rig.inputs.rightFoot.position = new Vector3(0.3, Math.max(standFactor - 1, 0), 0);
 
   rig.update();
 
@@ -130,6 +147,23 @@ function animate() {
   meshes.lowerArmRight.quaternion.copy(rig.outputs.rightLowerArm.rotation);
   meshes.handRight.position.copy(rig.outputs.rightHand.position);
   meshes.handRight.quaternion.copy(rig.outputs.rightHand.rotation);
+
+  meshes.hips.position.copy(rig.outputs.hips.position);
+  meshes.hips.quaternion.copy(rig.outputs.hips.rotation);
+
+  meshes.upperLegLeft.position.copy(rig.outputs.leftUpperLeg.position);
+  meshes.upperLegLeft.quaternion.copy(rig.outputs.leftUpperLeg.rotation);
+  meshes.lowerLegLeft.position.copy(rig.outputs.leftLowerLeg.position);
+  meshes.lowerLegLeft.quaternion.copy(rig.outputs.leftLowerLeg.rotation);
+  meshes.footLeft.position.copy(rig.outputs.leftFoot.position);
+  meshes.footLeft.quaternion.copy(rig.outputs.leftFoot.rotation);
+
+  meshes.upperLegRight.position.copy(rig.outputs.rightUpperLeg.position);
+  meshes.upperLegRight.quaternion.copy(rig.outputs.rightUpperLeg.rotation);
+  meshes.lowerLegRight.position.copy(rig.outputs.rightLowerLeg.position);
+  meshes.lowerLegRight.quaternion.copy(rig.outputs.rightLowerLeg.rotation);
+  meshes.footRight.position.copy(rig.outputs.rightFoot.position);
+  meshes.footRight.quaternion.copy(rig.outputs.rightFoot.rotation);
 
   renderer.render(scene, camera);
 }
