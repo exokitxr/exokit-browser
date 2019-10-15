@@ -124,7 +124,6 @@ function animate() {
   rig.inputs.rightGamepad.position = new Vector3(0.1, standFactor + Math.sin((Date.now()%2000)/2000*Math.PI*2) * 0.3, 0.3 + Math.sin((Date.now()%2000)/2000*Math.PI*2) * 0.3)
     .applyQuaternion(rig.inputs.rightGamepad.rotation);
 
-  // rig.inputs.hips.position = new Vector3(0, standFactor, 0);
   rig.inputs.leftFoot.position = new Vector3(-0.3, Math.max(standFactor - 1, 0), 0)
     .applyQuaternion(rig.inputs.leftFoot.rotation);
   rig.inputs.rightFoot.position = new Vector3(0.3, Math.max(standFactor - 1, 0), 0)
