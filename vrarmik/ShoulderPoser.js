@@ -225,7 +225,7 @@ class ShoulderPoser extends MonoBehavior
 		detectHandsBehindHead(targetRotation)
 		{
 			const delta = Mathf.Abs(targetRotation.y - this.lastAngle.y + 360) % 360;
-			if (delta > 150 && delta < 210 && this.lastAngle.magnitude > 0.000001 && !clampingHeadRotation)
+			if (delta > 150 && delta < 210 && this.lastAngle.magnitude > 0.000001 && !this.clampingHeadRotation)
 			{
 				this.handsBehindHead = !this.handsBehindHead;
 			}
