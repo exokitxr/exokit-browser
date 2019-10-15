@@ -22,8 +22,8 @@ class Leg extends MonoBehavior {
     this.upperLeg.AddChild(this.lowerLeg);
     this.lowerLeg.AddChild(this.foot);
 
-    this.upperLegLength = this.upperLeg.position.distanceTo(this.lowerLeg.position);
-    this.lowerLegLength = this.upperLeg.position.distanceTo(this.foot.position);
+    this.upperLegLength = 0.5;
+    this.lowerLegLength = 0.5;
 
     this.left = true;
 
