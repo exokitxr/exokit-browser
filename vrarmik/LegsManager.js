@@ -1,17 +1,24 @@
 import {Vector3, Quaternion, Transform, GameObject, MonoBehavior, XRSettings} from './Unity.js';
 import PoseManager from './PoseManager.js';
 
+const _mod = (a, n) => (a % n + n) % n;
+const _angleDiff = (targetA, sourceA) => {
+  let a = targetA - sourceA;
+  a = _mod((a + Math.PI), Math.PI*2) - Math.PI;
+  return a;
+};
+
 class Leg extends MonoBehavior {
   constructor(...args) {
     super(...args);
 
     this.upperLeg = new Transform();
-    this.upperLeg.localPosition = new Vector3(-0.2, 0, 0);
+    // this.upperLeg.localPosition = new Vector3(-0.2, 0, 0);
     this.lowerLeg = new Transform();
     this.lowerLeg.localPosition = new Vector3(0, -0.5, 0);
     this.foot = new Transform();
 
-    this.transform.AddChild(this.upperLeg);
+    // this.transform.AddChild(this.upperLeg);
     this.upperLeg.AddChild(this.lowerLeg);
     this.lowerLeg.AddChild(this.foot);
 
@@ -24,19 +31,39 @@ class Leg extends MonoBehavior {
   }
 
   LateUpdate() {
+		const hipsEuler = new THREE.Euler().setFromQuaternion(this.transform.rotation, 'YXZ');
+		const upperLegEuler = new THREE.Euler().setFromQuaternion(this.upperLeg.rotation, 'YXZ');
+		let angleDiff = _angleDiff(hipsEuler.y, upperLegEuler.y);
+		if (this.left) {
+			angleDiff *= -1;
+		}
+		if (angleDiff < -Math.PI/3) {
+			if (this.left) {
+				upperLegEuler.y += Math.PI/3;
+			} else {
+				upperLegEuler.y -= Math.PI/3;
+			}
+		} else if (angleDiff > Math.PI/8) {
+			if (this.left) {
+				upperLegEuler.y -= Math.PI/8;
+			} else {
+				upperLegEuler.y += Math.PI/8;
+			}
+		}
+		this.upperLeg.rotation = new Quaternion().setFromEuler(upperLegEuler);
+		this.upperLeg.position = this.transform.position.add(new Vector3(-0.2 * (this.left ? 1 : -1), 0, 0).applyQuaternion(this.transform.rotation));
+
     const hypotenuseDistance = this.upperLegLength;
     const verticalDistance = this.upperLeg.position.distanceTo(this.foot.position) / 2;
     if (verticalDistance < hypotenuseDistance) {
       const footPosition = this.foot.position;
-      const footEuler = new THREE.Euler().setFromQuaternion(this.upperLeg.rotation, 'YXZ');
-      footEuler.x = 0;
-      footEuler.z = 0;
-      const footRotation = new Quaternion().setFromEuler(footEuler);
-      this.foot.rotation = footRotation;
+      upperLegEuler.x = 0;
+	    upperLegEuler.z = 0;
+      const footRotation = new Quaternion().setFromEuler(upperLegEuler);
 
       const offsetDistance = Math.sqrt(hypotenuseDistance*hypotenuseDistance - verticalDistance*verticalDistance);
       const offsetDirection = this.foot.position.sub(this.upperLeg.position)
-        .cross(new Vector3(1, 0, 0).applyQuaternion(this.foot.rotation))
+        .cross(new Vector3(1, 0, 0).applyQuaternion(footRotation))
         .normalize();
 
       this.lowerLeg.position = this.upperLeg.position.add(this.foot.position).divideScalar(2)
