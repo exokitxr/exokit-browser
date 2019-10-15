@@ -1,4 +1,5 @@
 import {Vector3, Quaternion, Transform, GameObject, MonoBehavior, XRSettings} from './Unity.js';
+import PoseManager from './PoseManager.js';
 
 class Leg extends MonoBehavior {
   constructor(...args) {
@@ -18,15 +19,21 @@ class Leg extends MonoBehavior {
     this.lowerLegLength = this.upperLeg.position.distanceTo(this.foot.position);
 
     this.left = true;
+
+    this.hmdTransformRef = null
   }
 
   LateUpdate() {
-    const legDistance = this.upperLeg.position.distanceTo(this.foot.position);
-    if (legDistance < (this.upperLegLength + this.lowerLegLength)) {
-      this.upperLeg.rotation = this.foot.rotation;
+    const hypotenuseDistance = this.upperLegLength;
+    const verticalDistance = this.upperLeg.position.distanceTo(this.foot.position) / 2;
+    if (verticalDistance < hypotenuseDistance) {
+      const footPosition = this.foot.position;
+      const footEuler = new THREE.Euler().setFromQuaternion(this.upperLeg.rotation, 'YXZ');
+      footEuler.x = 0;
+      footEuler.z = 0;
+      const footRotation = new Quaternion().setFromEuler(footEuler);
+      this.foot.rotation = footRotation;
 
-    	const hypotenuseDistance = this.upperLegLength;
-      const verticalDistance = this.upperLeg.position.distanceTo(this.foot.position) / 2;
       const offsetDistance = Math.sqrt(hypotenuseDistance*hypotenuseDistance - verticalDistance*verticalDistance);
       const offsetDirection = this.foot.position.sub(this.upperLeg.position)
         .cross(new Vector3(1, 0, 0).applyQuaternion(this.foot.rotation))
@@ -35,13 +42,14 @@ class Leg extends MonoBehavior {
       this.lowerLeg.position = this.upperLeg.position.add(this.foot.position).divideScalar(2)
         .add(offsetDirection.clone().multiplyScalar(offsetDistance));
       this.lowerLeg.rotation = new Quaternion().setFromUnitVectors(new Vector3(0, 0, 1), offsetDirection);
+
+      this.foot.position = footPosition;
+      this.foot.rotation = footRotation;
     } else {
       const direction = this.foot.position.sub(this.upperLeg.position).normalize();
       this.lowerLeg.position = this.upperLeg.position.add(direction.clone().multiplyScalar(this.upperLegLength));
       this.foot.position = this.lowerLeg.position.add(direction.clone().multiplyScalar(this.lowerLegLength));
     }
-
-    // const angle = Math.asin(this.upperLeg.position.distanceTo(this.foot.position));
 	}
 }
 
@@ -60,6 +68,9 @@ class LegsManager extends MonoBehavior
 
     this.rightLeg.upperLeg.localPosition = new Vector3(0.2, 0, 0);
     this.rightLeg.left = false;
+
+    const poseManager = this.GetOrAddComponent(PoseManager);
+    this.hmdTransformRef = poseManager.vrTransforms.head;
   }
 
 	Start()
@@ -68,7 +79,8 @@ class LegsManager extends MonoBehavior
 	}
 
 	LateUpdate() {
-
+    this.hips.position = this.hmdTransformRef.position.add(new Vector3(0, -0.6, 0));
+    this.hips.rotation = this.hmdTransformRef.rotation;
 	}
 }
 
