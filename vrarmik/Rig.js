@@ -37,11 +37,6 @@ class Rig {
 		};
 	}
 	update() {
-	  this.poseManager.vrTransforms.leftController.position = this.inputs.leftGamepad.position;
-	  this.poseManager.vrTransforms.leftController.rotation = this.inputs.leftGamepad.quaternion;
-	  this.poseManager.vrTransforms.rightController.position = this.inputs.rightGamepad.position;
-	  this.poseManager.vrTransforms.rightController.rotation = this.inputs.rightGamepad.quaternion;
-
 	  this.poseManager.vrTransforms.head.position = this.inputs.hmd.position;
 	  this.poseManager.vrTransforms.head.rotation = this.inputs.hmd.quaternion;
 	  this.poseManager.vrTransforms.leftHand.position = this.inputs.leftGamepad.position;
