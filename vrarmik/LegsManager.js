@@ -142,7 +142,9 @@ class LegsManager extends MonoBehavior
     this.rightLeg = new GameObject().AddComponent(Leg);
     this.hips.AddChild(this.rightLeg.transform);
 
-    // this.rightLeg.upperLeg.localPosition = new Vector3(0.2, 0, 0);
+    this.rightLeg.upperLeg.localPosition = this.rightLeg.upperLeg.localPosition.multiply(new Vector3(-1, 1, 1));
+    this.rightLeg.lowerLeg.localPosition = this.rightLeg.lowerLeg.localPosition.multiply(new Vector3(-1, 1, 1));
+    this.rightLeg.foot.localPosition = this.rightLeg.foot.localPosition.multiply(new Vector3(-1, 1, 1));
     this.rightLeg.left = false;
 
     // this.spineLength = 0.3525347660851869;

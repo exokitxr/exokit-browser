@@ -64,7 +64,7 @@ class ShoulderTransforms extends MonoBehavior
 
 				armIk.left = false;
 				// console.log('new pos 2', this.rightArm.lowerArm.localPosition.multiply(new Vector3(-1, 1, 1)).toArray().join(','));
-				 this.rightArm.upperArm.localPosition = this.rightArm.upperArm.localPosition.multiply(new Vector3(-1, 1, 1));
+				this.rightArm.upperArm.localPosition = this.rightArm.upperArm.localPosition.multiply(new Vector3(-1, 1, 1));
         this.rightArm.lowerArm.localPosition = this.rightArm.lowerArm.localPosition.multiply(new Vector3(-1, 1, 1));
         this.rightArm.hand.localPosition = this.rightArm.hand.localPosition.multiply(new Vector3(-1, 1, 1));
         this.rightShoulderAnchor.AddChild(this.rightArm.transform);
