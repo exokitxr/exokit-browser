@@ -78,6 +78,9 @@ class ShoulderPoser extends MonoBehavior
 
 		Update()
 		{
+      this.shoulder.head.position = this.vrTrackingReferences.hmd.position;
+      this.shoulder.head.rotation = this.vrTrackingReferences.hmd.rotation;
+
 			this.shoulder.transform.rotation = Quaternion.identity;
 			this.positionShoulder();
 			this.rotateShoulderUpBase();

@@ -26,7 +26,7 @@ class Rig {
 			rightFoot: this.legsManager.rightLeg.foot,
 		};
 		this.outputs = {
-      hmd: this.poseManager.vrTransforms.head,
+      hmd: this.shoulderTransforms.head,
       hips: this.legsManager.hips,
       spine: this.shoulderTransforms.spine,
       chest: this.shoulderTransforms.transform,
