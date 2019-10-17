@@ -19,11 +19,13 @@ class Leg extends MonoBehavior {
     this.lowerLeg.localPosition = new Vector3(0.005757781010899271, -0.3811295375263364, -0.02434057165518574);
     this.foot = new Transform();
     this.foot.localPosition = new Vector3(0.002901996926509387, -0.40691825309716234, -0.05305202296204871);
+    this.foot.stickTransform = new Transform();
 
-    // this.transform.AddChild(this.upperLeg);
+    this.transform.AddChild(this.upperLeg);
     this.upperLeg.AddChild(this.lowerLeg);
     this.lowerLeg.AddChild(this.foot);
 
+    this.foot.stickTransform.position = this.foot.position;
     this.upperLegLength = this.lowerLeg.localPosition.length();
     this.lowerLegLength = this.foot.localPosition.length();
 
@@ -34,8 +36,6 @@ class Leg extends MonoBehavior {
   }
 
   LateUpdate() {
-    const footPosition = this.foot.position;
-
 		const hipsEuler = new THREE.Euler().setFromQuaternion(this.transform.rotation, 'YXZ');
 		const upperLegEuler = new THREE.Euler().setFromQuaternion(this.foot.rotation, 'YXZ');
 		let angleDiff = _angleDiff(hipsEuler.y, upperLegEuler.y);
@@ -67,6 +67,8 @@ class Leg extends MonoBehavior {
     const hypotenuseDistance = upperLegLength;
     const verticalDistance = Math.abs(this.upperLeg.position.y) / 2;
     if (verticalDistance < hypotenuseDistance) {
+      const footPosition = this.foot.stickTransform.position;
+
       footPosition.y = 0;
       upperLegEuler.x = 0;
 	    upperLegEuler.z = 0;
@@ -101,6 +103,7 @@ class Leg extends MonoBehavior {
       this.foot.rotation = footRotation;
 
       this.standing = true;
+      this.foot.stickTransform.position = footPosition;
     } else {
       const direction = this.foot.position.sub(this.upperLeg.position).normalize().lerp(new Vector3(0, -1, 0), 0.1);
       const lowerLegPosition = this.upperLeg.position.add(direction.clone().multiplyScalar(upperLegLength));
@@ -126,6 +129,7 @@ class Leg extends MonoBehavior {
       this.foot.position = footPosition;
 
       this.standing = false;
+      this.foot.stickTransform.position = footPosition;
     }
 	}
 }
@@ -145,6 +149,7 @@ class LegsManager extends MonoBehavior
     this.rightLeg.upperLeg.localPosition = this.rightLeg.upperLeg.localPosition.multiply(new Vector3(-1, 1, 1));
     this.rightLeg.lowerLeg.localPosition = this.rightLeg.lowerLeg.localPosition.multiply(new Vector3(-1, 1, 1));
     this.rightLeg.foot.localPosition = this.rightLeg.foot.localPosition.multiply(new Vector3(-1, 1, 1));
+    this.rightLeg.foot.stickTransform.position = this.rightLeg.foot.position;
     this.rightLeg.left = false;
 
     // this.spineLength = 0.3525347660851869;
@@ -165,9 +170,9 @@ class LegsManager extends MonoBehavior
     const hipsFloorRotation = new Quaternion().setFromEuler(hipsFloorEuler);
     const planeMatrix = new THREE.Matrix4().compose(hipsFloorPosition, hipsFloorRotation, Vector3.one);
     const planeMatrixInverse = new THREE.Matrix4().getInverse(planeMatrix);
-    const leftFootPosition = this.leftLeg.foot.position.applyMatrix4(planeMatrixInverse);
+    const leftFootPosition = this.leftLeg.foot.stickTransform.position.applyMatrix4(planeMatrixInverse);
     const leftFootVector = new Vector2(leftFootPosition.x, leftFootPosition.z);
-    const rightFootPosition = this.rightLeg.foot.position.applyMatrix4(planeMatrixInverse);
+    const rightFootPosition = this.rightLeg.foot.stickTransform.position.applyMatrix4(planeMatrixInverse);
     const rightFootVector = new Vector2(rightFootPosition.x, rightFootPosition.z);
 		const legsBox = new THREE.Box2(
 			leftFootVector.clone().min(rightFootVector.clone()).add(new Vector2(-0.1, -0.1)),
@@ -175,21 +180,22 @@ class LegsManager extends MonoBehavior
 		);
 		const originPoint = new Vector2(0, 0);
 
+    // console.log('vectors', leftFootPosition.toArray().join(','), leftFootVector.toArray().join(','));
 		if (originPoint.x < legsBox.min.x) {
 			const leftmostFoot = leftFootPosition.x <= rightFootPosition.x ? this.leftLeg.foot : this.rightLeg.foot;
-			leftmostFoot.position = leftmostFoot.position.add(new Vector3(originPoint.x - legsBox.min.x - 0.2, 0, 0).applyQuaternion(hipsFloorRotation));
+			leftmostFoot.stickTransform.position = leftmostFoot.stickTransform.position.add(new Vector3(originPoint.x - legsBox.min.x - 0.2, 0, 0).applyQuaternion(hipsFloorRotation));
 		}
 		if (originPoint.x > legsBox.max.x) {
 			const rightmostFoot = leftFootPosition.x >= rightFootPosition.x ? this.leftLeg.foot : this.rightLeg.foot;
-			rightmostFoot.position = rightmostFoot.position.add(new Vector3(originPoint.x - legsBox.max.x + 0.2, 0, 0).applyQuaternion(hipsFloorRotation));
+			rightmostFoot.stickTransform.position = rightmostFoot.stickTransform.position.add(new Vector3(originPoint.x - legsBox.max.x + 0.2, 0, 0).applyQuaternion(hipsFloorRotation));
 		}
 		if (originPoint.y < legsBox.min.y) {
 			const upmostFoot = leftFootPosition.y <= rightFootPosition.y ? this.leftLeg.foot : this.rightLeg.foot;
-			upmostFoot.position = upmostFoot.position.add(new Vector3(0, 0, originPoint.y - legsBox.min.y - 0.2).applyQuaternion(hipsFloorRotation));
+			upmostFoot.stickTransform.position = upmostFoot.stickTransform.position.add(new Vector3(0, 0, originPoint.y - legsBox.min.y - 0.2).applyQuaternion(hipsFloorRotation));
 		}
 		if (originPoint.y > legsBox.max.y) {
 			const downmostFoot = leftFootPosition.y >= rightFootPosition.y ? this.leftLeg.foot : this.rightLeg.foot;
-			downmostFoot.position = downmostFoot.position.add(new Vector3(0, 0, originPoint.y - legsBox.min.y + 0.2).applyQuaternion(hipsFloorRotation));
+			downmostFoot.stickTransform.position = downmostFoot.stickTransform.position.add(new Vector3(0, 0, originPoint.y - legsBox.min.y + 0.2).applyQuaternion(hipsFloorRotation));
 		}
 
 		const legsWidth = legsBox.max.x - legsBox.min.x;
@@ -201,11 +207,11 @@ class LegsManager extends MonoBehavior
 			if (leftDistance > rightDistance) {
 				const direction = leftFootVector.multiplyScalar(-1).normalize();
 				const offset = direction.clone().multiplyScalar(0.2);
-				this.leftLeg.foot.position = this.leftLeg.foot.position.add(new Vector3(offset.x, 0, offset.y).applyQuaternion(hipsFloorRotation));
+				this.leftLeg.foot.stickTransform.position = this.leftLeg.foot.stickTransform.position.add(new Vector3(offset.x, 0, offset.y).applyQuaternion(hipsFloorRotation));
 			} else {
 		    const direction = rightFootVector.multiplyScalar(-1).normalize();
 				const offset = direction.clone().multiplyScalar(0.2);
-				this.rightLeg.foot.position = this.rightLeg.foot.position.add(new Vector3(offset.x, 0, offset.y).applyQuaternion(hipsFloorRotation));
+				this.rightLeg.foot.stickTransform.position = this.rightLeg.foot.stickTransform.position.add(new Vector3(offset.x, 0, offset.y).applyQuaternion(hipsFloorRotation));
 			}
 		}
 	}
