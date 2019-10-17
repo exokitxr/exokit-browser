@@ -14,16 +14,18 @@ class Leg extends MonoBehavior {
     super(...args);
 
     this.upperLeg = new Transform();
+    this.upperLeg.localPosition = new Vector3(0.07171520178403676, -0.1154526376107925, -0.013953604628355355);
     this.lowerLeg = new Transform();
-    this.lowerLeg.localPosition = new Vector3(0, -0.5, 0);
+    this.lowerLeg.localPosition = new Vector3(0.005757781010899271, -0.3811295375263364, -0.02434057165518574);
     this.foot = new Transform();
+    this.foot.localPosition = new Vector3(0.002901996926509387, -0.40691825309716234, -0.05305202296204871);
 
     // this.transform.AddChild(this.upperLeg);
     this.upperLeg.AddChild(this.lowerLeg);
     this.lowerLeg.AddChild(this.foot);
 
-    this.upperLegLength = 0.3819493943518038;
-    this.lowerLegLength = 0.410372274197677;
+    this.upperLegLength = this.lowerLeg.localPosition.length();
+    this.lowerLegLength = this.foot.localPosition.length();
 
     this.left = true;
     this.standing = true;
@@ -59,7 +61,10 @@ class Leg extends MonoBehavior {
 			  .applyQuaternion(this.transform.rotation)
 	  );
 
-    const hypotenuseDistance = this.upperLegLength;
+    const {upperLegLength, lowerLegLength} = this;
+    /* const upperLegLength = this.lowerLeg.localPosition.length();
+    const lowerLegLength = this.foot.localPosition.length(); */
+    const hypotenuseDistance = upperLegLength;
     const verticalDistance = Math.abs(this.upperLeg.position.y) / 2;
     if (verticalDistance < hypotenuseDistance) {
       footPosition.y = 0;
@@ -79,14 +84,14 @@ class Leg extends MonoBehavior {
 	      new THREE.Matrix4().lookAt(
 	        lowerLegPosition,
 	        this.upperLeg.position,
-	        new Vector3(0, 0, 1)
+	        new Vector3(0, 0, 1)// .applyQuaternion(this.transform.rotation)
 	      )
 	    );
 	    this.lowerLeg.rotation = new Quaternion().setFromRotationMatrix(
 	      new THREE.Matrix4().lookAt(
 	        footPosition,
 	        lowerLegPosition,
-	        new Vector3(0, 0, 1)
+	        new Vector3(0, 0, 1)// .applyQuaternion(this.transform.rotation)
 	      )
 	    );
 
@@ -98,8 +103,8 @@ class Leg extends MonoBehavior {
       this.standing = true;
     } else {
       const direction = this.foot.position.sub(this.upperLeg.position).normalize().lerp(new Vector3(0, -1, 0), 0.1);
-      const lowerLegPosition = this.upperLeg.position.add(direction.clone().multiplyScalar(this.upperLegLength));
-      const footPosition = this.lowerLeg.position.add(direction.clone().multiplyScalar(this.lowerLegLength));
+      const lowerLegPosition = this.upperLeg.position.add(direction.clone().multiplyScalar(upperLegLength));
+      const footPosition = this.lowerLeg.position.add(direction.clone().multiplyScalar(lowerLegLength));
 
       this.upperLeg.rotation = new Quaternion().setFromRotationMatrix(
 	      new THREE.Matrix4().lookAt(
