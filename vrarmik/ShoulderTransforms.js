@@ -10,6 +10,16 @@ class ShoulderTransforms extends MonoBehavior
 		constructor(...args) {
       super(...args);
 
+      this.hips = new Transform();
+      this.spine = new Transform();
+      this.neck = new Transform();
+      this.head = new Transform();
+
+      this.hips.AddChild(this.spine);
+      // this.spine.AddChild(this.transform);
+      this.transform.AddChild(this.neck);
+      this.neck.AddChild(this.head);
+
 			this.leftShoulder = new Transform();
 			this.transform.AddChild(this.leftShoulder);
 
@@ -18,10 +28,10 @@ class ShoulderTransforms extends MonoBehavior
 			/* this.leftShoulderRenderer = new Transform();
 			this.rightShoulderRenderer = new Transform(); */
 			this.leftShoulderAnchor = new Transform();
-			this.leftShoulderAnchor.localPosition = new Vector3(-0.3, 0, 0);
+			this.leftShoulderAnchor.localPosition = new Vector3(-0.018790404909333258, 0.17293596589167015, -0.025336985971404546);
 			this.transform.AddChild(this.leftShoulderAnchor);
 			this.rightShoulderAnchor = new Transform();
-			this.rightShoulderAnchor.localPosition = new Vector3(0.3, 0, 0);
+			this.rightShoulderAnchor.localPosition = new Vector3(0.018790404909333258, 0.17293596589167015, -0.025336985971404546);
 			this.transform.AddChild(this.rightShoulderAnchor);
 			this.leftArm = null;
 			this.rightArm = null;
@@ -37,6 +47,7 @@ class ShoulderTransforms extends MonoBehavior
 				armIk.shoulder = this;
 				armIk.shoulderPoser = shoulderPoser;
 				armIk.target = armIk.shoulderPoser.avatarTrackingReferences.leftHand.transform;
+				// console.log('new pos 1', this.leftArm.lowerArm.localPosition.toArray().join(','));
 				this.leftShoulderAnchor.AddChild(this.leftArm.transform);
 			}
 			if (this.rightArm === null)
@@ -48,8 +59,10 @@ class ShoulderTransforms extends MonoBehavior
 				armIk.target = armIk.shoulderPoser.avatarTrackingReferences.rightHand.transform;
 
 				armIk.left = false;
-        this.rightArm.lowerArm.localPosition = new Vector3(0.3, 0, 0);
-        this.rightArm.hand.localPosition = new Vector3(0.3, 0, 0);
+				// console.log('new pos 2', this.rightArm.lowerArm.localPosition.multiply(new Vector3(-1, 1, 1)).toArray().join(','));
+				 this.rightArm.upperArm.localPosition = this.rightArm.upperArm.localPosition.multiply(new Vector3(-1, 1, 1));
+        this.rightArm.lowerArm.localPosition = this.rightArm.lowerArm.localPosition.multiply(new Vector3(-1, 1, 1));
+        this.rightArm.hand.localPosition = this.rightArm.hand.localPosition.multiply(new Vector3(-1, 1, 1));
         this.rightShoulderAnchor.AddChild(this.rightArm.transform);
 			}
 		}

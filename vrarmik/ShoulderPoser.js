@@ -1,4 +1,4 @@
-import {Vector3, Quaternion, GameObject, MonoBehavior, Mathf} from './Unity.js';
+import {Vector3, Quaternion, Transform, GameObject, MonoBehavior, Mathf} from './Unity.js';
 import ShoulderTransforms from './ShoulderTransforms.js';
 import VRTrackingReferences from './VRTrackingReferences.js';
 import PoseManager from './PoseManager.js';
@@ -13,8 +13,9 @@ class ShoulderPoser extends MonoBehavior
 			this.vrTrackingReferences = null;
 			this.avatarTrackingReferences = null;
 
-			this.headNeckDistance = 0.03;
-			this.neckShoulderDistance = new Vector3(0, -.1, -0.02);
+      this.headNeckDirectionVector = new Vector3(1.0894440904962721e-10, -0.06860782711996793, -0.0006757629250115499).normalize();
+			this.headNeckDistance = 0.06861115505261682;
+			this.neckShoulderDistance = new Vector3(3.122724301363178e-10, -0.1953215129534993, 0.02834002902116923);
 
 			this.maxDeltaHeadRotation = 80;
 
@@ -30,7 +31,6 @@ class ShoulderPoser extends MonoBehavior
 			this.rightRotationHeadRotationFactor = 0.3;
 			this.rightRotationHeadRotationOffset = -20;
 
-			this.headNeckDirectionVector = new Vector3(0, -1, -.05);
 			this.startShoulderDislocationBefore = 0.005;
 
 			this.ignoreYPos = true;
@@ -149,7 +149,7 @@ class ShoulderPoser extends MonoBehavior
 			const headNeckOffset = this.headNeckDirectionVector.clone().applyQuaternion(this.avatarTrackingReferences.hmd.transform.rotation);
 			const targetPosition = new Vector3().addVectors(this.avatarTrackingReferences.head.transform.position, headNeckOffset.clone().multiplyScalar(this.headNeckDistance));
 			this.shoulder.transform.localPosition =
-				new Vector3().addVectors(this.shoulder.transform.parent.InverseTransformPoint(targetPosition), this.neckShoulderDistance);
+				new Vector3().addVectors(targetPosition, this.neckShoulderDistance);
 		}
 
 		rotateShoulderUpBase()

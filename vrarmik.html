@@ -8,9 +8,11 @@ body {
     </style>
     <script src="three.js"></script>
     <script src="OrbitControls.js"></script>
+     <script src="GLTFLoader.js"></script>
     <script type=module>
 import Rig from './vrarmik/Rig.js';
 import {Vector3, Quaternion} from './vrarmik/Unity.js';
+import {fixSkeletonZForward} from './proto/three-ik/modified.AxisUtils.js';
 
 const scene = new THREE.Scene();
 
@@ -52,6 +54,9 @@ const _getCubeMaterial = color => {
 const _makeCubeMesh = (color = 0x0000FF) => {
   const mesh = new THREE.Mesh(cubeGeometry, _getCubeMaterial(color));
   mesh.frustumCulled = false;
+  if (color === 0x008000 || color === 0x808000) {
+    // mesh.add(new THREE.AxesHelper());
+  }
   return mesh;
 };
 const meshes = {
@@ -85,11 +90,177 @@ scene.remove(meshes.handLeft);
 scene.remove(meshes.shoulderRight);
 scene.remove(meshes.upperArmRight);
 scene.remove(meshes.lowerArmRight);
-scene.remove(meshes.handRight); */
-/* scene.remove(meshes.shoulderRight);
+scene.remove(meshes.handRight);
+scene.remove(meshes.shoulderRight);
 scene.remove(meshes.upperLegRight);
 scene.remove(meshes.lowerLegRight);
 scene.remove(meshes.footRight); */
+
+const rig = new Rig();
+rig.inputs.leftFoot.position = new Vector3(-0.2, 0, 0)
+  .applyQuaternion(rig.inputs.leftFoot.rotation);
+rig.inputs.rightFoot.position = new Vector3(0.2, 0, 0)
+  .applyQuaternion(rig.inputs.rightFoot.rotation);
+
+let model = null;
+const modelBones = {
+  Hips: null,
+  Spine: null,
+  Chest: null,
+  Neck: null,
+  Head: null,
+
+  Left_shoulder: null,
+  Left_arm: null,
+  Left_elbow: null,
+  Left_wrist: null,
+  Left_leg: null,
+  Left_knee: null,
+  Left_ankle: null,
+
+  Right_shoulder: null,
+  Right_arm: null,
+  Right_elbow: null,
+  Right_wrist: null,
+  Right_leg: null,
+  Right_knee: null,
+  Right_ankle: null,
+};
+const modelBonesMappings = {
+  Hips: rig.outputs.hips,
+  Head: rig.outputs.hmd,
+  Spine: rig.outputs.spine,
+  Chest: rig.outputs.chest,
+
+  Left_shoulder: rig.outputs.rightShoulder,
+  Left_arm: rig.outputs.rightUpperArm,
+  Left_elbow: rig.outputs.rightLowerArm,
+  Left_wrist: rig.outputs.rightHand,
+  Left_leg: rig.outputs.rightUpperLeg,
+  Left_knee: rig.outputs.rightLowerLeg,
+  Left_ankle: rig.outputs.rightFoot,
+
+  Right_shoulder: rig.outputs.leftShoulder,
+  Right_arm: rig.outputs.leftUpperArm,
+  Right_elbow: rig.outputs.leftLowerArm,
+  Right_wrist: rig.outputs.leftHand,
+  Right_leg: rig.outputs.leftUpperLeg,
+  Right_knee: rig.outputs.leftLowerLeg,
+  Right_ankle: rig.outputs.leftFoot,
+};
+const _getChildDirectionQuaternion = o => {
+  // const worldPosition = o.getWorldPosition(new Vector3());
+  const vector = new Vector3(0, 0, 0);
+  const {children} = o;
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i];
+    if (!['Left_leg_2', 'Right_leg_2'].includes(child.name)) {
+      // vector.add(child.getWorldPosition(new Vector3;
+      vector.add(child.position);
+      // vector.add(child.position.clone().applyQuaternion(o.quaternion.clone().inverse()));
+    }
+  }
+  if (!vector.equals(Vector3.zero)) {
+    // vector.normalize();
+    // return new Quaternion().setFromUnitVectors(new Vector3(0, 0, -1), vector);
+    return new Quaternion().setFromRotationMatrix(
+      new THREE.Matrix4().lookAt(
+        // worldPosition,
+        new Vector3(),
+        vector,
+        new Vector3(0, 0, -1)
+      )
+    );
+  } else {
+    return new Quaternion();
+  }
+};
+new THREE.GLTFLoader().load('model4.glb', object => {
+  model = object.scene;
+
+  model.updateMatrixWorld(true);
+  model.traverse(o => {
+    if (o.isSkinnedMesh) {
+      const {skeleton, bindMatrix} = o;
+      const {bones} = skeleton;
+      window.skeleton = skeleton;
+      window.bones = bones;
+
+      o.bind(window.skeleton);
+      // window.bindMatrix = bindMatrix.clone();
+    }
+  });
+  fixSkeletonZForward(window.bones[0], {
+    preRotations: {
+      'Left_arm': new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI*0.25).inverse(),
+      'Right_arm': new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1),  -Math.PI*0.25).inverse(),
+    },
+  });
+  model.traverse(o => {
+    if (o.isSkinnedMesh) {
+      o.bind(window.skeleton);
+    }
+  });
+  ['Left_arm', 'Right_arm'].forEach((name, i) => {
+    const bone = bones.find(bone => bone.name === name);
+    if (bone) {
+      bone.quaternion.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), (i === 0 ? 1 : -1) * Math.PI*0.25));
+    }
+  });
+  model.updateMatrixWorld(true);
+
+  model.traverse(o => {
+    if (o.isMesh) {
+      o.frustumCulled = false;
+    }
+    if (o.isSkinnedMesh) {
+      const {skeleton, bindMatrix} = o;
+      const {bones} = skeleton;
+      /* fixSkeletonZForward(bones[0], {
+        exclude: ['Hips', 'Head'],
+      });
+      o.bind(skeleton, bindMatrix); */
+      // o.updateMatrixWorld(true);
+      for (const k in modelBones) {
+        if (!modelBones[k]) {
+          modelBones[k] = bones.find(bone => bone.name === k);
+          modelBones[k].initialDirectionQuaternion = _getChildDirectionQuaternion(modelBones[k]);
+          modelBones[k].initialPosition = modelBones[k].position.clone();
+          modelBones[k].initialQuaternion = modelBones[k].quaternion.clone();
+          console.log('found bone', k, modelBones[k], modelBones[k].children, new THREE.Euler().setFromQuaternion(modelBones[k].initialQuaternion, 'YXZ'), new THREE.Euler().setFromQuaternion(modelBones[k].initialDirectionQuaternion, 'YXZ'));
+          if (!['Head', 'Hips'].includes(k)) {
+            // modelBones[k].initialQuaternion.premultiply(modelBones[k].initialDirectionQuaternion);
+          }
+          /* if (k === 'Left_leg') {
+            modelBones[k].initialQuaternion
+              .multiply(new Quaternion().setFromUnitVectors(new Vector3(0, 0, -1), new Vector3(-0.5, 0, -1).normalize()))
+              .multiply(new Quaternion().setFromUnitVectors(new Vector3(0, 0, -1), new Vector3(0, -1, 0)))
+          }
+          if (k === 'Left_knee') {
+            modelBones[k].initialQuaternion
+              .premultiply(new Quaternion().setFromUnitVectors(new Vector3(0, 0, -1), new Vector3(0, -1, 0)))
+          } */ /* else if (k === 'Left_ankle') {
+            modelBones[k].initialQuaternion.premultiply(new Quaternion().setFromUnitVectors(new Vector3(0, 0, -1), new Vector3(0, -1, 0)));
+          } */
+          modelBones[k].initialScale = modelBones[k].scale.clone();
+          modelBones[k].initialMatrixWorld = modelBones[k].matrixWorld.clone();
+          // modelBones[k].initialMatrixWorld.decompose(position, quaternion, scale);
+        }
+      }
+      /* for (const k in modelBones) {
+        if (modelBones[k] && modelBones[k].parent) {
+          modelBones[k].parent.remove(modelBones[k]);
+        }
+      } */
+    }
+  });
+
+  scene.add(model);
+
+  window.model = model;
+}, xhr => {}, err => {
+  console.warn(err);
+});
 
 const renderer = new THREE.WebGLRenderer({
   // canvas: document.getElementById('canvas'),
@@ -107,37 +278,37 @@ orbitControls.screenSpacePanning = true;
 orbitControls.enableMiddleZoom = false;
 orbitControls.update();
 
-const rig = new Rig();
-
-rig.inputs.leftFoot.position = new Vector3(-0.3, 0, 0)
-  .applyQuaternion(rig.inputs.leftFoot.rotation);
-rig.inputs.rightFoot.position = new Vector3(0.3, 0, 0)
-  .applyQuaternion(rig.inputs.rightFoot.rotation);
-
+let first = true;
+const realDateNow = (now => () => now())(Date.now);//() => 2000;
+window.Date = {
+  now() {
+    return 0;
+  },
+};
 function animate() {
-  const positionOffset = Math.sin((Date.now()%10000)/10000*Math.PI*2)*2;
-  const standFactor = 0.2 + (Math.sin((Date.now()%2000)/2000*Math.PI*2) + 1) / 2;
-  const rotationAngle = (Date.now()%10000)/10000*Math.PI*2;
+  if (first) {
+    const positionOffset = Math.sin((realDateNow()%10000)/10000*Math.PI*2)*2;
+    const standFactor = 1.3412381613714757 - 0.3 + Math.sin((realDateNow()%2000)/2000*Math.PI*2)*0.3;
+    const rotationAngle = 0;//(realDateNow()%10000)/10000*Math.PI*2;
 
-  rig.inputs.hmd.position = new Vector3(positionOffset, 0.6 + standFactor, 0);
-  rig.inputs.hmd.rotation = new Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationAngle)
-    .premultiply(new Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin((Date.now()%2000)/2000*Math.PI*2)*Math.PI*0.2));
+    // rig.inputs.hmd.position = new Vector3(positionOffset, 0.6 + standFactor, 0);
+    rig.inputs.hmd.position = new Vector3(positionOffset, standFactor, 0);
+    rig.inputs.hmd.rotation = new Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationAngle)
+      .premultiply(new Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin((Date.now()%2000)/2000*Math.PI*2)*Math.PI*0.2));
 
-  rig.inputs.leftGamepad.rotation = new Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationAngle);
-  rig.inputs.leftGamepad.position = new Vector3(positionOffset, 0, 0).add(
-    new Vector3(-0.5 + Math.sin((Date.now()%2000)/2000*Math.PI*2) * 0.3, 0.2 + standFactor, 0.4 - Math.sin((Date.now()%2000)/2000*Math.PI*2) * 0.3)
-      .applyQuaternion(rig.inputs.leftGamepad.rotation)
+    rig.inputs.leftGamepad.rotation = new Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationAngle);
+    rig.inputs.leftGamepad.position = new Vector3(positionOffset, 0, 0).add(
+      new Vector3(-0.1 + Math.sin((Date.now()%2000)/2000*Math.PI*2) * 0.3, 0.7, 0.3 - Math.sin((Date.now()%2000)/2000*Math.PI*2) * 0.1)
+        .applyQuaternion(rig.inputs.leftGamepad.rotation)
+      );
+    rig.inputs.rightGamepad.rotation = rig.inputs.leftGamepad.rotation;
+    rig.inputs.rightGamepad.position = new Vector3(positionOffset, 0, 0).add(
+      new Vector3(0, 0.8 + Math.sin((Date.now()%2000)/2000*Math.PI*2) * 0.3, 0.4 + Math.sin((Date.now()%2000)/2000*Math.PI*2) * 0.3)
+        .applyQuaternion(rig.inputs.rightGamepad.rotation)
     );
-  rig.inputs.rightGamepad.rotation = rig.inputs.leftGamepad.rotation;
-  rig.inputs.rightGamepad.position = new Vector3(positionOffset, 0, 0).add(
-    new Vector3(0.1, standFactor + Math.sin((Date.now()%2000)/2000*Math.PI*2) * 0.3, 0.3 + Math.sin((Date.now()%2000)/2000*Math.PI*2) * 0.3)
-      .applyQuaternion(rig.inputs.rightGamepad.rotation)
-  );
 
-  /* rig.inputs.leftFoot.position = new Vector3(-0.3, Math.max(standFactor - 1, 0), 0)
-    .applyQuaternion(rig.inputs.leftFoot.rotation);
-  rig.inputs.rightFoot.position = new Vector3(0.3, Math.max(standFactor - 1, 0), 0)
-    .applyQuaternion(rig.inputs.rightFoot.rotation); */
+    // first = false;
+  }
 
   rig.update();
 
@@ -181,6 +352,114 @@ function animate() {
   meshes.lowerLegRight.quaternion.copy(rig.outputs.rightLowerLeg.rotation);
   meshes.footRight.position.copy(rig.outputs.rightFoot.position);
   meshes.footRight.quaternion.copy(rig.outputs.rightFoot.rotation);
+
+  for (const k in modelBones) {
+    const modelBone = modelBones[k];
+    const modelBoneMapping = modelBonesMappings[k];
+    /* if (modelBone) {
+      if (['Chest', 'Left_arm', 'Left_elbow', 'Left_wrist'].includes(k)) {
+        if (!modelBone.axesHelper) {
+          modelBone.axesHelper = new THREE.AxesHelper();
+          scene.add(modelBone.axesHelper);
+        }
+        modelBone.getWorldPosition(modelBone.axesHelper.position);
+        modelBone.getWorldQuaternion(modelBone.axesHelper.quaternion);
+        modelBone.getWorldScale(modelBone.axesHelper.scale);
+      }
+    } */
+    if (modelBone && modelBoneMapping) {
+      if (k === 'Hips') {
+        modelBone.position.copy(modelBoneMapping.position);
+      }
+      modelBone.quaternion
+        .copy(modelBone.initialQuaternion)
+
+      if (['Hips', 'Spine', 'Chest'].includes(k)) {
+        modelBone.quaternion
+          .multiply(modelBoneMapping.localRotation)
+      }
+
+      if (['Left_leg'].includes(k)) {
+        modelBone.quaternion
+          .multiply(modelBoneMapping.localRotation)
+          .multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2))
+      }
+      if (['Left_knee'].includes(k)) {
+        modelBone.quaternion
+          .premultiply(modelBoneMapping.localRotation)
+          // .premultiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI))
+      }
+      if (['Left_ankle'].includes(k)) {
+        modelBone.quaternion
+          .premultiply(modelBoneMapping.localRotation)
+          .multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI/2))
+      }
+
+      if (['Right_leg'].includes(k)) {
+        modelBone.quaternion
+          .multiply(modelBoneMapping.localRotation)
+          .multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2))
+      }
+      if (['Right_knee'].includes(k)) {
+        modelBone.quaternion
+          .premultiply(modelBoneMapping.localRotation)
+          // .premultiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI))
+      }
+      if (['Right_ankle'].includes(k)) {
+        modelBone.quaternion
+          .premultiply(modelBoneMapping.localRotation)
+          .multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI/2))
+      }
+
+      if (['Left_shoulder'].includes(k)) {
+        modelBone.quaternion
+          .multiply(modelBoneMapping.localRotation)
+      }
+      if (['Left_arm'].includes(k)) {
+        modelBone.quaternion
+          .premultiply(modelBoneMapping.localRotation)
+          // .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI/2)) // forward
+          // .multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI*0.6))
+          // .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI/4)) // up
+          .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), -Math.PI/4)) // down
+      }
+      if (['Left_elbow'].includes(k)) {
+        modelBone.quaternion
+          .premultiply(modelBoneMapping.localRotation)
+      }
+      if (['Left_wrist'].includes(k)) {
+        modelBone.quaternion
+          .premultiply(modelBoneMapping.localRotation)
+          .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI/2)) // center
+          .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI/8)) // ip
+      }
+
+      if (['Right_shoulder'].includes(k)) {
+        modelBone.quaternion
+          .multiply(modelBoneMapping.localRotation)
+      }
+      if (['Right_arm'].includes(k)) {
+        modelBone.quaternion
+          .premultiply(modelBoneMapping.localRotation)
+          // .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI/2)) // forward
+          // .multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI*0.6))
+          // .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI/4)) // up
+          .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI/4)) // down
+      }
+      if (['Right_elbow'].includes(k)) {
+        modelBone.quaternion
+          .premultiply(modelBoneMapping.localRotation)
+      }
+      if (['Right_wrist'].includes(k)) {
+        modelBone.quaternion
+          .premultiply(modelBoneMapping.localRotation)
+          .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI/2)) // center
+          .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), -Math.PI/8)) // up
+      }
+
+      modelBone.updateMatrixWorld();
+    }
+  }
 
   renderer.render(scene, camera);
 }

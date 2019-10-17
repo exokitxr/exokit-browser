@@ -1,5 +1,6 @@
 import {Vector2, Vector3, Quaternion, Transform, GameObject, MonoBehavior, XRSettings} from './Unity.js';
 import PoseManager from './PoseManager.js';
+import ShoulderTransforms from './ShoulderTransforms.js';
 
 const _mod = (a, n) => (a % n + n) % n;
 const _angleDiff = (targetA, sourceA) => {
@@ -13,7 +14,6 @@ class Leg extends MonoBehavior {
     super(...args);
 
     this.upperLeg = new Transform();
-    // this.upperLeg.localPosition = new Vector3(-0.2, 0, 0);
     this.lowerLeg = new Transform();
     this.lowerLeg.localPosition = new Vector3(0, -0.5, 0);
     this.foot = new Transform();
@@ -22,8 +22,8 @@ class Leg extends MonoBehavior {
     this.upperLeg.AddChild(this.lowerLeg);
     this.lowerLeg.AddChild(this.foot);
 
-    this.upperLegLength = 0.5;
-    this.lowerLegLength = 0.5;
+    this.upperLegLength = 0.3819493943518038;
+    this.lowerLegLength = 0.410372274197677;
 
     this.left = true;
     this.standing = true;
@@ -35,7 +35,7 @@ class Leg extends MonoBehavior {
     const footPosition = this.foot.position;
 
 		const hipsEuler = new THREE.Euler().setFromQuaternion(this.transform.rotation, 'YXZ');
-		const upperLegEuler = new THREE.Euler().setFromQuaternion(this.upperLeg.rotation, 'YXZ');
+		const upperLegEuler = new THREE.Euler().setFromQuaternion(this.foot.rotation, 'YXZ');
 		let angleDiff = _angleDiff(hipsEuler.y, upperLegEuler.y);
 		if (this.left) {
 			angleDiff *= -1;
@@ -53,8 +53,11 @@ class Leg extends MonoBehavior {
 				upperLegEuler.y += Math.PI/8;
 			}
 		}
-		this.upperLeg.rotation = new Quaternion().setFromEuler(upperLegEuler);
-		this.upperLeg.position = this.transform.position.add(new Vector3(-0.2 * (this.left ? 1 : -1), 0, 0).applyQuaternion(this.transform.rotation));
+		// this.upperLeg.rotation = new Quaternion().setFromEuler(upperLegEuler); 
+		this.upperLeg.position = this.transform.position.add(
+			new Vector3(-0.07171519845724106 * (this.left ? 1 : -1), -0.11545264720916748, 0.013953600078821182)
+			  .applyQuaternion(this.transform.rotation)
+	  );
 
     const hypotenuseDistance = this.upperLegLength;
     const verticalDistance = Math.abs(this.upperLeg.position.y) / 2;
@@ -65,13 +68,29 @@ class Leg extends MonoBehavior {
       const footRotation = new Quaternion().setFromEuler(upperLegEuler);
 
       const offsetDistance = Math.sqrt(hypotenuseDistance*hypotenuseDistance - verticalDistance*verticalDistance);
-      const offsetDirection = this.foot.position.sub(this.upperLeg.position)
+      const offsetDirection = footPosition.clone().sub(this.upperLeg.position)
         .cross(new Vector3(1, 0, 0).applyQuaternion(footRotation))
         .normalize();
 
-      this.lowerLeg.position = this.upperLeg.position.add(footPosition).divideScalar(2)
+      const lowerLegPosition = this.upperLeg.position.add(footPosition).divideScalar(2)
         .add(offsetDirection.clone().multiplyScalar(offsetDistance));
-      this.lowerLeg.rotation = new Quaternion().setFromUnitVectors(new Vector3(0, 0, 1), offsetDirection);
+
+      this.upperLeg.rotation = new Quaternion().setFromRotationMatrix(
+	      new THREE.Matrix4().lookAt(
+	        lowerLegPosition,
+	        this.upperLeg.position,
+	        new Vector3(0, 0, 1)
+	      )
+	    );
+	    this.lowerLeg.rotation = new Quaternion().setFromRotationMatrix(
+	      new THREE.Matrix4().lookAt(
+	        footPosition,
+	        lowerLegPosition,
+	        new Vector3(0, 0, 1)
+	      )
+	    );
+
+      this.lowerLeg.position = lowerLegPosition;
 
       this.foot.position = footPosition;
       this.foot.rotation = footRotation;
@@ -79,8 +98,26 @@ class Leg extends MonoBehavior {
       this.standing = true;
     } else {
       const direction = this.foot.position.sub(this.upperLeg.position).normalize().lerp(new Vector3(0, -1, 0), 0.1);
-      this.lowerLeg.position = this.upperLeg.position.add(direction.clone().multiplyScalar(this.upperLegLength));
-      this.foot.position = this.lowerLeg.position.add(direction.clone().multiplyScalar(this.lowerLegLength));
+      const lowerLegPosition = this.upperLeg.position.add(direction.clone().multiplyScalar(this.upperLegLength));
+      const footPosition = this.lowerLeg.position.add(direction.clone().multiplyScalar(this.lowerLegLength));
+
+      this.upperLeg.rotation = new Quaternion().setFromRotationMatrix(
+	      new THREE.Matrix4().lookAt(
+	        lowerLegPosition,
+	        this.upperLeg.position,
+	        new Vector3(0, 0, 1)
+	      )
+	    );
+	    this.lowerLeg.rotation = new Quaternion().setFromRotationMatrix(
+	      new THREE.Matrix4().lookAt(
+	        footPosition,
+	        lowerLegPosition,
+	        new Vector3(0, 0, 1)
+	      )
+	    );
+
+      this.lowerLeg.position = lowerLegPosition;
+      this.foot.position = footPosition;
 
       this.standing = false;
     }
@@ -92,16 +129,17 @@ class LegsManager extends MonoBehavior
 	constructor(...args) {
     super(...args);
 
-    this.hips = new Transform();
+    const shoulderTransforms = this.GetOrAddComponent(ShoulderTransforms);
+    this.hips = shoulderTransforms.hips;
     this.leftLeg = new GameObject().AddComponent(Leg);
     this.hips.AddChild(this.leftLeg.transform);
     this.rightLeg = new GameObject().AddComponent(Leg);
     this.hips.AddChild(this.rightLeg.transform);
 
-    this.rightLeg.upperLeg.localPosition = new Vector3(0.2, 0, 0);
+    // this.rightLeg.upperLeg.localPosition = new Vector3(0.2, 0, 0);
     this.rightLeg.left = false;
 
-    this.spineLength = 0.6;
+    this.spineLength = 0.3525347660851869;
 
     const poseManager = this.GetOrAddComponent(PoseManager);
     this.hmdTransformRef = poseManager.vrTransforms.head;

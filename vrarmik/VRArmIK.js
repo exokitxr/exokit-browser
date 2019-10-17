@@ -167,6 +167,7 @@ function toPositiveEulerAngle(n)
 			{
 				innerAngle = Mathf.Acos(Mathf.Clamp((Mathf.Pow(this.arm.upperArmLength, 2) + Mathf.Pow(this.arm.lowerArmLength, 2) -
 												Mathf.Pow(targetShoulderDistance, 2)) / (2 * this.arm.upperArmLength * this.arm.lowerArmLength), -1, 1)) * Mathf.Rad2Deg;
+				// console.log('inner handle', this.target.position.toArray().join(','), this.upperArmPos.toArray().join(','));
 				if (this.left)
 					innerAngle = 180 - innerAngle;
 				else
