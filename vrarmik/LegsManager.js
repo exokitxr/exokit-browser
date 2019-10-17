@@ -14,11 +14,11 @@ class Leg extends MonoBehavior {
     super(...args);
 
     this.upperLeg = new Transform();
-    this.upperLeg.localPosition = new Vector3(0.07171520178403676, -0.1154526376107925, -0.013953604628355355);
+    this.upperLeg.localPosition = new Vector3(-0.07171520178403676, -0.1154526376107925, -0.013953604628355355);
     this.lowerLeg = new Transform();
-    this.lowerLeg.localPosition = new Vector3(0.005757781010899271, -0.3811295375263364, -0.02434057165518574);
+    this.lowerLeg.localPosition = new Vector3(-0.005757781010899271, -0.3811295375263364, -0.02434057165518574);
     this.foot = new Transform();
-    this.foot.localPosition = new Vector3(0.002901996926509387, -0.40691825309716234, -0.05305202296204871);
+    this.foot.localPosition = new Vector3(-0.002901996926509387, -0.40691825309716234, -0.05305202296204871);
     this.foot.stickTransform = new Transform();
 
     this.transform.AddChild(this.upperLeg);
