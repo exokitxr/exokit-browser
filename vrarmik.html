@@ -128,9 +128,10 @@ const modelBones = {
 };
 const modelBonesMappings = {
   Hips: rig.outputs.hips,
-  Head: rig.outputs.hmd,
   Spine: rig.outputs.spine,
   Chest: rig.outputs.chest,
+  Neck: rig.outputs.neck,
+  Head: rig.outputs.hmd,
 
   Left_shoulder: rig.outputs.rightShoulder,
   Left_arm: rig.outputs.rightUpperArm,
@@ -224,27 +225,12 @@ new THREE.GLTFLoader().load('model4.glb', object => {
       for (const k in modelBones) {
         if (!modelBones[k]) {
           modelBones[k] = bones.find(bone => bone.name === k);
-          modelBones[k].initialDirectionQuaternion = _getChildDirectionQuaternion(modelBones[k]);
+          // modelBones[k].initialDirectionQuaternion = _getChildDirectionQuaternion(modelBones[k]);
           modelBones[k].initialPosition = modelBones[k].position.clone();
           modelBones[k].initialQuaternion = modelBones[k].quaternion.clone();
-          console.log('found bone', k, modelBones[k], modelBones[k].children, new THREE.Euler().setFromQuaternion(modelBones[k].initialQuaternion, 'YXZ'), new THREE.Euler().setFromQuaternion(modelBones[k].initialDirectionQuaternion, 'YXZ'));
-          if (!['Head', 'Hips'].includes(k)) {
-            // modelBones[k].initialQuaternion.premultiply(modelBones[k].initialDirectionQuaternion);
-          }
-          /* if (k === 'Left_leg') {
-            modelBones[k].initialQuaternion
-              .multiply(new Quaternion().setFromUnitVectors(new Vector3(0, 0, -1), new Vector3(-0.5, 0, -1).normalize()))
-              .multiply(new Quaternion().setFromUnitVectors(new Vector3(0, 0, -1), new Vector3(0, -1, 0)))
-          }
-          if (k === 'Left_knee') {
-            modelBones[k].initialQuaternion
-              .premultiply(new Quaternion().setFromUnitVectors(new Vector3(0, 0, -1), new Vector3(0, -1, 0)))
-          } */ /* else if (k === 'Left_ankle') {
-            modelBones[k].initialQuaternion.premultiply(new Quaternion().setFromUnitVectors(new Vector3(0, 0, -1), new Vector3(0, -1, 0)));
-          } */
+          console.log('found bone', k, modelBones[k], modelBones[k].children, new THREE.Euler().setFromQuaternion(modelBones[k].initialQuaternion, 'YXZ'), 'YXZ');
           modelBones[k].initialScale = modelBones[k].scale.clone();
           modelBones[k].initialMatrixWorld = modelBones[k].matrixWorld.clone();
-          // modelBones[k].initialMatrixWorld.decompose(position, quaternion, scale);
         }
       }
       /* for (const k in modelBones) {
@@ -254,6 +240,8 @@ new THREE.GLTFLoader().load('model4.glb', object => {
       } */
     }
   });
+
+  // debugger;
 
   scene.add(model);
 
@@ -292,20 +280,21 @@ function animate() {
     const rotationAngle = 0;//(realDateNow()%10000)/10000*Math.PI*2;
 
     // rig.inputs.hmd.position = new Vector3(positionOffset, 0.6 + standFactor, 0);
+    // console.log('set input');
     rig.inputs.hmd.position = new Vector3(positionOffset, standFactor, 0);
     rig.inputs.hmd.rotation = new Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationAngle)
       .premultiply(new Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin((Date.now()%2000)/2000*Math.PI*2)*Math.PI*0.2));
 
     rig.inputs.leftGamepad.rotation = new Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationAngle);
     rig.inputs.leftGamepad.position = new Vector3(positionOffset, 0, 0).add(
-      new Vector3(-0.1 + Math.sin((Date.now()%2000)/2000*Math.PI*2) * 0.3, 0.7, 0.3 - Math.sin((Date.now()%2000)/2000*Math.PI*2) * 0.1)
+      new Vector3(-0.2, 0.7, 0.3)
         .applyQuaternion(rig.inputs.leftGamepad.rotation)
       );
-    rig.inputs.rightGamepad.rotation = rig.inputs.leftGamepad.rotation;
+    rig.inputs.rightGamepad.rotation = new Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationAngle);
     rig.inputs.rightGamepad.position = new Vector3(positionOffset, 0, 0).add(
-      new Vector3(0, 0.8 + Math.sin((Date.now()%2000)/2000*Math.PI*2) * 0.3, 0.4 + Math.sin((Date.now()%2000)/2000*Math.PI*2) * 0.3)
+      new Vector3(0.2, 0.7, 0.3)
         .applyQuaternion(rig.inputs.rightGamepad.rotation)
-    );
+      );
 
     // first = false;
   }
@@ -374,7 +363,7 @@ function animate() {
       modelBone.quaternion
         .copy(modelBone.initialQuaternion)
 
-      if (['Hips', 'Spine', 'Chest'].includes(k)) {
+      if (['Hips', 'Spine', 'Chest', 'Neck'].includes(k)) {
         modelBone.quaternion
           .multiply(modelBoneMapping.localRotation)
       }

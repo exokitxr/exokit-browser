@@ -12,11 +12,15 @@ class ShoulderTransforms extends MonoBehavior
 
       this.hips = new Transform();
       this.spine = new Transform();
+      this.spine.localPosition = new Vector3(-8.88181387016927e-16, 1.2409379290811984e-7, 7.45060786677687e-9);
+      this.transform.localPosition = new Vector3(-1.3878628978259084e-10, 0.08719508121453046, -0.0038367719593098565);
       this.neck = new Transform();
+      this.neck.localPosition = new Vector3(-3.122724325702129e-10, 0.1953215129534993, -0.028340029021169225);
       this.head = new Transform();
+      this.head.localPosition = new Vector3(-1.089444464331453e-10, 0.06860782711996793, 0.0006757629250115482);
 
       this.hips.AddChild(this.spine);
-      // this.spine.AddChild(this.transform);
+      this.spine.AddChild(this.transform);
       this.transform.AddChild(this.neck);
       this.neck.AddChild(this.head);
 

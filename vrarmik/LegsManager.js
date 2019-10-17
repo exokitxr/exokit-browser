@@ -115,6 +115,7 @@ class Leg extends MonoBehavior {
 	        new Vector3(0, 0, 1)
 	      )
 	    );
+	    this.foot.rotation = this.foot.rotation.slerp(new Quaternion(), 0.1);
 
       this.lowerLeg.position = lowerLegPosition;
       this.foot.position = footPosition;
@@ -139,15 +140,15 @@ class LegsManager extends MonoBehavior
     // this.rightLeg.upperLeg.localPosition = new Vector3(0.2, 0, 0);
     this.rightLeg.left = false;
 
-    this.spineLength = 0.3525347660851869;
+    // this.spineLength = 0.3525347660851869;
 
     const poseManager = this.GetOrAddComponent(PoseManager);
     this.hmdTransformRef = poseManager.vrTransforms.head;
   }
 
 	LateUpdate() {
-    this.hips.position = this.hmdTransformRef.position.add(new Vector3(0, -this.spineLength, 0));
-    this.hips.rotation = this.hmdTransformRef.rotation;
+    /* this.hips.position = this.hmdTransformRef.position.add(new Vector3(0, -this.spineLength, 0));
+    this.hips.rotation = this.hmdTransformRef.rotation; */
 
     const hipsFloorPosition = this.hips.position;
     hipsFloorPosition.y = 0;

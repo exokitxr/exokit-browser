@@ -13,7 +13,7 @@ class ArmTransforms extends MonoBehavior
 			this.wrist1 = new Transform();
 			this.wrist2 = new Transform();
 			this.hand = new Transform();
-			this.hand.localPosition = new Vector3(-0.15051116024404965, -0.11438198726617288, 0.0031849598262429744);
+			this.hand.localPosition = new Vector3(-0.1873079449553221, 0.025547282893312984, 0.003184993319977951);
 
       this.transform.AddChild(this.upperArm);
 			this.upperArm.AddChild(this.lowerArm);
@@ -30,7 +30,12 @@ class ArmTransforms extends MonoBehavior
 			return this.distance(this.upperArm, this.lowerArm);
 		}
 		get lowerArmLength() {
-			return this.distance(this.lowerArm, this.hand);
+			const result = this.distance(this.lowerArm, this.hand);
+			/* console.log('lower arm length', result);
+			if (result !== 0) {
+				debugger;
+			} */
+			return result;
 		}
 		get armLength() {
 			return this.upperArmLength + this.lowerArmLength;
