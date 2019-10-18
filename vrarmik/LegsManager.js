@@ -14,25 +14,27 @@ class Leg extends MonoBehavior {
     super(...args);
 
     this.upperLeg = new Transform();
-    this.upperLeg.localPosition = new Vector3(-0.07171520178403676, -0.1154526376107925, -0.013953604628355355);
     this.lowerLeg = new Transform();
-    this.lowerLeg.localPosition = new Vector3(-0.005757781010899271, -0.3811295375263364, -0.02434057165518574);
     this.foot = new Transform();
-    this.foot.localPosition = new Vector3(-0.002901996926509387, -0.40691825309716234, -0.05305202296204871);
     this.foot.stickTransform = new Transform();
 
     this.transform.AddChild(this.upperLeg);
     this.upperLeg.AddChild(this.lowerLeg);
     this.lowerLeg.AddChild(this.foot);
 
-    this.foot.stickTransform.position = this.foot.position;
-    this.upperLegLength = this.lowerLeg.localPosition.length();
-    this.lowerLegLength = this.foot.localPosition.length();
+    this.upperLegLength = 0;
+    this.lowerLegLength = 0;
 
     this.left = true;
     this.standing = true;
 
-    this.hmdTransformRef = null
+    // this.hmdTransformRef = null
+  }
+
+  Start() {
+    this.foot.stickTransform.position = this.foot.position;
+    this.upperLegLength = this.lowerLeg.localPosition.length();
+    this.lowerLegLength = this.foot.localPosition.length();
   }
 
   LateUpdate() {
@@ -171,9 +173,6 @@ class LegsManager extends MonoBehavior
     this.rightLeg = new GameObject().AddComponent(Leg);
     this.hips.AddChild(this.rightLeg.transform);
 
-    this.rightLeg.upperLeg.localPosition = this.rightLeg.upperLeg.localPosition.multiply(new Vector3(-1, 1, 1));
-    this.rightLeg.lowerLeg.localPosition = this.rightLeg.lowerLeg.localPosition.multiply(new Vector3(-1, 1, 1));
-    this.rightLeg.foot.localPosition = this.rightLeg.foot.localPosition.multiply(new Vector3(-1, 1, 1));
     this.rightLeg.foot.stickTransform.position = this.rightLeg.foot.position;
     this.rightLeg.left = false;
 

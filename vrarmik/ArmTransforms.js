@@ -7,13 +7,10 @@ class ArmTransforms extends MonoBehavior
       super(...args);
 
 			this.upperArm = new Transform();
-			this.upperArm.localPosition = new Vector3(-0.06732291289324821, -0.01723491704112179, -0.0009563277048525338);
 			this.lowerArm = new Transform();
-			this.lowerArm.localPosition = new Vector3(-0.1707330975901118, -0.1307657695972032, -0.0030010432725899837);
 			this.wrist1 = new Transform();
 			this.wrist2 = new Transform();
 			this.hand = new Transform();
-			this.hand.localPosition = new Vector3(-0.1873079449553221, 0.025547282893312984, 0.003184993319977951);
 
       this.transform.AddChild(this.upperArm);
 			this.upperArm.AddChild(this.lowerArm);
