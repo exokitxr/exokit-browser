@@ -83,7 +83,9 @@ class Leg extends MonoBehavior {
 			}
 		} */
 
-    if (this.foot.stickTransform.position.y <= 0) {
+    const {upperLegLength, lowerLegLength} = this;
+    // console.log('check', this.upperLeg.position.y, (upperLegLength + lowerLegLength), this.foot.stickTransform.position.y);
+    if (/*this.upperLeg.position.y < (upperLegLength + lowerLegLength) && */this.foot.position.y <= 0.05) {
       const footPosition = this.foot.stickTransform.position;
 
       footPosition.y = 0;
@@ -102,8 +104,6 @@ class Leg extends MonoBehavior {
 
       const lowerLegPosition = this.upperLeg.position.add(footPosition).divideScalar(2)
         .add(offsetDirection.clone().multiplyScalar(offsetDistance));
-
-      // console.log('offset dir', offsetDirection.toArray().join(','), this.upperLeg.position.toArray().join(','), lowerLegPosition.toArray().join(','));
 
       this.upperLeg.rotation = new Quaternion().setFromRotationMatrix(
 	      new THREE.Matrix4().lookAt(
@@ -155,7 +155,7 @@ class Leg extends MonoBehavior {
       //this.foot.position = footPosition; */
 
       this.standing = false;
-      this.foot.stickTransform.position = this.foot.position;
+      // this.foot.stickTransform.position = this.foot.position;
     }
 	}
 }
