@@ -177,6 +177,7 @@ const _getChildDirectionQuaternion = o => {
   }
 };
 new THREE.GLTFLoader().load('model4.glb', object => {
+  // return;
   model = object.scene;
 
   model.updateMatrixWorld(true);
@@ -371,11 +372,11 @@ function animate() {
       if (['Left_leg'].includes(k)) {
         modelBone.quaternion
           .multiply(modelBoneMapping.localRotation)
-          .multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2))
+          // .multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2))
       }
       if (['Left_knee'].includes(k)) {
         modelBone.quaternion
-          .premultiply(modelBoneMapping.localRotation)
+          .multiply(modelBoneMapping.localRotation)
           // .premultiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI))
       }
       if (['Left_ankle'].includes(k)) {
@@ -387,11 +388,11 @@ function animate() {
       if (['Right_leg'].includes(k)) {
         modelBone.quaternion
           .multiply(modelBoneMapping.localRotation)
-          .multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2))
+          // .multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2))
       }
       if (['Right_knee'].includes(k)) {
         modelBone.quaternion
-          .premultiply(modelBoneMapping.localRotation)
+          .multiply(modelBoneMapping.localRotation)
           // .premultiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI))
       }
       if (['Right_ankle'].includes(k)) {
