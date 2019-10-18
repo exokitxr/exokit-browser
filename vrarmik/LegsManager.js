@@ -200,13 +200,13 @@ class LegsManager extends MonoBehavior
     const position = new Vector3();
     const quaternion = new Quaternion();
     const scale = new Vector3();
-    new THREE.Matrix4().compose(this.leftLeg.foot.stickTransform.position, this.leftLeg.foot.rotation.multiply(new Quaternion().setFromUnitVectors(new Vector3(0, -1, 0), new Vector3(0, 0, 1)).inverse()), Vector3.one)
+    new THREE.Matrix4().compose(this.leftLeg.foot.stickTransform.position, this.leftLeg.foot.stickTransform.rotation, Vector3.one)
       .premultiply(planeMatrixInverse)
       .decompose(position, quaternion, scale);
     const leftFootPosition = position.clone();
     const leftFootRotation = quaternion.clone();
 
-    new THREE.Matrix4().compose(this.rightLeg.foot.stickTransform.position, this.rightLeg.foot.rotation.multiply(new Quaternion().setFromUnitVectors(new Vector3(0, -1, 0), new Vector3(0, 0, 1)).inverse()), Vector3.one)
+    new THREE.Matrix4().compose(this.rightLeg.foot.stickTransform.position, this.rightLeg.foot.stickTransform.rotation, Vector3.one)
       .premultiply(planeMatrixInverse)
       .decompose(position, quaternion, scale);
     const rightFootPosition = position.clone();
@@ -258,28 +258,38 @@ class LegsManager extends MonoBehavior
 	      .decompose(position, quaternion, scale);
 	    this.leftLeg.foot.rotation = quaternion; */
 
-      const hipsEuler = new THREE.Euler().setFromQuaternion(this.transform.rotation, 'YXZ');
+      // const hipsEuler = new THREE.Euler().setFromQuaternion(this.transform.rotation, 'YXZ');
 
-      const leftFootEuler = new THREE.Euler().setFromQuaternion(this.leftLeg.foot.stickTransform.rotation, 'YXZ');
-    	const leftAngleDiff = _angleDiff(hipsEuler.y, leftFootEuler.y);
-    	if (leftAngleDiff < -Math.PI*0.15) {
-    		leftFootEuler.y += leftAngleDiff + Math.PI*0.15;
-    		this.leftLeg.foot.stickTransform.rotation = new THREE.Quaternion().setFromEuler(leftFootEuler);
+      const leftFootEuler = new THREE.Euler().setFromQuaternion(leftFootRotation, 'YXZ');
+    	if (leftFootEuler.y < -Math.PI*0.15) {
+    		leftFootEuler.y = -Math.PI*0.15;
+    		new THREE.Matrix4().compose(Vector3.zero, new Quaternion().setFromEuler(leftFootEuler), Vector3.one)
+		      .premultiply(planeMatrix)
+		      .decompose(position, quaternion, scale);
+    		this.leftLeg.foot.stickTransform.rotation = quaternion;
     	}
-    	if (leftAngleDiff > Math.PI*0.15) {
-    		leftFootEuler.y += leftAngleDiff - Math.PI*0.15;
-    		this.leftLeg.foot.stickTransform.rotation = new THREE.Quaternion().setFromEuler(leftFootEuler);
+    	if (leftFootEuler.y > Math.PI*0.15) {
+    		leftFootEuler.y = Math.PI*0.15;
+    		new THREE.Matrix4().compose(Vector3.zero, new Quaternion().setFromEuler(leftFootEuler), Vector3.one)
+		      .premultiply(planeMatrix)
+		      .decompose(position, quaternion, scale);
+    		this.leftLeg.foot.stickTransform.rotation = quaternion;
     	}
 
-	    const rightFootEuler = new THREE.Euler().setFromQuaternion(this.rightLeg.foot.stickTransform.rotation, 'YXZ');
-    	const rightAngleDiff = _angleDiff(hipsEuler.y, rightFootEuler.y);
-    	if (rightAngleDiff < -Math.PI*0.15) {
-    		rightFootEuler.y += rightAngleDiff + Math.PI*0.15;
-    		this.rightLeg.foot.stickTransform.rotation = new THREE.Quaternion().setFromEuler(rightFootEuler);
+	    const rightFootEuler = new THREE.Euler().setFromQuaternion(rightFootRotation, 'YXZ');
+    	if (rightFootEuler.y < -Math.PI*0.15) {
+    		rightFootEuler.y = -Math.PI*0.15;
+    		new THREE.Matrix4().compose(Vector3.zero, new Quaternion().setFromEuler(rightFootEuler), Vector3.one)
+		      .premultiply(planeMatrix)
+		      .decompose(position, quaternion, scale);
+    		this.rightLeg.foot.stickTransform.rotation = quaternion;
     	}
-    	if (rightAngleDiff > Math.PI*0.15) {
-    		rightFootEuler.y += rightAngleDiff - Math.PI*0.15;
-    		this.rightLeg.foot.stickTransform.rotation = new THREE.Quaternion().setFromEuler(rightFootEuler);
+    	if (rightFootEuler.y > Math.PI*0.15) {
+    		rightFootEuler.y = Math.PI*0.15;
+    		new THREE.Matrix4().compose(Vector3.zero, new Quaternion().setFromEuler(rightFootEuler), Vector3.one)
+		      .premultiply(planeMatrix)
+		      .decompose(position, quaternion, scale);
+    		this.rightLeg.foot.stickTransform.rotation = quaternion;
     	}
 
 
