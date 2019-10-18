@@ -164,22 +164,22 @@ new THREE.GLTFLoader().load('model4.glb', object => {
     }
   });
   fixSkeletonZForward(window.bones[0], {
-    preRotations: {
+    /* preRotations: {
       'Left_arm': new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI*0.25).inverse(),
       'Right_arm': new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1),  -Math.PI*0.25).inverse(),
-    },
+    }, */
   });
   model.traverse(o => {
     if (o.isSkinnedMesh) {
       o.bind(window.skeleton);
     }
   });
-  ['Left_arm', 'Right_arm'].forEach((name, i) => {
+  /* ['Left_arm', 'Right_arm'].forEach((name, i) => {
     const bone = bones.find(bone => bone.name === name);
     if (bone) {
       bone.quaternion.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), (i === 0 ? 1 : -1) * Math.PI*0.25));
     }
-  });
+  }); */
   model.updateMatrixWorld(true);
 
   model.traverse(o => {
@@ -222,13 +222,13 @@ new THREE.GLTFLoader().load('model4.glb', object => {
 
     leftShoulder: _getOffset(modelBones.Right_shoulder),
     leftUpperArm: _getOffset(modelBones.Right_arm),
-    leftLowerArm: new Vector3(-0.1707330975901118, -0.1307657695972032, -0.0030010432725899837),
-    leftHand: new Vector3(-0.1873079449553221, 0.025547282893312984, 0.003184993319977951),
+    leftLowerArm: _getOffset(modelBones.Right_elbow),
+    leftHand: _getOffset(modelBones.Right_wrist),
 
     rightShoulder: _getOffset(modelBones.Left_shoulder),
     rightUpperArm: _getOffset(modelBones.Left_arm),
-    rightLowerArm: new Vector3(0.1707330975901118, -0.1307657695972032, -0.0030010432725899837),
-    rightHand: new Vector3(0.1873079449553221, 0.025547282893312984, 0.003184993319977951),
+    rightLowerArm: _getOffset(modelBones.Left_elbow),
+    rightHand: _getOffset(modelBones.Left_wrist),
 
     leftUpperLeg: _getOffset(modelBones.Right_leg),
     leftLowerLeg: _getOffset(modelBones.Right_knee),
