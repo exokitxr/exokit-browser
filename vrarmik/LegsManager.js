@@ -183,9 +183,6 @@ class LegsManager extends MonoBehavior
   }
 
 	LateUpdate() {
-    /* this.hips.position = this.hmdTransformRef.position.add(new Vector3(0, -this.spineLength, 0));
-    this.hips.rotation = this.hmdTransformRef.rotation; */
-
     const hipsFloorPosition = this.hips.position;
     hipsFloorPosition.y = 0;
     const hipsFloorEuler = new THREE.Euler().setFromQuaternion(this.hips.rotation, 'YXZ');
@@ -241,23 +238,7 @@ class LegsManager extends MonoBehavior
 				this.leftLeg.foot.stickTransform.position = leftFootPosition.clone().applyMatrix4(planeMatrix);
 			}
 		}
-
-    {
-    	/* const leftFootDirection = new Vector3(0, 0, 1).applyQuaternion(leftFootRotation);
-    	let leftFootAngle = Math.atan2(leftFootPosition.clone().normalize().z, leftFootPosition.clone().normalize().x);
-    	if (leftFootAngle > Math.PI/8) {
-    		leftFootAngle -= Math.PI/8;
-    	}
-    	if (leftFootAngle < -Math.PI/3) {
-    		leftFootAngle += Math.PI/3;
-    	}
-    	new THREE.Matrix4().compose(Vector3.zero, quaternion.setFromAxisAngle(new Vector3(0, 1, 0), leftFootAngle), Vector3.one)
-	      .premultiply(planeMatrix)
-	      .decompose(position, quaternion, scale);
-	    this.leftLeg.foot.rotation = quaternion; */
-
-      // const hipsEuler = new THREE.Euler().setFromQuaternion(this.transform.rotation, 'YXZ');
-
+		{
       const leftFootEuler = new THREE.Euler().setFromQuaternion(leftFootRotation, 'YXZ');
     	if (leftFootEuler.y < -Math.PI*0.15) {
     		leftFootEuler.y = -Math.PI*0.15;
@@ -289,67 +270,8 @@ class LegsManager extends MonoBehavior
 		      .decompose(position, quaternion, scale);
     		this.rightLeg.foot.stickTransform.rotation = quaternion;
     	}
-
-
-    	/* if (rightAngleDiff < Math.PI*0.2) {
-    		rightFootEuler.y += Math.PI*0.2;
-    		this.righttFoot.stickTransform.rotation = new THREE.Quaternion().setFromEuler(rightFootEuler);
-    	} */
-    	// this.rightLeg.upperLeg.localRotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, rightFootAngle, 0, 'YXZ'));
-
-
-    	/* console.log('right angle diff', rightAngleDiff, rightFootAngle, rightFootDirection.toArray().join(','));
-    	if (rightAngleDiff > Math.PI/2+Math.PI*0.2) {
-				console.log('fix');
-				this.rightLeg.upperLeg.localRotation = this.rightLeg.upperLeg.localRotation.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI*0.2));
-			} */
-    	/* if (rightAngleDiff < Math.PI*0.2) {
-    		console.log('fix', rightFootAngle, rightAngleDiff)
-        rightFootAngle -= Math.PI*0.2;
-    	}
-
-      this.rightLeg.upperLeg.localRotation = new Quaternion().setFromEuler(rightFootEuler);
-    	new THREE.Matrix4().compose(Vector3.zero, quaternion.setFromEuler(rightFootEuler), Vector3.one)
-	      .premultiply(planeMatrix)
-	      .decompose(position, quaternion, scale); */
-	    // this.rightLeg.foot.rotation = quaternion.clone().multiply(new Quaternion().setFromUnitVectors(new Vector3(0, -1, 0), new Vector3(0, 0, 1)));
-		}
-
-    /* // console.log('vectors', leftFootPosition.toArray().join(','), leftFootVector.toArray().join(','));
-		if (originPoint.x < legsBox.min.x) {
-			const leftmostFoot = leftFootPosition.x <= rightFootPosition.x ? this.leftLeg.foot : this.rightLeg.foot;
-			leftmostFoot.stickTransform.position = leftmostFoot.stickTransform.position.add(new Vector3(originPoint.x - legsBox.min.x - 0.2, 0, 0).applyQuaternion(hipsFloorRotation));
-		}
-		if (originPoint.x > legsBox.max.x) {
-			const rightmostFoot = leftFootPosition.x >= rightFootPosition.x ? this.leftLeg.foot : this.rightLeg.foot;
-			rightmostFoot.stickTransform.position = rightmostFoot.stickTransform.position.add(new Vector3(originPoint.x - legsBox.max.x + 0.2, 0, 0).applyQuaternion(hipsFloorRotation));
-		}
-		if (originPoint.y < legsBox.min.y) {
-			const upmostFoot = leftFootPosition.y <= rightFootPosition.y ? this.leftLeg.foot : this.rightLeg.foot;
-			upmostFoot.stickTransform.position = upmostFoot.stickTransform.position.add(new Vector3(0, 0, originPoint.y - legsBox.min.y - 0.2).applyQuaternion(hipsFloorRotation));
-		}
-		if (originPoint.y > legsBox.max.y) {
-			const downmostFoot = leftFootPosition.y >= rightFootPosition.y ? this.leftLeg.foot : this.rightLeg.foot;
-			downmostFoot.stickTransform.position = downmostFoot.stickTransform.position.add(new Vector3(0, 0, originPoint.y - legsBox.min.y + 0.2).applyQuaternion(hipsFloorRotation));
-		}
-
-		const legsWidth = legsBox.max.x - legsBox.min.x;
-		const legsHeight = legsBox.max.y - legsBox.min.y;
-		const distance = Math.sqrt(legsWidth*legsWidth + legsHeight*legsHeight);
-		if (distance > 1) {
-			const leftDistance = leftFootVector.length();
-			const rightDistance = rightFootVector.length();
-			if (leftDistance > rightDistance) {
-				const direction = leftFootVector.multiplyScalar(-1).normalize();
-				const offset = direction.clone().multiplyScalar(0.2);
-				this.leftLeg.foot.stickTransform.position = this.leftLeg.foot.stickTransform.position.add(new Vector3(offset.x, 0, offset.y).applyQuaternion(hipsFloorRotation));
-			} else {
-		    const direction = rightFootVector.multiplyScalar(-1).normalize();
-				const offset = direction.clone().multiplyScalar(0.2);
-				this.rightLeg.foot.stickTransform.position = this.rightLeg.foot.stickTransform.position.add(new Vector3(offset.x, 0, offset.y).applyQuaternion(hipsFloorRotation));
-			}
-		} */
-	}
+	  }
+  }
 }
 
 export default LegsManager;
