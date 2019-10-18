@@ -128,9 +128,9 @@ class Leg extends MonoBehavior {
       this.standing = true;
       this.foot.stickTransform.position = footPosition;
     } else {
-    	this.upperLeg.rotation = this.upperLeg.rotation.slerp(new Quaternion(), 0.1);
-    	this.lowerLeg.rotation = this.lowerLeg.rotation.slerp(new Quaternion(), 0.1);
-    	this.foot.rotation = this.foot.rotation.slerp(new Quaternion().setFromUnitVectors(new Vector3(0, -1, 0), new Vector3(0, 0, 1)), 0.1);
+    	this.upperLeg.localRotation = this.upperLeg.localRotation.slerp(new Quaternion(), 0.1);
+    	this.lowerLeg.localRotation = this.lowerLeg.localRotation.slerp(new Quaternion(), 0.1);
+    	this.foot.localRotation = this.foot.localRotation.slerp(new Quaternion().setFromUnitVectors(new Vector3(0, -1, 0), new Vector3(0, 0, 1)), 0.1);
       /* const direction = this.foot.position.sub(this.upperLeg.position).normalize().lerp(new Vector3(0, -1, 0), 0.1);
       const lowerLegPosition = this.upperLeg.position.add(direction.clone().multiplyScalar(upperLegLength));
       const footPosition = this.lowerLeg.position.add(direction.clone().multiplyScalar(lowerLegLength));
