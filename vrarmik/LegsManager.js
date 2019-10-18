@@ -50,9 +50,9 @@ class Leg extends MonoBehavior {
     const legDiff = this.foot.position.sub(this.transform.position);
 		const footEuler = new THREE.Euler(0, upperLegY - Math.PI/2, 0, 'YXZ'); */
 
-		const footEuler = new THREE.Euler().setFromQuaternion(this.foot.rotation.multiply(new Quaternion().setFromUnitVectors(new Vector3(0, -1, 0), new Vector3(0, 0, 1)).inverse()), 'YXZ');
+		/* const footEuler = new THREE.Euler().setFromQuaternion(this.foot.rotation.multiply(new Quaternion().setFromUnitVectors(new Vector3(0, -1, 0), new Vector3(0, 0, 1)).inverse()), 'YXZ');
     footEuler.x = 0;
-    footEuler.z = 0;
+    footEuler.z = 0; */
 
 		/* let angleDiff = (() => {
 			let a = hipsY;
@@ -88,7 +88,8 @@ class Leg extends MonoBehavior {
 
       footPosition.y = 0;
       // const footRotation = this.upperLeg.rotation;
-      const footRotation = new Quaternion().setFromEuler(footEuler);
+      const footRotation = this.foot.stickTransform.rotation;
+      // const footRotation = new Quaternion().setFromEuler(footEuler);
       // const footRotation = this.foot.rotation;
 
       const {upperLegLength, lowerLegLength} = this;
@@ -257,10 +258,35 @@ class LegsManager extends MonoBehavior
 	      .decompose(position, quaternion, scale);
 	    this.leftLeg.foot.rotation = quaternion; */
 
-      // const rightFootEuler = new THREE.Euler().setFromQuaternion(this.rightLeg.upperLeg.localRotation, 'YXZ');
-	    const rightFootDirection = new Vector3(0, 0, 1).applyQuaternion(this.rightLeg.upperLeg.localRotation);
-    	let rightFootAngle = Math.atan2(rightFootDirection.clone().normalize().z, rightFootDirection.clone().normalize().x);
-    	const rightAngleDiff = _angleDiff(Math.PI/2, rightFootAngle);
+      const hipsEuler = new THREE.Euler().setFromQuaternion(this.transform.rotation, 'YXZ');
+
+      const leftFootEuler = new THREE.Euler().setFromQuaternion(this.leftLeg.foot.stickTransform.rotation, 'YXZ');
+    	const leftAngleDiff = _angleDiff(hipsEuler.y, leftFootEuler.y);
+    	if (leftAngleDiff < -Math.PI*0.15) {
+    		leftFootEuler.y += leftAngleDiff + Math.PI*0.15;
+    		this.leftLeg.foot.stickTransform.rotation = new THREE.Quaternion().setFromEuler(leftFootEuler);
+    	}
+    	if (leftAngleDiff > Math.PI*0.15) {
+    		leftFootEuler.y += leftAngleDiff - Math.PI*0.15;
+    		this.leftLeg.foot.stickTransform.rotation = new THREE.Quaternion().setFromEuler(leftFootEuler);
+    	}
+
+	    const rightFootEuler = new THREE.Euler().setFromQuaternion(this.rightLeg.foot.stickTransform.rotation, 'YXZ');
+    	const rightAngleDiff = _angleDiff(hipsEuler.y, rightFootEuler.y);
+    	if (rightAngleDiff < -Math.PI*0.15) {
+    		rightFootEuler.y += rightAngleDiff + Math.PI*0.15;
+    		this.rightLeg.foot.stickTransform.rotation = new THREE.Quaternion().setFromEuler(rightFootEuler);
+    	}
+    	if (rightAngleDiff > Math.PI*0.15) {
+    		rightFootEuler.y += rightAngleDiff - Math.PI*0.15;
+    		this.rightLeg.foot.stickTransform.rotation = new THREE.Quaternion().setFromEuler(rightFootEuler);
+    	}
+
+
+    	/* if (rightAngleDiff < Math.PI*0.2) {
+    		rightFootEuler.y += Math.PI*0.2;
+    		this.righttFoot.stickTransform.rotation = new THREE.Quaternion().setFromEuler(rightFootEuler);
+    	} */
     	// this.rightLeg.upperLeg.localRotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, rightFootAngle, 0, 'YXZ'));
 
 
