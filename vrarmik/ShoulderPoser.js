@@ -49,15 +49,9 @@ class ShoulderPoser extends MonoBehavior
 
 			this.lastAngle = Vector3.zero;
 
-
 			this.leftShoulderAnkerStartLocalPosition = new Vector3();
 			this.rightShoulderAnkerStartLocalPosition = new Vector3();
 
-			this.Start();
-		}
-
-		Start()
-		{
 			if (this.vrTrackingReferences === null)
 				this.vrTrackingReferences = PoseManager.Instance.vrTransforms;
 			if (this.avatarTrackingReferences === null)
