@@ -43,8 +43,6 @@ class Rig {
       hmd: this.poseManager.vrTransforms.head,
 			leftGamepad: this.poseManager.vrTransforms.leftHand,
 			rightGamepad: this.poseManager.vrTransforms.rightHand,
-			leftFoot: this.legsManager.leftLeg.foot,
-			rightFoot: this.legsManager.rightLeg.foot,
 		};
 		this.outputs = {
       hmd: this.shoulderTransforms.head,
