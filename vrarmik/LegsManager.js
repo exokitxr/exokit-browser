@@ -94,10 +94,9 @@ class Leg extends MonoBehavior {
       // const footRotation = new Quaternion().setFromEuler(footEuler);
       // const footRotation = this.foot.rotation;
 
-      const {upperLegLength, lowerLegLength} = this;
 	    const hypotenuseDistance = upperLegLength;
 	    const verticalDistance = Math.abs(this.upperLeg.position.y) / 2;
-      const offsetDistance = Math.sqrt(hypotenuseDistance*hypotenuseDistance - verticalDistance*verticalDistance);
+      const offsetDistance = verticalDistance < hypotenuseDistance ? Math.sqrt(hypotenuseDistance*hypotenuseDistance - verticalDistance*verticalDistance) : 0;
       const offsetDirection = footPosition.clone().sub(this.upperLeg.position)
         .cross(new Vector3(1, 0, 0).applyQuaternion(footRotation))
         .normalize();

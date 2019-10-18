@@ -63,9 +63,8 @@ class ShoulderPoser extends MonoBehavior
 			if (this.avatarTrackingReferences === null)
 				this.avatarTrackingReferences = PoseManager.Instance.avatarVrTransforms;
 
-			this.leftShoulderAnkerStartLocalPosition = this.shoulder.transform.InverseTransformPoint(this.shoulder.leftShoulderAnchor.position);
-			this.rightShoulderAnkerStartLocalPosition =
-				this.shoulder.transform.InverseTransformPoint(this.shoulder.rightShoulderAnchor.position);
+			this.leftShoulderAnkerStartLocalPosition = this.shoulder.leftShoulderAnchor.localPosition;
+			this.rightShoulderAnkerStartLocalPosition = this.shoulder.rightShoulderAnchor.localPosition;
 		}
 
 		/* onCalibrate()
@@ -119,11 +118,13 @@ class ShoulderPoser extends MonoBehavior
 		  const spinePosition = chestPosition.clone().add(this.shoulder.transform.localPosition.multiplyScalar(-1).applyQuaternion(headFlatRotation));
 		  const hipsPosition = spinePosition.clone().add(this.shoulder.spine.localPosition.multiplyScalar(-1).applyQuaternion(headFlatRotation));
 
-      // console.log('got hips pos', headPosition.toArray().join(','), neckPosition.toArray().join(','));
+      // console.log('got hips pos', this.shoulderRightRotation);
 
+window.shoulder = this.shoulder;
       this.shoulder.hips.position = hipsPosition;
       this.shoulder.hips.rotation = headFlatRotation;
       this.shoulder.spine.rotation = headFlatRotation;
+      this.shoulder.transform.localRotation = new Quaternion();
       this.shoulder.neck.rotation = headFlatRotation;
       this.shoulder.head.rotation = headRotation;
 		}
@@ -184,10 +185,10 @@ class ShoulderPoser extends MonoBehavior
 
 			const targetRotation = new Vector3(0, angle, 0);
 
-			if (this.autoDetectHandsBehindHead)
+			/* if (this.autoDetectHandsBehindHead)
 			{
 				this.detectHandsBehindHead(targetRotation);
-			}
+			} */
 
 			if (this.clampRotationToHead)
 			{
@@ -245,6 +246,8 @@ class ShoulderPoser extends MonoBehavior
 
 			const combinedDirection = new Vector3().addVectors(directionLeftHand, directionRightHand);
 
+			// console.log('combined', Mathf.Atan2(combinedDirection.x, combinedDirection.z) * 180 / Mathf.PI, combinedDirection.x, combinedDirection.z);
+
 			return Mathf.Atan2(combinedDirection.x, combinedDirection.z) * 180 / Mathf.PI;
 		}
 
@@ -253,7 +256,9 @@ class ShoulderPoser extends MonoBehavior
 			const delta = Mathf.Abs(targetRotation.y - this.lastAngle.y + 360) % 360;
 			if (delta > 150 && delta < 210 && this.lastAngle.magnitude > 0.000001 && !this.clampingHeadRotation)
 			{
-				this.handsBehindHead = !this.handsBehindHead;
+				this.handsBehindHead = true;
+			} else {
+				this.handsBehindHead = false;
 			}
 
 			this.lastAngle = targetRotation;
