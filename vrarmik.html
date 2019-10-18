@@ -96,78 +96,7 @@ scene.remove(meshes.upperLegRight);
 scene.remove(meshes.lowerLegRight);
 scene.remove(meshes.footRight); */
 
-const rig = new Rig({
-  spine: new Vector3(-8.88181387016927e-16, 1.2409379290811984e-7, 7.45060786677687e-9),
-  hips: new Vector3(-1.3878628978259084e-10, 0.08719508121453046, -0.0038367719593098565),
-  neck: new Vector3(-3.122724325702129e-10, 0.1953215129534993, -0.028340029021169225),
-  head: new Vector3(-1.089444464331453e-10, 0.06860782711996793, 0.0006757629250115482),
-
-  leftShoulder: new Vector3(-0.018790404909333258, 0.17293596589167015, -0.025336985971404546),
-  leftUpperArm: new Vector3(-0.06732291289324821, -0.01723491704112179, -0.0009563277048525338),
-  leftLowerArm: new Vector3(-0.1707330975901118, -0.1307657695972032, -0.0030010432725899837),
-  leftHand: new Vector3(-0.1873079449553221, 0.025547282893312984, 0.003184993319977951),
-
-  rightShoulder: new Vector3(0.018790404909333258, 0.17293596589167015, -0.025336985971404546),
-  rightUpperArm: new Vector3(0.06732291289324821, -0.01723491704112179, -0.0009563277048525338),
-  rightLowerArm: new Vector3(0.1707330975901118, -0.1307657695972032, -0.0030010432725899837),
-  rightHand: new Vector3(0.1873079449553221, 0.025547282893312984, 0.003184993319977951),
-
-  leftUpperLeg: new Vector3(-0.07171520178403676, -0.1154526376107925, -0.013953604628355355),
-  leftLowerLeg: new Vector3(-0.005757781010899271, -0.3811295375263364, -0.02434057165518574),
-  leftFoot: new Vector3(-0.002901996926509387, -0.40691825309716234, -0.05305202296204871),
-
-  rightUpperLeg: new Vector3(0.07171520178403676, -0.1154526376107925, -0.013953604628355355),
-  rightLowerLeg: new Vector3(0.005757781010899271, -0.3811295375263364, -0.02434057165518574),
-  rightFoot: new Vector3(0.002901996926509387, -0.40691825309716234, -0.05305202296204871),
-});
-
-let model = null;
-const modelBones = {
-  Hips: null,
-  Spine: null,
-  Chest: null,
-  Neck: null,
-  Head: null,
-
-  Left_shoulder: null,
-  Left_arm: null,
-  Left_elbow: null,
-  Left_wrist: null,
-  Left_leg: null,
-  Left_knee: null,
-  Left_ankle: null,
-
-  Right_shoulder: null,
-  Right_arm: null,
-  Right_elbow: null,
-  Right_wrist: null,
-  Right_leg: null,
-  Right_knee: null,
-  Right_ankle: null,
-};
-const modelBonesMappings = {
-  Hips: rig.outputs.hips,
-  Spine: rig.outputs.spine,
-  Chest: rig.outputs.chest,
-  Neck: rig.outputs.neck,
-  Head: rig.outputs.hmd,
-
-  Left_shoulder: rig.outputs.rightShoulder,
-  Left_arm: rig.outputs.rightUpperArm,
-  Left_elbow: rig.outputs.rightLowerArm,
-  Left_wrist: rig.outputs.rightHand,
-  Left_leg: rig.outputs.rightUpperLeg,
-  Left_knee: rig.outputs.rightLowerLeg,
-  Left_ankle: rig.outputs.rightFoot,
-
-  Right_shoulder: rig.outputs.leftShoulder,
-  Right_arm: rig.outputs.leftUpperArm,
-  Right_elbow: rig.outputs.leftLowerArm,
-  Right_wrist: rig.outputs.leftHand,
-  Right_leg: rig.outputs.leftUpperLeg,
-  Right_knee: rig.outputs.leftLowerLeg,
-  Right_ankle: rig.outputs.leftFoot,
-};
+let rig, model, modelBones, modelBonesMappings;
 const _getChildDirectionQuaternion = o => {
   // const worldPosition = o.getWorldPosition(new Vector3());
   const vector = new Vector3(0, 0, 0);
@@ -196,7 +125,30 @@ const _getChildDirectionQuaternion = o => {
   }
 };
 new THREE.GLTFLoader().load('model4.glb', object => {
-  // return;
+  modelBones = {
+    Hips: null,
+    Spine: null,
+    Chest: null,
+    Neck: null,
+    Head: null,
+
+    Left_shoulder: null,
+    Left_arm: null,
+    Left_elbow: null,
+    Left_wrist: null,
+    Left_leg: null,
+    Left_knee: null,
+    Left_ankle: null,
+
+    Right_shoulder: null,
+    Right_arm: null,
+    Right_elbow: null,
+    Right_wrist: null,
+    Right_leg: null,
+    Right_knee: null,
+    Right_ankle: null,
+  };
+
   model = object.scene;
 
   model.updateMatrixWorld(true);
@@ -260,6 +212,60 @@ new THREE.GLTFLoader().load('model4.glb', object => {
       } */
     }
   });
+
+  const _getOffset = (bone, parent = bone.parent) => bone.getWorldPosition(new Vector3()).sub(parent.getWorldPosition(new Vector3()));
+  const setups = {
+    spine: _getOffset(modelBones.Spine),
+    hips: _getOffset(modelBones.Spine, modelBones.Head),
+    neck: _getOffset(modelBones.Neck),
+    head: _getOffset(modelBones.Head),
+
+    leftShoulder: _getOffset(modelBones.Right_shoulder),
+    leftUpperArm: _getOffset(modelBones.Right_arm),
+    leftLowerArm: new Vector3(-0.1707330975901118, -0.1307657695972032, -0.0030010432725899837),
+    leftHand: new Vector3(-0.1873079449553221, 0.025547282893312984, 0.003184993319977951),
+
+    rightShoulder: _getOffset(modelBones.Left_shoulder),
+    rightUpperArm: _getOffset(modelBones.Left_arm),
+    rightLowerArm: new Vector3(0.1707330975901118, -0.1307657695972032, -0.0030010432725899837),
+    rightHand: new Vector3(0.1873079449553221, 0.025547282893312984, 0.003184993319977951),
+
+    leftUpperLeg: _getOffset(modelBones.Right_leg),
+    leftLowerLeg: _getOffset(modelBones.Right_knee),
+    leftFoot: _getOffset(modelBones.Right_ankle),
+
+    rightUpperLeg: _getOffset(modelBones.Left_leg),
+    rightLowerLeg: _getOffset(modelBones.Left_knee),
+    rightFoot: _getOffset(modelBones.Left_ankle),
+  };
+  rig = new Rig(setups);
+  /* for (const k in setups) {
+    setups[k] = setups[k].toArray();
+  }
+  console.log(JSON.stringify(setups, null, 2)); */
+  modelBonesMappings = {
+    Hips: rig.outputs.hips,
+    Spine: rig.outputs.spine,
+    Chest: rig.outputs.chest,
+    Neck: rig.outputs.neck,
+    Head: rig.outputs.hmd,
+
+    Left_shoulder: rig.outputs.rightShoulder,
+    Left_arm: rig.outputs.rightUpperArm,
+    Left_elbow: rig.outputs.rightLowerArm,
+    Left_wrist: rig.outputs.rightHand,
+    Left_leg: rig.outputs.rightUpperLeg,
+    Left_knee: rig.outputs.rightLowerLeg,
+    Left_ankle: rig.outputs.rightFoot,
+
+    Right_shoulder: rig.outputs.leftShoulder,
+    Right_arm: rig.outputs.leftUpperArm,
+    Right_elbow: rig.outputs.leftLowerArm,
+    Right_wrist: rig.outputs.leftHand,
+    Right_leg: rig.outputs.leftUpperLeg,
+    Right_knee: rig.outputs.leftLowerLeg,
+    Right_ankle: rig.outputs.leftFoot,
+  };
 
   // debugger;
 
