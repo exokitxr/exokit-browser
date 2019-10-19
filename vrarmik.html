@@ -160,26 +160,14 @@ new THREE.GLTFLoader().load('model4.glb', object => {
       window.bones = bones;
 
       o.bind(window.skeleton);
-      // window.bindMatrix = bindMatrix.clone();
     }
   });
-  fixSkeletonZForward(window.bones[0], {
-    /* preRotations: {
-      'Left_arm': new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI*0.25).inverse(),
-      'Right_arm': new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1),  -Math.PI*0.25).inverse(),
-    }, */
-  });
+  fixSkeletonZForward(window.bones[0]);
   model.traverse(o => {
     if (o.isSkinnedMesh) {
       o.bind(window.skeleton);
     }
   });
-  /* ['Left_arm', 'Right_arm'].forEach((name, i) => {
-    const bone = bones.find(bone => bone.name === name);
-    if (bone) {
-      bone.quaternion.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), (i === 0 ? 1 : -1) * Math.PI*0.25));
-    }
-  }); */
   model.updateMatrixWorld(true);
 
   model.traverse(o => {
@@ -189,15 +177,9 @@ new THREE.GLTFLoader().load('model4.glb', object => {
     if (o.isSkinnedMesh) {
       const {skeleton, bindMatrix} = o;
       const {bones} = skeleton;
-      /* fixSkeletonZForward(bones[0], {
-        exclude: ['Hips', 'Head'],
-      });
-      o.bind(skeleton, bindMatrix); */
-      // o.updateMatrixWorld(true);
       for (const k in modelBones) {
         if (!modelBones[k]) {
           modelBones[k] = bones.find(bone => bone.name === k);
-          // modelBones[k].initialDirectionQuaternion = _getChildDirectionQuaternion(modelBones[k]);
           modelBones[k].initialPosition = modelBones[k].position.clone();
           modelBones[k].initialQuaternion = modelBones[k].quaternion.clone();
           console.log('found bone', k, modelBones[k], modelBones[k].children, new THREE.Euler().setFromQuaternion(modelBones[k].initialQuaternion, 'YXZ'), 'YXZ');
@@ -205,11 +187,6 @@ new THREE.GLTFLoader().load('model4.glb', object => {
           modelBones[k].initialMatrixWorld = modelBones[k].matrixWorld.clone();
         }
       }
-      /* for (const k in modelBones) {
-        if (modelBones[k] && modelBones[k].parent) {
-          modelBones[k].parent.remove(modelBones[k]);
-        }
-      } */
     }
   });
 
