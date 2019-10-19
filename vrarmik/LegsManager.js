@@ -85,11 +85,15 @@ class Leg extends MonoBehavior {
 			}
 		} */
 
+    const footPosition = this.foot.stickTransform.position;
     const {upperLegLength, lowerLegLength} = this;
-    // console.log('check', this.upperLeg.position.y, (upperLegLength + lowerLegLength), this.foot.stickTransform.position.y);
-    if (/*this.upperLeg.position.y < (upperLegLength + lowerLegLength) && */this.foot.position.y <= 0.05) {
-      const footPosition = this.foot.stickTransform.position;
-
+    // const upperLegLength = this.lowerLeg.localPosition.length();
+    // const lowerLegLength = this.foot.localPosition.length();
+    const g = this.upperLeg.position.add(footPosition.clone().sub(this.upperLeg.position).normalize().multiplyScalar(upperLegLength + lowerLegLength));
+    /* if (this.left) {
+      console.log('check', g.y, footPosition.y, this.foot.position.y);
+    } */
+    if (g.y <= 0) {
       footPosition.y = 0;
       // const footRotation = this.upperLeg.rotation;
       const footRotation = this.foot.stickTransform.rotation;
@@ -98,7 +102,7 @@ class Leg extends MonoBehavior {
 
 	    const hypotenuseDistance = upperLegLength;
 	    const verticalDistance = Math.abs(this.upperLeg.position.y) / 2;
-      const offsetDistance = verticalDistance < hypotenuseDistance ? Math.sqrt(hypotenuseDistance*hypotenuseDistance - verticalDistance*verticalDistance) : 0;
+      const offsetDistance = hypotenuseDistance > verticalDistance ? Math.sqrt(hypotenuseDistance*hypotenuseDistance - verticalDistance*verticalDistance) : 0;
       const offsetDirection = footPosition.clone().sub(this.upperLeg.position)
         .cross(new Vector3(1, 0, 0).applyQuaternion(footRotation))
         .normalize();
@@ -127,11 +131,12 @@ class Leg extends MonoBehavior {
       this.foot.rotation = footRotation.multiply(new Quaternion().setFromUnitVectors(new Vector3(0, -1, 0), new Vector3(0, 0, 1)));
 
       this.standing = true;
-      this.foot.stickTransform.position = footPosition;
+      // this.foot.stickTransform.position = footPosition;
     } else {
     	this.upperLeg.localRotation = this.upperLeg.localRotation.slerp(new Quaternion(), 0.1);
     	this.lowerLeg.localRotation = this.lowerLeg.localRotation.slerp(new Quaternion(), 0.1);
     	this.foot.localRotation = this.foot.localRotation.slerp(new Quaternion().setFromUnitVectors(new Vector3(0, -1, 0), new Vector3(0, 0, 1)), 0.1);
+    	// this.foot.position = footPosition;
       /* const direction = this.foot.position.sub(this.upperLeg.position).normalize().lerp(new Vector3(0, -1, 0), 0.1);
       const lowerLegPosition = this.upperLeg.position.add(direction.clone().multiplyScalar(upperLegLength));
       const footPosition = this.lowerLeg.position.add(direction.clone().multiplyScalar(lowerLegLength));
@@ -208,37 +213,6 @@ class LegsManager extends MonoBehavior
     const rightFootRotation = quaternion.clone();
 
     {
-			const leftFootAngle = Math.atan2(leftFootPosition.clone().normalize().z, leftFootPosition.clone().normalize().x);
-			const leftAngleDiff = _angleDiff(Math.PI/2, leftFootAngle);
-			const rightFootAngle = Math.atan2(rightFootPosition.clone().normalize().z, rightFootPosition.clone().normalize().x);
-			const rightAngleDiff = _angleDiff(Math.PI/2, rightFootAngle);
-
-	    if (rightAngleDiff < Math.PI*0.2) {
-				const rightFootDistance = Math.max(Math.min(Math.sqrt(rightFootPosition.x*rightFootPosition.x + rightFootPosition.z*rightFootPosition.z), 0.1), 0.2);
-				rightFootPosition.x = rightFootDistance;
-				rightFootPosition.z = 0;
-				this.rightLeg.foot.stickTransform.position = rightFootPosition.clone().applyMatrix4(planeMatrix);
-			}
-			if (rightAngleDiff > Math.PI/2+Math.PI*0.2) {
-				const rightFootDistance = Math.max(Math.min(Math.sqrt(rightFootPosition.x*rightFootPosition.x + rightFootPosition.z*rightFootPosition.z), 0.1), 0.2);
-				rightFootPosition.x = rightFootDistance;
-				rightFootPosition.z = 0;
-				this.rightLeg.foot.stickTransform.position = rightFootPosition.clone().applyMatrix4(planeMatrix);
-			}
-			if (leftAngleDiff > -Math.PI*0.2) {
-				const leftFootDistance = Math.max(Math.min(Math.sqrt(leftFootPosition.x*leftFootPosition.x + leftFootPosition.z*leftFootPosition.z), 0.1), 0.2);
-				leftFootPosition.x = -leftFootDistance;
-				leftFootPosition.z = 0;
-				this.leftLeg.foot.stickTransform.position = leftFootPosition.clone().applyMatrix4(planeMatrix);
-			}
-			if (leftAngleDiff < -Math.PI/2-Math.PI*0.2) {
-				const leftFootDistance = Math.max(Math.min(Math.sqrt(leftFootPosition.x*leftFootPosition.x + leftFootPosition.z*leftFootPosition.z), 0.1), 0.2);
-				leftFootPosition.x = -leftFootDistance;
-				leftFootPosition.z = 0;
-				this.leftLeg.foot.stickTransform.position = leftFootPosition.clone().applyMatrix4(planeMatrix);
-			}
-		}
-		{
       const leftFootEuler = new THREE.Euler().setFromQuaternion(leftFootRotation, 'YXZ');
     	if (leftFootEuler.y < -Math.PI*0.15) {
     		leftFootEuler.y = -Math.PI*0.15;
@@ -271,6 +245,25 @@ class LegsManager extends MonoBehavior
     		this.rightLeg.foot.stickTransform.rotation = quaternion;
     	}
 	  }
+
+    // if (this.leftLeg.standing) {
+    	let leftFootDistance = Math.sqrt(leftFootPosition.x*leftFootPosition.x + leftFootPosition.z*leftFootPosition.z);
+			const leftFootAngle = Math.atan2(leftFootPosition.clone().normalize().z, leftFootPosition.clone().normalize().x);
+			const leftAngleDiff = _angleDiff(Math.PI/2, leftFootAngle);
+			if (leftFootDistance > 0.5 || leftAngleDiff > -Math.PI*0.3 || leftAngleDiff < -Math.PI/2-Math.PI*0.3) {
+				leftFootDistance = Math.max(Math.min(leftFootDistance, 0.1), 0.2);
+				this.leftLeg.foot.stickTransform.position = hipsFloorPosition.clone().add(new Vector3(-leftFootDistance, 0, 0).applyQuaternion(this.leftLeg.foot.stickTransform.rotation));
+			}
+		// }
+		// if (this.rightLeg.standing) {
+			let rightFootDistance = Math.sqrt(rightFootPosition.x*rightFootPosition.x + rightFootPosition.z*rightFootPosition.z);
+			const rightFootAngle = Math.atan2(rightFootPosition.clone().normalize().z, rightFootPosition.clone().normalize().x);
+			const rightAngleDiff = _angleDiff(Math.PI/2, rightFootAngle);
+	    if (rightFootDistance > 0.5 || rightAngleDiff < Math.PI*0.3 || rightAngleDiff > Math.PI/2+Math.PI*0.3) {
+				rightFootDistance = Math.max(Math.min(rightFootDistance, 0.1), 0.2);
+				this.rightLeg.foot.stickTransform.position = hipsFloorPosition.clone().add(new Vector3(rightFootDistance, 0, 0).applyQuaternion(this.rightLeg.foot.stickTransform.rotation));
+			}
+		// }
   }
 }
 
