@@ -301,9 +301,12 @@ class Transform {
     }
   }
 
-  get eulerAngles() {
-    const e = new THREE.Euler().setFromQuaternion(this.rotation, ORDER);
+  static eulerAngles(rotation) {
+    const e = new THREE.Euler().setFromQuaternion(rotation, ORDER);
     return new Vector3(e.x * RAD2DEG, e.y * RAD2DEG, e.z * RAD2DEG);
+  }
+  get eulerAngles() {
+    return Transform.eulerAngles(this.rotation);
   }
   set eulerAngles(v) {
     this.rotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(v.x * DEG2RAD, v.y * DEG2RAD, v.z * DEG2RAD, ORDER));
