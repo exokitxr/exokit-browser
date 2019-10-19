@@ -49,6 +49,7 @@ class Rig {
       hips: this.legsManager.hips,
       spine: this.shoulderTransforms.spine,
       chest: this.shoulderTransforms.transform,
+      neck: this.shoulderTransforms.neck,
       leftShoulder: this.shoulderTransforms.leftShoulderAnchor,
       leftUpperArm: this.shoulderTransforms.leftArm.upperArm,
       leftLowerArm: this.shoulderTransforms.leftArm.lowerArm,
