@@ -4,6 +4,8 @@ import VRTrackingReferences from './VRTrackingReferences.js';
 import PoseManager from './PoseManager.js';
 import VectorHelpers from './Utils/VectorHelpers.js';
 
+const z180Quaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI);
+
 class ShoulderPoser extends MonoBehavior
 	{
 		constructor(...args) {
@@ -102,7 +104,7 @@ class ShoulderPoser extends MonoBehavior
 
 		updateHips() {
 		  const headPosition = this.vrTrackingReferences.head.position;
-		  const headRotation = this.vrTrackingReferences.head.rotation//.multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI));
+		  const headRotation = this.vrTrackingReferences.head.rotation.multiply(z180Quaternion);
       const headEuler = new THREE.Euler().setFromQuaternion(headRotation, 'YXZ');
       headEuler.x = 0;
       headEuler.z = 0;
@@ -113,8 +115,6 @@ class ShoulderPoser extends MonoBehavior
 		  const spinePosition = chestPosition.clone().add(this.shoulder.transform.localPosition.multiplyScalar(-1).applyQuaternion(headFlatRotation));
 		  const hipsPosition = spinePosition.clone().add(this.shoulder.spine.localPosition.multiplyScalar(-1).applyQuaternion(headFlatRotation));
 
-      // console.log('got hips pos', this.shoulderRightRotation);
-
       this.shoulder.hips.position = hipsPosition;
       this.shoulder.hips.rotation = headFlatRotation;
       this.shoulder.spine.rotation = headFlatRotation;
@@ -123,7 +123,7 @@ class ShoulderPoser extends MonoBehavior
 
 		updateNeck() {
 			const headPosition = this.vrTrackingReferences.head.position;
-		  const headRotation = this.vrTrackingReferences.head.rotation//.multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI));;
+		  const headRotation = this.vrTrackingReferences.head.rotation.multiply(z180Quaternion);
       const headEuler = new THREE.Euler().setFromQuaternion(headRotation, 'YXZ');
       headEuler.x = 0;
       headEuler.z = 0;
@@ -177,7 +177,7 @@ class ShoulderPoser extends MonoBehavior
 
 		positionShoulder()
 		{
-			/* const headNeckOffset = this.headNeckDirectionVector.clone().applyQuaternion(this.avatarTrackingReferences.hmd.transform.rotation);
+			/* const headNeckOffset = this.headNeckDirectionVector.clone().applyQuaternion(this.avatarTrackingReferences.head.transform.rotation);
 			const targetPosition = new Vector3().addVectors(this.avatarTrackingReferences.head.transform.position, headNeckOffset.clone().multiplyScalar(this.headNeckDistance));
 			this.shoulder.transform.localPosition =
 				new Vector3().addVectors(targetPosition, this.neckShoulderDistance); */
@@ -209,7 +209,7 @@ class ShoulderPoser extends MonoBehavior
 			const relativeHeightDiff = -heightDiff / PoseManager.Instance.playerHeightHmd;
 
 			const headRightRotation = VectorHelpers.getAngleBetween(this.shoulder.transform.forward,
-										  this.avatarTrackingReferences.head.transform.forward,
+										  new Vector3(0, 0, 1).applyQuaternion(this.avatarTrackingReferences.head.transform.rotation.multiply(z180Quaternion)),
 										  Vector3.up, this.shoulder.transform.right) + this.rightRotationHeadRotationOffset;
 			const heightFactor = Mathf.Clamp(relativeHeightDiff - this.rightRotationStartHeight, 0, 1);
 			this.shoulderRightRotation = heightFactor * this.rightRotationHeightFactor;
@@ -273,7 +273,7 @@ class ShoulderPoser extends MonoBehavior
 
 		clampHeadRotationDeltaUp(targetRotation)
 		{
-			const headUpRotation = (this.avatarTrackingReferences.head.transform.eulerAngles.y + 360) % 360;
+			const headUpRotation = (Transform.eulerAngles(this.avatarTrackingReferences.head.transform.rotation.multiply(z180Quaternion)).y + 360) % 360;
 			const targetUpRotation = (targetRotation.y + 360) % 360;
 
 			const delta = headUpRotation - targetUpRotation;
