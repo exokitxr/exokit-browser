@@ -18,6 +18,8 @@ class Rig {
 	    Chest: null,
 	    Neck: null,
 	    Head: null,
+	    Eye_L: null,
+	    Eye_R: null,
 
 	    Left_shoulder: null,
 	    Left_arm: null,
@@ -73,11 +75,20 @@ class Rig {
 	  });
 
 	  const _getOffset = (bone, parent = bone.parent) => bone.getWorldPosition(new Vector3()).sub(parent.getWorldPosition(new Vector3()));
+	  const _averagePoint = points => {
+      const result = new Vector3();
+      for (let i = 0; i < points.length; i++) {
+        result.add(points[i]);
+      }
+      result.divideScalar(points.length);
+      return result;
+	  };
 	  const setups = {
 	    spine: _getOffset(modelBones.Spine),
 	    hips: _getOffset(modelBones.Spine, modelBones.Head),
 	    neck: _getOffset(modelBones.Neck),
 	    head: _getOffset(modelBones.Head),
+	    eyes: _averagePoint([_getOffset(modelBones.Eye_L), _getOffset(modelBones.Eye_R)]),
 
 	    leftShoulder: _getOffset(modelBones.Right_shoulder),
 	    leftUpperArm: _getOffset(modelBones.Right_arm),
@@ -107,6 +118,7 @@ class Rig {
     this.shoulderTransforms.localPosition = setups.hips;
     this.shoulderTransforms.neck.localPosition = setups.neck;
     this.shoulderTransforms.head.localPosition = setups.head;
+    this.shoulderTransforms.eyes.localPosition = setups.eyes;
 
     this.shoulderTransforms.leftShoulderAnchor.localPosition = setups.leftShoulder;
     this.shoulderTransforms.leftArm.upperArm.localPosition = setups.leftUpperArm;
@@ -132,7 +144,8 @@ class Rig {
 			rightGamepad: this.poseManager.vrTransforms.rightHand,
 		};
 		this.outputs = {
-      hmd: this.shoulderTransforms.head,
+			eyes: this.shoulderTransforms.eyes,
+      head: this.shoulderTransforms.head,
       hips: this.legsManager.hips,
       spine: this.shoulderTransforms.spine,
       chest: this.shoulderTransforms.transform,
@@ -157,7 +170,7 @@ class Rig {
 	    Spine: this.outputs.spine,
 	    Chest: this.outputs.chest,
 	    Neck: this.outputs.neck,
-	    Head: this.outputs.hmd,
+	    Head: this.outputs.head,
 
 	    Left_shoulder: this.outputs.rightShoulder,
 	    Left_arm: this.outputs.rightUpperArm,

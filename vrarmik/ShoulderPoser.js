@@ -103,34 +103,35 @@ class ShoulderPoser extends MonoBehavior
 		}
 
 		updateHips() {
-		  const headPosition = this.vrTrackingReferences.head.position;
-		  const headRotation = this.vrTrackingReferences.head.rotation.multiply(z180Quaternion);
-      const headEuler = new THREE.Euler().setFromQuaternion(headRotation, 'YXZ');
-      headEuler.x = 0;
-      headEuler.z = 0;
-      const headFlatRotation = new Quaternion().setFromEuler(headEuler);
+		  const hmdPosition = this.vrTrackingReferences.head.position;
+		  const hmdRotation = this.vrTrackingReferences.head.rotation.multiply(z180Quaternion);
+      const hmdEuler = new THREE.Euler().setFromQuaternion(hmdRotation, 'YXZ');
+      hmdEuler.x = 0;
+      hmdEuler.z = 0;
+      const hmdFlatRotation = new Quaternion().setFromEuler(hmdEuler);
 
-		  const neckPosition = headPosition.clone().add(this.shoulder.head.localPosition.multiplyScalar(-1).applyQuaternion(headRotation));
-		  const chestPosition = neckPosition.clone().add(this.shoulder.neck.localPosition.multiplyScalar(-1).applyQuaternion(headFlatRotation));
-		  const spinePosition = chestPosition.clone().add(this.shoulder.transform.localPosition.multiplyScalar(-1).applyQuaternion(headFlatRotation));
-		  const hipsPosition = spinePosition.clone().add(this.shoulder.spine.localPosition.multiplyScalar(-1).applyQuaternion(headFlatRotation));
+      const headPosition = hmdPosition.clone().add(this.shoulder.eyes.localPosition.multiplyScalar(-1).applyQuaternion(hmdRotation));
+		  const neckPosition = headPosition.clone().add(this.shoulder.head.localPosition.multiplyScalar(-1).applyQuaternion(hmdRotation));
+		  const chestPosition = neckPosition.clone().add(this.shoulder.neck.localPosition.multiplyScalar(-1).applyQuaternion(hmdFlatRotation));
+		  const spinePosition = chestPosition.clone().add(this.shoulder.transform.localPosition.multiplyScalar(-1).applyQuaternion(hmdFlatRotation));
+		  const hipsPosition = spinePosition.clone().add(this.shoulder.spine.localPosition.multiplyScalar(-1).applyQuaternion(hmdFlatRotation));
 
       this.shoulder.hips.position = hipsPosition;
-      this.shoulder.hips.rotation = headFlatRotation;
-      this.shoulder.spine.rotation = headFlatRotation;
+      this.shoulder.hips.rotation = hmdFlatRotation;
+      this.shoulder.spine.rotation = hmdFlatRotation;
       this.shoulder.transform.localRotation = new Quaternion();
 		}
 
 		updateNeck() {
-			const headPosition = this.vrTrackingReferences.head.position;
-		  const headRotation = this.vrTrackingReferences.head.rotation.multiply(z180Quaternion);
-      const headEuler = new THREE.Euler().setFromQuaternion(headRotation, 'YXZ');
-      headEuler.x = 0;
-      headEuler.z = 0;
-      const headFlatRotation = new Quaternion().setFromEuler(headEuler);
+			// const hmdPosition = this.vrTrackingReferences.head.position;
+		  const hmdRotation = this.vrTrackingReferences.head.rotation.multiply(z180Quaternion);
+      const hmdEuler = new THREE.Euler().setFromQuaternion(hmdRotation, 'YXZ');
+      hmdEuler.x = 0;
+      hmdEuler.z = 0;
+      const hmdFlatRotation = new Quaternion().setFromEuler(hmdEuler);
 
-      this.shoulder.neck.rotation = headFlatRotation;
-      this.shoulder.head.rotation = headRotation;
+      this.shoulder.neck.rotation = hmdFlatRotation;
+      this.shoulder.head.rotation = hmdRotation;
 		}
 
 		rotateLeftShoulder()

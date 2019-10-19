@@ -14,11 +14,13 @@ class ShoulderTransforms extends MonoBehavior
       this.spine = new Transform();
       this.neck = new Transform();
       this.head = new Transform();
+      this.eyes = new Transform();
 
       this.hips.AddChild(this.spine);
       this.spine.AddChild(this.transform);
       this.transform.AddChild(this.neck);
       this.neck.AddChild(this.head);
+      this.head.AddChild(this.eyes);
 
 			this.leftShoulder = new Transform();
 			this.transform.AddChild(this.leftShoulder);
