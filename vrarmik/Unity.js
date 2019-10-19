@@ -252,13 +252,13 @@ class Transform {
   }
 
   get right() {
-    return this.TransformPoint(Vector3.right);
+    return Vector3.right.applyQuaternion(this.rotation);
   }
   get up() {
-    return this.TransformPoint(Vector3.up);
+    return Vector3.up.applyQuaternion(this.rotation);
   }
   get forward() {
-    return this.TransformPoint(Vector3.forward);
+    return Vector3.forward.applyQuaternion(this.rotation);
   }
 
   AddChild(child) {
