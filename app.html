@@ -5879,6 +5879,39 @@ const _handleKey = (code, shiftKey, ctrlKey) => {
   }
 };
 
+let avatarModel, rig;
+new THREE.GLTFLoader().load('model4.glb', object => {
+  avatarModel = object.scene;
+
+  rig = new Rig(avatarModel, {
+    boneMappings: {
+      Hips: 'Hips',
+      Spine: 'Spine',
+      Chest: 'Chest',
+      Neck: 'Neck',
+      Head: 'Head',
+
+      Left_shoulder: 'Left_shoulder',
+      Left_arm: 'Left_arm',
+      Left_elbow: 'Left_elbow',
+      Left_wrist: 'Left_wrist',
+      Left_leg: 'Left_leg',
+      Left_knee: 'Left_knee',
+      Left_ankle: 'Left_ankle',
+
+      Right_shoulder: 'Right_shoulder',
+      Right_arm: 'Right_arm',
+      Right_elbow: 'Right_elbow',
+      Right_wrist: 'Right_wrist',
+      Right_leg: 'Right_leg',
+      Right_knee: 'Right_knee',
+      Right_ankle: 'Right_ankle',
+    },
+  });
+
+  scene.add(avatarModel);
+});
+
 // let renderTarget = null;
 const startTime = Date.now();
 let lastTime = 0;
@@ -6662,6 +6695,24 @@ function animate(time, frame) {
   if (loginToken) {
     _updateTeleportMeshes();
   }
+
+  const _updateAvatarModel = () => {
+    if (rig) {
+      const gamepads = navigator.getGamepads();
+
+      rig.inputs.hmd.position = vrCamera.position;
+      rig.inputs.hmd.rotation = vrCamera.quaternion;
+
+      rig.inputs.leftGamepad.rotation = new THREE.Quaternion().fromArray(gamepads[0].pose.orientation);
+      rig.inputs.leftGamepad.position = new THREE.Vector3().fromArray(gamepads[0].pose.position);
+
+      rig.inputs.rightGamepad.rotation = new THREE.Quaternion().fromArray(gamepads[1].pose.orientation);
+      rig.inputs.rightGamepad.position = new THREE.Vector3().fromArray(gamepads[1].pose.position);
+
+      rig.update();
+    }
+  };
+  _updateAvatarModel();
 
   const _render = () => {
     const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
