@@ -5,9 +5,9 @@ import {Transform, MonoBehavior} from './Unity.js';
     constructor(...args) {
       super(...args);
 
-      this.leftController = new Transform();
+      /* this.leftController = new Transform();
       this.rightController = new Transform();
-      this.hmd = new Transform();
+      this.hmd = new Transform(); */
       /* this.hmd.onchange = () => {
         console.log('change 1', new Error().stack);
       }; */

@@ -196,11 +196,11 @@ window.shoulder = this.shoulder;
 		rotateShoulderRightBase()
 		{
 
-			const heightDiff = this.vrTrackingReferences.hmd.position.y - PoseManager.Instance.vrSystemOffsetHeight;
+			const heightDiff = this.vrTrackingReferences.head.position.y - PoseManager.Instance.vrSystemOffsetHeight;
 			const relativeHeightDiff = -heightDiff / PoseManager.Instance.playerHeightHmd;
 
 			const headRightRotation = VectorHelpers.getAngleBetween(this.shoulder.transform.forward,
-										  this.avatarTrackingReferences.hmd.transform.forward,
+										  this.avatarTrackingReferences.head.transform.forward,
 										  Vector3.up, this.shoulder.transform.right) + this.rightRotationHeadRotationOffset;
 			const heightFactor = Mathf.Clamp(relativeHeightDiff - this.rightRotationStartHeight, 0, 1);
 			this.shoulderRightRotation = heightFactor * this.rightRotationHeightFactor;

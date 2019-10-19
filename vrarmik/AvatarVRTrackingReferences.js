@@ -9,7 +9,7 @@ import StaticOffsetTransform from './StaticOffsetTransform.js';
       super(...args);
 
 			this.head = null;
-			this.hmd = null;
+			// this.hmd = null;
 			this.leftHand = null;
 			this.rightHand = null;
 		}
@@ -64,7 +64,7 @@ import StaticOffsetTransform from './StaticOffsetTransform.js';
 			this.createTransform('head');
 			this.createTransform('leftHand');
 			this.createTransform('rightHand');
-			this.createTransform('hmd');
+			// this.createTransform('hmd');
 		}
 
 		connectTransforms()
@@ -76,7 +76,7 @@ import StaticOffsetTransform from './StaticOffsetTransform.js';
 			} */
 
 			this.head.reference = this.head.reference !== null ? this.head.reference : PoseManager.Instance.vrTransforms.head;
-			this.hmd.reference = this.hmd.reference !== null ? this.hmd.reference : PoseManager.Instance.vrTransforms.hmd;
+			// this.hmd.reference = this.hmd.reference !== null ? this.hmd.reference : PoseManager.Instance.vrTransforms.hmd;
 			this.leftHand.reference = this.leftHand.reference !== null ? this.leftHand.reference : PoseManager.Instance.vrTransforms.leftHand;
 			this.rightHand.reference = this.rightHand.reference !== null ? this.rightHand.reference : PoseManager.Instance.vrTransforms.rightHand;
 		}
