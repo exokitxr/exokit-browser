@@ -99,33 +99,6 @@ scene.remove(meshes.footRight); */
 const z180Quaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI);
 
 let rig, model;
-const _getChildDirectionQuaternion = o => {
-  // const worldPosition = o.getWorldPosition(new Vector3());
-  const vector = new Vector3(0, 0, 0);
-  const {children} = o;
-  for (let i = 0; i < children.length; i++) {
-    const child = children[i];
-    if (!['Left_leg_2', 'Right_leg_2'].includes(child.name)) {
-      // vector.add(child.getWorldPosition(new Vector3;
-      vector.add(child.position);
-      // vector.add(child.position.clone().applyQuaternion(o.quaternion.clone().inverse()));
-    }
-  }
-  if (!vector.equals(Vector3.zero)) {
-    // vector.normalize();
-    // return new Quaternion().setFromUnitVectors(new Vector3(0, 0, -1), vector);
-    return new Quaternion().setFromRotationMatrix(
-      new THREE.Matrix4().lookAt(
-        // worldPosition,
-        new Vector3(),
-        vector,
-        new Vector3(0, 0, -1)
-      )
-    );
-  } else {
-    return new Quaternion();
-  }
-};
 new THREE.GLTFLoader().load('model4.glb', object => {
   model = object.scene;
 
