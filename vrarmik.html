@@ -59,7 +59,8 @@ const _makeCubeMesh = (color = 0x0000FF) => {
   return mesh;
 };
 const meshes = {
-  hmd: _makeCubeMesh(0xFF0000),
+  eyes: _makeCubeMesh(0xFF0000),
+  head: _makeCubeMesh(0xFF8080),
 
   chest: _makeCubeMesh(0xFFFF00),
   shoulderLeft: _makeCubeMesh(0x00FF00),
@@ -94,6 +95,8 @@ scene.remove(meshes.shoulderRight);
 scene.remove(meshes.upperLegRight);
 scene.remove(meshes.lowerLegRight);
 scene.remove(meshes.footRight); */
+
+const z180Quaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI);
 
 let rig, model;
 const _getChildDirectionQuaternion = o => {
@@ -133,6 +136,8 @@ new THREE.GLTFLoader().load('model4.glb', object => {
       Chest: 'Chest',
       Neck: 'Neck',
       Head: 'Head',
+      Eye_L: 'Eye_L',
+      Eye_R: 'Eye_R',
 
       Left_shoulder: 'Left_shoulder',
       Left_arm: 'Left_arm',
@@ -210,8 +215,11 @@ function animate() {
 
     rig.update();
 
-    meshes.hmd.position.copy(rig.outputs.hmd.position);
-    meshes.hmd.quaternion.copy(rig.outputs.hmd.rotation);
+    meshes.eyes.position.copy(rig.outputs.eyes.position);
+    meshes.eyes.quaternion.copy(rig.outputs.eyes.rotation);
+
+    meshes.head.position.copy(rig.outputs.head.position);
+    meshes.head.quaternion.copy(rig.outputs.head.rotation);
 
     meshes.chest.position.copy(rig.outputs.chest.position);
     meshes.chest.quaternion.copy(rig.outputs.chest.rotation);
