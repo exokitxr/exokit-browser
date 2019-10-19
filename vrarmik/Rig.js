@@ -50,10 +50,21 @@ class Rig {
 	      o.bind(skeleton);
 	    }
 	  });
-	  fixSkeletonZForward(skeleton.bones[0]);
+	  fixSkeletonZForward(skeleton.bones[0], {
+	    preRotations: {
+	      'Left_arm': new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI*0.25).inverse(),
+	      'Right_arm': new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1),  -Math.PI*0.25).inverse(),
+	    },
+	  });
 	  model.traverse(o => {
 	    if (o.isSkinnedMesh) {
 	      o.bind(skeleton);
+	    }
+	  });
+	  ['Left_arm', 'Right_arm'].forEach((name, i) => {
+	    const bone = skeleton.bones.find(bone => bone.name === name);
+	    if (bone) {
+	      bone.quaternion.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), (i === 0 ? 1 : -1) * Math.PI*0.25));
 	    }
 	  });
 	  model.updateMatrixWorld(true);
@@ -251,7 +262,7 @@ class Rig {
           // .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI/2)) // forward
           // .multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI*0.6))
           // .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI/4)) // up
-          // .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI/4)) // down
+          .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), -Math.PI/8)) // down
       }
       if (['Left_elbow'].includes(k)) {
         modelBone.quaternion
@@ -260,8 +271,8 @@ class Rig {
       if (['Left_wrist'].includes(k)) {
         modelBone.quaternion
           .premultiply(modelBoneOutput.localRotation)
-          .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI/2)) // center
-          .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI/4)) // ip
+          .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI/2)) // center
+          // .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI/4)) // up
       }
 
       if (['Right_shoulder'].includes(k)) {
@@ -274,7 +285,7 @@ class Rig {
           // .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI/2)) // forward
           // .multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI*0.6))
           // .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI/4)) // up
-          // .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI/4)) // down
+          .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI/8)) // down
       }
       if (['Right_elbow'].includes(k)) {
         modelBone.quaternion
@@ -283,8 +294,8 @@ class Rig {
       if (['Right_wrist'].includes(k)) {
         modelBone.quaternion
           .premultiply(modelBoneOutput.localRotation)
-          .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI/2)) // center
-          .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), -Math.PI/8)) // up
+          .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI/2)) // center
+          // .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), -Math.PI/8)) // up
       }
       modelBone.updateMatrixWorld();
     }
