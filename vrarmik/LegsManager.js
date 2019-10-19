@@ -246,7 +246,7 @@ class LegsManager extends MonoBehavior
     	}
 	  }
 
-    // if (this.leftLeg.standing) {
+    if (this.leftLeg.standing) {
     	let leftFootDistance = Math.sqrt(leftFootPosition.x*leftFootPosition.x + leftFootPosition.z*leftFootPosition.z);
 			const leftFootAngle = Math.atan2(leftFootPosition.clone().normalize().z, leftFootPosition.clone().normalize().x);
 			const leftAngleDiff = _angleDiff(Math.PI/2, leftFootAngle);
@@ -254,8 +254,12 @@ class LegsManager extends MonoBehavior
 				leftFootDistance = Math.max(Math.min(leftFootDistance, 0.1), 0.2);
 				this.leftLeg.foot.stickTransform.position = hipsFloorPosition.clone().add(new Vector3(-leftFootDistance, 0, 0).applyQuaternion(this.leftLeg.foot.stickTransform.rotation));
 			}
-		// }
-		// if (this.rightLeg.standing) {
+		} else {
+			const footPosition = this.leftLeg.foot.position;
+			footPosition.y = 0;
+			this.leftLeg.foot.stickTransform.position = footPosition;
+		}
+		if (this.rightLeg.standing) {
 			let rightFootDistance = Math.sqrt(rightFootPosition.x*rightFootPosition.x + rightFootPosition.z*rightFootPosition.z);
 			const rightFootAngle = Math.atan2(rightFootPosition.clone().normalize().z, rightFootPosition.clone().normalize().x);
 			const rightAngleDiff = _angleDiff(Math.PI/2, rightFootAngle);
@@ -263,7 +267,11 @@ class LegsManager extends MonoBehavior
 				rightFootDistance = Math.max(Math.min(rightFootDistance, 0.1), 0.2);
 				this.rightLeg.foot.stickTransform.position = hipsFloorPosition.clone().add(new Vector3(rightFootDistance, 0, 0).applyQuaternion(this.rightLeg.foot.stickTransform.rotation));
 			}
-		// }
+		} else {
+			const footPosition = this.rightLeg.foot.position;
+			footPosition.y = 0;
+			this.rightLeg.foot.stickTransform.position = footPosition;
+		}
   }
 }
 
