@@ -72,7 +72,7 @@ class ShoulderPoser extends MonoBehavior
 
 		Update()
 		{
-      this.updateNeck();
+      this.updateHips();
 
 			this.shoulder.transform.rotation = Quaternion.identity;
 			this.positionShoulder();
@@ -95,14 +95,14 @@ class ShoulderPoser extends MonoBehavior
 				this.shoulder.rightArm.transform.localPosition = Vector3.zero;
 			}
 
+			this.updateNeck();
+
 			// Debug.DrawRay(this.shoulder.transform.position, this.shoulder.transform.forward);
 		}
 
-		updateNeck() {
-      // console.log('got hips pos', this.vrTrackingReferences.hmd.position.toArray().join(','));
-
+		updateHips() {
 		  const headPosition = this.vrTrackingReferences.head.position;
-		  const headRotation = this.vrTrackingReferences.head.rotation;
+		  const headRotation = this.vrTrackingReferences.head.rotation//.multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI));
       const headEuler = new THREE.Euler().setFromQuaternion(headRotation, 'YXZ');
       headEuler.x = 0;
       headEuler.z = 0;
@@ -115,11 +115,20 @@ class ShoulderPoser extends MonoBehavior
 
       // console.log('got hips pos', this.shoulderRightRotation);
 
-window.shoulder = this.shoulder;
       this.shoulder.hips.position = hipsPosition;
       this.shoulder.hips.rotation = headFlatRotation;
       this.shoulder.spine.rotation = headFlatRotation;
       this.shoulder.transform.localRotation = new Quaternion();
+		}
+
+		updateNeck() {
+			const headPosition = this.vrTrackingReferences.head.position;
+		  const headRotation = this.vrTrackingReferences.head.rotation//.multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI));;
+      const headEuler = new THREE.Euler().setFromQuaternion(headRotation, 'YXZ');
+      headEuler.x = 0;
+      headEuler.z = 0;
+      const headFlatRotation = new Quaternion().setFromEuler(headEuler);
+
       this.shoulder.neck.rotation = headFlatRotation;
       this.shoulder.head.rotation = headRotation;
 		}
