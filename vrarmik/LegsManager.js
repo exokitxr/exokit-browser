@@ -212,7 +212,9 @@ class LegsManager extends MonoBehavior
     const rightFootPosition = position.clone();
     const rightFootRotation = quaternion.clone();
 
-    {
+    // rotation
+
+    if (this.leftLeg.standing) {
       const leftFootEuler = new THREE.Euler().setFromQuaternion(leftFootRotation, 'YXZ');
     	if (leftFootEuler.y < -Math.PI*0.15) {
     		leftFootEuler.y = -Math.PI*0.15;
@@ -228,7 +230,10 @@ class LegsManager extends MonoBehavior
 		      .decompose(position, quaternion, scale);
     		this.leftLeg.foot.stickTransform.rotation = quaternion;
     	}
-
+    } else {
+    	this.leftLeg.foot.stickTransform.rotation = this.leftLeg.foot.rotation.multiply(new Quaternion().setFromUnitVectors(new Vector3(0, -1, 0), new Vector3(0, 0, 1)).inverse());
+    }
+    if (this.rightLeg.standing) {
 	    const rightFootEuler = new THREE.Euler().setFromQuaternion(rightFootRotation, 'YXZ');
     	if (rightFootEuler.y < -Math.PI*0.15) {
     		rightFootEuler.y = -Math.PI*0.15;
@@ -244,7 +249,11 @@ class LegsManager extends MonoBehavior
 		      .decompose(position, quaternion, scale);
     		this.rightLeg.foot.stickTransform.rotation = quaternion;
     	}
+	  } else {
+      this.rightLeg.foot.stickTransform.rotation = this.rightLeg.foot.rotation.multiply(new Quaternion().setFromUnitVectors(new Vector3(0, -1, 0), new Vector3(0, 0, 1)).inverse());
 	  }
+
+	  // position
 
     if (this.leftLeg.standing) {
     	let leftFootDistance = Math.sqrt(leftFootPosition.x*leftFootPosition.x + leftFootPosition.z*leftFootPosition.z);
