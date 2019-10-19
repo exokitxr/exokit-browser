@@ -1,4 +1,5 @@
 import {Vector3, Quaternion, GameObject} from './Unity.js';
+import {fixSkeletonZForward} from '../proto/three-ik/modified.AxisUtils.js';
 import PoseManager from './PoseManager.js';
 import ShoulderTransforms from './ShoulderTransforms.js';
 import LegsManager from './LegsManager.js';
