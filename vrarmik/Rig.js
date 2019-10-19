@@ -67,8 +67,8 @@ class Rig {
 	        if (!modelBones[k]) {
 	        	const userlandBoneName = boneMappings[k];
 	          modelBones[k] = skeleton.bones.find(bone => bone.name === userlandBoneName);
+	          console.log('found bone', k, userlandBoneName, modelBones[k], modelBones[k] && modelBones[k].children);
 	          modelBones[k].initialQuaternion = modelBones[k].quaternion.clone();
-	          console.log('found bone', k, userlandBoneName, modelBones[k], modelBones[k].children);
 	        }
 	      }
 	    }
