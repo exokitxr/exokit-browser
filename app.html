@@ -6960,11 +6960,11 @@ const _loadDefaultGltf = () => {
 _loadDefaultGltf();
 
 const mirrorMesh = (() => {
-  const geometry = new THREE.PlaneBufferGeometry(1, 1);
+  const geometry = new THREE.PlaneBufferGeometry(1, 2);
   const mesh = new THREE.Reflector(geometry, {
     clipBias: 0.003,
     textureWidth: 1024 * window.devicePixelRatio,
-    textureHeight: 1024 * window.devicePixelRatio,
+    textureHeight: 2048 * window.devicePixelRatio,
     color: 0x889999,
     addColor: 0x300000,
     recursion: 1
