@@ -385,7 +385,7 @@ function animate() {
         modelBone.quaternion
           .copy(modelBone.initialQuaternion)
 
-        if (['Hips', 'Spine', 'Chest', 'Neck'].includes(k)) {
+        if (['Hips', 'Spine', 'Chest', 'Neck', 'Head'].includes(k)) {
           modelBone.quaternion
             .multiply(modelBoneMapping.localRotation)
         }
