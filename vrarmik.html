@@ -96,7 +96,7 @@ scene.remove(meshes.upperLegRight);
 scene.remove(meshes.lowerLegRight);
 scene.remove(meshes.footRight); */
 
-let rig, model, modelBones, modelBonesMappings;
+let rig, model;
 const _getChildDirectionQuaternion = o => {
   // const worldPosition = o.getWorldPosition(new Vector3());
   const vector = new Vector3(0, 0, 0);
@@ -125,124 +125,37 @@ const _getChildDirectionQuaternion = o => {
   }
 };
 new THREE.GLTFLoader().load('model4.glb', object => {
-  modelBones = {
-    Hips: null,
-    Spine: null,
-    Chest: null,
-    Neck: null,
-    Head: null,
-
-    Left_shoulder: null,
-    Left_arm: null,
-    Left_elbow: null,
-    Left_wrist: null,
-    Left_leg: null,
-    Left_knee: null,
-    Left_ankle: null,
-
-    Right_shoulder: null,
-    Right_arm: null,
-    Right_elbow: null,
-    Right_wrist: null,
-    Right_leg: null,
-    Right_knee: null,
-    Right_ankle: null,
-  };
-
   model = object.scene;
 
-  model.updateMatrixWorld(true);
-  model.traverse(o => {
-    if (o.isSkinnedMesh) {
-      const {skeleton, bindMatrix} = o;
-      const {bones} = skeleton;
-      window.skeleton = skeleton;
-      window.bones = bones;
+  rig = new Rig(model, {
+    boneMappings: {
+      Hips: 'Hips',
+      Spine: 'Spine',
+      Chest: 'Chest',
+      Neck: 'Neck',
+      Head: 'Head',
 
-      o.bind(window.skeleton);
-    }
+      Left_shoulder: 'Left_shoulder',
+      Left_arm: 'Left_arm',
+      Left_elbow: 'Left_elbow',
+      Left_wrist: 'Left_wrist',
+      Left_leg: 'Left_leg',
+      Left_knee: 'Left_knee',
+      Left_ankle: 'Left_ankle',
+
+      Right_shoulder: 'Right_shoulder',
+      Right_arm: 'Right_arm',
+      Right_elbow: 'Right_elbow',
+      Right_wrist: 'Right_wrist',
+      Right_leg: 'Right_leg',
+      Right_knee: 'Right_knee',
+      Right_ankle: 'Right_ankle',
+    },
   });
-  fixSkeletonZForward(window.bones[0]);
-  model.traverse(o => {
-    if (o.isSkinnedMesh) {
-      o.bind(window.skeleton);
-    }
-  });
-  model.updateMatrixWorld(true);
-
-  model.traverse(o => {
-    if (o.isMesh) {
-      o.frustumCulled = false;
-    }
-    if (o.isSkinnedMesh) {
-      const {skeleton, bindMatrix} = o;
-      const {bones} = skeleton;
-      for (const k in modelBones) {
-        if (!modelBones[k]) {
-          modelBones[k] = bones.find(bone => bone.name === k);
-          modelBones[k].initialPosition = modelBones[k].position.clone();
-          modelBones[k].initialQuaternion = modelBones[k].quaternion.clone();
-          console.log('found bone', k, modelBones[k], modelBones[k].children, new THREE.Euler().setFromQuaternion(modelBones[k].initialQuaternion, 'YXZ'), 'YXZ');
-          modelBones[k].initialScale = modelBones[k].scale.clone();
-          modelBones[k].initialMatrixWorld = modelBones[k].matrixWorld.clone();
-        }
-      }
-    }
-  });
-
-  const _getOffset = (bone, parent = bone.parent) => bone.getWorldPosition(new Vector3()).sub(parent.getWorldPosition(new Vector3()));
-  const setups = {
-    spine: _getOffset(modelBones.Spine),
-    hips: _getOffset(modelBones.Spine, modelBones.Head),
-    neck: _getOffset(modelBones.Neck),
-    head: _getOffset(modelBones.Head),
-
-    leftShoulder: _getOffset(modelBones.Right_shoulder),
-    leftUpperArm: _getOffset(modelBones.Right_arm),
-    leftLowerArm: _getOffset(modelBones.Right_elbow),
-    leftHand: _getOffset(modelBones.Right_wrist),
-
-    rightShoulder: _getOffset(modelBones.Left_shoulder),
-    rightUpperArm: _getOffset(modelBones.Left_arm),
-    rightLowerArm: _getOffset(modelBones.Left_elbow),
-    rightHand: _getOffset(modelBones.Left_wrist),
-
-    leftUpperLeg: _getOffset(modelBones.Right_leg),
-    leftLowerLeg: _getOffset(modelBones.Right_knee),
-    leftFoot: _getOffset(modelBones.Right_ankle),
-
-    rightUpperLeg: _getOffset(modelBones.Left_leg),
-    rightLowerLeg: _getOffset(modelBones.Left_knee),
-    rightFoot: _getOffset(modelBones.Left_ankle),
-  };
-  rig = new Rig(setups);
   /* for (const k in setups) {
     setups[k] = setups[k].toArray();
   }
   console.log(JSON.stringify(setups, null, 2)); */
-  modelBonesMappings = {
-    Hips: rig.outputs.hips,
-    Spine: rig.outputs.spine,
-    Chest: rig.outputs.chest,
-    Neck: rig.outputs.neck,
-    Head: rig.outputs.hmd,
-
-    Left_shoulder: rig.outputs.rightShoulder,
-    Left_arm: rig.outputs.rightUpperArm,
-    Left_elbow: rig.outputs.rightLowerArm,
-    Left_wrist: rig.outputs.rightHand,
-    Left_leg: rig.outputs.rightUpperLeg,
-    Left_knee: rig.outputs.rightLowerLeg,
-    Left_ankle: rig.outputs.rightFoot,
-
-    Right_shoulder: rig.outputs.leftShoulder,
-    Right_arm: rig.outputs.leftUpperArm,
-    Right_elbow: rig.outputs.leftLowerArm,
-    Right_wrist: rig.outputs.leftHand,
-    Right_leg: rig.outputs.leftUpperLeg,
-    Right_knee: rig.outputs.leftLowerLeg,
-    Right_ankle: rig.outputs.leftFoot,
-  };
 
   // debugger;
   scene.add(model);
@@ -338,115 +251,7 @@ function animate() {
     meshes.lowerLegRight.quaternion.copy(rig.outputs.rightLowerLeg.rotation);
     meshes.footRight.position.copy(rig.outputs.rightFoot.position);
     meshes.footRight.quaternion.copy(rig.outputs.rightFoot.rotation);
-
-    for (const k in modelBones) {
-      const modelBone = modelBones[k];
-      const modelBoneMapping = modelBonesMappings[k];
-      /* if (modelBone) {
-        if (['Chest', 'Left_arm', 'Left_elbow', 'Left_wrist'].includes(k)) {
-          if (!modelBone.axesHelper) {
-            modelBone.axesHelper = new THREE.AxesHelper();
-            scene.add(modelBone.axesHelper);
-          }
-          modelBone.getWorldPosition(modelBone.axesHelper.position);
-          modelBone.getWorldQuaternion(modelBone.axesHelper.quaternion);
-          modelBone.getWorldScale(modelBone.axesHelper.scale);
-        }
-      } */
-      if (modelBone && modelBoneMapping) {
-        if (k === 'Hips') {
-          modelBone.position.copy(modelBoneMapping.position);
-        }
-        modelBone.quaternion
-          .copy(modelBone.initialQuaternion)
-
-        if (['Hips', 'Spine', 'Chest', 'Neck', 'Head'].includes(k)) {
-          modelBone.quaternion
-            .multiply(modelBoneMapping.localRotation)
-        }
-
-        if (['Left_leg'].includes(k)) {
-          modelBone.quaternion
-            .multiply(modelBoneMapping.localRotation)
-            // .multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2))
-        }
-        if (['Left_knee'].includes(k)) {
-          modelBone.quaternion
-            .multiply(modelBoneMapping.localRotation)
-            // .premultiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI))
-        }
-        if (['Left_ankle'].includes(k)) {
-          modelBone.quaternion
-            .premultiply(modelBoneMapping.localRotation)
-            .multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI/2))
-        }
-
-        if (['Right_leg'].includes(k)) {
-          modelBone.quaternion
-            .multiply(modelBoneMapping.localRotation)
-            // .multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2))
-        }
-        if (['Right_knee'].includes(k)) {
-          modelBone.quaternion
-            .multiply(modelBoneMapping.localRotation)
-            // .premultiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI))
-        }
-        if (['Right_ankle'].includes(k)) {
-          modelBone.quaternion
-            .premultiply(modelBoneMapping.localRotation)
-            .multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI/2))
-        }
-
-        if (['Left_shoulder'].includes(k)) {
-          modelBone.quaternion
-            .multiply(modelBoneMapping.localRotation)
-        }
-        if (['Left_arm'].includes(k)) {
-          modelBone.quaternion
-            .premultiply(modelBoneMapping.localRotation)
-            // .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI/2)) // forward
-            // .multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI*0.6))
-            // .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI/4)) // up
-            // .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI/4)) // down
-        }
-        if (['Left_elbow'].includes(k)) {
-          modelBone.quaternion
-            .premultiply(modelBoneMapping.localRotation)
-        }
-        if (['Left_wrist'].includes(k)) {
-          modelBone.quaternion
-            .premultiply(modelBoneMapping.localRotation)
-            .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI/2)) // center
-            .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI/4)) // ip
-        }
-
-        if (['Right_shoulder'].includes(k)) {
-          modelBone.quaternion
-            .multiply(modelBoneMapping.localRotation)
-        }
-        if (['Right_arm'].includes(k)) {
-          modelBone.quaternion
-            .premultiply(modelBoneMapping.localRotation)
-            // .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI/2)) // forward
-            // .multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI*0.6))
-            // .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI/4)) // up
-            // .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI/4)) // down
-        }
-        if (['Right_elbow'].includes(k)) {
-          modelBone.quaternion
-            .premultiply(modelBoneMapping.localRotation)
-        }
-        if (['Right_wrist'].includes(k)) {
-          modelBone.quaternion
-            .premultiply(modelBoneMapping.localRotation)
-            .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI/2)) // center
-            .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), -Math.PI/8)) // up
-        }
-
-        modelBone.updateMatrixWorld();
-      }
-    }
-}
+  }
 
   renderer.render(scene, camera);
 }
