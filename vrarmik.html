@@ -175,12 +175,14 @@ function animate() {
       .multiply(new Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin((realDateNow()%2000)/2000*Math.PI*2)*Math.PI*0.4));
       // .premultiply(new Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin((Date.now()%2000)/2000*Math.PI*2)*Math.PI*0.2));
 
-    rig.inputs.leftGamepad.rotation = new Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationAngle);
+    rig.inputs.leftGamepad.rotation = new Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationAngle)
+      .multiply(z180Quaternion);
     rig.inputs.leftGamepad.position = new Vector3(positionOffset, 0, 0).add(
       new Vector3(-0.2, 0.7, 0.3/**Math.sin((realDateNow()%2000)/2000*Math.PI*2)*/)
         .applyQuaternion(rig.inputs.leftGamepad.rotation)
       );
-    rig.inputs.rightGamepad.rotation = new Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationAngle);
+    rig.inputs.rightGamepad.rotation = new Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationAngle)
+      .multiply(z180Quaternion);
     rig.inputs.rightGamepad.position = new Vector3(positionOffset, 0, 0).add(
       new Vector3(0.2, 0.7, 0.3)
         .applyQuaternion(rig.inputs.rightGamepad.rotation)
