@@ -6703,11 +6703,11 @@ function animate(time, frame) {
       rig.inputs.hmd.position = vrCamera.position;
       rig.inputs.hmd.rotation = vrCamera.quaternion;
 
-      rig.inputs.leftGamepad.rotation = new THREE.Quaternion().fromArray(gamepads[0].pose.orientation);
-      rig.inputs.leftGamepad.position = new THREE.Vector3().fromArray(gamepads[0].pose.position);
+      rig.inputs.leftGamepad.rotation = new THREE.Quaternion().fromArray(gamepads[1].pose.orientation);
+      rig.inputs.leftGamepad.position = new THREE.Vector3().fromArray(gamepads[1].pose.position);
 
-      rig.inputs.rightGamepad.rotation = new THREE.Quaternion().fromArray(gamepads[1].pose.orientation);
-      rig.inputs.rightGamepad.position = new THREE.Vector3().fromArray(gamepads[1].pose.position);
+      rig.inputs.rightGamepad.rotation = new THREE.Quaternion().fromArray(gamepads[0].pose.orientation);
+      rig.inputs.rightGamepad.position = new THREE.Vector3().fromArray(gamepads[0].pose.position);
 
       rig.update();
     }
