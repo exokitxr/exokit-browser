@@ -5880,7 +5880,7 @@ const _handleKey = (code, shiftKey, ctrlKey) => {
 };
 
 let avatarModel, rig;
-new THREE.GLTFLoader().load('model4.glb', object => {
+new THREE.GLTFLoader().load('model.glb', object => {
   avatarModel = object.scene;
 
   rig = new Rig(avatarModel, {
