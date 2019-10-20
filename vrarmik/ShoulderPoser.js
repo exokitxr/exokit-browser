@@ -316,7 +316,7 @@ class ShoulderPoser extends MonoBehavior
 				this.shoulder.leftArm.transform.localPosition = Vector3.zero;
 			}
 
-			if (rightShoulderHandDistance > this.shoulder.rightArm.armLength * this.startBeforeFactor)
+			if (rightShoulderHandDistance > this.shoulder.rightArm.armLength * startBeforeFactor)
 			{
 				this.shoulderDislocated = true;
 				this.shoulder.rightArm.transform.position = new Vector3().addVectors(this.shoulder.rightShoulderAnchor.position,
