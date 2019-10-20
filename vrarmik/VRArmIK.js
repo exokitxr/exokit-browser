@@ -196,7 +196,15 @@ function toPositiveEulerAngle(n)
               eulerAngles.y = 0;
 
 
-      const shoulderRightRotation = Quaternion.FromToRotation(this.armDirection, targetShoulderDirection);
+      const shoulderRightRotation = new Quaternion().setFromRotationMatrix(
+      	new THREE.Matrix4().lookAt(
+	      	this.upperArmPos,
+	      	this.target.position,
+	      	new Vector3(0, 1, 0)
+	      )
+      ).multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), (this.left ? -1 : 1) * Math.PI/2));
+
+      // const shoulderRightRotation = new Quaternion().setFromUnitVectors(this.armDirection, targetShoulderDirection);
       this.setUpperArmRotation(shoulderRightRotation);
       this.arm.upperArm.rotation = new Quaternion().multiplyQuaternions(Quaternion.AngleAxis(eulerAngles.y, Vector3.up.applyQuaternion(this.lowerArmRotation)), this.arm.upperArm.rotation);
       this.setLowerArmLocalRotation(Quaternion.Euler(this.nextLowerArmAngle));
