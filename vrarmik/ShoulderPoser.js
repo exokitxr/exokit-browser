@@ -58,7 +58,9 @@ class ShoulderPoser extends MonoBehavior
 				this.vrTrackingReferences = PoseManager.Instance.vrTransforms;
 			if (this.avatarTrackingReferences === null)
 				this.avatarTrackingReferences = PoseManager.Instance.avatarVrTransforms;
+		}
 
+		Start() {
 			this.leftShoulderAnkerStartLocalPosition = this.shoulder.transform.InverseTransformPoint(this.shoulder.leftShoulderAnchor.position);
 			this.rightShoulderAnkerStartLocalPosition =
 				this.shoulder.transform.InverseTransformPoint(this.shoulder.rightShoulderAnchor.position);
