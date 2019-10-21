@@ -3,6 +3,7 @@ import ArmTransforms from './ArmTransforms.js';
 import ShoulderTransforms from './ShoulderTransforms.js';
 import ShoulderPoser from './ShoulderPoser.js';
 import VectorHelpers from './Utils/VectorHelpers.js';
+import PoseManager from './PoseManager.js';
 
 class ArmIKElbowSettings
 {
@@ -196,13 +197,17 @@ function toPositiveEulerAngle(n)
               eulerAngles.y = 0;
 
 
+      const shoulderRightOffset = this.target.position.sub(this.upperArmPos);
+      if (PoseManager.Instance.flipZ) {
+      	shoulderRightOffset.applyQuaternion(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI));
+      }
       const shoulderRightRotation = new Quaternion().setFromRotationMatrix(
       	new THREE.Matrix4().lookAt(
 	      	new Vector3(),
-	      	this.target.position.sub(this.upperArmPos),
+	      	shoulderRightOffset,
 	      	new Vector3(0, 1, 0)
 	      )
-      ).multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), (this.left ? -1 : 1) * Math.PI/2));
+      ).multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), (PoseManager.Instance.flipZ ? -1 : 1) * (this.left ? -1 : 1) * Math.PI/2));
 
       // const shoulderRightRotation = new Quaternion().setFromUnitVectors(this.armDirection, targetShoulderDirection);
       this.setUpperArmRotation(shoulderRightRotation);
