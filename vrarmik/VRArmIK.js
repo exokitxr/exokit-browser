@@ -198,8 +198,8 @@ function toPositiveEulerAngle(n)
 
       const shoulderRightRotation = new Quaternion().setFromRotationMatrix(
       	new THREE.Matrix4().lookAt(
-	      	this.upperArmPos,
-	      	this.target.position,
+	      	new Vector3(),
+	      	this.target.position.sub(this.upperArmPos),
 	      	new Vector3(0, 1, 0)
 	      )
       ).multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), (this.left ? -1 : 1) * Math.PI/2));
