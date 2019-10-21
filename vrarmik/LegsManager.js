@@ -28,6 +28,7 @@ class Leg extends MonoBehavior {
     this.left = true;
     this.standing = true;
 
+    this.poseManager = null;
     // this.hmdTransformRef = null
   }
 
@@ -183,8 +184,10 @@ class LegsManager extends MonoBehavior
 
     // this.spineLength = 0.3525347660851869;
 
-    const poseManager = this.GetOrAddComponent(PoseManager);
-    this.hmdTransformRef = poseManager.vrTransforms.head;
+    this.poseManager = this.GetOrAddComponent(PoseManager);
+    this.leftLeg.poseManager = this.poseManager;
+    this.rightLeg.poseManager = this.poseManager;
+    // this.hmdTransformRef = poseManager.vrTransforms.head;
   }
 
 	LateUpdate() {
