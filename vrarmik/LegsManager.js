@@ -111,20 +111,37 @@ class Leg extends MonoBehavior {
       const lowerLegPosition = this.upperLeg.position.add(footPosition).divideScalar(2)
         .add(offsetDirection.clone().multiplyScalar(offsetDistance));
 
-      this.upperLeg.rotation = new Quaternion().setFromRotationMatrix(
+      const upperLegDiff = this.upperLeg.position.sub(lowerLegPosition);
+      if (this.poseManager.flipZ) {
+      	upperLegDiff.applyQuaternion(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI))
+      }
+      const upperLegRotation = new Quaternion().setFromRotationMatrix(
 	      new THREE.Matrix4().lookAt(
 	        new Vector3(),
-	        this.upperLeg.position.sub(lowerLegPosition),
-	        new Vector3(0, 0, 1).applyQuaternion(footRotation)
+	        upperLegDiff,
+	        new Vector3(0, 0, this.poseManager.flipZ ? -1 : 1).applyQuaternion(footRotation)
 	      )
 	    ).multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2));
-	    this.lowerLeg.rotation = new Quaternion().setFromRotationMatrix(
+		  if (this.poseManager.flipZ) {
+		  	upperLegRotation.multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI));
+		  }
+      this.upperLeg.rotation = upperLegRotation;
+
+		  const lowerLegDiff = lowerLegPosition.clone().sub(footPosition);
+      if (this.poseManager.flipZ) {
+      	lowerLegDiff.applyQuaternion(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI))
+      }
+      const lowerLegRotation = new Quaternion().setFromRotationMatrix(
 	      new THREE.Matrix4().lookAt(
 	        new Vector3(),
-	        lowerLegPosition.clone().sub(footPosition),
-	        new Vector3(0, 0, 1).applyQuaternion(footRotation)
+	        lowerLegDiff,
+	        new Vector3(0, 0, this.poseManager.flipZ ? -1 : 1).applyQuaternion(footRotation)
 	      )
 	    ).multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2));
+	    if (this.poseManager.flipZ) {
+	    	lowerLegRotation.multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI));
+	    }
+	    this.lowerLeg.rotation = lowerLegRotation;
 
       // this.lowerLeg.position = lowerLegPosition;
 
