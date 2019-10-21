@@ -113,15 +113,15 @@ class Leg extends MonoBehavior {
 
       this.upperLeg.rotation = new Quaternion().setFromRotationMatrix(
 	      new THREE.Matrix4().lookAt(
-	        lowerLegPosition,
-	        this.upperLeg.position,
+	        new Vector3(),
+	        this.upperLeg.position.sub(lowerLegPosition),
 	        new Vector3(0, 0, 1).applyQuaternion(footRotation)
 	      )
 	    ).multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2));
 	    this.lowerLeg.rotation = new Quaternion().setFromRotationMatrix(
 	      new THREE.Matrix4().lookAt(
-	        footPosition,
-	        lowerLegPosition,
+	        new Vector3(),
+	        lowerLegPosition.clone().sub(footPosition),
 	        new Vector3(0, 0, 1).applyQuaternion(footRotation)
 	      )
 	    ).multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2));
