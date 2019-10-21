@@ -397,7 +397,11 @@ function toPositiveEulerAngle(n)
 				if (this.arm.wrist2 !== null)
 					this.setWrist2Rotation(new Quaternion().multiplyQuaternions(Quaternion.AngleAxis(elbowTargetAngle * .8, this.armDirection.clone().applyQuaternion(this.lowerArmRotation)), this.lowerArmRotation));
 			}
-			this.setHandRotation(this.target.rotation);
+			const targetRotation = this.target.rotation;
+			if (PoseManager.Instance.flipZ) {
+				targetRotation.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI))
+			}
+			this.setHandRotation(targetRotation);
 		}
 
 		removeShoulderRightRotation(direction) {
