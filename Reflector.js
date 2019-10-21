@@ -64,6 +64,7 @@ THREE.Reflector = function ( geometry, options ) {
 	this.material = material;
 
 	this.onBeforeRender = function ( renderer, scene, camera ) {
+		this.onBeforeRender2 && this.onBeforeRender2(renderer, scene, camera);
 
 		if ( 'recursion' in camera.userData ) {
 
@@ -180,6 +181,9 @@ THREE.Reflector = function ( geometry, options ) {
 
 		scope.visible = true;
 
+	};
+	this.onAfterRender = (renderer, scene, camera) => {
+    this.onAfterRender2 && this.onAfterRender2(renderer, scene, camera);
 	};
 
 	this.getRenderTarget = function () {

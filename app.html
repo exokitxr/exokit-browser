@@ -7029,6 +7029,16 @@ const mirrorMesh = (() => {
     color: 0xFF0000,
   });
   const mesh = new THREE.Mesh(geometry, material); */
+  mesh.onBeforeRender2 = () => {
+    if (avatarModel) {
+      avatarModel.visible = true;
+    }
+  };
+  mesh.onAfterRender2 = () => {
+    if (avatarModel) {
+      avatarModel.visible = false;
+    }
+  };
   return mesh;
 })();
 scene.add(mirrorMesh);
