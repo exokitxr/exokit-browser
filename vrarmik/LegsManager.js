@@ -259,8 +259,8 @@ class LegsManager extends MonoBehavior
     	let leftFootDistance = Math.sqrt(leftFootPosition.x*leftFootPosition.x + leftFootPosition.z*leftFootPosition.z);
 			const leftFootAngle = Math.atan2(leftFootPosition.clone().normalize().z, leftFootPosition.clone().normalize().x);
 			const leftAngleDiff = _angleDiff(Math.PI/2, leftFootAngle);
-			if (leftFootDistance > 0.5 || leftAngleDiff > -Math.PI*0.3 || leftAngleDiff < -Math.PI/2-Math.PI*0.3) {
-				leftFootDistance = Math.max(Math.min(leftFootDistance, 0.1), 0.2);
+			if (leftFootDistance < 0.1 || leftFootDistance > 0.5 || leftAngleDiff > -Math.PI*0.3 || leftAngleDiff < -Math.PI/2-Math.PI*0.3) {
+				leftFootDistance = Math.min(Math.max(leftFootDistance, 0.1), 0.2);
 				this.leftLeg.foot.stickTransform.position = hipsFloorPosition.clone().add(new Vector3(-leftFootDistance, 0, 0).applyQuaternion(this.leftLeg.foot.stickTransform.rotation));
 			}
 		} else {
@@ -272,9 +272,9 @@ class LegsManager extends MonoBehavior
 			let rightFootDistance = Math.sqrt(rightFootPosition.x*rightFootPosition.x + rightFootPosition.z*rightFootPosition.z);
 			const rightFootAngle = Math.atan2(rightFootPosition.clone().normalize().z, rightFootPosition.clone().normalize().x);
 			const rightAngleDiff = _angleDiff(Math.PI/2, rightFootAngle);
-	    if (rightFootDistance > 0.5 || rightAngleDiff < Math.PI*0.3 || rightAngleDiff > Math.PI/2+Math.PI*0.3) {
-				rightFootDistance = Math.max(Math.min(rightFootDistance, 0.1), 0.2);
-				this.rightLeg.foot.stickTransform.position = hipsFloorPosition.clone().add(new Vector3(rightFootDistance, 0, 0).applyQuaternion(this.rightLeg.foot.stickTransform.rotation));
+	    if (rightFootDistance < 0.1 || rightFootDistance > 0.5 || rightAngleDiff < Math.PI*0.3 || rightAngleDiff > Math.PI/2+Math.PI*0.3) {
+				rightFootDistance = Math.min(Math.max(rightFootDistance, 0.1), 0.2);
+			  this.rightLeg.foot.stickTransform.position = hipsFloorPosition.clone().add(new Vector3(rightFootDistance, 0, 0).applyQuaternion(this.rightLeg.foot.stickTransform.rotation));
 			}
 		} else {
 			const footPosition = this.rightLeg.foot.position;
