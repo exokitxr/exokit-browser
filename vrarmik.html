@@ -99,7 +99,7 @@ scene.remove(meshes.footRight); */
 const z180Quaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI);
 
 let rig, model;
-new THREE.GLTFLoader().load('model4.glb', object => {
+new THREE.GLTFLoader().load('model.glb', object => {
   model = object.scene;
 
   rig = new Rig(model, {
