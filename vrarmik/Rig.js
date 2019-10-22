@@ -278,12 +278,14 @@ class Rig {
       preRotations.Hips.premultiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2));
     }
     if (!flipZ) {
-    	preRotations.Left_arm.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI*0.25).inverse());
-    	preRotations.Right_arm.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1),  -Math.PI*0.25).inverse());
+    	preRotations.Left_arm.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI*0.25));
+    	preRotations.Right_arm.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1),  -Math.PI*0.25));
     } else {
     	preRotations.Hips.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI));
     }
-    preRotations.Hips.inverse();
+    for (const k in preRotations) {
+      preRotations[k].inverse();
+    }
 	  fixSkeletonZForward(skeleton.bones[0], {
 	    preRotations,
 	  });
