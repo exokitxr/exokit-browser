@@ -23,6 +23,7 @@ class PoseManager extends MonoBehavior
       this.loadPlayerSizeOnAwake = false;
 
       this.flipZ = false;
+      this.flipY = false;
 
       PoseManager.Instance = this;
     }
