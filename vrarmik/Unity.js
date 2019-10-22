@@ -358,6 +358,9 @@ class GameObject {
   AddChild(child) {
     this.transform.AddChild(child.transform);
   }
+  static clearAll() {
+    gameObjects.length = 0;
+  }
   static startAll() {
     for (let i = 0; i < gameObjects.length; i++) {
       gameObjects[i].components.forEach(value => {

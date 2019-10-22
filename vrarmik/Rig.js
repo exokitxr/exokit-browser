@@ -12,6 +12,8 @@ const poses = {
 
 class Rig {
 	constructor(model) {
+    GameObject.clearAll();
+
     model.updateMatrixWorld(true);
     let skeleton;
 	  model.traverse(o => {
