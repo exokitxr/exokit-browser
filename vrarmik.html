@@ -103,19 +103,22 @@ scene.remove(meshes.footRight); */
 
 const z180Quaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI);
 
-let rig, model;
-new THREE.GLTFLoader().load('model.glb', object => {
-  model = object.scene;
-
-  rig = new Rig(model);
-  /* for (const k in setups) {
-    setups[k] = setups[k].toArray();
+let rig = null;
+let model = null;
+const _rigModel = object => {
+  if (rig) {
+    scene.remove(model);
+    rig = null;
+    model = null;
   }
-  console.log(JSON.stringify(setups, null, 2)); */
 
-  // debugger;
+  model = object;
+  rig = new Rig(model);
   scene.add(model);
   window.model = model;
+};
+new THREE.GLTFLoader().load('model.glb', object => {
+  _rigModel(object.scene);
 }, xhr => {}, err => {
   console.warn(err);
 });
