@@ -140,11 +140,6 @@ orbitControls.enableMiddleZoom = false;
 orbitControls.update();
 
 const realDateNow = (now => () => now())(Date.now);//() => 2000;
-window.Date = {
-  now() {
-    return 0;
-  },
-};
 function animate() {
   if (rig) {
     const positionOffset = Math.sin((realDateNow()%10000)/10000*Math.PI*2)*2;
