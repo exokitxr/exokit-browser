@@ -269,14 +269,21 @@ class Rig {
     armature.scale.set(1, 1, 1);
     armature.updateMatrix();
 
-
-    const preRotations = {};
-    if (!flipZ) {
-    	preRotations.Left_arm = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI*0.25).inverse();
-    	preRotations.Right_arm = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1),  -Math.PI*0.25).inverse();
-    } else {
-    	preRotations.Hips = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI).inverse();
+    const preRotations = {
+      Hips: new Quaternion(),
+      Left_arm: new Quaternion(),
+      Right_arm: new Quaternion(),
+    };
+    if (flipY) {
+      preRotations.Hips.premultiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2));
     }
+    if (!flipZ) {
+    	preRotations.Left_arm.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI*0.25).inverse());
+    	preRotations.Right_arm.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1),  -Math.PI*0.25).inverse());
+    } else {
+    	preRotations.Hips.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI));
+    }
+    preRotations.Hips.inverse();
 	  fixSkeletonZForward(skeleton.bones[0], {
 	    preRotations,
 	  });
@@ -285,6 +292,15 @@ class Rig {
 	      o.bind(skeleton);
 	    }
 	  });
+    if (flipY) {
+      ['Hips'].forEach(name => {
+        // const userlandBoneName = boneMappings[name];
+        const bone = modelBones[name];// skeleton.bones.find(bone => bone.name === userlandBoneName);
+        if (bone) {
+          bone.quaternion.premultiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2));
+        }
+      });
+    }
 	  if (!flipZ) {
 	    ['Left_arm', 'Right_arm'].forEach((name, i) => {
 		  	// const userlandBoneName = boneMappings[name];
