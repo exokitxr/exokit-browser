@@ -246,17 +246,15 @@ class Rig {
 	  };
 	  this.modelBones = modelBones;
 
-	  /* model.traverse(o => {
-	    if (o.isSkinnedMesh) {
-	      for (const k in modelBones) {
-	        if (!modelBones[k]) {
-	        	const userlandBoneName = boneMappings[k];
-	          modelBones[k] = skeleton.bones.find(bone => bone.name === userlandBoneName);
-	          console.log('found bone', k, userlandBoneName, modelBones[k], modelBones[k] && modelBones[k].children);
-	        }
-	      }
-	    }
-	  }); */
+    const _findArmature = bone => {
+      for (; bone; bone = bone.parent) {
+        if (!bone.isBone) {
+        	return bone;
+        }
+      }
+      return null;
+    };
+	  const armature = _findArmature(Hips);
 
 	  const eyeDirection = modelBones.Eye_L.getWorldPosition(new Vector3()).sub(modelBones.Head.getWorldPosition(new Vector3()));
 	  const flipZ = eyeDirection.z < 0;
