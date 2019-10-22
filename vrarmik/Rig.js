@@ -264,6 +264,12 @@ class Rig {
 	  this.flipZ = flipZ;
 	  this.flipY = flipY;
 
+    armature.position.set(0, 0, 0);
+    armature.quaternion.set(0, 0, 0, 1);
+    armature.scale.set(1, 1, 1);
+    armature.updateMatrix();
+
+
     const preRotations = {};
     if (!flipZ) {
     	preRotations.Left_arm = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI*0.25).inverse();
