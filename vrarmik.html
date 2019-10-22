@@ -123,6 +123,80 @@ new THREE.GLTFLoader().load('model.glb', object => {
   console.warn(err);
 });
 
+window.document.addEventListener('dragover', e => {
+  e.preventDefault();
+});
+window.document.addEventListener('drop', async e => {
+  e.preventDefault();
+
+  if (e.dataTransfer.items.length !== 1) {
+    return;
+  }
+
+  for (var i = 0; i < e.dataTransfer.items.length; i++) {
+    if (e.dataTransfer.items[i].kind === 'file') {
+      const file = e.dataTransfer.items[i].getAsFile();
+      const arraybuffer = await file.arrayBuffer();
+      const inflatedArrayBuffer = new Zlib.Gunzip(new Uint8Array(arraybuffer)).decompress().buffer;
+      const files = await untar(inflatedArrayBuffer);
+      // console.log('got files', files);
+      // window.files = files;
+
+      const filesystem = [];
+      for (let j = 0; j < files.length; j++) {
+        const file = files[j];
+        const {name} = file;
+        const match = name.match(/^([a-zA-Z0-9]+)\/pathname$/);
+        if (match) {
+          const pathname = new TextDecoder().decode(await file.blob.arrayBuffer());
+          const id = match[1];
+          const assetFileName = `${id}/asset`;
+          const assetFile = files.find(file => file.name === assetFileName);
+          if (assetFile) {
+            const match = pathname.match(/([^\/]+)$/);
+            const filename = match[1];
+            const url = assetFile.getBlobUrl();
+            filesystem.push({
+              id,
+              pathname,
+              filename,
+              url,
+            });
+          }
+        }
+      }
+      // window.filesystem = filesystem;
+
+      const manager = new THREE.LoadingManager();
+      manager.setURLModifier(url => {
+        // console.log('load url', url);
+        const match = url.match(/([^\/]+)$/);
+        if (match) {
+          const filename = match[1];
+          const file = filesystem.find(file => file.filename === filename);
+          if (file) {
+            // console.log('replace url', url, file.url);
+            url = file.url;
+          }
+        }
+        return url;
+      });
+
+      const modelFileUrl = filesystem.find(file => file.pathname === 'Assets/1Avatars/rachel gardner 1/rachel gardner NEW.fbx').url;
+      const loader = new THREE.FBXLoader(manager);
+      loader.load(modelFileUrl, object => {
+        _rigModel(object);
+      }, function onprogress() {
+
+      }, function onerror(err) {
+        console.warn(err);
+      });
+      window.loader = loader;
+      console.log('got filesystem', modelFileUrl, loader);
+    }
+  }
+});
+
 const renderer = new THREE.WebGLRenderer({
   // canvas: document.getElementById('canvas'),
   // alpha: true,
