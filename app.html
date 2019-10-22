@@ -5883,57 +5883,21 @@ let avatarModel, rig;
 new THREE.GLTFLoader().load('model.glb', object => {
   avatarModel = object.scene;
 
-  rig = new Rig(avatarModel, {
-    boneMappings: {
-      /* Hips: 'J_Bip_C_Hips',
-      Spine: 'J_Bip_C_Spine',
-      Chest: 'J_Bip_C_UpperChest',
-      Neck: 'J_Bip_C_Neck',
-      Head: 'J_Bip_C_Head',
-      Eye_L: 'J_Adj_L_FaceEyeSet',
-      Eye_R: 'J_Adj_R_FaceEyeSet',
+  // debugger;
 
-      Left_shoulder: 'J_Bip_L_Shoulder',
-      Left_arm: 'J_Bip_L_UpperArm',
-      Left_elbow: 'J_Bip_L_LowerArm',
-      Left_wrist: 'J_Bip_L_Hand',
-      Left_leg: 'J_Bip_L_UpperLeg',
-      Left_knee: 'J_Bip_L_LowerLeg',
-      Left_ankle: 'J_Bip_L_Foot',
+  /* model.traverse(o => {
+    if (o.isSkinnedMesh) {
+      if (!window.skeleton) {
+        window.skeleton = o.skeleton;
+      }
 
-      Right_shoulder: 'J_Bip_R_Shoulder',
-      Right_arm: 'J_Bip_R_UpperArm',
-      Right_elbow: 'J_Bip_R_LowerArm',
-      Right_wrist: 'J_Bip_R_Hand',
-      Right_leg: 'J_Bip_R_UpperLeg',
-      Right_knee: 'J_Bip_R_LowerLeg',
-      Right_ankle: 'J_Bip_R_Foot', */
+      // o.bind(skeleton);
+    }
+  }); */
 
-      /* Hips: 'Hips',
-      Spine: 'Spine',
-      Chest: 'Chest',
-      Neck: 'Neck',
-      Head: 'Head',
-      Eye_L: 'Eye_L',
-      Eye_R: 'Eye_R',
+  rig = new Rig(avatarModel);
 
-      Left_shoulder: 'Left_shoulder',
-      Left_arm: 'Left_arm',
-      Left_elbow: 'Left_elbow',
-      Left_wrist: 'Left_wrist',
-      Left_leg: 'Left_leg',
-      Left_knee: 'Left_knee',
-      Left_ankle: 'Left_ankle',
-
-      Right_shoulder: 'Right_shoulder',
-      Right_arm: 'Right_arm',
-      Right_elbow: 'Right_elbow',
-      Right_wrist: 'Right_wrist',
-      Right_leg: 'Right_leg',
-      Right_knee: 'Right_knee',
-      Right_ankle: 'Right_ankle', */
-    },
-  });
+  avatarModel.visible = false;
 
   scene.add(avatarModel);
 });
