@@ -257,8 +257,12 @@ class Rig {
 	  const armature = _findArmature(Hips);
 
 	  const eyeDirection = modelBones.Eye_L.getWorldPosition(new Vector3()).sub(modelBones.Head.getWorldPosition(new Vector3()));
-	  const flipZ = eyeDirection.z < 0;
+	  let flipZ = eyeDirection.z < 0;
+    const armatureDirection = new THREE.Vector3(0, 1, 0).applyQuaternion(armature.quaternion);
+    const flipY = armatureDirection.z < -0.5;
+	  console.log('flip', flipZ, flipY, eyeDirection.toArray().join(','), armatureDirection.toArray().join(','));
 	  this.flipZ = flipZ;
+	  this.flipY = flipY;
 
     const preRotations = {};
     if (!flipZ) {
@@ -342,6 +346,7 @@ class Rig {
 		const rigObject = new GameObject('rig');
 		this.poseManager = rigObject.AddComponent(PoseManager);
 		this.poseManager.flipZ = flipZ;
+		this.poseManager.flipY = flipY;
 		this.shoulderTransforms = rigObject.AddComponent(ShoulderTransforms);
 		this.legsManager = rigObject.AddComponent(LegsManager);
 
