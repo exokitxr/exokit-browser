@@ -323,12 +323,11 @@ class Rig {
           .add(Eye_R.getWorldPosition(new Vector3()))
           .divideScalar(2);
       } else {
-        const headChild =_traverseChild(Head, 1);
-        if (headChild) {
-          return headChild.getWorldPosition(new Vector3());
-        } else {
-          return Head.getWorldPosition(new Vector3()).add(new Vector3(0, 0, 0.1));
+        const neckToHeadDiff = Head.getWorldPosition(new Vector3()).sub(Neck.getWorldPosition(new Vector3()));
+        if (neckToHeadDiff.z < 0) {
+          neckToHeadDiff.z *= -1;
         }
+        return Head.getWorldPosition(new Vector3()).add(neckToHeadDiff);
       }
     };
     const eyeDirection = _getEyePosition().sub(Head.getWorldPosition(new Vector3()));
