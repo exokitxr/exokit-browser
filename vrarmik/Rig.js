@@ -399,12 +399,6 @@ class Rig {
 	      for (const k in modelBones) {
 	        if (!modelBones[k].initialQuaternion) {
 	          modelBones[k].initialQuaternion = modelBones[k].quaternion.clone();
-            if (this.flipY && k === 'Hips') {
-              console.log('hips euler 2', new THREE.Euler().setFromQuaternion(modelBones[k].initialQuaternion, 'YXZ'));
-              // modelBones[k].initialQuaternion.premultiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2))
-              // modelBones[k].initialQuaternion.inverse();
-              // modelBones[k].initialQuaternion = new Quaternion();
-            }
 	        }
 	      }
 	    }
