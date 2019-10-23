@@ -230,8 +230,8 @@ class Rig {
 	    	return null;
 	    }
 	  };
-	  // const Eye_L = _findEye(true);
-	  // const Eye_R = _findEye(false);
+	  const Eye_L = _findEye(true);
+	  const Eye_R = _findEye(false);
 	  const Head = _findHead();
 	  const Neck = Head.parent;
 	  const Chest = Neck.parent;
@@ -289,24 +289,25 @@ class Rig {
     };
 	  const armature = _findArmature(Hips);
 
-	  const eyeOffset = (() => {
-      const Eye_L = _findEye(true);
-      const Eye_R = _findEye(false);
+    const _getEyePosition = () => {
       if (Eye_L && Eye_R) {
-        return Eye_L.getWorldPosition(new Vector3()).sub(Head.getWorldPosition(new Vector3()));
+        return Eye_L.getWorldPosition(new Vector3())
+          .add(Eye_R.getWorldPosition(new Vector3()))
+          .divideScalar(2);
       } else {
         const headChild =_traverseChild(Head, 1);
         if (headChild) {
-          return headChild.getWorldPosition(new Vector3()).sub(Head.getWorldPosition(new Vector3()));
+          return headChild.getWorldPosition(new Vector3());
         } else {
-          return new Vector3(0, 0, 1);
+          return Head.getWorldPosition(new Vector3()).add(new Vector3(0, 0, 0.1));
         }
       }
-    })();
-	  let flipZ = eyeOffset.z < 0;
+    };
+    const eyeDirection = _getEyePosition().sub(Head.getWorldPosition(new Vector3()));
+	  let flipZ = eyeDirection.z < 0;
     const armatureDirection = new THREE.Vector3(0, 1, 0).applyQuaternion(armature.quaternion);
     const flipY = armatureDirection.z < -0.5;
-	  console.log('flip', flipZ, flipY, eyeOffset.toArray().join(','), armatureDirection.toArray().join(','));
+	  console.log('flip', flipZ, flipY, eyeDirection.toArray().join(','), armatureDirection.toArray().join(','));
 	  this.flipZ = flipZ;
 	  this.flipY = flipY;
 
@@ -392,7 +393,7 @@ class Rig {
 	    hips: _getOffset(modelBones.Spine, modelBones.Head),
 	    neck: _getOffset(modelBones.Neck),
 	    head: _getOffset(modelBones.Head),
-	    eyes: eyeOffset,
+	    eyes: _getEyePosition().sub(Head.getWorldPosition(new Vector3())),
 
 	    leftShoulder: _getOffset(modelBones.Right_shoulder),
 	    leftUpperArm: _getOffset(modelBones.Right_arm),
