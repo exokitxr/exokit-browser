@@ -371,26 +371,22 @@ class Rig {
 	  });
     if (flipY) {
       ['Hips'].forEach(name => {
-        // const userlandBoneName = boneMappings[name];
-        const bone = modelBones[name];// skeleton.bones.find(bone => bone.name === userlandBoneName);
+        const bone = modelBones[name];
         if (bone) {
-          // bone.quaternion.premultiply(oldHipsQuaternion.clone().inverse());
           bone.quaternion.premultiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2));
         }
       });
     }
 	  if (!flipZ) {
 	    ['Left_arm', 'Right_arm'].forEach((name, i) => {
-		  	// const userlandBoneName = boneMappings[name];
-		    const bone = modelBones[name];// skeleton.bones.find(bone => bone.name === userlandBoneName);
+		    const bone = modelBones[name];
 		    if (bone) {
 		      bone.quaternion.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), (i === 0 ? 1 : -1) * Math.PI*0.25));
 		    }
 		  });
 		} else {
 		  ['Hips'].forEach(name => {
-		  	// const userlandBoneName = boneMappings[name];
-		    const bone = modelBones[name];// skeleton.bones.find(bone => bone.name === userlandBoneName);
+		    const bone = modelBones[name];
 		    if (bone) {
 		      bone.quaternion.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI));
 		    }
