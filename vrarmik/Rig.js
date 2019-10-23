@@ -73,6 +73,7 @@ class Rig {
       return result;
     };
 	  const tailBones = _getTailBones(skeleton);
+    // const tailBones = skeleton.bones.filter(bone => bone.children.length === 0);
 	  const _findClosestParentBone = (bone, pred) => {
       for (; bone; bone = bone.parent) {
       	if (pred(bone)) {
