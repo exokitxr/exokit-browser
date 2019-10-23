@@ -14,6 +14,31 @@ class Rig {
 	constructor(model) {
     GameObject.clearAll();
 
+    const _copySkeleton = (src, dst) => {
+      for (let i = 0; i < src.bones.length; i++) {
+        const srcBone = src.bones[i];
+        const dstBone = dst.bones.find(bone => bone.name === srcBone.name);
+        dstBone.matrixWorld.copy(srcBone.matrixWorld);
+      }
+
+      const armature = dst.bones[0].parent;
+      const _recurse = bone => {
+        bone.matrix.copy(bone.matrixWorld);
+        if (bone.parent) {
+          bone.matrix.premultiply(new THREE.Matrix4().getInverse(bone.parent.matrixWorld));
+        }
+        bone.matrix.decompose(bone.position, bone.quaternion, bone.scale);
+
+        for (let i = 0; i < bone.children.length; i++) {
+          _recurse(bone.children[i]);
+        }
+      };
+      _recurse(armature);
+
+      // dst.update();
+      dst.calculateInverses();
+    };
+
     model.updateMatrixWorld(true);
     let skeleton;
 	  model.traverse(o => {
@@ -22,9 +47,11 @@ class Rig {
 	    }
 	    if (o.isSkinnedMesh) {
         if (!skeleton) {
-	      	skeleton = o.skeleton;
-	      }
-	      o.bind(skeleton);
+          skeleton = o.skeleton;
+          o.bind(skeleton);
+        } else {
+          _copySkeleton(o.skeleton, skeleton);
+        }
 	    }
 	  });
 
