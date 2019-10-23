@@ -28,7 +28,24 @@ class Rig {
 	    }
 	  });
 
-	  const tailBones = skeleton.bones.filter(bone => bone.children.length === 0);
+    const _getTailBones = skeleton => {
+      const result = [];
+      const _recurse = bones => {
+        for (let i = 0; i < bones.length; i++) {
+          const bone = bones[i];
+          if (bone.children.length === 0) {
+            if (!result.includes(bone)) {
+              result.push(bone);
+            }
+          } else {
+            _recurse(bone.children);
+          }
+        }
+      };
+      _recurse(skeleton.bones);
+      return result;
+    };
+	  const tailBones = _getTailBones(skeleton);
 	  const _findClosestParentBone = (bone, pred) => {
       for (; bone; bone = bone.parent) {
       	if (pred(bone)) {
@@ -77,6 +94,22 @@ class Rig {
       }
       return result;
 	  };
+    const _findHead = () => {
+      const headBones = tailBones.map(tailBone => {
+        const headBone = _findFurthestParentBone(tailBone, bone => /head/i.test(bone.name));
+        if (headBone) {
+          return headBone;
+        } else {
+          return null;
+        }
+      }).filter(bone => bone);
+      const headBone = headBones.length > 0 ? headBones[0] : null;
+      if (headBone) {
+        return headBone;
+      } else {
+        return null;
+      }
+    };
 	  const _findEye = left => {
 	  	const regexp = left ? /l/i : /r/i;
 	    const eyeBones = tailBones.map(tailBone => {
@@ -197,9 +230,9 @@ class Rig {
 	    	return null;
 	    }
 	  };
-	  const Eye_L = _findEye(true);
-	  const Eye_R = _findEye(false);
-	  const Head = Eye_L.parent;
+	  // const Eye_L = _findEye(true);
+	  // const Eye_R = _findEye(false);
+	  const Head = _findHead();
 	  const Neck = Head.parent;
 	  const Chest = Neck.parent;
 	  const Hips = _findHips();
@@ -225,8 +258,8 @@ class Rig {
 	    Chest,
 	    Neck,
 	    Head,
-	    Eye_L,
-	    Eye_R,
+	    /* Eye_L,
+	    Eye_R, */
 
 	    Left_shoulder,
 	    Left_arm,
@@ -256,11 +289,24 @@ class Rig {
     };
 	  const armature = _findArmature(Hips);
 
-	  const eyeDirection = modelBones.Eye_L.getWorldPosition(new Vector3()).sub(modelBones.Head.getWorldPosition(new Vector3()));
-	  let flipZ = eyeDirection.z < 0;
+	  const eyeOffset = (() => {
+      const Eye_L = _findEye(true);
+      const Eye_R = _findEye(false);
+      if (Eye_L && Eye_R) {
+        return Eye_L.getWorldPosition(new Vector3()).sub(Head.getWorldPosition(new Vector3()));
+      } else {
+        const headChild =_traverseChild(Head, 1);
+        if (headChild) {
+          return headChild.getWorldPosition(new Vector3()).sub(Head.getWorldPosition(new Vector3()));
+        } else {
+          return new Vector3(0, 0, 1);
+        }
+      }
+    })();
+	  let flipZ = eyeOffset.z < 0;
     const armatureDirection = new THREE.Vector3(0, 1, 0).applyQuaternion(armature.quaternion);
     const flipY = armatureDirection.z < -0.5;
-	  console.log('flip', flipZ, flipY, eyeDirection.toArray().join(','), armatureDirection.toArray().join(','));
+	  console.log('flip', flipZ, flipY, eyeOffset.toArray().join(','), armatureDirection.toArray().join(','));
 	  this.flipZ = flipZ;
 	  this.flipY = flipY;
 
@@ -333,20 +379,20 @@ class Rig {
 	  });
 
 	  const _getOffset = (bone, parent = bone.parent) => bone.getWorldPosition(new Vector3()).sub(parent.getWorldPosition(new Vector3()));
-	  const _averagePoint = points => {
+	  /* const _averagePoint = points => {
       const result = new Vector3();
       for (let i = 0; i < points.length; i++) {
         result.add(points[i]);
       }
       result.divideScalar(points.length);
       return result;
-	  };
+	  }; */
 	  const setups = {
 	    spine: _getOffset(modelBones.Spine),
 	    hips: _getOffset(modelBones.Spine, modelBones.Head),
 	    neck: _getOffset(modelBones.Neck),
 	    head: _getOffset(modelBones.Head),
-	    eyes: _averagePoint([_getOffset(modelBones.Eye_L), _getOffset(modelBones.Eye_R)]),
+	    eyes: eyeOffset,
 
 	    leftShoulder: _getOffset(modelBones.Right_shoulder),
 	    leftUpperArm: _getOffset(modelBones.Right_arm),

@@ -207,6 +207,7 @@ a:active {
     <script src="gunzip.min.js"></script>
     <script src="ProgressivePromise.js"></script>
     <script src="untar.js"></script>
+    <script src="zip.js"></script>
   </head>
   <body>
     <div class=body>
@@ -371,14 +372,119 @@ const _rigModel = object => {
   scene.add(model);
   window.model = model;
 };
-const _loadModel = async (href, filename = href) => {
-  if (/\.(?:glb|vrm)$/.test(filename)) {
+const _getFileType = filename => {
+  if (/\.(?:gltf|glb|vrm)$/.test(filename)) {
+    return 'gltf';
+  } else if (/\.fbx$/.test(filename)) {
+    return 'fbx';
+  } else if (/\.(?:tar\.gz|tgz|unitypackage)$/.test(filename)) {
+    return 'tgz';
+  } else if (/\.(?:zip)$/.test(filename)) {
+    return 'zip';
+  } else {
+    return null;
+  }
+};
+const _pathname2Filename = pathname => {
+  const match = pathname.match(/([^\/]+)$/);
+  return match && match[1];
+};
+const _loadModelFilesystem = filesystem => {
+  const manager = new THREE.LoadingManager();
+  manager.setURLModifier(url => {
+    // console.log('load url', url);
+    const match = url.match(/([^\/]+)$/);
+    if (match) {
+      const filename = match[1];
+      const file = filesystem.find(file => file.filename === filename);
+      if (file) {
+        // console.log('replace url', url, file.url);
+        url = file.url;
+      }
+    }
+    return url;
+  });
+
+  const modelFiles = filesystem.filter(file => /\.(?:fbx|gltf|glb)/.test(file.pathname)).map(file => {
+    const pathnamePrefix = file.pathname.replace(/[^\/]+$/, '');
+    const numSiblingFiles = filesystem.filter(file => file.pathname.startsWith(pathnamePrefix)).length;
+    return {
+      file,
+      numSiblingFiles,
+    };
+  }).sort((a, b) => b.numSiblingFiles - a.numSiblingFiles).map(({file}) => file);
+  if (modelFiles.length > 0) {
+    const modelFile = modelFiles[0];
+    console.log('got model file', modelFile);
+    const modelFileUrl = modelFile.url;
+    if (/\.fbx$/.test(modelFile.pathname)) {
+      new THREE.FBXLoader(manager).load(modelFileUrl, object => {
+        _rigModel(object);
+      }, function onprogress() {}, function onerror(err) {
+        console.warn(err);
+      });
+    } else {
+      new THREE.GLTFLoader(manager).load(modelFileUrl, object => {
+        _rigModel(object.scene);
+      }, xhr => {}, err => {
+        console.warn(err);
+      });
+    }
+  } else {
+    throw new Error('no model file in package');
+  }
+};
+const _loadModelUrl = async (href, filename = href) => {
+  const fileType = _getFileType(filename);
+  if (fileType === 'gltf') {
     new THREE.GLTFLoader().load(href, object => {
       _rigModel(object.scene);
     }, xhr => {}, err => {
       console.warn(err);
     });
-  } else if (/\.unitypackage$/.test(filename)) {
+  } else if (fileType === 'fbx') {
+    new THREE.FBXLoader().load(href, object => {
+      _rigModel(object);
+    }, xhr => {}, err => {
+      console.warn(err);
+    });
+  } else if (fileType === 'zip') {
+    const unitypackageRes = await fetch(href);
+    const blob = await unitypackageRes.blob();
+    zip.createReader(new zip.BlobReader(blob), function(reader) {
+      reader.getEntries(async function(entries) {
+        const filesystem = [];
+        for (let i = 0; i < entries.length; i++) {
+          const entry = entries[i];
+          const pathname = entry.filename;
+          const filename = _pathname2Filename(pathname);
+          const blob = await new Promise((accept, reject) => {
+            entry.getData(new zip.BlobWriter('application/octet-stream'), function(blob) {
+              accept(blob);
+            }, function(current, total) {
+              // onprogress callback
+            });
+          });
+          const url = URL.createObjectURL(blob);
+          filesystem.push({
+            pathname,
+            filename,
+            url,
+          });
+          // console.log('got blob', entry, blob, pathname, filename, url);
+        }
+        // console.log('got filesystem', filesystem);
+        _loadModelFilesystem(filesystem);
+
+        /* // close the zip reader
+        reader.close(function() {
+          // onclose callback
+        }); */
+      });
+    }, function(err) {
+      console.warn(err);
+    });
+  } else if (fileType === 'tgz') {
     const unitypackageRes = await fetch(href);
     const arraybuffer = await unitypackageRes.arrayBuffer();
     const inflatedArrayBuffer = new Zlib.Gunzip(new Uint8Array(arraybuffer)).decompress().buffer;
@@ -397,8 +503,7 @@ const _loadModel = async (href, filename = href) => {
         const assetFileName = `${id}/asset`;
         const assetFile = files.find(file => file.name === assetFileName);
         if (assetFile) {
-          const match = pathname.match(/([^\/]+)$/);
-          const filename = match[1];
+          const filename = _pathname2Filename(pathname);
           const url = assetFile.getBlobUrl();
           filesystem.push({
             pathname,
@@ -408,49 +513,9 @@ const _loadModel = async (href, filename = href) => {
         }
       }
     }
-    // window.filesystem = filesystem;
-
-    const manager = new THREE.LoadingManager();
-    manager.setURLModifier(url => {
-      // console.log('load url', url);
-      const match = url.match(/([^\/]+)$/);
-      if (match) {
-        const filename = match[1];
-        const file = filesystem.find(file => file.filename === filename);
-        if (file) {
-          // console.log('replace url', url, file.url);
-          url = file.url;
-        }
-      }
-      return url;
-    });
-
-    const modelFiles = filesystem.filter(file => /\.fbx/.test(file.pathname)).map(file => {
-      const pathnamePrefix = file.pathname.replace(/[^\/]+$/, '');
-      const numSiblingFiles = filesystem.filter(file => file.pathname.startsWith(pathnamePrefix)).length;
-      return {
-        file,
-        numSiblingFiles,
-      };
-    }).sort((a, b) => b.numSiblingFiles - a.numSiblingFiles).map(({file}) => file);
-    if (modelFiles.length > 0) {
-      const modelFile = modelFiles[0];
-      const modelFileUrl = modelFile.url;
-      const loader = new THREE.FBXLoader(manager);
-      loader.load(modelFileUrl, object => {
-        _rigModel(object);
-      }, function onprogress() {
-
-      }, function onerror(err) {
-        console.warn(err);
-      });
-      // window.loader = loader;
-      // console.log('got filesystem', modelFileUrl, loader);
-    } else {
-      throw new Error('no model file in package');
-    }
+    _loadModelFilesystem(filesystem);
   } else {
-    throw new Error('unknown file type');
+    throw new Error(`unknown file type: ${filename} (${fileType})`);
   }
 };
 
@@ -460,7 +525,7 @@ const _bindUploadFileButton = inputFileEl => {
     if (files.length === 1) {
       const [file] = files;
       const dataUrl = URL.createObjectURL(file);
-      _loadModel(dataUrl, file.name);
+      _loadModelUrl(dataUrl, file.name);
     }
 
     const {parentNode} = inputFileEl;
@@ -489,7 +554,7 @@ window.document.addEventListener('drop', async e => {
       const file = e.dataTransfer.items[i].getAsFile();
       // console.log('got file', e.dataTransfer.items[i], file);
       const dataUrl = URL.createObjectURL(file);
-      _loadModel(dataUrl, file.name);
+      _loadModelUrl(dataUrl, file.name);
     }
   }
 });
@@ -517,10 +582,10 @@ for (let i = 0; i < aAvatars.length; i++) {
     e.preventDefault();
 
     const {href} = aAvatar;
-    _loadModel(href);
+    _loadModelUrl(href);
   });
 }
-_loadModel(aAvatars[0].href);
+_loadModelUrl(aAvatars[0].href);
 
 const realDateNow = (now => () => now())(Date.now);//() => 2000;
 function animate() {
