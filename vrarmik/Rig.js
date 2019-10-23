@@ -513,7 +513,7 @@ class Rig {
 
       if (['Hips', 'Spine', 'Chest', 'Neck', 'Head'].includes(k)) {
         modelBone.quaternion
-          .multiply(modelBoneOutput.localRotation)
+          .premultiply(modelBoneOutput.localRotation)
       }
 
       if (['Left_leg'].includes(k)) {
