@@ -405,20 +405,21 @@ class Rig {
 	  });
 
 	  const _getOffset = (bone, parent = bone.parent) => bone.getWorldPosition(new Vector3()).sub(parent.getWorldPosition(new Vector3()));
-	  /* const _averagePoint = points => {
+	  const _averagePoint = points => {
       const result = new Vector3();
       for (let i = 0; i < points.length; i++) {
         result.add(points[i]);
       }
       result.divideScalar(points.length);
       return result;
-	  }; */
+	  };
+    const eyePosition = _getEyePosition();
 	  const setups = {
 	    spine: _getOffset(modelBones.Spine),
 	    hips: _getOffset(modelBones.Spine, modelBones.Head),
 	    neck: _getOffset(modelBones.Neck),
 	    head: _getOffset(modelBones.Head),
-	    eyes: _getEyePosition().sub(Head.getWorldPosition(new Vector3())),
+	    eyes: eyePosition.clone().sub(Head.getWorldPosition(new Vector3())),
 
 	    leftShoulder: _getOffset(modelBones.Right_shoulder),
 	    leftUpperArm: _getOffset(modelBones.Right_arm),
@@ -469,6 +470,10 @@ class Rig {
     this.legsManager.rightLeg.upperLeg.localPosition = setups.rightUpperLeg;
     this.legsManager.rightLeg.lowerLeg.localPosition = setups.rightLowerLeg;
     this.legsManager.rightLeg.foot.localPosition = setups.rightFoot;
+
+    this.height = eyePosition.sub(_averagePoint([modelBones.Left_ankle.getWorldPosition(new Vector3()), modelBones.Right_ankle.getWorldPosition(new Vector3())])).y;
+    this.leftArmLength = this.shoulderTransforms.leftArm.armLength;
+    this.rightArmLength = this.shoulderTransforms.rightArm.armLength;
 
 		this.inputs = {
       hmd: this.poseManager.vrTransforms.head,
