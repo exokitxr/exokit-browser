@@ -775,6 +775,46 @@ class Rig {
     const now = Date.now();
     const timeDiff = Math.min(now - this.lastTimestamp, 1000);
     this.lastTimestamp = now;
+    const _processHairBone = (hairBone, children) => {
+      const p = new Vector3().setFromMatrixPosition(hairBone.matrixWorld);
+      // console.log('proces', hairBone.name, p.toArray());
+      for (let i = 0; i < children.length; i++) {
+        const childHairBone = children[i];
+
+        if (childHairBone.isBone) {
+          const px = new Vector3().setFromMatrixPosition(childHairBone.matrixWorld);
+          const hairDistance = px.distanceTo(p);
+          const hairDirection = px.clone().sub(p).normalize();
+
+          if (hairDistance > childHairBone.length * 2) {
+            px.copy(p).add(hairDirection.clone().multiplyScalar(childHairBone.length * 2));
+          }
+
+          const l = childHairBone.velocity.length();
+          if (l > 0.05) {
+            childHairBone.velocity.multiplyScalar(0.05/l);
+          }
+
+          childHairBone.velocity.add(hairDirection.clone().multiplyScalar(-(hairDistance - childHairBone.length) * 0.1 * timeDiff/32));
+          childHairBone.velocity.add(new Vector3(0, -9.8, 0).multiplyScalar(0.0002 * timeDiff/32));
+          childHairBone.velocity.add(childHairBone.worldParentOffset.clone().applyQuaternion(this.modelBones.Hips.quaternion).multiplyScalar(0.03 * timeDiff/32));
+          childHairBone.velocity.lerp(new Vector3(), 0.2 * timeDiff/32);
+
+          const p2 = px.clone().add(childHairBone.velocity.clone().multiplyScalar(1));
+          const q2 = childHairBone.initialWorldQuaternion.clone().premultiply(
+            new Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(
+              new Vector3(0, 0, 0),
+              hairDirection,
+              new Vector3(0, 0, -1).applyQuaternion(this.modelBones.Hips.quaternion),
+            ))
+          );
+          const s2 = new Vector3(1, 1, 1);
+          childHairBone.matrixWorld.compose(p2, q2, s2);
+          _processHairBone(childHairBone, childHairBone.children);
+        }
+      }
+    };
+    _processHairBone(this.modelBones.Head, this.hairBones);
 	}
 }
 export default Rig;
