@@ -645,6 +645,7 @@ class Rig {
 	    Right_knee: this.outputs.leftLowerLeg,
 	    Right_ankle: this.outputs.leftFoot,
 	  };
+    this.lastTimestamp = Date.now();
 
 	  GameObject.startAll();
 	}
@@ -750,6 +751,10 @@ class Rig {
       }
       modelBone.updateMatrixWorld();
     }
+
+    const now = Date.now();
+    const timeDiff = Math.min(now - this.lastTimestamp, 1000);
+    this.lastTimestamp = now;
 	}
 }
 export default Rig;
