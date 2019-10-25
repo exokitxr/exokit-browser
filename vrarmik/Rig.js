@@ -344,15 +344,18 @@ class Rig {
 	  let flipZ = eyeDirection.z < 0;
     const armatureDirection = new THREE.Vector3(0, 1, 0).applyQuaternion(armature.quaternion);
     const flipY = armatureDirection.z < -0.5;
-	  console.log('flip', flipZ, flipY, eyeDirection.toArray().join(','), armatureDirection.toArray().join(','));
+    const scaleFactor = Head.getWorldPosition(new Vector3())
+      .distanceTo(Left_ankle.getWorldPosition(new Vector3())) / Math.abs(armature.scale.y) > 100 ? 100 : 1;
+	  console.log('flip', flipZ, flipY, scaleFactor, eyeDirection.toArray().join(','), armatureDirection.toArray().join(','));
 	  this.flipZ = flipZ;
 	  this.flipY = flipY;
+    this.scaleFactor = scaleFactor;
 
     const armatureQuaternion = armature.quaternion.clone();
     const armatureMatrixInverse = new THREE.Matrix4().getInverse(armature.matrixWorld);
     armature.position.set(0, 0, 0);
     armature.quaternion.set(0, 0, 0, 1);
-    armature.scale.set(1, 1, 1);
+    armature.scale.set(1, 1, 1).divideScalar(this.scaleFactor);
     armature.updateMatrix();
 
     const preRotations = {
@@ -648,7 +651,7 @@ class Rig {
       const modelBoneOutput = this.modelBoneOutputs[k];
 
       if (k === 'Hips') {
-        modelBone.position.copy(modelBoneOutput.position);
+        modelBone.position.copy(modelBoneOutput.position).multiplyScalar(this.scaleFactor);
       }
       modelBone.quaternion
         .copy(modelBone.initialQuaternion)
