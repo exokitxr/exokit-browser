@@ -293,7 +293,27 @@ class Rig {
 	  const Right_ankle = _findFoot(false);
 	  const Right_knee = Right_ankle.parent;
 	  const Right_leg = Right_knee.parent;
-	  // console.log('got left hand', {leftEye, rightEye, head, neck, chest, hips, leftHand, leftLowerArm, leftUpperArm, rightHand, rightLowerArm, rightUpperArm, leftFoot, leftKnee, leftLeg, rightFoot, rightKnee, rightLeg});
+    const hairBones = tailBones.filter(bone => /hair/i.test(bone.name)).map(bone => {
+      for (; bone; bone = bone.parent) {
+        if (bone.parent === Head) {
+          return bone;
+        }
+      }
+      return null;
+    }).filter(bone => bone);
+    hairBones.forEach(rootHairBone => {
+      rootHairBone.traverse(hairBone => {
+        hairBone.length = hairBone.position.length();
+        hairBone.worldParentOffset = hairBone.getWorldPosition(new Vector3()).sub(hairBone.parent.getWorldPosition(new Vector3()));
+        hairBone.initialWorldQuaternion = hairBone.getWorldQuaternion(new Quaternion());
+        hairBone.velocity = new Vector3();
+        if (hairBone !== rootHairBone) {
+          hairBone._updateMatrixWorld = hairBone.updateMatrixWorld;
+          hairBone.updateMatrixWorld = () => {};
+        }
+      });
+    });
+    this.hairBones = hairBones;
     const modelBones = {
 	    Hips,
 	    Spine,
