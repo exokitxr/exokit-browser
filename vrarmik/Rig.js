@@ -526,7 +526,7 @@ class Rig {
     const eyePosition = _getEyePosition();
 	  const setups = {
 	    spine: _getOffset(modelBones.Spine),
-	    hips: _getOffset(modelBones.Spine, modelBones.Head),
+	    chest: _getOffset(modelBones.Chest, modelBones.Spine),
 	    neck: _getOffset(modelBones.Neck),
 	    head: _getOffset(modelBones.Head),
 	    eyes: eyePosition.clone().sub(Head.getWorldPosition(new Vector3())),
@@ -558,7 +558,7 @@ class Rig {
 		this.legsManager = rigObject.AddComponent(LegsManager);
 
     this.shoulderTransforms.spine.localPosition = setups.spine;
-    this.shoulderTransforms.localPosition = setups.hips;
+    this.shoulderTransforms.transform.localPosition = setups.chest;
     this.shoulderTransforms.neck.localPosition = setups.neck;
     this.shoulderTransforms.head.localPosition = setups.head;
     this.shoulderTransforms.eyes.localPosition = setups.eyes;
