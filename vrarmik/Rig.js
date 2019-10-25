@@ -4,12 +4,6 @@ import PoseManager from './PoseManager.js';
 import ShoulderTransforms from './ShoulderTransforms.js';
 import LegsManager from './LegsManager.js';
 
-const poses = {
-  hmd: new THREE.Object3D(),
-  leftGamepad: new THREE.Object3D(),
-  rightGamepad: new THREE.Object3D(),
-};
-
 class Rig {
 	constructor(model) {
     GameObject.clearAll();
