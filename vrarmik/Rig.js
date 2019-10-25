@@ -348,6 +348,8 @@ class Rig {
 	  this.flipZ = flipZ;
 	  this.flipY = flipY;
 
+    const armatureQuaternion = armature.quaternion.clone();
+    const armatureMatrixInverse = new THREE.Matrix4().getInverse(armature.matrixWorld);
     armature.position.set(0, 0, 0);
     armature.quaternion.set(0, 0, 0, 1);
     armature.scale.set(1, 1, 1);
@@ -357,17 +359,105 @@ class Rig {
       Hips: new Quaternion(),
       Left_arm: new Quaternion(),
       Right_arm: new Quaternion(),
+      Left_elbow: new Quaternion(),
+      Right_elbow: new Quaternion(),
+      /* Left_ankle: new Quaternion(),
+      Right_ankle: new Quaternion(),
+      Left_knee: new Quaternion(),
+      Right_knee: new Quaternion(), */
+      Upper_legL: new Quaternion(),
+      Upper_legR: new Quaternion(),
+      ShoulderR: new Quaternion(),
+      ShoulderL: new Quaternion(),
+      Upper_armL: new Quaternion(),
+      Upper_armR: new Quaternion(),
+      Lower_armR: new Quaternion(),
+      Lower_armL: new Quaternion(),
+      HandL: new Quaternion(),
+      HandR: new Quaternion(),
     };
-    const oldHipsQuaternion = Hips.quaternion.clone();
     if (flipY) {
       preRotations.Hips.premultiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2));
     }
     if (!flipZ) {
-    	preRotations.Left_arm.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI*0.25));
-    	preRotations.Right_arm.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1),  -Math.PI*0.25));
+    	// preRotations.Left_arm.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI*0.25));
+    	// preRotations.Right_arm.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1),  -Math.PI*0.25));
+      // preRotations.Upper_armL.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI*0.25));
+      // preRotations.Upper_armR.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1),  -Math.PI*0.25));
     } else {
     	preRotations.Hips.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI));
     }
+
+    const qr = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI/2)
+      .premultiply(
+        new Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(
+          new Vector3(0, 0, 0),
+          Right_elbow.getWorldPosition(new Vector3()).applyMatrix4(armatureMatrixInverse)
+            .sub(Right_arm.getWorldPosition(new Vector3()).applyMatrix4(armatureMatrixInverse))
+            .applyQuaternion(armatureQuaternion),
+          new Vector3(0, 1, 0),
+        ))
+      );
+    const qr2 = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI/2)
+      .premultiply(
+        new Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(
+          new Vector3(0, 0, 0),
+          Right_wrist.getWorldPosition(new Vector3()).applyMatrix4(armatureMatrixInverse)
+            .sub(Right_elbow.getWorldPosition(new Vector3()).applyMatrix4(armatureMatrixInverse))
+            .applyQuaternion(armatureQuaternion),
+          new Vector3(0, 1, 0),
+        ))
+      );
+    const ql = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI/2)
+      .premultiply(
+        new Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(
+          new Vector3(0, 0, 0),
+          Left_elbow.getWorldPosition(new Vector3()).applyMatrix4(armatureMatrixInverse)
+            .sub(Left_arm.getWorldPosition(new Vector3()).applyMatrix4(armatureMatrixInverse))
+            .applyQuaternion(armatureQuaternion),
+          new Vector3(0, 1, 0),
+        ))
+      );
+    const ql2 = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI/2)
+      .premultiply(
+        new Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(
+          new Vector3(0, 0, 0),
+          Left_wrist.getWorldPosition(new Vector3()).applyMatrix4(armatureMatrixInverse)
+            .sub(Left_elbow.getWorldPosition(new Vector3()).applyMatrix4(armatureMatrixInverse))
+            .applyQuaternion(armatureQuaternion),
+          new Vector3(0, 1, 0),
+        ))
+      );
+
+    preRotations.Right_arm
+      .multiply(qr.clone().inverse());
+    preRotations.Right_elbow
+      .multiply(qr.clone())
+      .premultiply(qr2.clone().inverse());
+    preRotations.Left_arm
+      .multiply(ql.clone().inverse());
+    preRotations.Left_elbow
+      .multiply(ql.clone())
+      .premultiply(ql2.clone().inverse());
+
+    preRotations.ShoulderR.multiply(armatureQuaternion);
+    preRotations.Upper_armR
+      .multiply(qr.clone().inverse())
+    preRotations.Lower_armR
+      .multiply(qr.clone())
+      .premultiply(qr2.clone().inverse())
+    preRotations.ShoulderL.multiply(armatureQuaternion);
+    preRotations.Upper_armL
+      .multiply(ql.clone().inverse())
+    preRotations.Lower_armL
+      .multiply(ql.clone())
+      .premultiply(ql2.clone().inverse())
+
+    const leftLegQuaternion = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0),  -Math.PI/2);
+    preRotations.Upper_legL.premultiply(leftLegQuaternion);
+    const rightLegQuaternion = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0),  -Math.PI/2);
+    preRotations.Upper_legR.premultiply(rightLegQuaternion);
+
     for (const k in preRotations) {
       preRotations[k].inverse();
     }
@@ -388,12 +478,12 @@ class Rig {
       });
     }
 	  if (!flipZ) {
-	    ['Left_arm', 'Right_arm'].forEach((name, i) => {
+	    /* ['Left_arm', 'Right_arm'].forEach((name, i) => {
 		    const bone = modelBones[name];
 		    if (bone) {
 		      bone.quaternion.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), (i === 0 ? 1 : -1) * Math.PI*0.25));
 		    }
-		  });
+		  }); */
 		} else {
 		  ['Hips'].forEach(name => {
 		    const bone = modelBones[name];
@@ -402,6 +492,16 @@ class Rig {
 		    }
 		  });
 		}
+    if (preRotations.Right_arm.applied || preRotations.Upper_armR.applied) {
+      modelBones.Right_arm.quaternion.premultiply(qr.clone().inverse());
+      modelBones.Right_elbow.quaternion
+        .premultiply(qr)
+        .premultiply(qr2.clone().inverse());
+      modelBones.Left_arm.quaternion.premultiply(ql.clone().inverse());
+      modelBones.Left_elbow.quaternion
+        .premultiply(ql)
+        .premultiply(ql2.clone().inverse());
+    }
 	  model.updateMatrixWorld(true);
 
 	  model.traverse(o => {
