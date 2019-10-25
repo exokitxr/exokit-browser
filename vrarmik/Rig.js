@@ -320,6 +320,11 @@ class Rig {
 	    Right_ankle,
 	  };
 	  this.modelBones = modelBones;
+    /* for (const k in modelBones) {
+      if (!modelBones[k]) {
+        console.warn('missing bone', k);
+      }
+    } */
 
     const _findArmature = bone => {
       for (; bone; bone = bone.parent) {
