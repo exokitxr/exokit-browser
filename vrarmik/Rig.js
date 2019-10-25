@@ -15,10 +15,24 @@ const _localizeMatrixWorld = bone => {
     _localizeMatrixWorld(bone.children[i]);
   }
 };
+const _findBoneDeep = (bones, boneName) => {
+  for (let i = 0; i < bones.length; i++) {
+    const bone = bones[i];
+    if (bone.name === boneName) {
+      return bone;
+    } else {
+      const deepBone = _findBoneDeep(bone.children, boneName);
+      if (deepBone) {
+        return deepBone;
+      }
+    }
+  }
+  return null;
+};
 const _copySkeleton = (src, dst) => {
   for (let i = 0; i < src.bones.length; i++) {
     const srcBone = src.bones[i];
-    const dstBone = dst.bones.find(bone => bone.name === srcBone.name);
+    const dstBone = _findBoneDeep(dst.bones, srcBone.name);
     dstBone.matrixWorld.copy(srcBone.matrixWorld);
   }
 
@@ -33,37 +47,27 @@ class Rig {
     GameObject.clearAll();
 
     model.updateMatrixWorld(true);
-    let skeleton;
-    let poseSkeleton;
+    const skinnedMeshes = [];
 	  model.traverse(o => {
 	    if (o.isMesh) {
 	      o.frustumCulled = false;
 	    }
 	    if (o.isSkinnedMesh) {
-        if (o.skeleton.bones.length > 0) {
-          if (o.skeleton.bones[0].parent && !skeleton) {
-            if (!skeleton) {
-              skeleton = o.skeleton;
-              o.bind(skeleton);
-
-              if (skeleton && poseSkeleton) {
-                _copySkeleton(poseSkeleton, skeleton);
-                o.bind(skeleton);
-              }
-            }
-          } else {
-            if (!poseSkeleton) {
-              poseSkeleton = o.skeleton;
-
-              if (skeleton && poseSkeleton) {
-                _copySkeleton(poseSkeleton, skeleton);
-                o.bind(skeleton);
-              }
-            }
-          }
-        }
+        skinnedMeshes.push(o);
 	    }
 	  });
+    skinnedMeshes.sort((a, b) => b.skeleton.bones.length - a.skeleton.bones.length);
+    const skeletonSkinnedMesh = skinnedMeshes.find(o => o.skeleton.bones[0].parent) || null;
+    const skeleton = skeletonSkinnedMesh && skeletonSkinnedMesh.skeleton;
+    if (skeleton) {
+      skeletonSkinnedMesh.bind(skeleton);
+    }
+    const poseSkeletonSkinnedMesh = skeleton ? skinnedMeshes.find(o => o.skeleton !== skeleton && o.skeleton.bones.length >= skeleton.bones.length) : null;
+    const poseSkeleton = poseSkeletonSkinnedMesh && poseSkeletonSkinnedMesh.skeleton;
+    if (poseSkeleton) {
+      _copySkeleton(poseSkeleton, skeleton);
+      poseSkeletonSkinnedMesh.bind(skeleton);
+    }
 
     const _getTailBones = skeleton => {
       const result = [];
