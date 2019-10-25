@@ -511,15 +511,12 @@ class Rig {
     }
 	  model.updateMatrixWorld(true);
 
-	  model.traverse(o => {
-	    if (o.isSkinnedMesh) {
-	      for (const k in modelBones) {
-	        if (!modelBones[k].initialQuaternion) {
-	          modelBones[k].initialQuaternion = modelBones[k].quaternion.clone();
-	        }
-	      }
-	    }
-	  });
+    for (let i = 0; i < skeleton.bones.length; i++) {
+      const bone = skeleton.bones[i];
+      if (!bone.initialQuaternion) {
+        bone.initialQuaternion = bone.quaternion.clone();
+      }
+    }
 
 	  const _getOffset = (bone, parent = bone.parent) => bone.getWorldPosition(new Vector3()).sub(parent.getWorldPosition(new Vector3()));
 	  const _averagePoint = points => {
