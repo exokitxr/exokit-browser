@@ -4,6 +4,18 @@ import PoseManager from './PoseManager.js';
 import ShoulderTransforms from './ShoulderTransforms.js';
 import LegsManager from './LegsManager.js';
 
+const _localizeMatrixWorld = bone => {
+  bone.matrix.copy(bone.matrixWorld);
+  if (bone.parent) {
+    bone.matrix.premultiply(new THREE.Matrix4().getInverse(bone.parent.matrixWorld));
+  }
+  bone.matrix.decompose(bone.position, bone.quaternion, bone.scale);
+
+  for (let i = 0; i < bone.children.length; i++) {
+    _localizeMatrixWorld(bone.children[i]);
+  }
+};
+
 class Rig {
 	constructor(model) {
     GameObject.clearAll();
