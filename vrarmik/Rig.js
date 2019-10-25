@@ -34,16 +34,33 @@ class Rig {
 
     model.updateMatrixWorld(true);
     let skeleton;
+    let poseSkeleton;
 	  model.traverse(o => {
 	    if (o.isMesh) {
 	      o.frustumCulled = false;
 	    }
 	    if (o.isSkinnedMesh) {
-        if (!skeleton) {
-          skeleton = o.skeleton;
-          o.bind(skeleton);
-        } else {
-          _copySkeleton(o.skeleton, skeleton);
+        if (o.skeleton.bones.length > 0) {
+          if (o.skeleton.bones[0].parent && !skeleton) {
+            if (!skeleton) {
+              skeleton = o.skeleton;
+              o.bind(skeleton);
+
+              if (skeleton && poseSkeleton) {
+                _copySkeleton(poseSkeleton, skeleton);
+                o.bind(skeleton);
+              }
+            }
+          } else {
+            if (!poseSkeleton) {
+              poseSkeleton = o.skeleton;
+
+              if (skeleton && poseSkeleton) {
+                _copySkeleton(poseSkeleton, skeleton);
+                o.bind(skeleton);
+              }
+            }
+          }
         }
 	    }
 	  });
