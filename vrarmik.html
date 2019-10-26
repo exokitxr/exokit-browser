@@ -320,9 +320,11 @@ const meshes = {
   footLeft: _makeCubeMesh(0xFFFFFF),
   footRight: _makeCubeMesh(0x808080),
 };
+const meshDolly = new THREE.Object3D();
 for (const k in meshes) {
-  scene.add(meshes[k]);
+  meshDolly.add(meshes[k]);
 }
+scene.add(meshDolly);
 /* scene.remove(meshes.shoulderLeft);
 scene.remove(meshes.upperArmLeft);
 scene.remove(meshes.lowerArmLeft);
