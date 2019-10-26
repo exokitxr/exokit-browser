@@ -367,6 +367,7 @@ const mirrorMesh = (() => {
       const mesh = new THREE.Mesh(geometry, material);
       mesh.position.set(-1, 2 - 0.1/2 - i*0.1, 0);
       mesh.frustumCulled = false;
+      mesh.box = new THREE.Box3();
       result[i] = mesh;
     }
     return result;
@@ -374,6 +375,24 @@ const mirrorMesh = (() => {
   for (let i = 0; i < buttonMeshes.length; i++) {
     mesh.add(buttonMeshes[i]);
   }
+  mesh.buttonMeshes = buttonMeshes;
+  mesh.update = () => {
+    for (let i = 0; i < buttonMeshes.length; i++) {
+      const buttonMesh = buttonMeshes[i];
+      buttonMesh.box.setFromCenterAndSize(buttonMesh.getWorldPosition(new THREE.Vector3()), buttonSize.clone().multiply(buttonMesh.getWorldScale(new THREE.Vector3())));
+    }
+  };
+  mesh.getButtonIntersectionIndex = (position, log) => {
+    for (let i = 0; i < buttonMeshes.length; i++) {
+      if (log) {
+        console.log('contains', buttonMeshes[i].box.getCenter(new THREE.Vector3()).toArray(), position.toArray());
+      }
+      if (buttonMeshes[i].box.containsPoint(position)) {
+        return i;
+      }
+    }
+    return -1;
+  };
 
   mesh.onBeforeRender2 = () => {
     if (model && session) {
@@ -645,6 +664,7 @@ for (let i = 0; i < aAvatars.length; i++) {
 }
 _loadModelUrl(aAvatars[0].href);
 
+const lastPresseds = [false, false];
 const realDateNow = (now => () => now())(Date.now);//() => 2000;
 function animate(timestamp, frame, referenceSpace) {
   if (rig) {
@@ -666,9 +686,13 @@ function animate(timestamp, frame, referenceSpace) {
           if (position) { // new WebXR api
             const p = new Vector3().copy(position).multiplyScalar(heightFactor);
             const q = new Quaternion().copy(orientation);
+            const pressed = gamepad.buttons[0].pressed;
+            const lastPressed = lastPresseds[i];
             return {
               position: p,
               rotation: q,
+              pressed,
+              lastPressed,
             };
           } else if (matrix) { // old WebXR api
             const p = new Vector3().multiplyScalar(heightFactor);
@@ -676,9 +700,13 @@ function animate(timestamp, frame, referenceSpace) {
             localMatrix
               .fromArray(transform.matrix)
               .decompose(p, q, s);
+            const pressed = gamepad.buttons[0].pressed;
+            const lastPressed = lastPresseds[i];
             return {
               position: p,
               rotation: q,
+              pressed,
+              lastPressed,
             };
           } else {
             return null;
@@ -689,14 +717,40 @@ function animate(timestamp, frame, referenceSpace) {
       };
 
       const lg = _getGamepad(0);
+      let li = -1;
       if (lg) {
-        rig.inputs.leftGamepad.rotation = lg.rotation;
-        rig.inputs.leftGamepad.position = lg.position;
+        const {position, rotation, pressed, lastPressed} = lg;
+        rig.inputs.leftGamepad.rotation = rotation;
+        rig.inputs.leftGamepad.position = position;
+        li = mirrorMesh.getButtonIntersectionIndex(position);
+        if (pressed && !lastPressed) {
+          mirrorMesh.getButtonIntersectionIndex(position, true);
+          if (li !== -1) {
+            aAvatars[li].click();
+          }
+        }
+
+        lastPresseds[0] = pressed;
       }
       const rg = _getGamepad(1);
+      let ri = -1;
       if (rg) {
-        rig.inputs.rightGamepad.rotation = rg.rotation;
-        rig.inputs.rightGamepad.position = rg.position;
+        const {position, rotation, pressed, lastPressed} = rg;
+        rig.inputs.rightGamepad.rotation = rotation;
+        rig.inputs.rightGamepad.position = position;
+        ri = mirrorMesh.getButtonIntersectionIndex(position);
+        if (pressed && !lastPressed) {
+          mirrorMesh.getButtonIntersectionIndex(position, true);
+          if (ri !== -1) {
+            aAvatars[ri].click();
+          }
+        }
+
+        lastPresseds[1] = pressed;
+      }
+
+      for (let i = 0; i < mirrorMesh.buttonMeshes.length; i++) {
+        mirrorMesh.buttonMeshes[i].material.color.setHex((i === li || i === ri) ? colors.highlight : colors.normal);
       }
     } else {
       const positionOffset = Math.sin((realDateNow()%10000)/10000*Math.PI*2)*2;
