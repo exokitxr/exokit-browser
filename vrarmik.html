@@ -436,8 +436,9 @@ const _loadModelFilesystem = filesystem => {
   }).map(({file}) => file);
   if (modelFiles.length > 0) {
     const modelFile = modelFiles[0];
-    console.log('got model file', modelFile);
+    // console.log('got model file', modelFile);
     const modelFileUrl = modelFile.url;
+    console.log(`using model file: ${modelFile.pathname}`);
     if (/\.fbx$/.test(modelFile.pathname)) {
       new THREE.FBXLoader(manager).load(modelFileUrl, object => {
         _rigModel(object);
