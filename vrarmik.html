@@ -423,11 +423,8 @@ const mirrorMesh = (() => {
       buttonMesh.box.setFromCenterAndSize(buttonMesh.getWorldPosition(new THREE.Vector3()), buttonSize.clone().multiply(buttonMesh.getWorldScale(new THREE.Vector3())));
     }
   };
-  mesh.getButtonIntersectionIndex = (position, log) => {
+  mesh.getButtonIntersectionIndex = position => {
     for (let i = 0; i < buttonMeshes.length; i++) {
-      if (log) {
-        console.log('contains', buttonMeshes[i].box.getCenter(new THREE.Vector3()).toArray(), position.toArray());
-      }
       if (buttonMeshes[i].box.containsPoint(position)) {
         return i;
       }
@@ -769,7 +766,6 @@ function animate(timestamp, frame, referenceSpace) {
         rig.inputs.leftGamepad.position = position;
         li = mirrorMesh.getButtonIntersectionIndex(position);
         if (pressed && !lastPressed) {
-          mirrorMesh.getButtonIntersectionIndex(position, true);
           if (li !== -1) {
             aAvatars[li].click();
           }
@@ -785,7 +781,6 @@ function animate(timestamp, frame, referenceSpace) {
         rig.inputs.rightGamepad.position = position;
         ri = mirrorMesh.getButtonIntersectionIndex(position);
         if (pressed && !lastPressed) {
-          mirrorMesh.getButtonIntersectionIndex(position, true);
           if (ri !== -1) {
             aAvatars[ri].click();
           }
