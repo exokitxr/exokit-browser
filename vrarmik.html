@@ -390,6 +390,7 @@ const z180Quaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), M
 
 let rig = null;
 let model = null;
+let heightOffset = 0;
 const _rigModel = object => {
   if (rig) {
     scene.remove(model);
