@@ -389,6 +389,8 @@ class Rig {
 
     const preRotations = {
       Hips: new Quaternion(),
+      Hip: new Quaternion(),
+      J_Bip_C_Hips: new Quaternion(),
       Left_arm: new Quaternion(),
       Right_arm: new Quaternion(),
       Left_elbow: new Quaternion(),
@@ -409,7 +411,9 @@ class Rig {
       HandR: new Quaternion(),
     };
     if (flipY) {
-      preRotations.Hips.premultiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2));
+      ['Hips', 'Hip', 'J_Bip_C_Hips'].forEach(k => {
+        preRotations[k].premultiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2));
+      });
     }
     if (!flipZ) {
     	// preRotations.Left_arm.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI*0.25));
@@ -417,7 +421,9 @@ class Rig {
       // preRotations.Upper_armL.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI*0.25));
       // preRotations.Upper_armR.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1),  -Math.PI*0.25));
     } else {
-    	preRotations.Hips.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI));
+      ['Hips', 'Hip', 'J_Bip_C_Hips'].forEach(k => {
+        preRotations[k].premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI));
+      });
     }
 
     const qr = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI/2)
@@ -743,7 +749,7 @@ class Rig {
       if (['Left_wrist'].includes(k)) {
         modelBone.quaternion
           .premultiply(modelBoneOutput.localRotation)
-          .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), (this.flipZ ? -1 : 1) * Math.PI/2)) // center
+          .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI/2)) // center
           // .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI/4)) // up
       }
 
@@ -766,7 +772,7 @@ class Rig {
       if (['Right_wrist'].includes(k)) {
         modelBone.quaternion
           .premultiply(modelBoneOutput.localRotation)
-          .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), (this.flipZ ? -1 : 1) * -Math.PI/2)) // center
+          .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI/2)) // center
           // .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), -Math.PI/8)) // up
       }
       modelBone.updateMatrixWorld();
