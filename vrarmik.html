@@ -426,7 +426,14 @@ const _loadModelFilesystem = filesystem => {
       file,
       numSiblingFiles,
     };
-  }).sort((a, b) => b.numSiblingFiles - a.numSiblingFiles).map(({file}) => file);
+  }).sort((a, b) => {
+    const diff = b.numSiblingFiles - a.numSiblingFiles;
+    if (diff !== 0) {
+      return diff;
+    } else {
+      return +/unity/i.test(b.file.filename) - +/unity/i.test(a.file.filename);
+    }
+  }).map(({file}) => file);
   if (modelFiles.length > 0) {
     const modelFile = modelFiles[0];
     console.log('got model file', modelFile);
