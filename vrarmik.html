@@ -617,21 +617,55 @@ for (let i = 0; i < aAvatars.length; i++) {
 _loadModelUrl(aAvatars[0].href);
 
 const realDateNow = (now => () => now())(Date.now);//() => 2000;
-function animate() {
+function animate(timestamp, frame, referenceSpace) {
   if (rig) {
     if (renderer.vr.enabled) {
       const vrCamera = renderer.vr.enabled ? renderer.vr.getCamera(camera).cameras[0] : camera;
       vrCamera.matrixWorld.decompose(vrCamera.position, vrCamera.quaternion, vrCamera.scale);
+      const {inputSources} = session;
       const gamepads = navigator.getGamepads();
 
-      rig.inputs.hmd.position = vrCamera.position;
-      rig.inputs.hmd.rotation = vrCamera.quaternion;
+      try {
+        rig.inputs.hmd.position = vrCamera.position;
+        rig.inputs.hmd.rotation = vrCamera.quaternion;
 
-      rig.inputs.leftGamepad.rotation = new THREE.Quaternion().fromArray(gamepads[1].pose.orientation);
-      rig.inputs.leftGamepad.position = new THREE.Vector3().fromArray(gamepads[1].pose.position);
+        const _getGamepad = i => {
+          const inputSource = inputSources[i];
+          let pose, gamepad;
+          if (inputSource && (pose = frame.getPose(inputSource.targetRaySpace, referenceSpace)) && (gamepad = inputSource.gamepad || gamepads[i])) {
+            const {transform} = pose;
+            const {position, orientation, matrix} = transform;
+            if (position) { // new WebXR api
+              const p = new Vector3().copy(position);
+              const q = new Quaternion().copy(orientation);
+              return {
+                position: p,
+                rotation: q,
+              };
+            } else if (matrix) { // old WebXR api
+              localMatrix
+                .fromArray(transform.matrix)
+                .decompose(p, q, s);
+              return {
+                position: p,
+                rotation: q,
+              };
+            }
+          } else {
+            return null;
+          }
+        };
 
-      rig.inputs.rightGamepad.rotation = new THREE.Quaternion().fromArray(gamepads[0].pose.orientation);
-      rig.inputs.rightGamepad.position = new THREE.Vector3().fromArray(gamepads[0].pose.position);
+        const lg = _getGamepad(1);
+        rig.inputs.leftGamepad.rotation = lg.rotation;
+        rig.inputs.leftGamepad.position = lg.position;
+
+        const rg = _getGamepad(0);
+        rig.inputs.rightGamepad.rotation = rg.rotation;
+        rig.inputs.rightGamepad.position = rg.position;
+      } catch(err) {
+        console.warn(err.stack);
+      }
     } else {
       const positionOffset = Math.sin((realDateNow()%10000)/10000*Math.PI*2)*2;
       const standFactor = rig.height - 0.1*rig.height + Math.sin((realDateNow()%2000)/2000*Math.PI*2)*0.2*rig.height;
@@ -717,6 +751,7 @@ const noXrButton = document.getElementById('no-xr-button');
       await navigator.xr.supportsSession('immersive-vr');
       result = true;
     } catch (err) {
+      console.warn(err.stack);
       result = false;
     }
   } else {
@@ -730,26 +765,41 @@ const noXrButton = document.getElementById('no-xr-button');
     noXrButton.style.display = null;
   }
 })();
+
 enterXrButton.addEventListener('click', async () => {
-  session = await navigator.xr.requestSession({
-    exclusive: true,
+  session = await navigator.xr.requestSession('immersive-vr', {
+    requiredFeatures: ['local-floor'],
   });
-  session.layers = layers;
+  let referenceSpace;
+  let referenceSpaceType = '';
+  const _loadReferenceSpace = async () => {
+    const lastReferenceSpaceType = referenceSpaceType;
+    try {
+      referenceSpace = await session.requestReferenceSpace('local-floor');
+      referenceSpaceType = 'local-floor';
+    } catch (err) {
+      referenceSpace = await session.requestReferenceSpace('local');
+      referenceSpaceType = 'local';
+    }
 
-  // console.log('request first frame');
+    if (referenceSpaceType !== lastReferenceSpaceType) {
+      console.log(`referenceSpace changed to ${referenceSpaceType}`);
+    }
+  };
+  await _loadReferenceSpace();
+  const loadReferenceSpaceInterval = setInterval(_loadReferenceSpace, 1000);
+
+  renderer.vr.setSession(session);
+
   session.requestAnimationFrame((timestamp, frame) => {
-    renderer.vr.setSession(session, {
-      frameOfReferenceType: 'stage',
-    });
-
-    const pose = frame.getViewerPose();
-    const viewport = session.baseLayer.getViewport(pose.views[0]);
+    const pose = frame.getViewerPose(referenceSpace);
+    const viewport = session.renderState.baseLayer.getViewport(pose.views[0]);
     // const width = viewport.width;
     const height = viewport.height;
     const fullWidth = (() => {
       let result = 0;
       for (let i = 0; i < pose.views.length; i++) {
-        result += session.baseLayer.getViewport(pose.views[i]).width;
+        result += session.renderState.baseLayer.getViewport(pose.views[i]).width;
       }
       return result;
     })();
