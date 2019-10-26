@@ -385,6 +385,10 @@ const _rigModel = object => {
   rig = new Rig(model);
   scene.add(model);
   window.model = model;
+
+  scene.scale.set(1, 1, 1).multiplyScalar(userHeight / rig.height);
+  mirrorMesh.position.z = -(rig.height / userHeight);
+  mirrorMesh.scale.set(1, 1, 1).multiplyScalar(rig.height / userHeight);
 };
 const _getFileType = filename => {
   if (/\.(?:gltf|glb|vrm)$/.test(filename)) {
