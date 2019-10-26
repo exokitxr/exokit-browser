@@ -379,110 +379,6 @@ scene.remove(meshes.upperLegRight);
 scene.remove(meshes.lowerLegRight);
 scene.remove(meshes.footRight); */
 
-const buttonSize = new THREE.Vector3(1, 0.1*0.9, 0.1);
-const buttonGeometry = new THREE.BoxBufferGeometry(buttonSize.x, buttonSize.y, buttonSize.z);
-const colors = {
-  normal: 0x5c6bc0,
-  highlight: 0x303f9f,
-};
-const mirrorMesh = (() => {
-  const geometry = new THREE.PlaneBufferGeometry(1, 2)
-    .applyMatrix(new THREE.Matrix4().makeTranslation(0, 1, 0));
-  const mesh = new THREE.Reflector(geometry, {
-    clipBias: 0.003,
-    textureWidth: 1024 * window.devicePixelRatio,
-    textureHeight: 2048 * window.devicePixelRatio,
-    color: 0x889999,
-    addColor: 0x300000,
-    recursion: 1
-  });
-  mesh.position.set(0, 0, -1);
-
-  const buttonMeshes = (() => {
-    const result = Array(5);
-    for (let i = 0; i < result.length; i++) {
-      const geometry = buttonGeometry;
-      const material = new THREE.MeshPhongMaterial({
-        color: colors.normal,
-      });
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.position.set(-1, 2 - 0.1/2 - i*0.1, 0);
-      mesh.frustumCulled = false;
-      mesh.box = new THREE.Box3();
-      result[i] = mesh;
-    }
-    return result;
-  })();
-  for (let i = 0; i < buttonMeshes.length; i++) {
-    mesh.add(buttonMeshes[i]);
-  }
-  mesh.buttonMeshes = buttonMeshes;
-  mesh.update = () => {
-    for (let i = 0; i < buttonMeshes.length; i++) {
-      const buttonMesh = buttonMeshes[i];
-      buttonMesh.box.setFromCenterAndSize(buttonMesh.getWorldPosition(new THREE.Vector3()), buttonSize.clone().multiply(buttonMesh.getWorldScale(new THREE.Vector3())));
-    }
-  };
-  mesh.getButtonIntersectionIndex = position => {
-    for (let i = 0; i < buttonMeshes.length; i++) {
-      if (buttonMeshes[i].box.containsPoint(position)) {
-        return i;
-      }
-    }
-    return -1;
-  };
-
-  mesh.onBeforeRender2 = () => {
-    if (model && session) {
-      model.visible = true;
-    }
-  };
-  mesh.onAfterRender2 = () => {
-    if (model && session) {
-      model.visible = false;
-    }
-  };
-
-  return mesh;
-})();
-scene.add(mirrorMesh);
-
-const userHeight = 1.65;
-const z180Quaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI);
-
-let rig = null;
-let model = null;
-// let heightOffset = 0;
-let heightFactor = 0;
-const _rigModel = object => {
-  if (rig) {
-    scene.remove(model);
-    rig = null;
-    model = null;
-  }
-
-  model = object;
-  if (session) {
-    model.visible = false;
-  }
-  rig = new Rig(model);
-  scene.add(model);
-  window.model = model;
-
-  // heightOffset = userHeight - rig.height;
-  heightFactor = rig.height / userHeight;
-  // console.log('height factor', heightFactor);
-
-  // scene.position.y = heightOffset;
-  /* model.position.y = -heightOffset;
-  meshDolly.position.y = -heightOffset; */
-  scene.scale.set(1, 1, 1);
-  mirrorMesh.position.z = -heightFactor;
-  mirrorMesh.scale.set(1, 1, 1).multiplyScalar(heightFactor);
-  scene.updateMatrixWorld();
-  mirrorMesh.update();
-  scene.scale.divideScalar(heightFactor)
-};
 const _getFileType = filename => {
   if (/\.(?:gltf|glb|vrm)$/.test(filename)) {
     return 'gltf';
@@ -705,6 +601,127 @@ for (let i = 0; i < aAvatars.length; i++) {
   });
 }
 _loadModelUrl(aAvatars[0].href);
+
+let fontJson, fontTexture;
+const fontPromise = Promise.all([
+  fetch('DejaVu-sdf.json').then(res => res.json()),
+  new Promise((accept, reject) => {
+    new THREE.TextureLoader().load('DejaVu-sdf.png', accept);
+  }),
+]).then(results => {
+  fontJson = results[0];
+  fontTexture = results[1];
+});
+const buttonSize = new THREE.Vector3(1, 0.1*0.9, 0.1);
+const buttonGeometry = new THREE.BoxBufferGeometry(buttonSize.x, buttonSize.y, buttonSize.z);
+const colors = {
+  normal: 0x5c6bc0,
+  highlight: 0x303f9f,
+};
+const mirrorMesh = (() => {
+  const geometry = new THREE.PlaneBufferGeometry(1, 2)
+    .applyMatrix(new THREE.Matrix4().makeTranslation(0, 1, 0));
+  const mesh = new THREE.Reflector(geometry, {
+    clipBias: 0.003,
+    textureWidth: 1024 * window.devicePixelRatio,
+    textureHeight: 2048 * window.devicePixelRatio,
+    color: 0x889999,
+    addColor: 0x300000,
+    recursion: 1
+  });
+  mesh.position.set(0, 0, -1);
+
+  const buttonMeshes = aAvatars.map((aAvatar, i) => {
+    const geometry = buttonGeometry;
+    const material = new THREE.MeshPhongMaterial({
+      color: colors.normal,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(-1, 2 - 0.1/2 - i*0.1, 0);
+    mesh.frustumCulled = false;
+
+    fontPromise.then(() => {
+      const textMesh = _makeTextMesh(aAvatar.innerText, 0xFFFFFF);
+      textMesh.position.x = -0.45;
+      textMesh.position.y = -0.02;
+      textMesh.position.z = 0.06;
+      mesh.add(textMesh);
+    });
+
+    mesh.box = new THREE.Box3();
+
+    return mesh;
+  });
+  for (let i = 0; i < buttonMeshes.length; i++) {
+    mesh.add(buttonMeshes[i]);
+  }
+  mesh.buttonMeshes = buttonMeshes;
+  mesh.update = () => {
+    for (let i = 0; i < buttonMeshes.length; i++) {
+      const buttonMesh = buttonMeshes[i];
+      buttonMesh.box.setFromCenterAndSize(buttonMesh.getWorldPosition(new THREE.Vector3()), buttonSize.clone().multiply(buttonMesh.getWorldScale(new THREE.Vector3())));
+    }
+  };
+  mesh.getButtonIntersectionIndex = position => {
+    for (let i = 0; i < buttonMeshes.length; i++) {
+      if (buttonMeshes[i].box.containsPoint(position)) {
+        return i;
+      }
+    }
+    return -1;
+  };
+
+  mesh.onBeforeRender2 = () => {
+    if (model && session) {
+      model.visible = true;
+    }
+  };
+  mesh.onAfterRender2 = () => {
+    if (model && session) {
+      model.visible = false;
+    }
+  };
+
+  return mesh;
+})();
+scene.add(mirrorMesh);
+
+const userHeight = 1.65;
+const z180Quaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI);
+
+let rig = null;
+let model = null;
+// let heightOffset = 0;
+let heightFactor = 0;
+const _rigModel = object => {
+  if (rig) {
+    scene.remove(model);
+    rig = null;
+    model = null;
+  }
+
+  model = object;
+  if (session) {
+    model.visible = false;
+  }
+  rig = new Rig(model);
+  scene.add(model);
+  window.model = model;
+
+  // heightOffset = userHeight - rig.height;
+  heightFactor = rig.height / userHeight;
+  // console.log('height factor', heightFactor);
+
+  // scene.position.y = heightOffset;
+  /* model.position.y = -heightOffset;
+  meshDolly.position.y = -heightOffset; */
+  scene.scale.set(1, 1, 1);
+  mirrorMesh.position.z = -heightFactor;
+  mirrorMesh.scale.set(1, 1, 1).multiplyScalar(heightFactor);
+  scene.updateMatrixWorld();
+  mirrorMesh.update();
+  scene.scale.divideScalar(heightFactor)
+};
 
 const lastPresseds = [false, false];
 const realDateNow = (now => () => now())(Date.now);//() => 2000;
