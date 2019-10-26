@@ -672,12 +672,12 @@ function animate(timestamp, frame, referenceSpace) {
           }
         };
 
-        const lg = _getGamepad(1);
+        const lg = _getGamepad(0);
         if (lg) {
           rig.inputs.leftGamepad.rotation = lg.rotation;
           rig.inputs.leftGamepad.position = lg.position;
         }
-        const rg = _getGamepad(0);
+        const rg = _getGamepad(1);
         if (rg) {
           rig.inputs.rightGamepad.rotation = rg.rotation;
           rig.inputs.rightGamepad.position = rg.position;
