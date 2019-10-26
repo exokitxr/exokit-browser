@@ -433,13 +433,17 @@ const _rigModel = object => {
 
   // heightOffset = userHeight - rig.height;
   heightFactor = rig.height / userHeight;
+  // console.log('height factor', heightFactor);
 
   // scene.position.y = heightOffset;
   /* model.position.y = -heightOffset;
   meshDolly.position.y = -heightOffset; */
-  scene.scale.set(1, 1, 1).divideScalar(heightFactor);
+  scene.scale.set(1, 1, 1);
   mirrorMesh.position.z = -heightFactor;
   mirrorMesh.scale.set(1, 1, 1).multiplyScalar(heightFactor);
+  scene.updateMatrixWorld();
+  mirrorMesh.update();
+  scene.scale.divideScalar(heightFactor)
 };
 const _getFileType = filename => {
   if (/\.(?:gltf|glb|vrm)$/.test(filename)) {
