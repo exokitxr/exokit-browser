@@ -493,7 +493,7 @@ class Rig {
     for (const k in preRotations) {
       preRotations[k].inverse();
     }
-	  fixSkeletonZForward(skeleton.bones[0], {
+	  fixSkeletonZForward(armature.children[0], {
 	    preRotations,
 	  });
 	  model.traverse(o => {
