@@ -401,8 +401,6 @@ class Rig {
       Right_knee: new Quaternion(), */
       Upper_legL: new Quaternion(),
       Upper_legR: new Quaternion(),
-      ShoulderR: new Quaternion(),
-      ShoulderL: new Quaternion(),
       Upper_armL: new Quaternion(),
       Upper_armR: new Quaternion(),
       Lower_armR: new Quaternion(),
@@ -478,13 +476,11 @@ class Rig {
       .multiply(ql.clone())
       .premultiply(ql2.clone().inverse());
 
-    preRotations.ShoulderR.multiply(armatureQuaternion);
     preRotations.Upper_armR
       .multiply(qr.clone().inverse())
     preRotations.Lower_armR
       .multiply(qr.clone())
       .premultiply(qr2.clone().inverse())
-    preRotations.ShoulderL.multiply(armatureQuaternion);
     preRotations.Upper_armL
       .multiply(ql.clone().inverse())
     preRotations.Lower_armL
