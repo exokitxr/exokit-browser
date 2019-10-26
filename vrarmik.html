@@ -390,7 +390,7 @@ const z180Quaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), M
 
 let rig = null;
 let model = null;
-let heightOffset = 0;
+// let heightOffset = 0;
 let heightFactor = 0;
 const _rigModel = object => {
   if (rig) {
@@ -407,7 +407,7 @@ const _rigModel = object => {
   scene.add(model);
   window.model = model;
 
-  heightOffset = userHeight - rig.height;
+  // heightOffset = userHeight - rig.height;
   heightFactor = rig.height / userHeight;
 
   // scene.position.y = heightOffset;
