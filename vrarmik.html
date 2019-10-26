@@ -338,7 +338,12 @@ scene.remove(meshes.upperLegRight);
 scene.remove(meshes.lowerLegRight);
 scene.remove(meshes.footRight); */
 
-const buttonGeometry = new THREE.BoxBufferGeometry(1, 0.1*0.9, 0.1);
+const buttonSize = new THREE.Vector3(1, 0.1*0.9, 0.1);
+const buttonGeometry = new THREE.BoxBufferGeometry(buttonSize.x, buttonSize.y, buttonSize.z);
+const colors = {
+  normal: 0x5c6bc0,
+  highlight: 0x303f9f,
+};
 const mirrorMesh = (() => {
   const geometry = new THREE.PlaneBufferGeometry(1, 2)
     .applyMatrix(new THREE.Matrix4().makeTranslation(0, 1, 0));
@@ -357,7 +362,7 @@ const mirrorMesh = (() => {
     for (let i = 0; i < result.length; i++) {
       const geometry = buttonGeometry;
       const material = new THREE.MeshPhongMaterial({
-        color: 0x5c6bc0,
+        color: colors.normal,
       });
       const mesh = new THREE.Mesh(geometry, material);
       mesh.position.set(-1, 2 - 0.1/2 - i*0.1, 0);
