@@ -293,27 +293,6 @@ class Rig {
 	  const Right_ankle = _findFoot(false);
 	  const Right_knee = Right_ankle.parent;
 	  const Right_leg = Right_knee.parent;
-    const hairBones = tailBones.filter(bone => /hair/i.test(bone.name)).map(bone => {
-      for (; bone; bone = bone.parent) {
-        if (bone.parent === Head) {
-          return bone;
-        }
-      }
-      return null;
-    }).filter(bone => bone);
-    hairBones.forEach(rootHairBone => {
-      rootHairBone.traverse(hairBone => {
-        hairBone.length = hairBone.position.length();
-        hairBone.worldParentOffset = hairBone.getWorldPosition(new Vector3()).sub(hairBone.parent.getWorldPosition(new Vector3()));
-        hairBone.initialWorldQuaternion = hairBone.getWorldQuaternion(new Quaternion());
-        hairBone.velocity = new Vector3();
-        if (hairBone !== rootHairBone) {
-          hairBone._updateMatrixWorld = hairBone.updateMatrixWorld;
-          hairBone.updateMatrixWorld = () => {};
-        }
-      });
-    });
-    this.hairBones = hairBones;
     const modelBones = {
 	    Hips,
 	    Spine,
@@ -385,10 +364,33 @@ class Rig {
 
     const armatureQuaternion = armature.quaternion.clone();
     const armatureMatrixInverse = new THREE.Matrix4().getInverse(armature.matrixWorld);
+    const armatureScale = armature.scale.clone();
     armature.position.set(0, 0, 0);
     armature.quaternion.set(0, 0, 0, 1);
     armature.scale.set(1, 1, 1).divideScalar(this.scaleFactor);
     armature.updateMatrix();
+
+    const hairBones = tailBones.filter(bone => /hair/i.test(bone.name)).map(bone => {
+      for (; bone; bone = bone.parent) {
+        if (bone.parent === Head) {
+          return bone;
+        }
+      }
+      return null;
+    }).filter(bone => bone);
+    hairBones.forEach(rootHairBone => {
+      rootHairBone.traverse(hairBone => {
+        hairBone.length = hairBone.position.length();
+        hairBone.worldParentOffset = hairBone.getWorldPosition(new Vector3()).sub(hairBone.parent.getWorldPosition(new Vector3())).divide(armatureScale);
+        hairBone.initialWorldQuaternion = hairBone.getWorldQuaternion(new Quaternion());
+        hairBone.velocity = new Vector3();
+        if (hairBone !== rootHairBone) {
+          hairBone._updateMatrixWorld = hairBone.updateMatrixWorld;
+          hairBone.updateMatrixWorld = () => {};
+        }
+      });
+    });
+    this.hairBones = hairBones;
 
     const preRotations = {
       Hips: new Quaternion(),
