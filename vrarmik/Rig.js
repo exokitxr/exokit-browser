@@ -777,7 +777,7 @@ class Rig {
     this.lastTimestamp = now;
     const _processHairBone = (hairBone, children) => {
       const p = new Vector3().setFromMatrixPosition(hairBone.matrixWorld);
-      // console.log('proces', hairBone.name, p.toArray());
+
       for (let i = 0; i < children.length; i++) {
         const childHairBone = children[i];
 
