@@ -449,6 +449,14 @@ const _loadModelFilesystem = filesystem => {
     throw new Error('no model file in package');
   }
 };
+const _readAsArrayBuffer = blob => new Promise((accept, reject) => {
+  const reader = new FileReader();
+  reader.onload = () => {
+    accept(reader.result);
+  };
+  reader.onerror = reject;
+  reader.readAsArrayBuffer(blob);
+});
 const _loadModelUrl = async (href, filename = href) => {
   const fileType = _getFileType(filename);
   if (fileType === 'gltf') {
@@ -513,7 +521,7 @@ const _loadModelUrl = async (href, filename = href) => {
       const {name} = file;
       const match = name.match(/^([a-zA-Z0-9]+)\/pathname$/);
       if (match) {
-        const pathname = new TextDecoder().decode(await file.blob.arrayBuffer());
+        const pathname = new TextDecoder().decode(await _readAsArrayBuffer(file.blob));
         const id = match[1];
         const assetFileName = `${id}/asset`;
         const assetFile = files.find(file => file.name === assetFileName);
