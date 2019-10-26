@@ -368,6 +368,17 @@ const mirrorMesh = (() => {
     mesh.add(buttonMeshes[i]);
   }
 
+  mesh.onBeforeRender2 = () => {
+    if (model && session) {
+      model.visible = true;
+    }
+  };
+  mesh.onAfterRender2 = () => {
+    if (model && session) {
+      model.visible = false;
+    }
+  };
+
   return mesh;
 })();
 scene.add(mirrorMesh);
@@ -385,6 +396,9 @@ const _rigModel = object => {
   }
 
   model = object;
+  if (session) {
+    model.visible = false;
+  }
   rig = new Rig(model);
   scene.add(model);
   window.model = model;
@@ -772,6 +786,9 @@ enterXrButton.addEventListener('click', async () => {
   session = await navigator.xr.requestSession('immersive-vr', {
     requiredFeatures: ['local-floor'],
   });
+  if (model) {
+    model.visible = false;
+  }
   let referenceSpace;
   let referenceSpaceType = '';
   const _loadReferenceSpace = async () => {
