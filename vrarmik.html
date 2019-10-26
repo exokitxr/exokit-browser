@@ -391,6 +391,7 @@ const z180Quaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), M
 let rig = null;
 let model = null;
 let heightOffset = 0;
+let heightFactor = 0;
 const _rigModel = object => {
   if (rig) {
     scene.remove(model);
@@ -407,12 +408,14 @@ const _rigModel = object => {
   window.model = model;
 
   heightOffset = userHeight - rig.height;
+  heightFactor = rig.height / userHeight;
+
   scene.position.y = heightOffset;
   /* model.position.y = -heightOffset;
   meshDolly.position.y = -heightOffset; */
-  /* scene.scale.set(1, 1, 1).multiplyScalar(userHeight / rig.height);
-  mirrorMesh.position.z = -(rig.height / userHeight);
-  mirrorMesh.scale.set(1, 1, 1).multiplyScalar(rig.height / userHeight); */
+  // scene.scale.set(1, 1, 1).multiplyScalar(userHeight / rig.height);
+  mirrorMesh.position.z = -heightFactor;
+  mirrorMesh.scale.set(1, 1, 1).multiplyScalar(heightFactor);
 };
 const _getFileType = filename => {
   if (/\.(?:gltf|glb|vrm)$/.test(filename)) {
