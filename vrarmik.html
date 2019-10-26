@@ -333,8 +333,10 @@ scene.remove(meshes.upperLegRight);
 scene.remove(meshes.lowerLegRight);
 scene.remove(meshes.footRight); */
 
+const buttonGeometry = new THREE.BoxBufferGeometry(1, 0.1*0.9, 0.1);
 const mirrorMesh = (() => {
-  const geometry = new THREE.PlaneBufferGeometry(1, 2);
+  const geometry = new THREE.PlaneBufferGeometry(1, 2)
+    .applyMatrix(new THREE.Matrix4().makeTranslation(0, 1/2, 0));
   const mesh = new THREE.Reflector(geometry, {
     clipBias: 0.003,
     textureWidth: 1024 * window.devicePixelRatio,
@@ -343,21 +345,31 @@ const mirrorMesh = (() => {
     addColor: 0x300000,
     recursion: 1
   });
-  mesh.position.set(0, 1, -1);
-  /* mesh.onBeforeRender2 = () => {
-    if (model) {
-      model.visible = true;
+  mesh.position.set(0, 0, -1);
+
+  const buttonMeshes = (() => {
+    const result = Array(5);
+    for (let i = 0; i < result.length; i++) {
+      const geometry = buttonGeometry;
+      const material = new THREE.MeshPhongMaterial({
+        color: 0x5c6bc0,
+      });
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.set(-1, 1.5 - 0.1/2 - i*0.1, 0);
+      mesh.frustumCulled = false;
+      result[i] = mesh;
     }
-  };
-  mesh.onAfterRender2 = () => {
-    if (model) {
-      model.visible = false;
-    }
-  }; */
+    return result;
+  })();
+  for (let i = 0; i < buttonMeshes.length; i++) {
+    mesh.add(buttonMeshes[i]);
+  }
+
   return mesh;
 })();
 scene.add(mirrorMesh);
 
+const userHeight = 1.6;
 const z180Quaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI);
 
 let rig = null;
