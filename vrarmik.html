@@ -410,10 +410,10 @@ const _rigModel = object => {
   heightOffset = userHeight - rig.height;
   heightFactor = rig.height / userHeight;
 
-  scene.position.y = heightOffset;
+  // scene.position.y = heightOffset;
   /* model.position.y = -heightOffset;
   meshDolly.position.y = -heightOffset; */
-  // scene.scale.set(1, 1, 1).multiplyScalar(userHeight / rig.height);
+  scene.scale.set(1, 1, 1).divideScalar(heightFactor);
   mirrorMesh.position.z = -heightFactor;
   mirrorMesh.scale.set(1, 1, 1).multiplyScalar(heightFactor);
 };
@@ -649,9 +649,7 @@ function animate(timestamp, frame, referenceSpace) {
       const {inputSources} = session;
       const gamepads = navigator.getGamepads();
 
-      const p = vrCamera.position.clone();
-      p.y -= heightOffset;
-      rig.inputs.hmd.position = p;
+      rig.inputs.hmd.position = vrCamera.position.clone().multiplyScalar(heightFactor);
       rig.inputs.hmd.rotation = vrCamera.quaternion;
 
       const _getGamepad = i => {
@@ -661,16 +659,14 @@ function animate(timestamp, frame, referenceSpace) {
           const {transform} = pose;
           const {position, orientation, matrix} = transform;
           if (position) { // new WebXR api
-            const p = new Vector3().copy(position);
-            p.y -= heightOffset;
+            const p = new Vector3().copy(position).multiplyScalar(heightFactor);
             const q = new Quaternion().copy(orientation);
             return {
               position: p,
               rotation: q,
             };
           } else if (matrix) { // old WebXR api
-            const p = new Vector3();
-            p.y -= heightOffset;
+            const p = new Vector3().multiplyScalar(heightFactor);
             const q = new Quaternion();
             localMatrix
               .fromArray(transform.matrix)
