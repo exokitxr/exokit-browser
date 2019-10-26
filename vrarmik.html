@@ -697,7 +697,7 @@ orbitControls.screenSpacePanning = true;
 orbitControls.enableMiddleZoom = false;
 orbitControls.update();
 
-const aAvatars = document.querySelectorAll('.a-avatar');
+const aAvatars = Array.from(document.querySelectorAll('.a-avatar'));
 for (let i = 0; i < aAvatars.length; i++) {
   const aAvatar = aAvatars[i];
   aAvatar.addEventListener('click', e => {
