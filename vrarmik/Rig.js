@@ -583,7 +583,6 @@ class Rig {
 
 		const rigObject = new GameObject('rig');
 		this.poseManager = rigObject.AddComponent(PoseManager);
-		this.poseManager.flipZ = flipZ;
 		this.poseManager.flipY = flipY;
 		this.shoulderTransforms = rigObject.AddComponent(ShoulderTransforms);
 		this.legsManager = rigObject.AddComponent(LegsManager);
