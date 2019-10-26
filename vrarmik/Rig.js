@@ -373,11 +373,14 @@ class Rig {
 	  let flipZ = eyeDirection.z < 0;
     const armatureDirection = new THREE.Vector3(0, 1, 0).applyQuaternion(armature.quaternion);
     const flipY = armatureDirection.z < -0.5;
+    const legDirection = new Vector3(0, 0, -1).applyQuaternion(Left_leg.getWorldQuaternion(new Quaternion()).premultiply(armature.quaternion.clone().inverse()));
+    const flipLeg = legDirection.y < 0.5;
     const scaleFactor = Head.getWorldPosition(new Vector3())
       .distanceTo(Left_ankle.getWorldPosition(new Vector3())) / Math.abs(armature.scale.y) > 100 ? 100 : 1;
 	  console.log('flip', flipZ, flipY, scaleFactor, eyeDirection.toArray().join(','), armatureDirection.toArray().join(','));
 	  this.flipZ = flipZ;
 	  this.flipY = flipY;
+    this.flipLeg = flipLeg;
     this.scaleFactor = scaleFactor;
 
     const armatureQuaternion = armature.quaternion.clone();
@@ -421,6 +424,11 @@ class Rig {
     } else {
       ['Hips', 'Hip', 'J_Bip_C_Hips'].forEach(k => {
         preRotations[k].premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI));
+      });
+    }
+    if (flipLeg) {
+      ['Upper_legR', 'Upper_legL'].forEach(k => {
+        preRotations[k].premultiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI/2));
       });
     }
 
