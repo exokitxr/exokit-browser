@@ -690,12 +690,12 @@ const mirrorMesh = (() => {
 
   mesh.onBeforeRender2 = () => {
     if (model && session) {
-      model.visible = true;
+      meshDolly.visible = true;
     }
   };
   mesh.onAfterRender2 = () => {
     if (model && session) {
-      model.visible = false;
+      meshDolly.visible = false;
     }
   };
 
@@ -712,21 +712,21 @@ let model = null;
 let heightFactor = 0;
 const _rigModel = object => {
   if (rig) {
-    scene.remove(model);
+    meshDolly.remove(model);
     rig = null;
     model = null;
   }
 
   model = object;
   if (session) {
-    model.visible = false;
+    meshDolly.visible = false;
   }
   rig = new Rig(model, {
     hair: true,
     visemes: true,
     microphoneMediaStream,
   });
-  scene.add(model);
+  meshDolly.add(model);
   window.model = model;
 
   // heightOffset = userHeight - rig.height;
@@ -913,7 +913,7 @@ enterXrButton.addEventListener('click', async () => {
     requiredFeatures: ['local-floor'],
   });
   if (model) {
-    model.visible = false;
+    meshDolly.visible = false;
   }
   let referenceSpace;
   let referenceSpaceType = '';
