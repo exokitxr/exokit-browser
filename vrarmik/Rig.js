@@ -43,7 +43,10 @@ const _copySkeleton = (src, dst) => {
 };
 
 class Rig {
-	constructor(model) {
+	constructor(model, options = {}) {
+    this.model = model;
+    this.options = options;
+
     GameObject.clearAll();
 
     model.updateMatrixWorld(true);
