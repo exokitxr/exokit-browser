@@ -722,7 +722,11 @@ const _rigModel = object => {
   if (session) {
     model.visible = false;
   }
-  rig = new Rig(model);
+  rig = new Rig(model, {
+    hair: true,
+    visemes: true,
+    microphoneMediaStream,
+  });
   scene.add(model);
   window.model = model;
 
