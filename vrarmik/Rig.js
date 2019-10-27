@@ -501,10 +501,7 @@ class Rig {
 		  }); */
 		} else {
 		  ['Hips'].forEach(name => {
-		    const bone = modelBones[name];
-		    if (bone) {
-		      bone.quaternion.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI));
-		    }
+		    modelBones[name].quaternion.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI));
 		  });
 		}
     if (preRotations.Right_arm.applied || preRotations.Upper_armR.applied) {
