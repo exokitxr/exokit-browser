@@ -67,7 +67,7 @@ header nav:not(.selected):hover span {
   padding-top: 50px;
   background-color: #FFF;
 }
-h1, h2, h3, h4, h5, h6, p {
+h1, h2, h3, h4, h5, h6, p, .examples > .multibutton {
   margin: 20px 0;
   padding: 0 20px;
   font-weight: inherit;
@@ -126,26 +126,34 @@ a:hover {
 a:active {
   color: #1976d2;
 }
-.body > .buttons {
+.body > .multibutton {
   position: absolute;
   right: 30px;
   bottom: 30px;
 }
-.buttons {
+.multibutton {
   display: flex;
-  margin: 5px 20px;
+}
+.multibutton .button:not(.first) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.multibutton .button:not(.last) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
 }
 .button {
   display: inline-flex;
+  margin-right: 5px;
   padding: 8px 20px;
   border: 2px solid;
   border-radius: 100px;
   color: #5c6bc0;
   cursor: pointer;
 }
-.button:not(:last-child) {
+/* .button:not(:last-child) {
   margin-right: 20px;
-}
+} */
 .button:not([disabled]):hover {
   background-color: #5c6bc0;
   border-color: #5c6bc0;
@@ -232,9 +240,9 @@ a:active {
           <a href="https://exokitxr.github.io/avatar-models/model4.zip" class="a-avatar">model4.zip</a><br>
           <a href="https://exokitxr.github.io/avatar-models/model5.fbx" class="a-avatar">model5.fbx</a><br>
         </p>
-        <div class=buttons>
+        <div class=multibutton>
           <label for="upload-file-button">
-            <a class=button>Upload file...</a>
+            <a class="button first last">Upload file...</a>
             <input type="file" id="upload-file-button" style="display: none">
           </label>
         </div>
@@ -242,9 +250,11 @@ a:active {
 
       <div class=iframe-wrapper id=iframe-wrapper></div>
 
-      <div class=buttons>
-        <a class=button id="enter-xr-button" style="display: none;">Enter XR</a>
-        <a class=button id="no-xr-button" disabled style="display: none;">No XR</a>
+      <div class=multibutton>
+        <a class="button first" id="enable-mic-button" style="display: none;">Enable Mic</a>
+        <a class="button first" id="disable-mic-button" disabled style="display: none;">Mic Enabled</a>
+        <a class="button last" id="enter-xr-button" style="display: none;">Enter XR</a>
+        <a class="button last" id="no-xr-button" disabled style="display: none;">No XR</a>
       </div>
     </div>
     <script type=module>
