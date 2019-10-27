@@ -194,10 +194,10 @@ class ShoulderPoser extends MonoBehavior
 
 			const targetRotation = new Vector3(0, angle, 0);
 
-			if (this.autoDetectHandsBehindHead)
+			/* if (this.autoDetectHandsBehindHead)
 			{
 				this.detectHandsBehindHead(targetRotation);
-			}
+			} */
 
 			if (this.clampRotationToHead)
 			{
@@ -267,9 +267,7 @@ class ShoulderPoser extends MonoBehavior
 			const delta = Mathf.Abs(targetRotation.y - this.lastAngle.y + 360) % 360;
 			if (delta > 150 && delta < 210 && this.lastAngle.magnitude > 0.000001 && !this.clampingHeadRotation)
 			{
-				this.handsBehindHead = true;
-			} else {
-				this.handsBehindHead = false;
+				this.handsBehindHead = !this.handsBehindHead;
 			}
 
 			this.lastAngle = targetRotation;
