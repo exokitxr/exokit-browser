@@ -618,7 +618,6 @@ for (let i = 0; i < aAvatars.length; i++) {
     _loadModelUrl(href);
   });
 }
-_loadModelUrl(aAvatars[0].href);
 
 let fontJson, fontTexture;
 const fontPromise = Promise.all([
@@ -909,28 +908,6 @@ renderer.setAnimationLoop(animate);
 let session = null;
 const enterXrButton = document.getElementById('enter-xr-button');
 const noXrButton = document.getElementById('no-xr-button');
-(async () => {
-  let result;
-  if (navigator.xr) {
-    try {
-      await navigator.xr.supportsSession('immersive-vr');
-      result = true;
-    } catch (err) {
-      console.warn(err.stack);
-      result = false;
-    }
-  } else {
-    result = false;
-  }
-  if (result) {
-    console.log('xr available');
-    enterXrButton.style.display = null;
-  } else {
-    console.log('no xr');
-    noXrButton.style.display = null;
-  }
-})();
-
 enterXrButton.addEventListener('click', async () => {
   session = await navigator.xr.requestSession('immersive-vr', {
     requiredFeatures: ['local-floor'],
@@ -983,6 +960,73 @@ enterXrButton.addEventListener('click', async () => {
     console.log('loaded root in XR');
   });
 });
+
+let microphoneMediaStream = null;
+const enableMicButton = document.getElementById('enable-mic-button');
+const disableMicButton = document.getElementById('disable-mic-button');
+enableMicButton.addEventListener('click', async () => {
+  try {
+    microphoneMediaStream  = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+    });
+    disableMicButton.style.display = null;
+    enableMicButton.style.display = 'none';
+  } catch (err) {
+    console.warn(err);
+  }
+});
+/* disableMicButton.addEventListener('click', async () => {
+  microphoneMediaStream.getTracks().forEach(track => {
+    track.stop();
+  });
+  microphoneMediaStream = null;
+  enableMicButton.style.display = null;
+  disableMicButton.style.display = 'none';
+
+  try {
+    await navigator.permissions.revoke({
+      name: 'microphone',
+    });
+  } catch(err) {
+    console.warn(err);
+  }
+}); */
+
+(async () => {
+  let result;
+  if (navigator.xr) {
+    try {
+      await navigator.xr.supportsSession('immersive-vr');
+      result = true;
+    } catch (err) {
+      console.warn(err.stack);
+      result = false;
+    }
+  } else {
+    result = false;
+  }
+  if (result) {
+    console.log('xr available');
+    enterXrButton.style.display = null;
+  } else {
+    console.log('no xr');
+    noXrButton.style.display = null;
+  }
+
+  const microphonePermission = await navigator.permissions.query({
+    name: 'microphone',
+  });
+  if (microphonePermission.state === 'granted') {
+    microphoneMediaStream  = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+    });
+    disableMicButton.style.display = null;
+  } else {
+    enableMicButton.style.display = null;
+  }
+
+  _loadModelUrl(aAvatars[0].href);
+})();
     </script>
   </body>
 </html>
