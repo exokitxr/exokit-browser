@@ -187,8 +187,6 @@ class LegsManager extends MonoBehavior
     this.rightLeg.foot.stickTransform.position = this.rightLeg.foot.position;
     this.rightLeg.left = false;
 
-    // this.spineLength = 0.3525347660851869;
-
     this.poseManager = this.GetOrAddComponent(PoseManager);
     this.leftLeg.poseManager = this.poseManager;
     this.rightLeg.poseManager = this.poseManager;
