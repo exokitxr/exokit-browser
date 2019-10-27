@@ -718,9 +718,6 @@ const _rigModel = object => {
   }
 
   model = object;
-  if (session) {
-    meshDolly.visible = false;
-  }
   rig = new Rig(model, {
     hair: true,
     visemes: true,
