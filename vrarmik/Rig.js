@@ -57,6 +57,8 @@ class Rig {
 	    }
 	  });
     skinnedMeshes.sort((a, b) => b.skeleton.bones.length - a.skeleton.bones.length);
+    this.skinnedMeshes = skinnedMeshes;
+
     const skeletonSkinnedMesh = skinnedMeshes.find(o => o.skeleton.bones[0].parent) || null;
     const skeleton = skeletonSkinnedMesh && skeletonSkinnedMesh.skeleton;
     if (skeleton) {
