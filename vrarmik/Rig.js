@@ -644,6 +644,24 @@ class Rig {
 	    Right_knee: this.outputs.leftLowerLeg,
 	    Right_ankle: this.outputs.leftFoot,
 	  };
+
+    /* this.volume = 0;
+    (async () => {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+      });
+
+      const context = new AudioContext();
+      const mediaStreamSource = context.createMediaStreamSource(mediaStream);
+
+      await context.audioWorklet.addModule('vrarmik/audio-volume-worklet.js');
+      const audioWorkletNode = new AudioWorkletNode(context, 'volume-processor');
+      audioWorkletNode.port.onmessage = e => {
+        this.volume = this.volume*0.8 + e.data*0.2;
+      };
+      mediaStreamSource.connect(audioWorkletNode).connect(context.destination);
+    })(); */
+
     this.lastTimestamp = Date.now();
 
 	  GameObject.startAll();
