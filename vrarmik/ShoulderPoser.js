@@ -54,10 +54,11 @@ class ShoulderPoser extends MonoBehavior
 			this.leftShoulderAnkerStartLocalPosition = new Vector3();
 			this.rightShoulderAnkerStartLocalPosition = new Vector3();
 
+      this.poseManager = this.GetOrAddComponent(PoseManager);
 			if (this.vrTrackingReferences === null)
-				this.vrTrackingReferences = PoseManager.Instance.vrTransforms;
+				this.vrTrackingReferences = this.poseManager.vrTransforms;
 			if (this.avatarTrackingReferences === null)
-				this.avatarTrackingReferences = PoseManager.Instance.avatarVrTransforms;
+				this.avatarTrackingReferences = this.poseManager.avatarVrTransforms;
 		}
 
 		Start() {
@@ -210,8 +211,8 @@ class ShoulderPoser extends MonoBehavior
 		rotateShoulderRightBase()
 		{
 
-			const heightDiff = this.vrTrackingReferences.head.position.y - PoseManager.Instance.vrSystemOffsetHeight;
-			const relativeHeightDiff = -heightDiff / PoseManager.Instance.playerHeightHmd;
+			const heightDiff = this.vrTrackingReferences.head.position.y - this.poseManager.vrSystemOffsetHeight;
+			const relativeHeightDiff = -heightDiff / this.poseManager.playerHeightHmd;
 
       const hmdRotation = this.vrTrackingReferences.head.rotation;
       hmdRotation.multiply(z180Quaternion);

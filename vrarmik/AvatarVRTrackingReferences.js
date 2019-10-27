@@ -14,6 +14,7 @@ import StaticOffsetTransform from './StaticOffsetTransform.js';
 			this.rightHand = null;
 
 			this.unity = unity;
+			this.poseManager = null;
 		}
 
 		Awake()
@@ -77,10 +78,10 @@ import StaticOffsetTransform from './StaticOffsetTransform.js';
 				sot.reference = this.transform.parent;
 			} */
 
-			this.head.reference = this.head.reference !== null ? this.head.reference : PoseManager.Instance.vrTransforms.head;
-			// this.hmd.reference = this.hmd.reference !== null ? this.hmd.reference : PoseManager.Instance.vrTransforms.hmd;
-			this.leftHand.reference = this.leftHand.reference !== null ? this.leftHand.reference : PoseManager.Instance.vrTransforms.leftHand;
-			this.rightHand.reference = this.rightHand.reference !== null ? this.rightHand.reference : PoseManager.Instance.vrTransforms.rightHand;
+			this.head.reference = this.head.reference !== null ? this.head.reference : this.poseManager.vrTransforms.head;
+			// this.hmd.reference = this.hmd.reference !== null ? this.hmd.reference : this.poseManager.vrTransforms.hmd;
+			this.leftHand.reference = this.leftHand.reference !== null ? this.leftHand.reference : this.poseManager.vrTransforms.leftHand;
+			this.rightHand.reference = this.rightHand.reference !== null ? this.rightHand.reference : this.poseManager.vrTransforms.rightHand;
 		}
 	}
 

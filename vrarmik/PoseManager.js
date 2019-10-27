@@ -25,7 +25,7 @@ class PoseManager extends MonoBehavior
 
       this.flipY = false;
 
-      PoseManager.Instance = this;
+      // PoseManager.Instance = this;
     }
 
 		/* OnEnable()
@@ -91,6 +91,6 @@ class PoseManager extends MonoBehavior
 			this.playerWidthWrist = PlayerPrefs.GetFloat("VRArmIK_PlayerWidthWrist", this.referencePlayerWidthWrist);
 		}
 	}
-	PoseManager.Instance = null;
+	// PoseManager.Instance = null;
 
 export default PoseManager;

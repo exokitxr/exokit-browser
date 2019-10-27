@@ -34,8 +34,11 @@ class ShoulderTransforms extends MonoBehavior
 			this.rightShoulderAnchor = new Transform();
 			this.transform.AddChild(this.rightShoulderAnchor);
 
+      const poseManager = this.GetOrAddComponent(PoseManager);
 			this.leftArm = unity.makeGameObject().AddComponent(ArmTransforms);
+			this.leftArm.poseManager = poseManager;
 			this.rightArm = unity.makeGameObject().AddComponent(ArmTransforms);
+			this.rightArm.poseManager = poseManager;
 
 			this.leftShoulderAnchor.AddChild(this.leftArm.transform);
 			this.rightShoulderAnchor.AddChild(this.rightArm.transform);

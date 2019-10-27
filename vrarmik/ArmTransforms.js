@@ -21,6 +21,8 @@ class ArmTransforms extends MonoBehavior
 			this.armLengthByScale = false;
 			this.scaleAxis = Vector3.one;
 			this.scaleHandFactor = .7;
+
+			this.poseManager = null;
 		}
 
 		get upperArmLength() {
@@ -51,7 +53,7 @@ class ArmTransforms extends MonoBehavior
 		updateArmLengths()
 		{
 			const shoulderWidth = new Vector3().subVectors(this.upperArm.position, this.lowerArm.position).magnitude;
-			const _armLength = (PoseManager.Instance.playerWidthWrist - shoulderWidth) / 2;
+			const _armLength = (this.poseManager.playerWidthWrist - shoulderWidth) / 2;
 			this.setArmLength(_armLength);
 		}
 
