@@ -810,6 +810,33 @@ class Rig {
       }
     };
     _processHairBone(this.modelBones.Head, this.hairBones);
+
+    /* const aaValue = Math.min(this.volume * 10, 1);
+    const blinkValue = (() => {
+      const nowWindow = now % 2000;
+      if (nowWindow >= 0 && nowWindow < 100) {
+        return nowWindow/100;
+      } else if (nowWindow >= 100 && nowWindow < 200) {
+        return 1 - (nowWindow-100)/100;
+      } else {
+        return 0;
+      }
+    })();
+    this.skinnedMeshes.forEach(o => {
+      const {morphTargetDictionary, morphTargetInfluences} = o;
+      const aaMorphTargetIndex = morphTargetDictionary['vrc.v_aa'];
+      if (aaMorphTargetIndex !== undefined) {
+        morphTargetInfluences[aaMorphTargetIndex] = aaValue;
+      }
+      const blinkLeftMorphTargetIndex = morphTargetDictionary['vrc.blink_left'];
+      if (blinkLeftMorphTargetIndex !== undefined) {
+        morphTargetInfluences[blinkLeftMorphTargetIndex] = blinkValue;
+      }
+      const blinkRightMorphTargetIndex = morphTargetDictionary['vrc.blink_right'];
+      if (blinkRightMorphTargetIndex !== undefined) {
+        morphTargetInfluences[blinkRightMorphTargetIndex] = blinkValue;
+      }
+    }); */
 	}
 }
 export default Rig;
