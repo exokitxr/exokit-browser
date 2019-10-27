@@ -252,6 +252,41 @@ class ShoulderPoser extends MonoBehavior
 				distanceRightHand.y = 0;
 			}
 
+			const hmdRotation = this.vrTrackingReferences.head.rotation;
+      const hmdEuler = new THREE.Euler().setFromQuaternion(hmdRotation, 'YXZ');
+      hmdEuler.x = 0;
+      hmdEuler.z = 0;
+      const hmdFlatRotation = new Quaternion().setFromEuler(hmdEuler);
+      const hmdFlatRotationInverse = hmdFlatRotation.clone().inverse();
+
+			const leftHandBehind = distanceLeftHand.clone().applyQuaternion(hmdFlatRotationInverse);
+			const leftBehind = leftHandBehind.z > 0;
+			const rightHandBehind = distanceRightHand.clone().applyQuaternion(hmdFlatRotationInverse);
+			const rightBehind = rightHandBehind.z > 0;
+
+			if (leftBehind) {
+				/* if (leftHandBehind.x < 0) {
+					leftHandBehind.x *= -1;
+				} else { */
+				  leftHandBehind.x = 0;
+				// }
+				leftHandBehind.y = 0;
+				leftHandBehind.z *= rightBehind ? -2 : -1;
+				leftHandBehind.applyQuaternion(hmdFlatRotation);
+				distanceLeftHand.add(leftHandBehind);
+			}
+			if (rightBehind) {
+				/* if (rightHandBehind.x > 0) {
+					rightHandBehind.x *= -1;
+				} else { */
+				  rightHandBehind.x = 0;
+				// }
+				rightHandBehind.y = 0;
+				rightHandBehind.z *= leftBehind ? -2 : -1;
+				rightHandBehind.applyQuaternion(hmdFlatRotation);
+				distanceRightHand.add(rightHandBehind);
+			}
+
 			const directionLeftHand = distanceLeftHand.normalized;
 			const directionRightHand = distanceRightHand.normalized;
 
