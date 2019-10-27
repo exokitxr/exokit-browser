@@ -648,22 +648,20 @@ class Rig {
 	    Right_ankle: this.outputs.leftFoot,
 	  };
 
-    /* this.volume = 0;
-    (async () => {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-      });
+    this.volume = 0;
+    if (options.microphoneMediaStream) {
+      (async () => {
+        const context = new AudioContext();
+        const mediaStreamSource = context.createMediaStreamSource(options.microphoneMediaStream);
 
-      const context = new AudioContext();
-      const mediaStreamSource = context.createMediaStreamSource(mediaStream);
-
-      await context.audioWorklet.addModule('vrarmik/audio-volume-worklet.js');
-      const audioWorkletNode = new AudioWorkletNode(context, 'volume-processor');
-      audioWorkletNode.port.onmessage = e => {
-        this.volume = this.volume*0.8 + e.data*0.2;
-      };
-      mediaStreamSource.connect(audioWorkletNode).connect(context.destination);
-    })(); */
+        await context.audioWorklet.addModule('vrarmik/audio-volume-worklet.js');
+        const audioWorkletNode = new AudioWorkletNode(context, 'volume-processor');
+        audioWorkletNode.port.onmessage = e => {
+          this.volume = this.volume*0.8 + e.data*0.2;
+        };
+        mediaStreamSource.connect(audioWorkletNode).connect(context.destination);
+      })();
+    }
 
     this.lastTimestamp = Date.now();
 
