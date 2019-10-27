@@ -812,7 +812,7 @@ class Rig {
     };
     _processHairBone(this.modelBones.Head, this.hairBones);
 
-    /* const aaValue = Math.min(this.volume * 10, 1);
+    const aaValue = Math.min(this.volume * 10, 1);
     const blinkValue = (() => {
       const nowWindow = now % 2000;
       if (nowWindow >= 0 && nowWindow < 100) {
@@ -825,19 +825,32 @@ class Rig {
     })();
     this.skinnedMeshes.forEach(o => {
       const {morphTargetDictionary, morphTargetInfluences} = o;
-      const aaMorphTargetIndex = morphTargetDictionary['vrc.v_aa'];
-      if (aaMorphTargetIndex !== undefined) {
-        morphTargetInfluences[aaMorphTargetIndex] = aaValue;
+      if (morphTargetDictionary && morphTargetInfluences) {
+        let aaMorphTargetIndex = morphTargetDictionary['vrc.v_aa'];
+        if (aaMorphTargetIndex === undefined) {
+          aaMorphTargetIndex = morphTargetDictionary['morphTarget26'];
+        }
+        if (aaMorphTargetIndex !== undefined) {
+          morphTargetInfluences[aaMorphTargetIndex] = aaValue;
+        }
+
+        let blinkLeftMorphTargetIndex = morphTargetDictionary['vrc.blink_left'];
+        if (blinkLeftMorphTargetIndex === undefined) {
+          blinkLeftMorphTargetIndex = morphTargetDictionary['morphTarget16'];
+        }
+        if (blinkLeftMorphTargetIndex !== undefined) {
+          morphTargetInfluences[blinkLeftMorphTargetIndex] = blinkValue;
+        }
+
+        let blinkRightMorphTargetIndex = morphTargetDictionary['vrc.blink_right'];
+        if (blinkRightMorphTargetIndex === undefined) {
+          blinkRightMorphTargetIndex = morphTargetDictionary['morphTarget17'];
+        }
+        if (blinkRightMorphTargetIndex !== undefined) {
+          morphTargetInfluences[blinkRightMorphTargetIndex] = blinkValue;
+        }
       }
-      const blinkLeftMorphTargetIndex = morphTargetDictionary['vrc.blink_left'];
-      if (blinkLeftMorphTargetIndex !== undefined) {
-        morphTargetInfluences[blinkLeftMorphTargetIndex] = blinkValue;
-      }
-      const blinkRightMorphTargetIndex = morphTargetDictionary['vrc.blink_right'];
-      if (blinkRightMorphTargetIndex !== undefined) {
-        morphTargetInfluences[blinkRightMorphTargetIndex] = blinkValue;
-      }
-    }); */
+    });
 	}
 }
 export default Rig;
