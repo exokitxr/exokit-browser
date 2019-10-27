@@ -131,8 +131,8 @@ function toPositiveEulerAngle(n)
 			if (this.elbowSettings.calcElbowAngle)
 			{
 				this.positionElbow();
-				if (this.elbowCorrectionSettings.useFixedElbowWhenNearShoulder)
-					this.correctElbowAfterPositioning();
+				/* if (this.elbowCorrectionSettings.useFixedElbowWhenNearShoulder)
+					this.correctElbowAfterPositioning(); */
 				if (this.handSettings.rotateElbowWithHandRight)
 					this.rotateElbowWithHandRight();
 				if (this.handSettings.rotateElbowWithHandForward)
