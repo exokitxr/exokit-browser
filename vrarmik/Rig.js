@@ -421,7 +421,7 @@ class Rig {
       });
     }
 
-    const qr = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI/2)
+    const qr = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), (flipZ ? -1 : 1) * -Math.PI/2)
       .premultiply(
         new Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(
           new Vector3(0, 0, 0),
@@ -431,7 +431,7 @@ class Rig {
           new Vector3(0, 1, 0),
         ))
       );
-    const qr2 = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI/2)
+    const qr2 = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), (flipZ ? -1 : 1) * -Math.PI/2)
       .premultiply(
         new Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(
           new Vector3(0, 0, 0),
@@ -441,7 +441,7 @@ class Rig {
           new Vector3(0, 1, 0),
         ))
       );
-    const ql = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI/2)
+    const ql = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), (flipZ ? -1 : 1) * Math.PI/2)
       .premultiply(
         new Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(
           new Vector3(0, 0, 0),
@@ -451,7 +451,7 @@ class Rig {
           new Vector3(0, 1, 0),
         ))
       );
-    const ql2 = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI/2)
+    const ql2 = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), (flipZ ? -1 : 1) * Math.PI/2)
       .premultiply(
         new Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(
           new Vector3(0, 0, 0),
