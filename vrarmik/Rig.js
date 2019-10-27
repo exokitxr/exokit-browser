@@ -504,7 +504,7 @@ class Rig {
 		    modelBones[name].quaternion.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI));
 		  });
 		}
-    if (preRotations.Right_arm.applied || preRotations.Upper_armR.applied) {
+    // if ((preRotations.Right_arm && preRotations.Right_arm.applied) || (preRotations.Upper_armR && preRotations.Upper_armR.applied)) {
       modelBones.Right_arm.quaternion.premultiply(qr.clone().inverse());
       modelBones.Right_elbow.quaternion
         .premultiply(qr)
@@ -513,7 +513,10 @@ class Rig {
       modelBones.Left_elbow.quaternion
         .premultiply(ql)
         .premultiply(ql2.clone().inverse());
-    }
+      console.log('log yes', flipZ, flipY, flipLeg);
+    /* } else {
+      console.log('log no', flipZ, flipY, flipLeg);
+    } */
 	  model.updateMatrixWorld(true);
 
     for (let i = 0; i < skeleton.bones.length; i++) {
