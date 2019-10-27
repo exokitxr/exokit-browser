@@ -5,13 +5,15 @@ import StaticOffsetTransform from './StaticOffsetTransform.js';
 
 	class AvatarVRTrackingReferences extends MonoBehavior
 	{
-		constructor(...args) {
-      super(...args);
+		constructor(transform, components, unity) {
+      super(transform, components, unity);
 
 			this.head = null;
 			// this.hmd = null;
 			this.leftHand = null;
 			this.rightHand = null;
+
+			this.unity = unity;
 		}
 
 		Awake()
@@ -42,7 +44,7 @@ import StaticOffsetTransform from './StaticOffsetTransform.js';
 			let t = this[k];
 			if (t === null)
 			{
-				t = new GameObject(name).AddComponent(StaticOffsetTransform);
+				t = this.unity.makeGameObject(name).AddComponent(StaticOffsetTransform);
 				this.transform.AddChild(t.transform);
 				this.setStaticOffsetSettings(t);
 				this[k] = t;
@@ -53,7 +55,7 @@ import StaticOffsetTransform from './StaticOffsetTransform.js';
 		{
 			if (t === null)
 			{
-				t = new GameObject(name).transform;
+				t = this.unity.makeGameObject(name).transform;
 				t.transform.localPosition = Vector3.zero;
 				this.transform.AddChild(t.transform);
 			}

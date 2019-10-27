@@ -7,8 +7,8 @@ import PoseManager from './PoseManager.js';
 
 class ShoulderTransforms extends MonoBehavior
 	{
-		constructor(...args) {
-      super(...args);
+		constructor(transform, components, unity) {
+      super(transform, components, unity);
 
       this.hips = new Transform();
       this.spine = new Transform();
@@ -34,8 +34,8 @@ class ShoulderTransforms extends MonoBehavior
 			this.rightShoulderAnchor = new Transform();
 			this.transform.AddChild(this.rightShoulderAnchor);
 
-			this.leftArm = new GameObject().AddComponent(ArmTransforms);
-			this.rightArm = new GameObject().AddComponent(ArmTransforms);
+			this.leftArm = unity.makeGameObject().AddComponent(ArmTransforms);
+			this.rightArm = unity.makeGameObject().AddComponent(ArmTransforms);
 
 			this.leftShoulderAnchor.AddChild(this.leftArm.transform);
 			this.rightShoulderAnchor.AddChild(this.rightArm.transform);

@@ -4,11 +4,12 @@ import {GameObject, MonoBehavior, XRSettings} from './Unity.js';
 
 class PoseManager extends MonoBehavior
 	{
-		constructor(...args) {
-      super(...args);
+		constructor(transform, components, unity) {
+      super(transform, components, unity);
 
-			this.vrTransforms = new GameObject().AddComponent(VRTrackingReferences);
-			this.avatarVrTransforms = new GameObject().AddComponent(AvatarVRTrackingReferences);
+			this.vrTransforms = unity.makeGameObject().AddComponent(VRTrackingReferences);
+			this.avatarVrTransforms = unity.makeGameObject().AddComponent(AvatarVRTrackingReferences);
+			this.avatarVrTransforms.poseManager = this;
 		  // this.OnCalibrateListener = null;
 
       // Oculus uses a different reference position -> 0 is the reference head position if the user is standing in the middle of the room. 

@@ -174,14 +174,14 @@ class Leg extends MonoBehavior {
 
 class LegsManager extends MonoBehavior
 {
-	constructor(...args) {
-    super(...args);
+	constructor(transform, components, unity) {
+    super(transform, components, unity);
 
     const shoulderTransforms = this.GetOrAddComponent(ShoulderTransforms);
     this.hips = shoulderTransforms.hips;
-    this.leftLeg = new GameObject().AddComponent(Leg);
+    this.leftLeg = unity.makeGameObject().AddComponent(Leg);
     this.hips.AddChild(this.leftLeg.transform);
-    this.rightLeg = new GameObject().AddComponent(Leg);
+    this.rightLeg = unity.makeGameObject().AddComponent(Leg);
     this.hips.AddChild(this.rightLeg.transform);
 
     this.rightLeg.foot.stickTransform.position = this.rightLeg.foot.position;
