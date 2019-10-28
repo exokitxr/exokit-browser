@@ -422,7 +422,7 @@ const _pathname2Filename = pathname => {
   const match = pathname.match(/([^\/]+)$/);
   return match && match[1];
 };
-const _loadModelFilesystem = filesystem => {
+const _loadModelFilesystem = async filesystem => {
   const manager = new THREE.LoadingManager();
   manager.setURLModifier(url => {
     // console.log('load url', url);
@@ -459,17 +459,17 @@ const _loadModelFilesystem = filesystem => {
     const modelFileUrl = modelFile.url;
     console.log(`using model file: ${modelFile.pathname}`);
     if (/\.fbx$/.test(modelFile.pathname)) {
-      new THREE.FBXLoader(manager).load(modelFileUrl, object => {
-        _rigModel(object);
-      }, function onprogress() {}, function onerror(err) {
-        console.warn(err);
+      const model = await new Promise((accept, reject) => {
+        new THREE.FBXLoader(manager).load(modelFileUrl, accept, function onprogress() {}, reject);
       });
+      return model;
     } else {
-      new THREE.GLTFLoader(manager).load(modelFileUrl, object => {
-        _rigModel(object.scene);
-      }, xhr => {}, err => {
-        console.warn(err);
+      const model = await new Promise((accept, reject) => {
+        new THREE.GLTFLoader(manager).load(modelFileUrl, object => {
+          accept(object.scene);
+        }, xhr => {}, reject);
       });
+      return model;
     }
   } else {
     throw new Error('no model file in package');
@@ -486,53 +486,51 @@ const _readAsArrayBuffer = blob => new Promise((accept, reject) => {
 const _loadModelUrl = async (href, filename = href) => {
   const fileType = _getFileType(filename);
   if (fileType === 'gltf') {
-    new THREE.GLTFLoader().load(href, object => {
-      _rigModel(object.scene);
-    }, xhr => {}, err => {
-      console.warn(err);
+    const model = await new Promise((accept, reject) => {
+      new THREE.GLTFLoader().load(href, object => {
+        accept(object.scene);
+      }, xhr => {}, reject);
     });
+    return model;
   } else if (fileType === 'fbx') {
-    new THREE.FBXLoader().load(href, object => {
-      _rigModel(object);
-    }, xhr => {}, err => {
-      console.warn(err);
+    const model = await new Promise((accept, reject) => {
+      new THREE.FBXLoader().load(href, accept, xhr => {}, reject);
     });
+    return model;
   } else if (fileType === 'zip') {
     const unitypackageRes = await fetch(href);
     const blob = await unitypackageRes.blob();
-    zip.createReader(new zip.BlobReader(blob), function(reader) {
-      reader.getEntries(async function(entries) {
-        const filesystem = [];
-        for (let i = 0; i < entries.length; i++) {
-          const entry = entries[i];
-          const pathname = entry.filename;
-          const filename = _pathname2Filename(pathname);
-          const blob = await new Promise((accept, reject) => {
-            entry.getData(new zip.BlobWriter('application/octet-stream'), function(blob) {
-              accept(blob);
-            }, function(current, total) {
-              // onprogress callback
-            });
-          });
-          const url = URL.createObjectURL(blob);
-          filesystem.push({
-            pathname,
-            filename,
-            url,
-          });
-          // console.log('got blob', entry, blob, pathname, filename, url);
-        }
-        // console.log('got filesystem', filesystem);
-        _loadModelFilesystem(filesystem);
-
-        /* // close the zip reader
-        reader.close(function() {
-          // onclose callback
-        }); */
-      });
-    }, function(err) {
-      console.warn(err);
+    const reader = await new Promise((accept, reject) => {
+      zip.createReader(new zip.BlobReader(blob), accept, reject);
     });
+    const entries = await new Promise((accept, reject) => {
+      reader.getEntries(accept);
+    });
+
+    const filesystem = [];
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i];
+      const pathname = entry.filename;
+      const filename = _pathname2Filename(pathname);
+      const blob = await new Promise((accept, reject) => {
+        entry.getData(new zip.BlobWriter('application/octet-stream'), function(blob) {
+          accept(blob);
+        }, function(current, total) {
+          // onprogress callback
+        });
+      });
+      const url = URL.createObjectURL(blob);
+      filesystem.push({
+        pathname,
+        filename,
+        url,
+      });
+      // console.log('got blob', entry, blob, pathname, filename, url);
+    }
+    // console.log('got filesystem', filesystem);
+
+    const model = await _loadModelFilesystem(filesystem);
+    return model;
   } else if (fileType === 'tgz') {
     const unitypackageRes = await fetch(href);
     const arraybuffer = await unitypackageRes.arrayBuffer();
@@ -562,19 +560,22 @@ const _loadModelUrl = async (href, filename = href) => {
         }
       }
     }
-    _loadModelFilesystem(filesystem);
+    const model = await _loadModelFilesystem(filesystem);
+    return model;
   } else {
     throw new Error(`unknown file type: ${filename} (${fileType})`);
   }
 };
 
 const _bindUploadFileButton = inputFileEl => {
-  inputFileEl.addEventListener('change', e => {
+  inputFileEl.addEventListener('change', async e => {
     const {files} = e.target;
     if (files.length === 1) {
       const [file] = files;
       const dataUrl = URL.createObjectURL(file);
-      _loadModelUrl(dataUrl, file.name);
+      const model = await _loadModelUrl(dataUrl, file.name);
+      _setLocalModel(model);
+      // modelUrl = dataUrl;
     }
 
     const {parentNode} = inputFileEl;
@@ -603,7 +604,9 @@ window.document.addEventListener('drop', async e => {
       const file = e.dataTransfer.items[i].getAsFile();
       // console.log('got file', e.dataTransfer.items[i], file);
       const dataUrl = URL.createObjectURL(file);
-      _loadModelUrl(dataUrl, file.name);
+      const model = await _loadModelUrl(dataUrl, file.name);
+      _setLocalModel(model);
+      // modelUrl = dataUrl;
     }
   }
 });
@@ -627,11 +630,13 @@ orbitControls.update();
 const aAvatars = Array.from(document.querySelectorAll('.a-avatar'));
 for (let i = 0; i < aAvatars.length; i++) {
   const aAvatar = aAvatars[i];
-  aAvatar.addEventListener('click', e => {
+  aAvatar.addEventListener('click', async e => {
     e.preventDefault();
 
     const {href} = aAvatar;
-    _loadModelUrl(href);
+    const model = await _loadModelUrl(href);
+    _setLocalModel(model);
+    modelUrl = href;
   });
 }
 
@@ -724,9 +729,10 @@ const z180Quaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), M
 
 let rig = null;
 let model = null;
+let modelUrl = '';
 // let heightOffset = 0;
 let heightFactor = 0;
-const _rigModel = object => {
+const _setLocalModel = object => {
   if (rig) {
     meshDolly.remove(model);
     rig = null;
@@ -1038,7 +1044,10 @@ enableMicButton.addEventListener('click', async () => {
     enableMicButton.style.display = null;
   }
 
-  _loadModelUrl(aAvatars[0].href);
+  const url = aAvatars[0].href;
+  const model = await _loadModelUrl(url);
+  _setLocalModel(model);
+  modelUrl = url;
 })();
     </script>
   </body>
