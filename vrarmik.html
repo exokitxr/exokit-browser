@@ -764,7 +764,8 @@ const _setLocalModel = object => {
 };
 
 const lastPresseds = [false, false];
-const realDateNow = (now => () => now())(Date.now);//() => 2000;
+const dateOffset = Math.floor(Math.random() * 60 * 1000);
+const realDateNow = (now => () => dateOffset + now())(Date.now);
 function animate(timestamp, frame, referenceSpace) {
   if (rig) {
     if (renderer.vr.enabled) {
