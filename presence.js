@@ -7,7 +7,7 @@ function _randomString() {
   return Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
 }
 
-class PeerConnection extends EventTarget {
+class XRPeerConnection extends EventTarget {
   constructor(peerConnectionId) {
     super();
 
@@ -121,7 +121,7 @@ class PeerConnection extends EventTarget {
   }
 }
 
-class PresenceConnection extends EventTarget {
+class XRChannelConnection extends EventTarget {
   constructor(url) {
     super();
 
@@ -144,7 +144,7 @@ class PresenceConnection extends EventTarget {
         peerConnection = null;
       }
       if (!peerConnection) {
-        peerConnection = new PeerConnection(peerConnectionId);
+        peerConnection = new XRPeerConnection(peerConnectionId);
         this.dispatchEvent(new CustomEvent('peerconnection', {
           detail: peerConnection,
         }));
@@ -288,6 +288,6 @@ class PresenceConnection extends EventTarget {
 }
 
 export {
-  PeerConnection,
-  PresenceConnection,
+  XRPeerConnection,
+  XRChannelConnection,
 };

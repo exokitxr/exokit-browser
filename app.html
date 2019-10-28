@@ -25,7 +25,7 @@
   <body>
     <xr-site></xr-site>
     <script type=module>
-import {PresenceConnection, PeerConnection} from './presence.js';
+import {XRChannelConnection} from './presence.js';
 (async () => {
 
 let session, display, fakeXrDisplay, lastPresseds = [false, false], lastGripped = [false, false], lastPads = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], menuOpen = false, orbitControls = null, transformControls, currentMoveMeshes = [null, null], moveMeshes = [], assetMeshes = [], moveLabelMeshes = [], assetLabelMeshes = [], nativeLabelMeshes = [], guardianMeshes = [], baseMeshes = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null, user = null;
@@ -356,7 +356,7 @@ new MutationObserver(mutations => {
 let rtcWs = null;
 const peerConnections = [];
 const _rtcConnect = (type, userName, channelName, onInitState) => {
-  rtcWs = new PresenceConnection(`${LAMBDA_URLS.presenceWs}?u=${encodeURIComponent(userName)}&c=${encodeURIComponent(channelName)}`);
+  rtcWs = new XRChannelConnection(`${LAMBDA_URLS.presenceWs}?u=${encodeURIComponent(userName)}&c=${encodeURIComponent(channelName)}`);
 
   rtcWs.addEventListener('peerconnection', e => {
     const peerConnection = e.detail;
