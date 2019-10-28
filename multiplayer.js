@@ -254,7 +254,7 @@ class XRPeerConnection extends EventTarget {
           // nothing
         } else {
           this.dispatchEvent(new MessageEvent('message', {
-            data,
+            data: e.data,
           }));
         }
 
