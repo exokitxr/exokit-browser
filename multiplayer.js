@@ -22,6 +22,8 @@ class XRChannelConnection extends EventTarget {
         method: 'init',
         connectionId: this.connectionId,
       }));
+
+      this.dispatchEvent(new CustomEvent('open'));
     };
     const _addPeerConnection = peerConnectionId => {
       let peerConnection = this.peerConnections.find(peerConnection => peerConnection.connectionId === peerConnectionId);
@@ -137,10 +139,16 @@ class XRChannelConnection extends EventTarget {
     this.rtcWs.onclose = () => {
       clearInterval(pingInterval);
       console.log('rtc closed');
+
+      this.dispatchEvent(new CustomEvent('close'));
     };
     this.rtcWs.onerror = err => {
       console.warn('rtc error', err);
       clearInterval(pingInterval);
+
+      this.dispatchEvent(new ErrorEvent('error', {
+        message: err.stack,
+      }));
     };
     const pingInterval = setInterval(() => {
       this.rtcWs.send(JSON.stringify({
