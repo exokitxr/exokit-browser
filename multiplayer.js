@@ -8,12 +8,13 @@ function _randomString() {
 }
 
 class XRChannelConnection extends EventTarget {
-  constructor(url) {
+  constructor(url, options = {}) {
     super();
 
     this.rtcWs = new WebSocket(url);
     this.connectionId = _randomString();
     this.peerConnections = [];
+    this.microphoneMediaStream = options.microphoneMediaStream;
 
     this.rtcWs.onopen = () => {
       // console.log('presence socket open');
@@ -42,6 +43,13 @@ class XRChannelConnection extends EventTarget {
             this.peerConnections.splice(index, 1);
           }
         });
+        if (this.microphoneMediaStream) {
+          // peerConnection.peerConnection.addStream(this.microphoneMediaStream);
+          const tracks = this.microphoneMediaStream.getAudioTracks();
+          for (let i = 0; i < tracks.length; i++) {
+            peerConnection.peerConnection.addTrack(tracks[i]);
+          }
+        }
         peerConnection.peerConnection.onicecandidate = e => {
           // console.log('ice candidate', e.candidate);
 
@@ -179,6 +187,31 @@ class XRChannelConnection extends EventTarget {
       }
     }
   }
+
+  setMicrophoneMediaStream(microphoneMediaStream) {
+    const {microphoneMediaStream: oldMicrophoneMediaStream} = this;
+    if (oldMicrophoneMediaStream) {
+      const oldTracks = oldMicrophoneMediaStream.getAudioTracks();
+      for (let i = 0; i < this.peerConnections.length; i++) {
+        const peerConnection = this.peerConnections[i];
+        for (let j = 0; j < oldTracks.length; j++) {
+          peerConnection.removeTrack(oldTracks[j]);
+        }
+      }
+    }
+
+    this.microphoneMediaStream = microphoneMediaStream;
+
+    if (microphoneMediaStream) {
+      const tracks = microphoneMediaStream.getAudioTracks();
+      for (let i = 0; i < this.peerConnections.length; i++) {
+        const peerConnection = this.peerConnections[i];
+        for (let j = 0; j < tracks.length; j++) {
+          peerConnection.addTrack(tracks[j]);
+        }
+      }
+    }
+  }
 }
 window.XRChannelConnection = XRChannelConnection;
 
@@ -193,8 +226,17 @@ class XRPeerConnection extends EventTarget {
     });
     this.open = false;
 
+    /* this.peerConnection.onaddstream = e => {
+      this.dispatchEvent(new CustomEvent('mediastream', {
+        detail: e.stream,
+      }));
+    }; */
     this.peerConnection.ontrack = e => {
-      console.log('got track', e);
+      const mediaStream = new MediaStream();
+      mediaStream.addTrack(e.track);
+      this.dispatchEvent(new CustomEvent('mediastream', {
+        detail: mediaStream,
+      }));
     };
 
     const sendChannel = this.peerConnection.createDataChannel('sendChannel');

@@ -999,6 +999,12 @@ enableMicButton.addEventListener('click', async () => {
     microphoneMediaStream  = await navigator.mediaDevices.getUserMedia({
       audio: true,
     });
+
+    rig.setMicrophoneMediaStream(microphoneMediaStream);
+    if (channelConnection) {
+      channelConnection.setMicrophoneMediaStream(microphoneMediaStream);
+    }
+
     disableMicButton.style.display = null;
     enableMicButton.style.display = 'none';
   } catch (err) {
@@ -1022,6 +1028,7 @@ enableMicButton.addEventListener('click', async () => {
   }
 }); */
 
+let channelConnection = null;
 const peerConnections = [];
 const channelInput = document.getElementById('channel-input');
 const connectButton = document.getElementById('connect-button');
@@ -1034,7 +1041,9 @@ connectButton.addEventListener('click', () => {
 
     console.log(`connecting to ${userName}/${channelName}`);
 
-    const channelConnection = new XRChannelConnection(`wss://presence.exokit.org/?u=${encodeURIComponent(userName)}&c=${encodeURIComponent(channelName)}`);
+    channelConnection = new XRChannelConnection(`wss://presence.exokit.org/?u=${encodeURIComponent(userName)}&c=${encodeURIComponent(channelName)}`, {
+      microphoneMediaStream,
+    });
     channelConnection.addEventListener('open', () => {
       console.log('xr channel open');
     });
@@ -1046,6 +1055,7 @@ connectButton.addEventListener('click', () => {
 
       peerConnection.model = null;
       peerConnection.rig = null;
+      peerConnection.mediaStream = null;
       let updateInterval = 0;
       peerConnection.addEventListener('open', () => {
         console.log('add peer connection', peerConnection);
@@ -1111,6 +1121,13 @@ connectButton.addEventListener('click', () => {
           rig.targets.timestamp = Date.now();
         }
       });
+      peerConnection.addEventListener('mediastream', e => {
+        console.log('got media stream', e.detail, e.detail.getAudioTracks());
+        peerConnection.mediaStream = e.detail;
+        if (peerConnection.rig) {
+          peerConnection.rig.setMicrophoneMediaStream(peerConnection.mediaStream);
+        }
+      });
       peerConnection.addEventListener('message', async e => {
         console.log('got message', e);
         const data = JSON.parse(e.data);
@@ -1121,10 +1138,13 @@ connectButton.addEventListener('click', () => {
 
           peerConnection.model = await _loadModelUrl(url);
           scene.add(peerConnection.model);
+
           peerConnection.rig = new Rig(peerConnection.model, {
             hair: true,
             visemes: true,
+            microphoneMediaStream: peerConnection.mediaStream,
           });
+
           peerConnection.rig.targets = {
             hmd: {
               position: new Vector3(),

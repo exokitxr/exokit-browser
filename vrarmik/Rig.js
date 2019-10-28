@@ -651,20 +651,9 @@ class Rig {
 	    Right_ankle: this.outputs.leftFoot,
 	  };
 
+    this.audioContext = null;
     this.volume = 0;
-    if (options.microphoneMediaStream) {
-      (async () => {
-        const context = new AudioContext();
-        const mediaStreamSource = context.createMediaStreamSource(options.microphoneMediaStream);
-
-        await context.audioWorklet.addModule('vrarmik/audio-volume-worklet.js');
-        const audioWorkletNode = new AudioWorkletNode(context, 'volume-processor');
-        audioWorkletNode.port.onmessage = e => {
-          this.volume = this.volume*0.8 + e.data*0.2;
-        };
-        mediaStreamSource.connect(audioWorkletNode).connect(context.destination);
-      })();
-    }
+    this.setMicrophoneMediaStream(options.microphoneMediaStream);
 
     this.lastTimestamp = Date.now();
 
@@ -860,5 +849,29 @@ class Rig {
       });
     }
 	}
+
+  async setMicrophoneMediaStream(microphoneMediaStream) {
+    if (this.audioContext) {
+      this.audioContext.close();
+      this.audioContext = null;
+      setTimeout(() => {
+        this.volume = 0;
+      });
+    }
+    if (microphoneMediaStream) {
+      const audio = document.createElement('audio');
+      audio.srcObject = microphoneMediaStream;
+      audio.muted = true;
+      this.audioContext = new AudioContext();
+      const mediaStreamSource = this.audioContext.createMediaStreamSource(microphoneMediaStream);
+
+      await this.audioContext.audioWorklet.addModule('vrarmik/audio-volume-worklet.js');
+      const audioWorkletNode = new AudioWorkletNode(this.audioContext, 'volume-processor');
+      audioWorkletNode.port.onmessage = e => {
+        this.volume = this.volume*0.8 + e.data*0.2;
+      };
+      mediaStreamSource.connect(audioWorkletNode).connect(this.audioContext.destination);
+    }
+  }
 }
 export default Rig;
