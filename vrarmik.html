@@ -281,6 +281,8 @@ import './HelioWebXRPolyfill.js';
 import Rig from './vrarmik/Rig.js';
 import {Vector3, Quaternion} from './vrarmik/Unity.js';
 
+const peerPoseUpdateRate = 20;
+
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -1075,7 +1077,7 @@ connectButton.addEventListener('click', () => {
             ];
             peerConnection.update(hmd, gamepads);
           }
-        }, 20);
+        }, peerPoseUpdateRate);
       });
       peerConnection.addEventListener('close', () => {
         console.log('remove peer connection', peerConnection);
@@ -1097,14 +1099,16 @@ connectButton.addEventListener('click', () => {
           const {detail: data} = e;
           const {hmd, gamepads} = data;
 
-          rig.inputs.hmd.rotation = new Quaternion().fromArray(hmd.quaternion);
-          rig.inputs.hmd.position = new Vector3().fromArray(hmd.position);
+          rig.targets.hmd.position.fromArray(hmd.position);
+          rig.targets.hmd.rotation.fromArray(hmd.quaternion);
 
-          rig.inputs.leftGamepad.rotation = new Quaternion().fromArray(gamepads[0].quaternion);
-          rig.inputs.leftGamepad.position = new Vector3().fromArray(gamepads[0].position);
+          rig.targets.gamepads[0].position.fromArray(gamepads[0].position);
+          rig.targets.gamepads[0].rotation.fromArray(gamepads[0].quaternion);
 
-          rig.inputs.rightGamepad.rotation = new Quaternion().fromArray(gamepads[1].quaternion);
-          rig.inputs.rightGamepad.position = new Vector3().fromArray(gamepads[1].position);
+          rig.targets.gamepads[1].position.fromArray(gamepads[1].position);
+          rig.targets.gamepads[1].rotation.fromArray(gamepads[1].quaternion);
+
+          rig.targets.timestamp = Date.now();
         }
       });
       peerConnection.addEventListener('message', async e => {
@@ -1121,6 +1125,39 @@ connectButton.addEventListener('click', () => {
             hair: true,
             visemes: true,
           });
+          peerConnection.rig.targets = {
+            hmd: {
+              position: new Vector3(),
+              rotation: new Quaternion(),
+            },
+            gamepads: [
+              {
+                position: new Vector3(),
+                rotation: new Quaternion(),
+              },
+              {
+                position: new Vector3(),
+                rotation: new Quaternion(),
+              },
+            ],
+            timestamp: Date.now(),
+          };
+          peerConnection.rig.update = (_update => function update() {
+            const now = Date.now();
+            const {timestamp} = peerConnection.rig.targets;
+            const lerpFactor = Math.min(Math.max((now - timestamp) / peerPoseUpdateRate, 0), 1);
+
+            peerConnection.rig.inputs.hmd.rotation = peerConnection.rig.inputs.hmd.rotation.slerp(peerConnection.rig.targets.hmd.rotation, lerpFactor);
+            peerConnection.rig.inputs.hmd.position = peerConnection.rig.inputs.hmd.position.lerp(peerConnection.rig.targets.hmd.position, lerpFactor);
+
+            peerConnection.rig.inputs.leftGamepad.rotation = peerConnection.rig.inputs.leftGamepad.rotation.slerp(peerConnection.rig.targets.gamepads[0].rotation, lerpFactor);
+            peerConnection.rig.inputs.leftGamepad.position = peerConnection.rig.inputs.leftGamepad.position.lerp(peerConnection.rig.targets.gamepads[0].position, lerpFactor);
+
+            peerConnection.rig.inputs.rightGamepad.rotation = peerConnection.rig.inputs.rightGamepad.rotation.slerp(peerConnection.rig.targets.gamepads[1].rotation, lerpFactor);
+            peerConnection.rig.inputs.rightGamepad.position = peerConnection.rig.inputs.rightGamepad.position.lerp(peerConnection.rig.targets.gamepads[1].position, lerpFactor);
+
+            _update.apply(this, arguments);
+          })(peerConnection.rig.update);
         } else {
           console.warn('invalid method', {method});
         }
