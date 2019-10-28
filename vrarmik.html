@@ -228,6 +228,7 @@ input[type=text] {
     <script src="untar.js"></script>
     <script src="zip.js"></script>
     <script src="bmfont.js"></script>
+    <script src="multiplayer.js"></script>
   </head>
   <body>
     <div class=body>
@@ -921,6 +922,13 @@ function animate(timestamp, frame, referenceSpace) {
     meshes.footRight.quaternion.copy(rig.outputs.rightFoot.rotation);
   }
 
+  for (let i = 0; i < peerConnections.length; i++) {
+    const peerConnection = peerConnections[i];
+    if (peerConnection.rig) {
+      peerConnection.rig.update();
+    }
+  }
+
   renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
@@ -1011,6 +1019,119 @@ enableMicButton.addEventListener('click', async () => {
     console.warn(err);
   }
 }); */
+
+const peerConnections = [];
+const channelInput = document.getElementById('channel-input');
+const connectButton = document.getElementById('connect-button');
+connectButton.addEventListener('click', () => {
+  const channelInputValue = channelInput.value;
+  const match = channelInputValue.match(/^(.+?)\/(.+?)$/);
+  if (match) {
+    const userName = match[1];
+    const channelName = match[2];
+
+    console.log(`connecting to ${userName}/${channelName}`);
+
+    const channelConnection = new XRChannelConnection(`wss://presence.exokit.org/?u=${encodeURIComponent(userName)}&c=${encodeURIComponent(channelName)}`);
+    channelConnection.addEventListener('open', () => {
+      console.log('xr channel open');
+    });
+    channelConnection.addEventListener('error', err => {
+      console.warn('xr channel error', err);
+    });
+    channelConnection.addEventListener('peerconnection', e => {
+      const peerConnection = e.detail;
+
+      peerConnection.model = null;
+      peerConnection.rig = null;
+      let updateInterval = 0;
+      peerConnection.addEventListener('open', () => {
+        console.log('add peer connection', peerConnection);
+
+        peerConnections.push(peerConnection);
+
+        peerConnection.send(JSON.stringify({
+          method: 'model',
+          url: modelUrl,
+        }));
+
+        updateInterval = setInterval(() => {
+          if (rig) {
+            const hmd = {
+              position: rig.inputs.hmd.position.toArray(),
+              quaternion: rig.inputs.hmd.rotation.toArray(),
+            };
+            const gamepads = [
+              {
+                position: rig.inputs.leftGamepad.position.toArray(),
+                quaternion: rig.inputs.leftGamepad.rotation.toArray(),
+                visible: true,
+              },
+              {
+                position: rig.inputs.rightGamepad.position.toArray(),
+                quaternion: rig.inputs.rightGamepad.rotation.toArray(),
+                visible: true,
+              },
+            ];
+            peerConnection.update(hmd, gamepads);
+          }
+        }, 20);
+      });
+      peerConnection.addEventListener('close', () => {
+        console.log('remove peer connection', peerConnection);
+
+        const index = peerConnections.indexOf(peerConnection);
+        if (index !== -1) {
+          peerConnections.splice(index, 1);
+        }
+
+        clearInterval(updateInterval);
+
+        if (peerConnection.model) {
+          scene.remove(peerConnection.model);
+        }
+      });
+      peerConnection.addEventListener('pose', e => {
+        const {rig} = peerConnection;
+        if (rig) {
+          const {detail: data} = e;
+          const {hmd, gamepads} = data;
+
+          rig.inputs.hmd.rotation = new Quaternion().fromArray(hmd.quaternion);
+          rig.inputs.hmd.position = new Vector3().fromArray(hmd.position);
+
+          rig.inputs.leftGamepad.rotation = new Quaternion().fromArray(gamepads[0].quaternion);
+          rig.inputs.leftGamepad.position = new Vector3().fromArray(gamepads[0].position);
+
+          rig.inputs.rightGamepad.rotation = new Quaternion().fromArray(gamepads[1].quaternion);
+          rig.inputs.rightGamepad.position = new Vector3().fromArray(gamepads[1].position);
+        }
+      });
+      peerConnection.addEventListener('message', async e => {
+        console.log('got message', e);
+        const data = JSON.parse(e.data);
+        const {method} = data;
+        if (method === 'model') {
+          const {url} = data;
+          console.log('got peer model', {url});
+
+          peerConnection.model = await _loadModelUrl(url);
+          scene.add(peerConnection.model);
+          peerConnection.rig = new Rig(peerConnection.model, {
+            hair: true,
+            visemes: true,
+          });
+        } else {
+          console.warn('invalid method', {method});
+        }
+      });
+    });
+
+    connectButton.style.display = 'none';
+  } else {
+    console.warn(`invalid user/channel: ${channelInputValue}`);
+  }
+});
 
 (async () => {
   let result;
