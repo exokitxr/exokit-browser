@@ -205,6 +205,17 @@ a:active {
 .code:not(.open) {
   display: none;
 }
+input[type=text] {
+  width: 160px;
+  margin: 0 20px;
+  padding: 7px 15px;
+  background-color: #f2f3f5;
+  border: 0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: inherit;
+  outline: none;
+}
     </style>
     <script src="three.js"></script>
     <script src="OrbitControls.js"></script>
@@ -245,6 +256,11 @@ a:active {
             <a class="button first last">Upload file...</a>
             <input type="file" id="upload-file-button" style="display: none">
           </label>
+        </div>
+        <h3>Multiplayer</h3>
+        <input type=text value="avaer/yatis" placeholder="user/channel" id=channel-input>
+        <div class=multibutton>
+          <nav class="button first last" id=connect-button>Connect</nav>
         </div>
       </div>
 
