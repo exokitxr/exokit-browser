@@ -7,120 +7,6 @@ function _randomString() {
   return Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
 }
 
-class XRPeerConnection extends EventTarget {
-  constructor(peerConnectionId) {
-    super();
-
-    this.connectionId = peerConnectionId;
-
-    this.peerConnection = new RTCPeerConnection({
-      iceServers: defaultIceServers,
-    });
-    this.open = false;
-
-    this.peerConnection.ontrack = e => {
-      console.log('got track', e);
-    };
-
-    const sendChannel = this.peerConnection.createDataChannel('sendChannel');
-    this.peerConnection.sendChannel = sendChannel;
-    let pingInterval = 0;
-    sendChannel.onopen = () => {
-      // console.log('data channel local open');
-
-      this.open = true;
-      this.dispatchEvent(new CustomEvent('open'));
-
-      pingInterval = setInterval(() => {
-        sendChannel.send(JSON.stringify({
-          method: 'ping',
-        }));
-      }, 1000);
-    };
-    sendChannel.onclose = () => {
-      // console.log('data channel local close');
-
-      _cleanup();
-    };
-    sendChannel.onerror = err => {
-      // console.log('data channel local error', err);
-    };
-    let watchdogTimeout = 0;
-    const _kick = () => {
-      if (watchdogTimeout) {
-        clearTimeout(watchdogTimeout);
-        watchdogTimeout = 0;
-      }
-      watchdogTimeout = setTimeout(() => {
-        this.peerConnection.close();
-      }, 5000);
-    };
-    _kick();
-    this.peerConnection.ondatachannel = e => {
-      const {channel} = e;
-      // console.log('data channel remote open', channel);
-      channel.onclose = () => {
-        // console.log('data channel remote close');
-        this.peerConnection.close();
-      };
-      channel.onerror = err => {
-        // console.log('data channel remote error', err);
-      };
-      channel.onmessage = e => {
-        // console.log('data channel message', e.data);
-
-        const data = JSON.parse(e.data);
-        const {method} = data;
-        if (method === 'pose') {
-          this.dispatchEvent(new CustomEvent('pose', {
-            detail: data,
-          }))
-        } else if (method === 'ping') {
-          // nothing
-        } else {
-          this.dispatchEvent(new MessageEvent('message', {
-            data,
-          }));
-        }
-
-        _kick();
-      };
-      this.peerConnection.recvChannel = channel;
-    };
-    this.peerConnection.close = (close => function() {
-      _cleanup();
-
-      return close.apply(this, arguments);
-    })(this.peerConnection.close);
-    const _cleanup = () => {
-      if (this.open) {
-        this.open = false;
-        this.dispatchEvent(new CustomEvent('close'));
-      }
-      if (pingInterval) {
-        clearInterval(pingInterval);
-        pingInterval = 0;
-      }
-    };
-  }
-
-  close() {
-    this.peerConnection.close();
-  }
-
-  send(s) {
-    this.peerConnection.sendChannel.send(s);
-  }
-
-  update(hmd, gamepads) {
-    this.send(JSON.stringify({
-      method: 'pose',
-      hmd,
-      gamepads,
-    }));
-  }
-}
-
 class XRChannelConnection extends EventTarget {
   constructor(url) {
     super();
@@ -286,8 +172,119 @@ class XRChannelConnection extends EventTarget {
     }
   }
 }
+window.XRChannelConnection = XRChannelConnection;
 
-export {
-  XRPeerConnection,
-  XRChannelConnection,
-};
+class XRPeerConnection extends EventTarget {
+  constructor(peerConnectionId) {
+    super();
+
+    this.connectionId = peerConnectionId;
+
+    this.peerConnection = new RTCPeerConnection({
+      iceServers: defaultIceServers,
+    });
+    this.open = false;
+
+    this.peerConnection.ontrack = e => {
+      console.log('got track', e);
+    };
+
+    const sendChannel = this.peerConnection.createDataChannel('sendChannel');
+    this.peerConnection.sendChannel = sendChannel;
+    let pingInterval = 0;
+    sendChannel.onopen = () => {
+      // console.log('data channel local open');
+
+      this.open = true;
+      this.dispatchEvent(new CustomEvent('open'));
+
+      pingInterval = setInterval(() => {
+        sendChannel.send(JSON.stringify({
+          method: 'ping',
+        }));
+      }, 1000);
+    };
+    sendChannel.onclose = () => {
+      // console.log('data channel local close');
+
+      _cleanup();
+    };
+    sendChannel.onerror = err => {
+      // console.log('data channel local error', err);
+    };
+    let watchdogTimeout = 0;
+    const _kick = () => {
+      if (watchdogTimeout) {
+        clearTimeout(watchdogTimeout);
+        watchdogTimeout = 0;
+      }
+      watchdogTimeout = setTimeout(() => {
+        this.peerConnection.close();
+      }, 5000);
+    };
+    _kick();
+    this.peerConnection.ondatachannel = e => {
+      const {channel} = e;
+      // console.log('data channel remote open', channel);
+      channel.onclose = () => {
+        // console.log('data channel remote close');
+        this.peerConnection.close();
+      };
+      channel.onerror = err => {
+        // console.log('data channel remote error', err);
+      };
+      channel.onmessage = e => {
+        // console.log('data channel message', e.data);
+
+        const data = JSON.parse(e.data);
+        const {method} = data;
+        if (method === 'pose') {
+          this.dispatchEvent(new CustomEvent('pose', {
+            detail: data,
+          }))
+        } else if (method === 'ping') {
+          // nothing
+        } else {
+          this.dispatchEvent(new MessageEvent('message', {
+            data,
+          }));
+        }
+
+        _kick();
+      };
+      this.peerConnection.recvChannel = channel;
+    };
+    this.peerConnection.close = (close => function() {
+      _cleanup();
+
+      return close.apply(this, arguments);
+    })(this.peerConnection.close);
+    const _cleanup = () => {
+      if (this.open) {
+        this.open = false;
+        this.dispatchEvent(new CustomEvent('close'));
+      }
+      if (pingInterval) {
+        clearInterval(pingInterval);
+        pingInterval = 0;
+      }
+    };
+  }
+
+  close() {
+    this.peerConnection.close();
+  }
+
+  send(s) {
+    this.peerConnection.sendChannel.send(s);
+  }
+
+  update(hmd, gamepads) {
+    this.send(JSON.stringify({
+      method: 'pose',
+      hmd,
+      gamepads,
+    }));
+  }
+}
+window.XRPeerConnection = XRPeerConnection;
