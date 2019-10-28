@@ -1154,7 +1154,7 @@ connectButton.addEventListener('click', () => {
     noXrButton.style.display = null;
   }
 
-  const microphonePermission = await navigator.permissions.query({
+  /* const microphonePermission = await navigator.permissions.query({
     name: 'microphone',
   });
   if (microphonePermission.state === 'granted') {
@@ -1164,7 +1164,8 @@ connectButton.addEventListener('click', () => {
     disableMicButton.style.display = null;
   } else {
     enableMicButton.style.display = null;
-  }
+  } */
+  enableMicButton.style.display = null;
 
   const url = aAvatars[0].href;
   const model = await _loadModelUrl(url);
