@@ -11,7 +11,6 @@ class VolumeProcessor extends AudioWorkletProcessor {
 
     this.port.addEventListener('message', e => {
       const data = JSON.parse(e.data);
-      console.log('got worklet data', e.data);
       const {method} = data;
       if (method === 'muted') {
         muted = data.muted;
