@@ -77,8 +77,8 @@ class ShoulderPoser
 		{
       this.updateHips();
 
-			this.shoulder.transform.rotation = Quaternion.identity;
-			this.positionShoulder();
+			// this.shoulder.transform.rotation = Quaternion.identity;
+			// this.positionShoulder();
 			this.rotateShoulderUpBase();
 			this.rotateShoulderRightBase();
 
@@ -227,15 +227,15 @@ class ShoulderPoser
 
 
 			this.shoulder.transform.rotation = new Quaternion().multiplyQuaternions(deltaRot,  this.shoulder.transform.rotation);
-			this.positionShoulderRelative();
+			// this.positionShoulderRelative();
 		}
 
-		positionShoulderRelative()
+		/* positionShoulderRelative()
 		{
 			const deltaRot = Quaternion.AngleAxis(this.shoulderRightRotation, this.shoulder.transform.right);
 			const shoulderHeadDiff = new Vector3().subVectors(this.shoulder.transform.position, this.avatarTrackingReferences.head.position);
 		  // this.shoulder.transform.position = new Vector3().addVectors(shoulderHeadDiff.clone().applyQuaternion(deltaRot), this.avatarTrackingReferences.head.position);
-		}
+		} */
 
 		getCombinedDirectionAngleUp()
 		{
@@ -296,7 +296,7 @@ class ShoulderPoser
 			return Mathf.Atan2(combinedDirection.x, combinedDirection.z) * 180 / Mathf.PI;
 		}
 
-		detectHandsBehindHead(targetRotation)
+		/* detectHandsBehindHead(targetRotation)
 		{
 			const delta = Mathf.Abs(targetRotation.y - this.lastAngle.y + 360) % 360;
 			if (delta > 150 && delta < 210 && this.lastAngle.magnitude > 0.000001 && !this.clampingHeadRotation)
@@ -310,7 +310,7 @@ class ShoulderPoser
 			{
 				targetRotation.y += 180;
 			}
-		}
+		} */
 
 		clampHeadRotationDeltaUp(targetRotation)
 		{
