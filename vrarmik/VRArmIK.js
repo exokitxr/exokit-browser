@@ -47,7 +47,7 @@ class ElbowCorrectionSettings
 class HandSettings
 {
 	constructor() {
-		this.useWristRotation = true;
+		// this.useWristRotation = true;
 		this.rotateElbowWithHandRight = true;
 		this.rotateElbowWithHandForward = true;
 		this.handDeltaPow = 1.5;
@@ -93,7 +93,7 @@ function toPositiveEulerAngle(n)
 
 		  this.upperArmStartRotation = new Quaternion();
 		  this.lowerArmStartRotation = new Quaternion();
-		  this.wristStartRotation = new Quaternion();
+		  // this.wristStartRotation = new Quaternion();
 		  this.handStartRotation = new Quaternion();
 
 			this.interpolatedDeltaElbow = 0;
@@ -104,9 +104,9 @@ function toPositiveEulerAngle(n)
 		{
 			this.upperArmStartRotation = this.arm.upperArm.rotation;
 			this.lowerArmStartRotation = this.arm.lowerArm.rotation;
-			this.wristStartRotation = Quaternion.identity;
+			/* this.wristStartRotation = Quaternion.identity;
 			if (this.arm.wrist1 !== null)
-				this.wristStartRotation = this.arm.wrist1.rotation;
+				this.wristStartRotation = this.arm.wrist1.rotation; */
 			this.handStartRotation = this.arm.hand.rotation;
 
 			this.setUpperArmRotation(Quaternion.identity);
@@ -368,7 +368,7 @@ function toPositiveEulerAngle(n)
 
 		rotateHand()
 		{
-			if (this.handSettings.useWristRotation)
+			/* if (this.handSettings.useWristRotation)
 			{
 				let handUpVec = Vector3.up.applyQuaternion(this.target.rotation);
 				const forwardAngle = VectorHelpers.getAngleBetween(Vector3.right.applyQuaternion(this.lowerArmRotation), Vector3.right.applyQuaternion(this.target.rotation),
@@ -386,7 +386,7 @@ function toPositiveEulerAngle(n)
 					this.setWrist1Rotation(new Quaternion().multiplyQuaternions(Quaternion.AngleAxis(elbowTargetAngle * .3, this.armDirection.clone().applyQuaternion(this.lowerArmRotation)), this.lowerArmRotation));
 				if (this.arm.wrist2 !== null)
 					this.setWrist2Rotation(new Quaternion().multiplyQuaternions(Quaternion.AngleAxis(elbowTargetAngle * .8, this.armDirection.clone().applyQuaternion(this.lowerArmRotation)), this.lowerArmRotation));
-			}
+			} */
 			const targetRotation = this.target.rotation.multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), (this.left ? -1 : 1) * Math.PI/2));
 			this.setHandRotation(targetRotation);
 		}
@@ -430,7 +430,7 @@ function toPositiveEulerAngle(n)
 		setLowerArmLocalRotation(rotation) {
 			return this.arm.lowerArm.rotation = new Quaternion().multiplyQuaternions(new Quaternion().multiplyQuaternions(this.upperArmRotation, rotation), this.lowerArmStartRotation);
 		}
-		setWrist1Rotation(rotation) {
+		/* setWrist1Rotation(rotation) {
 			return this.arm.wrist1.rotation = new Quaternion().multiplyQuaternions(rotation, this.wristStartRotation);
 		}
 		setWrist2Rotation(rotation) {
@@ -438,7 +438,7 @@ function toPositiveEulerAngle(n)
 		}
 		setWristLocalRotation(rotation) {
 			return this.arm.wrist1.rotation = new Quaternion().multiplyQuaternions(new Quaternion().multiplyQuaternions(this.arm.lowerArm.rotation, rotation), this.wristStartRotation);
-    }
+    } */
 		setHandRotation(rotation) {
 			return this.arm.hand.rotation = /* this.arm.hand.rotation = */ new Quaternion().multiplyQuaternions(rotation, this.handStartRotation);
 		}
