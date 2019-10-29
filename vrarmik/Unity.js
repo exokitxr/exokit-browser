@@ -487,7 +487,7 @@ const XRSettings = {
   loadedDeviceName: 'OpenVR',
 };
 
-class Unity {
+/* class Unity {
   constructor() {
     this.gameObjects = [];
   }
@@ -530,7 +530,7 @@ class Unity {
       });
     }
   }
-}
+} */
 
 export {
   Vector2,
@@ -543,5 +543,5 @@ export {
   Mathf,
   PlayerPrefs,
   XRSettings,
-  Unity,
+  // Unity,
 };
