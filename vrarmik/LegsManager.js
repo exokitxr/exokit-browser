@@ -9,10 +9,9 @@ const _angleDiff = (targetA, sourceA) => {
   return a;
 };
 
-class Leg extends MonoBehavior {
-  constructor(...args) {
-    super(...args);
-
+class Leg {
+  constructor() {
+  	this.transform = new Transform();
     this.upperLeg = new Transform();
     this.lowerLeg = new Transform();
     this.foot = new Transform();
@@ -179,9 +178,9 @@ class LegsManager extends MonoBehavior
 
     const shoulderTransforms = this.GetOrAddComponent(ShoulderTransforms);
     this.hips = shoulderTransforms.hips;
-    this.leftLeg = unity.makeGameObject().AddComponent(Leg);
+    this.leftLeg = new Leg();
     this.hips.AddChild(this.leftLeg.transform);
-    this.rightLeg = unity.makeGameObject().AddComponent(Leg);
+    this.rightLeg = new Leg();
     this.hips.AddChild(this.rightLeg.transform);
 
     this.rightLeg.foot.stickTransform.position = this.rightLeg.foot.position;
@@ -195,6 +194,8 @@ class LegsManager extends MonoBehavior
 
   Start() {
   	this.legSeparation = this.leftLeg.upperLeg.position.distanceTo(this.rightLeg.upperLeg.position);
+  	this.leftLeg.Start();
+  	this.rightLeg.Start();
   }
 
 	LateUpdate() {
@@ -287,6 +288,9 @@ class LegsManager extends MonoBehavior
 			footPosition.y = 0;
 			this.rightLeg.foot.stickTransform.position = footPosition;
 		}
+
+		this.leftLeg.LateUpdate();
+		this.rightLeg.LateUpdate();
   }
 }
 
