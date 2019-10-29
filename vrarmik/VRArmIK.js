@@ -75,12 +75,10 @@ function toPositiveEulerAngle(n)
   return result;
 }
 
-	class VRArmIK extends MonoBehavior
+	class VRArmIK
 	{
-		constructor(...args) {
-      super(...args);
-
-			this.arm = this.GetOrAddComponent(ArmTransforms);
+		constructor(arm) {
+			this.arm = arm;
 			this.shoulder = null;
 			this.shoulderPoser = null;
 			this.target = new Transform();
@@ -102,7 +100,7 @@ function toPositiveEulerAngle(n)
       this.interpolatedDeltaElbowForward = 0;
     }
 
-		Awake()
+		Start()
 		{
 			this.upperArmStartRotation = this.arm.upperArm.rotation;
 			this.lowerArmStartRotation = this.arm.lowerArm.rotation;
@@ -110,10 +108,7 @@ function toPositiveEulerAngle(n)
 			if (this.arm.wrist1 !== null)
 				this.wristStartRotation = this.arm.wrist1.rotation;
 			this.handStartRotation = this.arm.hand.rotation;
-		}
 
-		OnEnable()
-		{
 			this.setUpperArmRotation(Quaternion.identity);
 			this.setLowerArmRotation(Quaternion.identity);
 			this.setHandRotation(Quaternion.identity);

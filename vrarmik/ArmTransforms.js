@@ -1,10 +1,9 @@
-import {Vector3, Quaternion, Transform, MonoBehavior, Mathf} from './Unity.js';
+import {Vector3, Quaternion, Transform, Mathf} from './Unity.js';
 
-class ArmTransforms extends MonoBehavior
+class ArmTransforms
 	{
-		constructor(...args) {
-      super(...args);
-
+		constructor() {
+      this.transform = new Transform();
 			this.upperArm = new Transform();
 			this.lowerArm = new Transform();
 			this.wrist1 = new Transform();

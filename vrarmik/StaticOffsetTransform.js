@@ -53,10 +53,10 @@ class StaticOffsetTransform
 			}
 		}
 
-		Awake()
+		/* Awake()
 		{
 			this.updatePosition();
-		}
+		} */
 
 		Update()
 		{

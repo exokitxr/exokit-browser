@@ -566,10 +566,11 @@ class Rig {
 	  };
 
 		const rigObject = this.unity.makeGameObject('rig');
-		this.poseManager = new PoseManager();
+		this.poseManager = new PoseManager(this);
 		this.poseManager.flipY = flipY;
     rigObject.components.set(PoseManager, this.poseManager);
-		this.shoulderTransforms = rigObject.AddComponent(ShoulderTransforms);
+		this.shoulderTransforms = new ShoulderTransforms(this);
+    rigObject.components.set(ShoulderTransforms, this.shoulderTransforms);
 		this.legsManager = new LegsManager(this);
     rigObject.components.set(LegsManager, this.legsManager);
 

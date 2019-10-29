@@ -4,12 +4,11 @@ import {Transform, XRSettings} from './Unity.js';
 
 class PoseManager
 	{
-		constructor() {
+		constructor(rig) {
       this.transform = new Transform();
 
 			this.vrTransforms = new VRTrackingReferences();
-			this.avatarVrTransforms = new AvatarVRTrackingReferences();
-			this.avatarVrTransforms.poseManager = this;
+			this.avatarVrTransforms = new AvatarVRTrackingReferences(this);
 		  // this.OnCalibrateListener = null;
 
       // Oculus uses a different reference position -> 0 is the reference head position if the user is standing in the middle of the room. 
@@ -48,8 +47,6 @@ class PoseManager
       }
       const device = XRSettings.loadedDeviceName;
       this.vrSystemOffsetHeight = /*string.IsNullOrEmpty(device) || */device == "OpenVR" ? 0 : this.playerHeightHmd;
-
-      this.avatarVrTransforms.Awake();
     }
 
 		/* Start()

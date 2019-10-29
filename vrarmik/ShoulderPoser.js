@@ -1,4 +1,4 @@
-import {Vector3, Quaternion, Transform, GameObject, MonoBehavior, Mathf} from './Unity.js';
+import {Vector3, Quaternion, Transform, GameObject, Mathf} from './Unity.js';
 import ShoulderTransforms from './ShoulderTransforms.js';
 import VRTrackingReferences from './VRTrackingReferences.js';
 import PoseManager from './PoseManager.js';
@@ -6,12 +6,10 @@ import VectorHelpers from './Utils/VectorHelpers.js';
 
 const z180Quaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI);
 
-class ShoulderPoser extends MonoBehavior
+class ShoulderPoser
 	{
-		constructor(...args) {
-      super(...args);
-
-			this.shoulder = this.GetComponent(ShoulderTransforms);
+		constructor(rig, shoulder) {
+			this.shoulder = shoulder;
 			this.vrTrackingReferences = null;
 			this.avatarTrackingReferences = null;
 
@@ -54,7 +52,7 @@ class ShoulderPoser extends MonoBehavior
 			this.leftShoulderAnkerStartLocalPosition = new Vector3();
 			this.rightShoulderAnkerStartLocalPosition = new Vector3();
 
-      this.poseManager = this.GetOrAddComponent(PoseManager);
+      this.poseManager = rig.poseManager;
 			if (this.vrTrackingReferences === null)
 				this.vrTrackingReferences = this.poseManager.vrTransforms;
 			if (this.avatarTrackingReferences === null)
