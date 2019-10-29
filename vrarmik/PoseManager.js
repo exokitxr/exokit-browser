@@ -39,7 +39,7 @@ class PoseManager
 			}
 		} */
 
-		Awake()
+		Start()
 		{
       if (this.loadPlayerSizeOnAwake)
       {

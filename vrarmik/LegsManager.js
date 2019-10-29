@@ -35,7 +35,7 @@ class Leg {
     this.lowerLegLength = this.foot.localPosition.length();
   }
 
-  LateUpdate() {
+  Update() {
   	// const hipsDirection = new Vector3(0, 0, 1).applyQuaternion(this.transform.rotation);
   	// const hipsY = Math.atan2(hipsDirection.z, hipsDirection.x);
   	/* if (hipsY > Math.PI) {
@@ -192,7 +192,7 @@ class LegsManager {
   	this.rightLeg.Start();
   }
 
-	LateUpdate() {
+	Update() {
     const hipsFloorPosition = this.hips.position;
     hipsFloorPosition.y = 0;
     const hipsFloorEuler = new THREE.Euler().setFromQuaternion(this.hips.rotation, 'YXZ');
@@ -283,8 +283,8 @@ class LegsManager {
 			this.rightLeg.foot.stickTransform.position = footPosition;
 		}
 
-		this.leftLeg.LateUpdate();
-		this.rightLeg.LateUpdate();
+		this.leftLeg.Update();
+		this.rightLeg.Update();
   }
 }
 

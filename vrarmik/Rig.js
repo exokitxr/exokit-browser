@@ -1,4 +1,4 @@
-import {Vector3, Quaternion, Unity} from './Unity.js';
+import {Vector3, Quaternion} from './Unity.js';
 import {fixSkeletonZForward} from '../proto/three-ik/modified.AxisUtils.js';
 import PoseManager from './PoseManager.js';
 import ShoulderTransforms from './ShoulderTransforms.js';
@@ -46,9 +46,6 @@ class Rig {
 	constructor(model, options = {}) {
     this.model = model;
     this.options = options;
-
-    const unity = new Unity();
-    this.unity = unity;
 
     model.updateMatrixWorld(true);
     const skinnedMeshes = [];
@@ -565,14 +562,10 @@ class Rig {
 	    rightFoot: _getOffset(modelBones.Left_ankle),
 	  };
 
-		const rigObject = this.unity.makeGameObject('rig');
 		this.poseManager = new PoseManager(this);
 		this.poseManager.flipY = flipY;
-    rigObject.components.set(PoseManager, this.poseManager);
 		this.shoulderTransforms = new ShoulderTransforms(this);
-    rigObject.components.set(ShoulderTransforms, this.shoulderTransforms);
 		this.legsManager = new LegsManager(this);
-    rigObject.components.set(LegsManager, this.legsManager);
 
     this.shoulderTransforms.spine.localPosition = setups.spine;
     this.shoulderTransforms.transform.localPosition = setups.chest;
@@ -662,11 +655,16 @@ class Rig {
 
     this.lastTimestamp = Date.now();
 
-	  unity.startAll();
+	  this.poseManager.Start();
+    this.shoulderTransforms.Start();
+    this.legsManager.Start();
 	}
 	update() {
 // return;
-	  this.unity.updateAll();
+
+    this.poseManager.Update();
+    this.shoulderTransforms.Update();
+    this.legsManager.Update();
 
 	  for (const k in this.modelBones) {
       const modelBone = this.modelBones[k];
