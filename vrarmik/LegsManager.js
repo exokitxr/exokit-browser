@@ -1,6 +1,4 @@
 import {Vector2, Vector3, Quaternion, Transform, GameObject, MonoBehavior, XRSettings} from './Unity.js';
-import PoseManager from './PoseManager.js';
-import ShoulderTransforms from './ShoulderTransforms.js';
 
 const _mod = (a, n) => (a % n + n) % n;
 const _angleDiff = (targetA, sourceA) => {
@@ -171,13 +169,9 @@ class Leg {
 	}
 }
 
-class LegsManager extends MonoBehavior
-{
-	constructor(transform, components, unity) {
-    super(transform, components, unity);
-
-    const shoulderTransforms = this.GetOrAddComponent(ShoulderTransforms);
-    this.hips = shoulderTransforms.hips;
+class LegsManager {
+	constructor(rig) {
+    this.hips = rig.shoulderTransforms.hips;
     this.leftLeg = new Leg();
     this.hips.AddChild(this.leftLeg.transform);
     this.rightLeg = new Leg();
@@ -186,7 +180,7 @@ class LegsManager extends MonoBehavior
     this.rightLeg.foot.stickTransform.position = this.rightLeg.foot.position;
     this.rightLeg.left = false;
 
-    this.poseManager = this.GetOrAddComponent(PoseManager);
+    this.poseManager = rig.poseManager;
     this.leftLeg.poseManager = this.poseManager;
     this.rightLeg.poseManager = this.poseManager;
     // this.hmdTransformRef = poseManager.vrTransforms.head;

@@ -569,7 +569,8 @@ class Rig {
 		this.poseManager = rigObject.AddComponent(PoseManager);
 		this.poseManager.flipY = flipY;
 		this.shoulderTransforms = rigObject.AddComponent(ShoulderTransforms);
-		this.legsManager = rigObject.AddComponent(LegsManager);
+		this.legsManager = new LegsManager(this);
+    rigObject.components.set(LegsManager, this.legsManager);
 
     this.shoulderTransforms.spine.localPosition = setups.spine;
     this.shoulderTransforms.transform.localPosition = setups.chest;
