@@ -653,7 +653,9 @@ class Rig {
 
     this.audioContext = null;
     this.volume = 0;
-    this.setMicrophoneMediaStream(options.microphoneMediaStream);
+    this.setMicrophoneMediaStream(options.microphoneMediaStream, {
+      muted: options.muted,
+    });
 
     this.lastTimestamp = Date.now();
 
@@ -850,7 +852,7 @@ class Rig {
     }
 	}
 
-  async setMicrophoneMediaStream(microphoneMediaStream) {
+  async setMicrophoneMediaStream(microphoneMediaStream, options = {}) {
     if (this.audioContext) {
       this.audioContext.close();
       this.audioContext = null;
@@ -867,6 +869,12 @@ class Rig {
 
       await this.audioContext.audioWorklet.addModule('vrarmik/audio-volume-worklet.js');
       const audioWorkletNode = new AudioWorkletNode(this.audioContext, 'volume-processor');
+      if (options.muted === false) {
+        audioWorkletNode.port.postMessage(JSON.stringify({
+          method: 'muted',
+          muted: false,
+        }));
+      }
       audioWorkletNode.port.onmessage = e => {
         this.volume = this.volume*0.8 + e.data*0.2;
       };

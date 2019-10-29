@@ -1130,7 +1130,9 @@ connectButton.addEventListener('click', () => {
         console.log('got media stream', e.detail, e.detail.getAudioTracks());
         peerConnection.mediaStream = e.detail;
         if (peerConnection.rig) {
-          peerConnection.rig.setMicrophoneMediaStream(peerConnection.mediaStream);
+          peerConnection.rig.setMicrophoneMediaStream(peerConnection.mediaStream, {
+            muted: false,
+          });
         }
       });
       peerConnection.addEventListener('message', async e => {
@@ -1148,6 +1150,7 @@ connectButton.addEventListener('click', () => {
             hair: true,
             visemes: true,
             microphoneMediaStream: peerConnection.mediaStream,
+            muted: false,
           });
 
           peerConnection.rig.targets = {
