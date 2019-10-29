@@ -1,24 +1,33 @@
-import {Vector3, GameObject, MonoBehavior} from './Unity.js';
+import {Vector3, Transform} from './Unity.js';
 
 import StaticOffsetTransform from './StaticOffsetTransform.js';
 
-	class AvatarVRTrackingReferences extends MonoBehavior
+	class AvatarVRTrackingReferences
 	{
-		constructor(transform, components, unity) {
-      super(transform, components, unity);
+		constructor() {
+      this.transform = new Transform();
 
 			this.head = null;
-			// this.hmd = null;
 			this.leftHand = null;
 			this.rightHand = null;
+			// this.hmd = null;
 
-			this.unity = unity;
 			this.poseManager = null;
 		}
 
 		Awake()
 		{
 			this.initTransforms();
+
+			this.head.Awake();
+			this.leftHand.Awake();
+			this.rightHand.Awake();
+		}
+
+		Update() {
+		  this.head.Update();
+			this.leftHand.Update();
+			this.rightHand.Update();
 		}
 
 		initTransforms()
@@ -44,7 +53,7 @@ import StaticOffsetTransform from './StaticOffsetTransform.js';
 			let t = this[k];
 			if (t === null)
 			{
-				t = this.unity.makeGameObject(name).AddComponent(StaticOffsetTransform);
+				t = new StaticOffsetTransform();
 				this.transform.AddChild(t.transform);
 				this.setStaticOffsetSettings(t);
 				this[k] = t;

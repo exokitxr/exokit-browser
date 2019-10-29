@@ -1,14 +1,14 @@
 import VRTrackingReferences from './VRTrackingReferences.js';
 import AvatarVRTrackingReferences from './AvatarVRTrackingReferences.js';
-import {GameObject, MonoBehavior, XRSettings} from './Unity.js';
+import {Transform, XRSettings} from './Unity.js';
 
-class PoseManager extends MonoBehavior
+class PoseManager
 	{
-		constructor(transform, components, unity) {
-      super(transform, components, unity);
+		constructor() {
+      this.transform = new Transform();
 
-			this.vrTransforms = unity.makeGameObject().AddComponent(VRTrackingReferences);
-			this.avatarVrTransforms = unity.makeGameObject().AddComponent(AvatarVRTrackingReferences);
+			this.vrTransforms = new VRTrackingReferences();
+			this.avatarVrTransforms = new AvatarVRTrackingReferences();
 			this.avatarVrTransforms.poseManager = this;
 		  // this.OnCalibrateListener = null;
 
@@ -42,13 +42,15 @@ class PoseManager extends MonoBehavior
 
 		Awake()
 		{
-            if (this.loadPlayerSizeOnAwake)
-            {
-                this.loadPlayerSize();
-            }
-            const device = XRSettings.loadedDeviceName;
-            this.vrSystemOffsetHeight = /*string.IsNullOrEmpty(device) || */device == "OpenVR" ? 0 : this.playerHeightHmd;
-        }
+      if (this.loadPlayerSizeOnAwake)
+      {
+          this.loadPlayerSize();
+      }
+      const device = XRSettings.loadedDeviceName;
+      this.vrSystemOffsetHeight = /*string.IsNullOrEmpty(device) || */device == "OpenVR" ? 0 : this.playerHeightHmd;
+
+      this.avatarVrTransforms.Awake();
+    }
 
 		/* Start()
 		{
@@ -59,6 +61,10 @@ class PoseManager extends MonoBehavior
 		{
 			this.playerHeightHmd = Camera.main.transform.position.y;
 		} */
+
+		Update() {
+		  this.avatarVrTransforms.Update();
+		}
 
 		loadPlayerWidthShoulders()
 		{

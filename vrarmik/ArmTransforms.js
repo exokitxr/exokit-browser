@@ -1,5 +1,4 @@
 import {Vector3, Quaternion, Transform, MonoBehavior, Mathf} from './Unity.js';
-// import PoseManager from './PoseManager.js';
 
 class ArmTransforms extends MonoBehavior
 	{
