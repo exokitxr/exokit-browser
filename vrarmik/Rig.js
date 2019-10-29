@@ -662,7 +662,6 @@ class Rig {
 	update() {
 // return;
 
-    this.poseManager.Update();
     this.shoulderTransforms.Update();
     this.legsManager.Update();
 

@@ -67,9 +67,9 @@ class ShoulderPoser
 
 		/* onCalibrate()
 		{
-			this.shoulder.leftArm.setArmLength((avatarTrackingReferences.leftHand.transform.position - this.shoulder.leftShoulderAnchor.position)
+			this.shoulder.leftArm.setArmLength((avatarTrackingReferences.leftHand.position - this.shoulder.leftShoulderAnchor.position)
 				.magnitude);
-			this.shoulder.rightArm.setArmLength((avatarTrackingReferences.rightHand.transform.position - this.shoulder.rightShoulderAnchor.position)
+			this.shoulder.rightArm.setArmLength((avatarTrackingReferences.rightHand.position - this.shoulder.rightShoulderAnchor.position)
 				.magnitude);
 		} */
 
@@ -139,14 +139,14 @@ class ShoulderPoser
 
 		rotateLeftShoulder()
 		{
-			this.rotateShoulderUp(this.shoulder.leftShoulder, this.shoulder.leftArm, this.avatarTrackingReferences.leftHand.transform,
+			this.rotateShoulderUp(this.shoulder.leftShoulder, this.shoulder.leftArm, this.avatarTrackingReferences.leftHand,
 				this.leftShoulderAnkerStartLocalPosition, 1);
 
 		}
 
 		rotateRightShoulder()
 		{
-			this.rotateShoulderUp(this.shoulder.rightShoulder, this.shoulder.rightArm, this.avatarTrackingReferences.rightHand.transform,
+			this.rotateShoulderUp(this.shoulder.rightShoulder, this.shoulder.rightArm, this.avatarTrackingReferences.rightHand,
 				this.rightShoulderAnkerStartLocalPosition, -1);
 		}
 
@@ -181,8 +181,8 @@ class ShoulderPoser
 
 		positionShoulder()
 		{
-			/* const headNeckOffset = this.headNeckDirectionVector.clone().applyQuaternion(this.avatarTrackingReferences.head.transform.rotation);
-			const targetPosition = new Vector3().addVectors(this.avatarTrackingReferences.head.transform.position, headNeckOffset.clone().multiplyScalar(this.headNeckDistance));
+			/* const headNeckOffset = this.headNeckDirectionVector.clone().applyQuaternion(this.avatarTrackingReferences.head.rotation);
+			const targetPosition = new Vector3().addVectors(this.avatarTrackingReferences.head.position, headNeckOffset.clone().multiplyScalar(this.headNeckDistance));
 			this.shoulder.transform.localPosition =
 				new Vector3().addVectors(targetPosition, this.neckShoulderDistance); */
 		}
@@ -233,14 +233,14 @@ class ShoulderPoser
 		positionShoulderRelative()
 		{
 			const deltaRot = Quaternion.AngleAxis(this.shoulderRightRotation, this.shoulder.transform.right);
-			const shoulderHeadDiff = new Vector3().subVectors(this.shoulder.transform.position, this.avatarTrackingReferences.head.transform.position);
-		  // this.shoulder.transform.position = new Vector3().addVectors(shoulderHeadDiff.clone().applyQuaternion(deltaRot), this.avatarTrackingReferences.head.transform.position);
+			const shoulderHeadDiff = new Vector3().subVectors(this.shoulder.transform.position, this.avatarTrackingReferences.head.position);
+		  // this.shoulder.transform.position = new Vector3().addVectors(shoulderHeadDiff.clone().applyQuaternion(deltaRot), this.avatarTrackingReferences.head.position);
 		}
 
 		getCombinedDirectionAngleUp()
 		{
-			const leftHand = this.avatarTrackingReferences.leftHand.transform;
-      const rightHand = this.avatarTrackingReferences.rightHand.transform;
+			const leftHand = this.avatarTrackingReferences.leftHand;
+      const rightHand = this.avatarTrackingReferences.rightHand;
 
 			const distanceLeftHand = new Vector3().subVectors(leftHand.position, this.shoulder.transform.position);
 			const distanceRightHand = new Vector3().subVectors(rightHand.position, this.shoulder.transform.position);
@@ -339,8 +339,8 @@ class ShoulderPoser
 
 		clampShoulderHandDistance()
 		{
-			const leftHandVector = new Vector3().subVectors(this.avatarTrackingReferences.leftHand.transform.position, this.shoulder.leftShoulderAnchor.position);
-			const rightHandVector = new Vector3().subVectors(this.avatarTrackingReferences.rightHand.transform.position, this.shoulder.rightShoulderAnchor.position);
+			const leftHandVector = new Vector3().subVectors(this.avatarTrackingReferences.leftHand.position, this.shoulder.leftShoulderAnchor.position);
+			const rightHandVector = new Vector3().subVectors(this.avatarTrackingReferences.rightHand.position, this.shoulder.rightShoulderAnchor.position);
 			const leftShoulderHandDistance = leftHandVector.magnitude;
       const rightShoulderHandDistance = rightHandVector.magnitude;
 			this.shoulderDislocated = false;

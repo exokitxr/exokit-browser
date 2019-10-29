@@ -59,10 +59,6 @@ class PoseManager
 			this.playerHeightHmd = Camera.main.transform.position.y;
 		} */
 
-		Update() {
-		  this.avatarVrTransforms.Update();
-		}
-
 		loadPlayerWidthShoulders()
 		{
 			this.playerWidthShoulders = PlayerPrefs.GetFloat("VRArmIK_PlayerWidthShoulders", 0.31);
