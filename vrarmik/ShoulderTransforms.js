@@ -68,11 +68,8 @@ class ShoulderTransforms
 
 		Update() {
 			this.shoulderPoser.Update();
-		}
-
-		LateUpdate() {
-      this.leftArmIk.LateUpdate();
-			this.rightArmIk.LateUpdate();
+			this.leftArmIk.Update();
+			this.rightArmIk.Update();
 		}
 
 		/* setShoulderWidth(width)

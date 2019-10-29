@@ -114,7 +114,7 @@ function toPositiveEulerAngle(n)
 			this.setHandRotation(Quaternion.identity);
 		}
 
-		LateUpdate()
+		Update()
 		{
 			this.updateUpperArmPosition();
 			this.calcElbowInnerAngle();
