@@ -118,8 +118,8 @@ class ShoulderPoser
 		  const spinePosition = chestPosition.clone().add(this.shoulder.transform.localPosition.multiplyScalar(-1).applyQuaternion(hmdFlatRotation));
 		  const hipsPosition = spinePosition.clone().add(this.shoulder.spine.localPosition.multiplyScalar(-1).applyQuaternion(hmdFlatRotation));
 
-      this.shoulder.hips.position = hipsPosition;
-      this.shoulder.hips.rotation = hmdFlatRotation;
+      this.shoulder.hips.localPosition = hipsPosition;
+      this.shoulder.hips.localRotation = hmdFlatRotation;
       this.shoulder.spine.rotation = hmdFlatRotation;
       this.shoulder.transform.localRotation = new Quaternion();
 		}
