@@ -10,8 +10,9 @@ class ShoulderPoser
 	{
 		constructor(rig, shoulder) {
 			this.shoulder = shoulder;
-			this.vrTrackingReferences = null;
-			this.avatarTrackingReferences = null;
+			this.poseManager = rig.poseManager;
+			this.vrTrackingReferences = this.poseManager.vrTransforms;
+			this.avatarTrackingReferences = this.poseManager.avatarVrTransforms;
 
       // this.headNeckDirectionVector = new Vector3(1.0894440904962721e-10, -0.06860782711996793, -0.0006757629250115499).normalize();
 			// this.headNeckDistance = 0.06861115505261682;
@@ -46,17 +47,10 @@ class ShoulderPoser
 			this.shoulderDislocated = false;
 			this.shoulderRightRotation;
 
-
-			this.lastAngle = Vector3.zero;
+			// this.lastAngle = Vector3.zero;
 
 			this.leftShoulderAnkerStartLocalPosition = new Vector3();
 			this.rightShoulderAnkerStartLocalPosition = new Vector3();
-
-      this.poseManager = rig.poseManager;
-			if (this.vrTrackingReferences === null)
-				this.vrTrackingReferences = this.poseManager.vrTransforms;
-			if (this.avatarTrackingReferences === null)
-				this.avatarTrackingReferences = this.poseManager.avatarVrTransforms;
 		}
 
 		Start() {
@@ -128,13 +122,16 @@ class ShoulderPoser
 			// const hmdPosition = this.vrTrackingReferences.head.position;
 			const hmdRotation = this.vrTrackingReferences.head.rotation;
 		  hmdRotation.multiply(z180Quaternion);
-      const hmdEuler = new THREE.Euler().setFromQuaternion(hmdRotation, 'YXZ');
-      hmdEuler.x = 0;
-      hmdEuler.z = 0;
-      const hmdFlatRotation = new Quaternion().setFromEuler(hmdEuler);
+      const hmdFlatEuler = new THREE.Euler().setFromQuaternion(hmdRotation, 'YXZ');
+      hmdFlatEuler.x = 0;
+      hmdFlatEuler.z = 0;
+      const hmdFlatRotation = new Quaternion().setFromEuler(hmdFlatEuler);
+      const hmdUpEuler = new THREE.Euler().setFromQuaternion(hmdRotation, 'YXZ');
+      hmdUpEuler.y = 0;
+      const hmdUpRotation = new Quaternion().setFromEuler(hmdUpEuler);
 
-      this.shoulder.neck.rotation = hmdFlatRotation;
-      this.shoulder.head.rotation = hmdRotation;
+      this.shoulder.neck.localRotation = hmdFlatRotation.clone().premultiply(this.shoulder.transform.rotation.inverse());
+      this.shoulder.head.localRotation = hmdUpRotation;
 		}
 
 		rotateLeftShoulder()
