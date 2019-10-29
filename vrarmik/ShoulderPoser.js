@@ -120,8 +120,8 @@ class ShoulderPoser
 
       this.shoulder.hips.localPosition = hipsPosition;
       this.shoulder.hips.localRotation = hmdFlatRotation;
-      this.shoulder.spine.rotation = hmdFlatRotation;
-      this.shoulder.transform.localRotation = new Quaternion();
+      // this.shoulder.spine.rotation = hmdFlatRotation;
+      // this.shoulder.transform.localRotation = new Quaternion();
 		}
 
 		updateNeck() {
