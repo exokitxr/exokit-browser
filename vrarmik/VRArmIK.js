@@ -2,7 +2,6 @@ import {Vector3, Quaternion, Transform, GameObject, MonoBehavior, Time, Mathf} f
 import ArmTransforms from './ArmTransforms.js';
 import ShoulderPoser from './ShoulderPoser.js';
 import VectorHelpers from './Utils/VectorHelpers.js';
-import PoseManager from './PoseManager.js';
 
 class ArmIKElbowSettings
 {
