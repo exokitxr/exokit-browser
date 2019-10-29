@@ -504,29 +504,29 @@ class Unity {
   startAll() {
     for (let i = 0; i < this.gameObjects.length; i++) {
       this.gameObjects[i].components.forEach(value => {
-        value.Awake();
+        value.Awake && value.Awake();
       });
     }
     for (let i = 0; i < this.gameObjects.length; i++) {
       this.gameObjects[i].components.forEach(value => {
-        value.OnEnable();
+        value.OnEnable && value.OnEnable();
       });
     }
     for (let i = 0; i < this.gameObjects.length; i++) {
       this.gameObjects[i].components.forEach(value => {
-        value.Start();
+        value.Start && value.Start();
       });
     }
   }
   updateAll() {
     for (let i = 0; i < this.gameObjects.length; i++) {
       this.gameObjects[i].components.forEach(value => {
-        value.Update();
+        value.Update && value.Update();
       });
     }
     for (let i = 0; i < this.gameObjects.length; i++) {
       this.gameObjects[i].components.forEach(value => {
-        value.LateUpdate();
+        value.LateUpdate && value.LateUpdate();
       });
     }
   }
