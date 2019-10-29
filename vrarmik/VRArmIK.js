@@ -116,7 +116,7 @@ function toPositiveEulerAngle(n)
 
 		Update()
 		{
-			this.updateUpperArmPosition();
+			// this.updateUpperArmPosition();
 			this.calcElbowInnerAngle();
 			this.rotateShoulder();
 			this.correctElbowRotation();
@@ -134,9 +134,9 @@ function toPositiveEulerAngle(n)
 			}
 		}
 
-		updateArmAndTurnElbowUp()
+		/* updateArmAndTurnElbowUp()
 		{
-			this.updateUpperArmPosition();
+			// this.updateUpperArmPosition();
 			this.calcElbowInnerAngle();
 			this.rotateShoulder();
 			this.correctElbowRotation();
@@ -145,7 +145,7 @@ function toPositiveEulerAngle(n)
 		updateUpperArmPosition()
 		{
 			//this.arm.upperArm.position = this.shoulderAnker.position;
-		}
+		} */
 
 		calcElbowInnerAngle()
 		{
