@@ -1,5 +1,4 @@
 import {Vector3, GameObject, MonoBehavior} from './Unity.js';
-import PoseManager from './PoseManager.js';
 
 import StaticOffsetTransform from './StaticOffsetTransform.js';
 
