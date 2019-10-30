@@ -1,5 +1,10 @@
 import {Vector2, Vector3, Quaternion, Transform} from './Unity.js';
 
+const identityRotation = new Quaternion();
+const downHalfRotation = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2);
+const upHalfRotation = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI/2);
+const downQuarterRotation = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/4);
+
 const _mod = (a, n) => (a % n + n) % n;
 const _angleDiff = (targetA, sourceA) => {
   let a = targetA - sourceA;
@@ -108,7 +113,7 @@ class Leg {
 	        upperLegDiff,
 	        new Vector3(0, 0, 1).applyQuaternion(footRotation)
 	      )
-	    ).multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2));
+	    ).multiply(downHalfRotation);
       this.upperLeg.rotation = upperLegRotation;
 
 		  const lowerLegDiff = lowerLegPosition.clone().sub(footPosition);
@@ -118,20 +123,20 @@ class Leg {
 	        lowerLegDiff,
 	        new Vector3(0, 0, 1).applyQuaternion(footRotation)
 	      )
-	    ).multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2));
+	    ).multiply(downHalfRotation);
 	    this.lowerLeg.rotation = lowerLegRotation;
 
       // this.lowerLeg.position = lowerLegPosition;
 
       // this.foot.position = footPosition;
-      this.foot.rotation = footRotation.multiply(new Quaternion().setFromUnitVectors(new Vector3(0, -1, 0), new Vector3(0, 0, 1)));
+      this.foot.rotation = footRotation.multiply(downHalfRotation);
 
       this.standing = true;
       // this.foot.stickTransform.position = footPosition;
     } else {
-    	this.upperLeg.localRotation = this.upperLeg.localRotation.slerp(new Quaternion(), 0.1);
-    	this.lowerLeg.localRotation = this.lowerLeg.localRotation.slerp(new Quaternion(), 0.1);
-    	this.foot.localRotation = this.foot.localRotation.slerp(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/4), 0.1);
+    	this.upperLeg.localRotation = this.upperLeg.localRotation.slerp(identityRotation, 0.1);
+    	this.lowerLeg.localRotation = this.lowerLeg.localRotation.slerp(identityRotation, 0.1);
+    	this.foot.localRotation = this.foot.localRotation.slerp(downQuarterRotation, 0.1);
     	// this.foot.position = footPosition;
       /* const direction = this.foot.position.sub(this.upperLeg.position).normalize().lerp(new Vector3(0, -1, 0), 0.1);
       const lowerLegPosition = this.upperLeg.position.add(direction.clone().multiplyScalar(upperLegLength));
@@ -227,7 +232,7 @@ class LegsManager {
 	      .decompose(position, quaternion, scale);
   		this.leftLeg.foot.stickTransform.rotation = quaternion;
     } else {
-    	this.leftLeg.foot.stickTransform.rotation = this.leftLeg.foot.rotation.multiply(new Quaternion().setFromUnitVectors(new Vector3(0, -1, 0), new Vector3(0, 0, 1)).inverse());
+    	this.leftLeg.foot.stickTransform.rotation = this.leftLeg.foot.rotation.multiply(upHalfRotation);
     }
     if (this.rightLeg.standing) {
 	    const rightFootEuler = new THREE.Euler().setFromQuaternion(rightFootRotation, 'YXZ');
@@ -244,7 +249,7 @@ class LegsManager {
 	      .decompose(position, quaternion, scale);
   		this.rightLeg.foot.stickTransform.rotation = quaternion;
 	  } else {
-      this.rightLeg.foot.stickTransform.rotation = this.rightLeg.foot.rotation.multiply(new Quaternion().setFromUnitVectors(new Vector3(0, -1, 0), new Vector3(0, 0, 1)).inverse());
+      this.rightLeg.foot.stickTransform.rotation = this.rightLeg.foot.rotation.multiply(upHalfRotation);
 	  }
 
 	  // position

@@ -1,7 +1,4 @@
-import {Vector3, Quaternion, Transform, GameObject, Mathf} from './Unity.js';
-import ShoulderTransforms from './ShoulderTransforms.js';
-import VRTrackingReferences from './VRTrackingReferences.js';
-import PoseManager from './PoseManager.js';
+import {Vector3, Quaternion, Transform, Mathf} from './Unity.js';
 import VectorHelpers from './Utils/VectorHelpers.js';
 
 const z180Quaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI);
@@ -331,7 +328,7 @@ class ShoulderPoser
 			}
 		}
 
-		clampShoulderHandDistance()
+		/* clampShoulderHandDistance()
 		{
 			const leftHandVector = new Vector3().subVectors(this.avatarTrackingReferences.leftHand.position, this.shoulder.leftShoulderAnchor.position);
 			const rightHandVector = new Vector3().subVectors(this.avatarTrackingReferences.rightHand.position, this.shoulder.rightShoulderAnchor.position);
@@ -362,7 +359,7 @@ class ShoulderPoser
 			{
 				this.shoulder.rightArm.transform.localPosition = Vector3.zero;
 			}
-		}
+		} */
 	}
 
 export default ShoulderPoser;
