@@ -5,12 +5,18 @@ import VectorHelpers from './Utils/VectorHelpers.js';
 
 	class VRArmIK
 	{
-		constructor(arm) {
+		constructor(arm, left) {
 			this.arm = arm;
 			this.shoulder = null;
 			this.shoulderPoser = null;
 			this.target = new Transform();
-			this.left = true;
+			this.left = left;
+
+			this.upperArmStartRotation = new Quaternion();
+			this.lowerArmStartRotation = new Quaternion();
+			this.upperArmLength = 0;
+			this.lowerArmLength = 0;
+			this.armLength = 0;
     }
 
 		Start()

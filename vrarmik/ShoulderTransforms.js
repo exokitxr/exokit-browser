@@ -43,16 +43,15 @@ class ShoulderTransforms
 
 			this.shoulderPoser = new ShoulderPoser(rig, this);
 
-			this.leftArmIk = new VRArmIK(this.leftArm);
+			this.leftArmIk = new VRArmIK(this.leftArm, true);
 			this.leftArmIk.shoulder = this;
 			this.leftArmIk.shoulderPoser = this.shoulderPoser;
 			this.leftArmIk.target = this.leftArmIk.shoulderPoser.avatarTrackingReferences.leftHand;
 
-			this.rightArmIk = new VRArmIK(this.rightArm);
+			this.rightArmIk = new VRArmIK(this.rightArm, false);
 			this.rightArmIk.shoulder = this;
 			this.rightArmIk.shoulderPoser = this.shoulderPoser;
 			this.rightArmIk.target = this.rightArmIk.shoulderPoser.avatarTrackingReferences.rightHand;
-			this.rightArmIk.left = false;
 		}
 
 		Start()
