@@ -12,8 +12,6 @@ import VectorHelpers from './Utils/VectorHelpers.js';
 			this.target = new Transform();
 			this.left = left;
 
-			this.upperArmStartRotation = new Quaternion();
-			this.lowerArmStartRotation = new Quaternion();
 			this.upperArmLength = 0;
 			this.lowerArmLength = 0;
 			this.armLength = 0;
@@ -21,8 +19,6 @@ import VectorHelpers from './Utils/VectorHelpers.js';
 
 		Start()
 		{
-			this.upperArmStartRotation = this.arm.upperArm.rotation;
-			this.lowerArmStartRotation = this.arm.lowerArm.rotation;
 			this.upperArmLength = this.arm.lowerArm.position.distanceTo(this.arm.upperArm.position);
 			this.lowerArmLength = this.arm.hand.position.distanceTo(this.arm.lowerArm.position);
 			this.armLength = this.upperArmLength + this.lowerArmLength;
@@ -30,9 +26,6 @@ import VectorHelpers from './Utils/VectorHelpers.js';
 
 		Update()
 		{
-      // const targetPosition = this.target.position;
-      // const targetRotation = this.target.rotation.multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), (this.left ? -1 : 1) * Math.PI/2));
-
       const handPositionDistance = this.target.position.distanceTo(this.arm.upperArm.position);
       let handPosition;
       // if (handPositionDistance < this.armLength) {
@@ -48,9 +41,6 @@ import VectorHelpers from './Utils/VectorHelpers.js';
 
       const hypotenuseDistance = this.upperArmLength;
 	    const directDistance = this.arm.upperArm.position.distanceTo(handPosition) / 2;
-	    /* if (this.left) {
-	    	console.log('distances', hypotenuseDistance, directDistance);
-	    } */
       const offsetDistance = hypotenuseDistance > directDistance ? Math.sqrt(hypotenuseDistance*hypotenuseDistance - directDistance*directDistance) : 0;
       // console.log('offset distance', this.upperArmLength, this.lowerArmLength, hypotenuseDistance, directDistance, offsetDistance);
       // const outFactor = targetEuler.x < 0 ? (1 - Math.min(Math.max(-targetEuler.x/(Math.PI/4), 0), 1)) : 1;
@@ -59,8 +49,6 @@ import VectorHelpers from './Utils/VectorHelpers.js';
         	new Vector3(-1, 0, 0)
         	  .applyQuaternion(shoulderRotation/*.clone().premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), (this.left ? 1 : -1) * Math.PI*0.1))*/)
         );
-        //.applyQuaternion(shoulderRotation.clone().multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI))))
-        // .normalize();
 
       const localOffsetDirection = offsetDirection.clone().applyQuaternion(shoulderRotationInverse);
       const targetLocalRotation = this.target.rotation.multiply(shoulderRotationInverse).premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI));
@@ -90,8 +78,6 @@ import VectorHelpers from './Utils/VectorHelpers.js';
     		// targetEuler.z *= 1 - xFactor;
     		// targetEuler.z *= 1 - zFactor;
       }
-      // targetEuler.y = 0;
-      // targetEuler.x = 0;
       localOffsetDirection.applyAxisAngle(new Vector3(0, 0, 1), targetEuler.z);
       offsetDirection.copy(localOffsetDirection).applyQuaternion(this.shoulder.transform.rotation);
 
