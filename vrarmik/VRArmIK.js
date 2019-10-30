@@ -7,11 +7,11 @@ const bankRightRotation = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1)
 
 	class VRArmIK
 	{
-		constructor(arm, left) {
+		constructor(arm, shoulder, shoulderPoser, target, left) {
 			this.arm = arm;
-			this.shoulder = null;
-			this.shoulderPoser = null;
-			this.target = new Transform();
+			this.shoulder = shoulder;
+			this.shoulderPoser = shoulderPoser;
+			this.target = target;
 			this.left = left;
 
 			this.upperArmLength = 0;
