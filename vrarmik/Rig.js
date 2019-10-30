@@ -64,9 +64,6 @@ class Rig {
     model.updateMatrixWorld(true);
     const skinnedMeshes = [];
 	  model.traverse(o => {
-	    if (o.isMesh) {
-	      o.frustumCulled = false;
-	    }
 	    if (o.isSkinnedMesh) {
         skinnedMeshes.push(o);
 	    }

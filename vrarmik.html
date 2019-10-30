@@ -496,6 +496,17 @@ const _readAsArrayBuffer = blob => new Promise((accept, reject) => {
   reader.onerror = reject;
   reader.readAsArrayBuffer(blob);
 });
+const _patchModel = model => {
+  model.traverse(o => {
+    if (o.isMesh) {
+      o.frustumCulled = false;
+
+      if (o.material.opacity === 0) {
+        o.material.opacity = 1;
+      }
+    }
+  });
+};
 const _loadModelUrl = async (href, filename = href) => {
   const fileType = _getFileType(filename);
   if (fileType === 'gltf') {
@@ -504,11 +515,13 @@ const _loadModelUrl = async (href, filename = href) => {
         accept(object.scene);
       }, xhr => {}, reject);
     });
+    _patchModel(model);
     return model;
   } else if (fileType === 'fbx') {
     const model = await new Promise((accept, reject) => {
       new THREE.FBXLoader().load(href, accept, xhr => {}, reject);
     });
+    _patchModel(model);
     return model;
   } else if (fileType === 'zip') {
     const unitypackageRes = await fetch(href);
@@ -545,6 +558,7 @@ const _loadModelUrl = async (href, filename = href) => {
     // console.log('got filesystem', filesystem);
 
     const model = await _loadModelFilesystem(filesystem);
+    _patchModel(model);
     return model;
   } else if (fileType === 'tgz') {
     const unitypackageRes = await fetch(href);
@@ -576,6 +590,7 @@ const _loadModelUrl = async (href, filename = href) => {
       }
     }
     const model = await _loadModelFilesystem(filesystem);
+    _patchModel(model);
     return model;
   } else {
     throw new Error(`unknown file type: ${filename} (${fileType})`);
