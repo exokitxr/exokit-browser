@@ -82,7 +82,7 @@ class ShoulderPoser
 				this.rotateRightShoulder();
 			}
 
-			if (this.enableShoulderDislocation)
+			/* if (this.enableShoulderDislocation)
 			{
 				this.clampShoulderHandDistance();
 			}
@@ -90,7 +90,7 @@ class ShoulderPoser
 			{
 				this.shoulder.leftArm.transform.localPosition = Vector3.zero;
 				this.shoulder.rightArm.transform.localPosition = Vector3.zero;
-			}
+			} */
 
 			this.updateNeck();
 
