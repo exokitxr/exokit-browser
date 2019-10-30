@@ -4,6 +4,10 @@ import VectorHelpers from './Utils/VectorHelpers.js';
 const upVector = new THREE.Vector3(0, 1, 0);
 const z180Quaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI);
 
+const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
+const localVector4 = new THREE.Vector3();
 const localQuaternion = new Quaternion();
 const localQuaternion2 = new Quaternion();
 const localEuler = new THREE.Euler();
@@ -233,8 +237,8 @@ class ShoulderPoser
 			const leftHand = this.avatarTrackingReferences.leftHand;
       const rightHand = this.avatarTrackingReferences.rightHand;
 
-			const distanceLeftHand = new Vector3().subVectors(leftHand.position, this.shoulder.transform.position);
-			const distanceRightHand = new Vector3().subVectors(rightHand.position, this.shoulder.transform.position);
+			const distanceLeftHand = localVector.subVectors(leftHand.position, this.shoulder.transform.position);
+			const distanceRightHand = localVector2.subVectors(rightHand.position, this.shoulder.transform.position);
 
 			/* if (this.ignoreYPos)
 			{ */
@@ -243,15 +247,15 @@ class ShoulderPoser
 			// }
 
 			const hmdRotation = this.vrTrackingReferences.head.rotation;
-      const hmdEuler = new THREE.Euler().setFromQuaternion(hmdRotation, 'YXZ');
+      const hmdEuler = localEuler.setFromQuaternion(hmdRotation, 'YXZ');
       hmdEuler.x = 0;
       hmdEuler.z = 0;
-      const hmdFlatRotation = new Quaternion().setFromEuler(hmdEuler);
+      const hmdFlatRotation = localQuaternion.setFromEuler(hmdEuler);
       const hmdFlatRotationInverse = hmdFlatRotation.clone().inverse();
 
-			const leftHandBehind = distanceLeftHand.clone().applyQuaternion(hmdFlatRotationInverse);
+			const leftHandBehind = localVector3.copy(distanceLeftHand).applyQuaternion(hmdFlatRotationInverse);
 			const leftBehind = leftHandBehind.z > 0;
-			const rightHandBehind = distanceRightHand.clone().applyQuaternion(hmdFlatRotationInverse);
+			const rightHandBehind = localVector4.copy(distanceRightHand).applyQuaternion(hmdFlatRotationInverse);
 			const rightBehind = rightHandBehind.z > 0;
 
 			if (leftBehind) {
@@ -277,10 +281,10 @@ class ShoulderPoser
 				distanceRightHand.add(rightHandBehind);
 			}
 
-			const directionLeftHand = distanceLeftHand.normalized;
-			const directionRightHand = distanceRightHand.normalized;
+			const directionLeftHand = distanceLeftHand.normalize();
+			const directionRightHand = distanceRightHand.normalize();
 
-			const combinedDirection = new Vector3().addVectors(directionLeftHand, directionRightHand);
+			const combinedDirection = localVector.addVectors(directionLeftHand, directionRightHand);
 
 			// console.log('combined', Mathf.Atan2(combinedDirection.x, combinedDirection.z) * 180 / Mathf.PI, combinedDirection.x, combinedDirection.z);
 
