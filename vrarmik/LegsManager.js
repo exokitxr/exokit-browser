@@ -8,7 +8,11 @@ const upHalfRotation = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), M
 const downQuarterRotation = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/4);
 
 const localVector = new Vector3();
+const localQuaternion = new Quaternion();
+const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
+const localMatrix3 = new THREE.Matrix4();
 
 const _mod = (a, n) => (a % n + n) % n;
 const _angleDiff = (targetA, sourceA) => {
@@ -124,23 +128,22 @@ class LegsManager {
 	Update() {
     const hipsFloorPosition = this.hips.position;
     hipsFloorPosition.y = 0;
-    const hipsFloorEuler = new THREE.Euler().setFromQuaternion(this.hips.rotation, 'YXZ');
+    const hipsFloorEuler = localEuler.setFromQuaternion(this.hips.rotation, 'YXZ');
     hipsFloorEuler.x = 0;
     hipsFloorEuler.z = 0;
-    const hipsFloorRotation = new Quaternion().setFromEuler(hipsFloorEuler);
-    const planeMatrix = new THREE.Matrix4().compose(hipsFloorPosition, hipsFloorRotation, oneVector);
-    const planeMatrixInverse = new THREE.Matrix4().getInverse(planeMatrix);
+    const planeMatrix = localMatrix.compose(hipsFloorPosition, localQuaternion.setFromEuler(hipsFloorEuler), oneVector);
+    const planeMatrixInverse = localMatrix2.getInverse(planeMatrix);
 
     const position = new Vector3();
     const quaternion = new Quaternion();
     const scale = new Vector3();
-    localMatrix.compose(this.leftLeg.foot.stickTransform.position, this.leftLeg.foot.stickTransform.rotation, oneVector)
+    localMatrix3.compose(this.leftLeg.foot.stickTransform.position, this.leftLeg.foot.stickTransform.rotation, oneVector)
       .premultiply(planeMatrixInverse)
       .decompose(position, quaternion, scale);
     const leftFootPosition = position.clone();
     const leftFootRotation = quaternion.clone();
 
-    localMatrix.compose(this.rightLeg.foot.stickTransform.position, this.rightLeg.foot.stickTransform.rotation, oneVector)
+    localMatrix3.compose(this.rightLeg.foot.stickTransform.position, this.rightLeg.foot.stickTransform.rotation, oneVector)
       .premultiply(planeMatrixInverse)
       .decompose(position, quaternion, scale);
     const rightFootPosition = position.clone();
@@ -149,7 +152,7 @@ class LegsManager {
     // rotation
 
     if (this.leftLeg.standing) {
-      const leftFootEuler = new THREE.Euler().setFromQuaternion(leftFootRotation, 'YXZ');
+      const leftFootEuler = localEuler.setFromQuaternion(leftFootRotation, 'YXZ');
       leftFootEuler.x = 0;
 	    leftFootEuler.z = 0;
     	if (leftFootEuler.y < -Math.PI*0.15) {
@@ -158,7 +161,7 @@ class LegsManager {
     	if (leftFootEuler.y > Math.PI*0.15) {
     		leftFootEuler.y = Math.PI*0.15;
     	}
-    	localMatrix.compose(Vector3.zero, new Quaternion().setFromEuler(leftFootEuler), oneVector)
+    	localMatrix3.compose(zeroVector, localQuaternion.setFromEuler(leftFootEuler), oneVector)
 	      .premultiply(planeMatrix)
 	      .decompose(position, quaternion, scale);
   		this.leftLeg.foot.stickTransform.rotation = quaternion;
@@ -166,7 +169,7 @@ class LegsManager {
     	this.leftLeg.foot.stickTransform.rotation = this.leftLeg.foot.rotation.multiply(upHalfRotation);
     }
     if (this.rightLeg.standing) {
-	    const rightFootEuler = new THREE.Euler().setFromQuaternion(rightFootRotation, 'YXZ');
+	    const rightFootEuler = localEuler.setFromQuaternion(rightFootRotation, 'YXZ');
 	    rightFootEuler.x = 0;
 	    rightFootEuler.z = 0;
     	if (rightFootEuler.y < -Math.PI*0.15) {
@@ -175,7 +178,7 @@ class LegsManager {
     	if (rightFootEuler.y > Math.PI*0.15) {
     		rightFootEuler.y = Math.PI*0.15;
     	}
-    	localMatrix.compose(Vector3.zero, new Quaternion().setFromEuler(rightFootEuler), oneVector)
+    	localMatrix3.compose(zeroVector, localQuaternion.setFromEuler(rightFootEuler), oneVector)
 	      .premultiply(planeMatrix)
 	      .decompose(position, quaternion, scale);
   		this.rightLeg.foot.stickTransform.rotation = quaternion;
