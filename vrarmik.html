@@ -540,11 +540,7 @@ const _loadModelUrl = async (href, filename = href) => {
       const filename = _pathname2Filename(pathname);
       const ext = _filename2Ext(filename);
       const blob = await new Promise((accept, reject) => {
-        entry.getData(new zip.BlobWriter('application/octet-stream'), function(blob) {
-          accept(blob);
-        }, function(current, total) {
-          // onprogress callback
-        });
+        entry.getData(new zip.BlobWriter('application/octet-stream'), accept, function onprogress(current, total) {});
       });
       const url = URL.createObjectURL(blob);
       filesystem.push({
