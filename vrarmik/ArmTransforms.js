@@ -42,11 +42,11 @@ class ArmTransforms
 			return a.position.distanceTo(b.position);
 		}
 
-	  Start()
+	  /* Start()
 		{
 			// PoseManager.Instance.onCalibrate += this.updateArmLengths;
 			// this.updateArmLengths();
-		}
+		} */
 
 		updateArmLengths()
 		{

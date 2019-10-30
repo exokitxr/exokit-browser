@@ -49,15 +49,14 @@ class ShoulderPoser
 
 			// this.lastAngle = Vector3.zero;
 
-			this.leftShoulderAnkerStartLocalPosition = new Vector3();
-			this.rightShoulderAnkerStartLocalPosition = new Vector3();
+			// this.leftShoulderAnkerStartLocalPosition = new Vector3();
+			// this.rightShoulderAnkerStartLocalPosition = new Vector3();
 		}
 
-		Start() {
-			this.leftShoulderAnkerStartLocalPosition = this.shoulder.transform.InverseTransformPoint(this.shoulder.leftShoulderAnchor.position);
-			this.rightShoulderAnkerStartLocalPosition =
-				this.shoulder.transform.InverseTransformPoint(this.shoulder.rightShoulderAnchor.position);
-		}
+		/* Start() {
+			this.leftShoulderAnkerStartLocalPosition = this.shoulder.leftShoulderAnchor.localPosition.clone();
+			this.rightShoulderAnkerStartLocalPosition = this.shoulder.rightShoulderAnchor.position.clone();
+		} */
 
 		/* onCalibrate()
 		{
@@ -73,14 +72,15 @@ class ShoulderPoser
 
 			// this.shoulder.transform.rotation = Quaternion.identity;
 			// this.positionShoulder();
-			this.rotateShoulderUpBase();
-			this.rotateShoulderRightBase();
+			let rotation = this.rotateShoulderUpBase();
+			rotation = this.rotateShoulderRightBase(rotation);
+			this.shoulder.transform.rotation = rotation;
 
-			if (this.enableDistinctShoulderRotation)
+			/* if (this.enableDistinctShoulderRotation)
 			{
-				this.rotateLeftShoulder();
-				this.rotateRightShoulder();
-			}
+				this.rotateLeftShoulder(rotation);
+				this.rotateRightShoulder(rotation);
+			} */
 
 			/* if (this.enableShoulderDislocation)
 			{
@@ -134,46 +134,41 @@ class ShoulderPoser
       this.shoulder.head.localRotation = hmdUpRotation;
 		}
 
-		rotateLeftShoulder()
+		/* rotateLeftShoulder(shoulderRotation)
 		{
-			this.rotateShoulderUp(this.shoulder.leftShoulder, this.shoulder.leftArm, this.avatarTrackingReferences.leftHand,
-				this.leftShoulderAnkerStartLocalPosition, 1);
-
+			this.rotateShoulderUp(this.shoulder.leftShoulder, this.shoulder.leftArm, this.avatarTrackingReferences.leftHand, this.leftShoulderAnkerStartLocalPosition, 1, shoulderRotation);
 		}
 
-		rotateRightShoulder()
+		rotateRightShoulder(shoulderRotation)
 		{
-			this.rotateShoulderUp(this.shoulder.rightShoulder, this.shoulder.rightArm, this.avatarTrackingReferences.rightHand,
-				this.rightShoulderAnkerStartLocalPosition, -1);
+			this.rotateShoulderUp(this.shoulder.rightShoulder, this.shoulder.rightArm, this.avatarTrackingReferences.rightHand, this.rightShoulderAnkerStartLocalPosition, -1, shoulderRotation);
 		}
 
-		rotateShoulderUp(shoulderSide, arm, targetHand,
-			initialShoulderLocalPos, angleSign)
+		rotateShoulderUp(shoulderSide, arm, targetHand, initialShoulderLocalPos, angleSign, shoulderRotation)
 		{
-			const initialShoulderPos = this.shoulder.transform.TransformPoint(initialShoulderLocalPos);
+			const initialShoulderPos = initialShoulderLocalPos.clone().applyMatrix4(this.shoulder.transform.matrixWorld);
 			const handShoulderOffset = new Vector3().subVectors(targetHand.position, initialShoulderPos);
 			const armLength = arm.armLength;
 
 			const targetAngle = Vector3.zero;
 
-		  const forwardDistanceRatio = Vector3.Dot(handShoulderOffset, this.shoulder.transform.forward) / armLength;
-			const upwardDistanceRatio = Vector3.Dot(handShoulderOffset, this.shoulder.transform.up) / armLength;
+		  const forwardDistanceRatio = Vector3.Dot(handShoulderOffset, Vector3.forward.applyQuaternion(shoulderRotation)) / armLength;
+			const upwardDistanceRatio = Vector3.Dot(handShoulderOffset, Vector3.up.applyQuaternion(shoulderRotation)) / armLength;
 			if (forwardDistanceRatio > 0)
 			{
-				targetAngle.y = Mathf.Clamp((forwardDistanceRatio - 0.5) * this.distinctShoulderRotationMultiplier, 0,
-					this.distinctShoulderRotationLimitForward);
+				targetAngle.y = Mathf.Clamp((forwardDistanceRatio - 0.5) * this.distinctShoulderRotationMultiplier, 0, this.distinctShoulderRotationLimitForward);
 			}
 			else
 			{
-				targetAngle.y = Mathf.Clamp(-(forwardDistanceRatio + 0.08) * this.distinctShoulderRotationMultiplier * 10,
-					-this.distinctShoulderRotationLimitBackward, 0);
+				targetAngle.y = Mathf.Clamp(-(forwardDistanceRatio + 0.08) * this.distinctShoulderRotationMultiplier * 10, -this.distinctShoulderRotationLimitBackward, 0);
 			}
 
-			targetAngle.z = Mathf.Clamp(-(upwardDistanceRatio - 0.5) * this.distinctShoulderRotationMultiplier,
-				-this.distinctShoulderRotationLimitUpward, 0);
+			targetAngle.z = Mathf.Clamp(-(upwardDistanceRatio - 0.5) * this.distinctShoulderRotationMultiplier, -this.distinctShoulderRotationLimitUpward, 0);
 
-			shoulderSide.localEulerAngles = targetAngle * angleSign;
-		}
+      targetAngle.multiplyScalar(angleSign);
+
+      shoulderSide.localRotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(targetAngle.x * Mathf.Deg2Rad, targetAngle.y * Mathf.Deg2Rad, targetAngle.z * Mathf.Deg2Rad, Mathf.Order));
+		} */
 
 
 		positionShoulder()
@@ -200,10 +195,11 @@ class ShoulderPoser
 				this.clampHeadRotationDeltaUp(targetRotation);
 			}
 
-			this.shoulder.transform.eulerAngles = targetRotation;
+			// this.shoulder.transform.eulerAngles = targetRotation;
+			return new THREE.Quaternion().setFromEuler(new THREE.Euler(targetRotation.x * Mathf.Deg2Rad, targetRotation.y * Mathf.Deg2Rad, targetRotation.z * Mathf.Deg2Rad, Mathf.Order))
 		}
 
-		rotateShoulderRightBase()
+		rotateShoulderRightBase(rotation)
 		{
 
 			const heightDiff = this.vrTrackingReferences.head.position.y - this.poseManager.vrSystemOffsetHeight;
@@ -223,7 +219,8 @@ class ShoulderPoser
 			const deltaRot = Quaternion.AngleAxis(this.shoulderRightRotation, this.shoulder.transform.right);
 
 
-			this.shoulder.transform.rotation = new Quaternion().multiplyQuaternions(deltaRot,  this.shoulder.transform.rotation);
+			// this.shoulder.transform.rotation = new Quaternion().multiplyQuaternions(deltaRot,  this.shoulder.transform.rotation);
+			return new Quaternion().multiplyQuaternions(deltaRot, rotation);
 			// this.positionShoulderRelative();
 		}
 

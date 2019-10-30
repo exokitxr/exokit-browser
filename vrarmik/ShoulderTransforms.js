@@ -58,9 +58,9 @@ class ShoulderTransforms
 		{
 			// this.setShoulderWidth(PoseManager.Instance.playerWidthShoulders);
 
-			this.leftArm.Start();
-			this.rightArm.Start();
-			this.shoulderPoser.Start();
+			// this.leftArm.Start();
+			// this.rightArm.Start();
+			// this.shoulderPoser.Start();
 			this.leftArmIk.Start();
 			this.rightArmIk.Start();
 		}
