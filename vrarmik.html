@@ -425,17 +425,27 @@ const _pathname2Filename = pathname => {
   const match = pathname.match(/([^\/]+)$/);
   return match && match[1];
 };
+const _filename2Ext = filename => {
+  const match = filename.match(/\.([^\.]+)$/);
+  return match ? match[1] : null;
+};
 const _loadModelFilesystem = async filesystem => {
   const manager = new THREE.LoadingManager();
   manager.setURLModifier(url => {
-    // console.log('load url', url);
     const match = url.match(/([^\/]+)$/);
     if (match) {
       const filename = match[1];
       const file = filesystem.find(file => file.filename === filename);
       if (file) {
-        // console.log('replace url', url, file.url);
         url = file.url;
+      } else {
+        const ext = _filename2Ext(filename);
+        if (ext) {
+          const file = filesystem.find(file => file.ext === ext);
+          if (file) {
+            url = file.url;
+          }
+        }
       }
     }
     return url;
@@ -515,6 +525,7 @@ const _loadModelUrl = async (href, filename = href) => {
       const entry = entries[i];
       const pathname = entry.filename;
       const filename = _pathname2Filename(pathname);
+      const ext = _filename2Ext(filename);
       const blob = await new Promise((accept, reject) => {
         entry.getData(new zip.BlobWriter('application/octet-stream'), function(blob) {
           accept(blob);
@@ -526,6 +537,7 @@ const _loadModelUrl = async (href, filename = href) => {
       filesystem.push({
         pathname,
         filename,
+        ext,
         url,
       });
       // console.log('got blob', entry, blob, pathname, filename, url);
