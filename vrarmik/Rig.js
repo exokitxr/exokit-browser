@@ -720,12 +720,12 @@ class Rig {
 
       if (['Left_leg'].includes(k)) {
         modelBone.quaternion
-          .multiply(modelBoneOutput.localRotation)
+          .premultiply(modelBoneOutput.localRotation)
           // .multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2))
       }
       if (['Left_knee'].includes(k)) {
         modelBone.quaternion
-          .multiply(modelBoneOutput.localRotation)
+          .premultiply(modelBoneOutput.localRotation)
           // .premultiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI))
       }
       if (['Left_ankle'].includes(k)) {
@@ -736,12 +736,12 @@ class Rig {
 
       if (['Right_leg'].includes(k)) {
         modelBone.quaternion
-          .multiply(modelBoneOutput.localRotation)
+          .premultiply(modelBoneOutput.localRotation)
           // .multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2))
       }
       if (['Right_knee'].includes(k)) {
         modelBone.quaternion
-          .multiply(modelBoneOutput.localRotation)
+          .premultiply(modelBoneOutput.localRotation)
           // .premultiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI))
       }
       if (['Right_ankle'].includes(k)) {
@@ -752,7 +752,7 @@ class Rig {
 
       if (['Left_shoulder'].includes(k)) {
         modelBone.quaternion
-          .multiply(modelBoneOutput.localRotation)
+          .premultiply(modelBoneOutput.localRotation)
       }
       if (['Left_arm'].includes(k)) {
         modelBone.quaternion
@@ -775,7 +775,7 @@ class Rig {
 
       if (['Right_shoulder'].includes(k)) {
         modelBone.quaternion
-          .multiply(modelBoneOutput.localRotation)
+          .premultiply(modelBoneOutput.localRotation)
       }
       if (['Right_arm'].includes(k)) {
         modelBone.quaternion
