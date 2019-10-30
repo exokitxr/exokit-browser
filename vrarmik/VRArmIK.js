@@ -1,5 +1,10 @@
 import {Vector3, Quaternion, Transform} from './Unity.js';
 
+const leftRotation = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI/2);
+const rightRotation = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI/2);
+const bankLeftRotation = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI/2);
+const bankRightRotation = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), -Math.PI/2);
+
 	class VRArmIK
 	{
 		constructor(arm, left) {
@@ -87,7 +92,7 @@ import {Vector3, Quaternion, Transform} from './Unity.js';
 	      	elbowPosition.clone().sub(this.arm.upperArm.position),
 	      	new Vector3(this.left ? -1 : 1, 0, 0).applyQuaternion(shoulderRotation)
 	      )
-      ).multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), (this.left ? -1 : 1) * Math.PI/2));
+      ).multiply(this.left ? rightRotation : leftRotation);
 
       // this.arm.lowerArm.position = elbowPosition;
       this.arm.lowerArm.rotation = new Quaternion().setFromRotationMatrix(
@@ -96,10 +101,11 @@ import {Vector3, Quaternion, Transform} from './Unity.js';
 	      	handPosition.clone().sub(elbowPosition),
 	      	new Vector3(this.left ? -1 : 1, 0, 0).applyQuaternion(shoulderRotation)
 	      )
-      ).multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), (this.left ? -1 : 1) * Math.PI/2));
+      ).multiply(this.left ? rightRotation : leftRotation);
 
       // this.arm.hand.position = handPosition;
-      this.arm.hand.rotation = this.target.rotation.multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), (this.left ? -1 : 1) * Math.PI/2));
+      this.arm.hand.rotation = this.target.rotation
+        .multiply(this.left ? bankRightRotation : bankLeftRotation);
 		}
 	}
 
