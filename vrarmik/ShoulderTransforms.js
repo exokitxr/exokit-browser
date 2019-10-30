@@ -34,9 +34,7 @@ class ShoulderTransforms
 			this.transform.AddChild(this.rightShoulderAnchor);
 
 			this.leftArm = new ArmTransforms();
-			this.leftArm.poseManager = rig.poseManager;
 			this.rightArm = new ArmTransforms();
-			this.rightArm.poseManager = rig.poseManager;
 
 			this.leftShoulderAnchor.AddChild(this.leftArm.transform);
 			this.rightShoulderAnchor.AddChild(this.rightArm.transform);
