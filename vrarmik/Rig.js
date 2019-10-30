@@ -598,7 +598,6 @@ class Rig {
 	  };
 
 		this.poseManager = new PoseManager(this);
-		this.poseManager.flipY = flipY;
 		this.shoulderTransforms = new ShoulderTransforms(this);
 		this.legsManager = new LegsManager(this);
 

@@ -22,8 +22,6 @@ class PoseManager
 			this.playerWidthShoulders = 0.31;
       this.loadPlayerSizeOnAwake = false;
 
-      this.flipY = false;
-
       // PoseManager.Instance = this;
     }
 
