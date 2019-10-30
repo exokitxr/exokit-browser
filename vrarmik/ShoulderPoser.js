@@ -311,7 +311,8 @@ class ShoulderPoser
 		{
 			const hmdRotation = this.vrTrackingReferences.head.rotation;
 			hmdRotation.multiply(z180Quaternion);
-			const headUpRotation = (Transform.eulerAngles(hmdRotation).y + 360) % 360;
+
+			const headUpRotation = (localEuler.setFromQuaternion(hmdRotation, 'YXZ').y * Mathf.Rad2Deg + 360) % 360;
 			const targetUpRotation = (angleY + 360) % 360;
 
 			const delta = headUpRotation - targetUpRotation;
