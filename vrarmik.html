@@ -878,18 +878,19 @@ function animate(timestamp, frame, referenceSpace) {
         .multiply(new Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin((realDateNow()%2000)/2000*Math.PI*2)*Math.PI*0.2))
         .multiply(new Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.sin((realDateNow()%2000)/2000*Math.PI*2)*Math.PI*0.25));
 
-      rig.inputs.rightGamepad.rotation = new Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationAngle);
-      rig.inputs.rightGamepad.position = new Vector3(positionOffset, rig.height*0.7, 0).add(
-        new Vector3(-rig.shoulderWidth/2, 0, 0).applyQuaternion(rig.inputs.rightGamepad.rotation)
-      ).add(
-        new Vector3(-0.1, 0, -1).normalize().multiplyScalar(rig.rightArmLength*0.7).applyQuaternion(rig.inputs.rightGamepad.rotation)
-      );
+      rig.inputs.rightGamepad.rotation = new Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationAngle)
+        // .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.sin((realDateNow()%5000)/5000*Math.PI*2)*Math.PI*0.6));
+      rig.inputs.rightGamepad.position = new Vector3(positionOffset, rig.height*0.7 + Math.sin((realDateNow()%2000)/2000*Math.PI*2)*0.1, 0).add(
+        new Vector3(-rig.shoulderWidth/2, 0, -0.2).applyQuaternion(rig.inputs.rightGamepad.rotation)
+      )/*.add(
+        new Vector3(-0.1, 0, -1).normalize().multiplyScalar(rig.rightArmLength*0.4).applyQuaternion(rig.inputs.rightGamepad.rotation)
+      ); */
       rig.inputs.leftGamepad.rotation = new Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationAngle);
       rig.inputs.leftGamepad.position = new Vector3(positionOffset, rig.height*0.7, 0).add(
-        new Vector3(rig.shoulderWidth/2, 0, 0).applyQuaternion(rig.inputs.leftGamepad.rotation)
-      ).add(
-        new Vector3(0.1, 0, -1).normalize().multiplyScalar(rig.leftArmLength*0.7).applyQuaternion(rig.inputs.leftGamepad.rotation)
-      );
+        new Vector3(rig.shoulderWidth/2, 0, -0.2).applyQuaternion(rig.inputs.leftGamepad.rotation)
+      )/*.add(
+        new Vector3(0.1, 0, -1).normalize().multiplyScalar(rig.leftArmLength*0.4).applyQuaternion(rig.inputs.leftGamepad.rotation)
+      );*/
 
       rig.inputs.leftGamepad.pointer = (Math.sin((Date.now()%10000)/10000*Math.PI*2) + 1) / 2;
       rig.inputs.leftGamepad.grip = (Math.sin((Date.now()%10000)/10000*Math.PI*2) + 1) / 2;
