@@ -406,6 +406,7 @@ const Time = {
 const Mathf = {
   Deg2Rad: DEG2RAD,
   Rad2Deg: RAD2DEG,
+  Order: ORDER,
   PI: Math.PI,
   Clamp(v, min, max) {
     return Math.min(Math.max(v, min), max);
