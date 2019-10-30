@@ -819,7 +819,7 @@ function animate(timestamp, frame, referenceSpace) {
         }
       };
 
-      const lg = _getGamepad(0);
+      const lg = _getGamepad(1);
       let li = -1;
       if (lg) {
         const {position, rotation, pressed, lastPressed} = lg;
@@ -834,7 +834,7 @@ function animate(timestamp, frame, referenceSpace) {
 
         lastPresseds[0] = pressed;
       }
-      const rg = _getGamepad(1);
+      const rg = _getGamepad(0);
       let ri = -1;
       if (rg) {
         const {position, rotation, pressed, lastPressed} = rg;
