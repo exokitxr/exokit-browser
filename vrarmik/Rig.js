@@ -803,6 +803,35 @@ class Rig {
     const timeDiff = Math.min(now - this.lastTimestamp, 1000);
     this.lastTimestamp = now;
 
+    if (this.options.fingers) {
+      const _processFingerBones = left => {
+        const fingerBones = left ? this.fingerBones.left : this.fingerBones.right;
+        const gamepadInput = left ? this.inputs.rightGamepad : this.inputs.leftGamepad;
+        for (const k in fingerBones) {
+          const fingerBone = fingerBones[k];
+          if (fingerBone) {
+            const axis = new Vector3();
+            let angle;
+            if (k === 'thumb') {
+              axis.set(0, left ? 1 : -1, 0);
+              angle = gamepadInput.grip * Math.PI*0.25;
+            } else if (k === 'index') {
+              axis.set(0, 0, left ? -1 : 1);
+              angle = gamepadInput.pointer * Math.PI*0.5;
+            } else {
+              axis.set(0, 0, left ? -1 : 1);
+              angle = gamepadInput.grip * Math.PI*0.5;
+            }
+            fingerBone.traverse(subFingerBone => {
+              subFingerBone.quaternion.setFromAxisAngle(axis, angle);
+            });
+          }
+        }
+      };
+      _processFingerBones(true);
+      _processFingerBones(false);
+    }
+
     if (this.options.hair) {
       const _processHairBone = (hairBone, children) => {
         const p = new Vector3().setFromMatrixPosition(hairBone.matrixWorld);
