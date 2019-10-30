@@ -243,6 +243,16 @@ class Transform {
     this._localScale.copy(localScale);
   }
 
+  get matrix() {
+    this.updateLocalMatrix();
+    return this._matrix.clone();
+  }
+
+  get matrixWorld() {
+    this.updateMatrixWorld();
+    return this._matrixWorld.clone();
+  }
+
   get parent() {
     return this._parent;
   }
