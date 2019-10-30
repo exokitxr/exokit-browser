@@ -782,7 +782,8 @@ function animate(timestamp, frame, referenceSpace) {
       rig.inputs.hmd.rotation = vrCamera.quaternion;
 
       const _getGamepad = i => {
-        const inputSource = inputSources[i];
+        const handedness = i === 0 ? 'left' : 'right';
+        const inputSource = inputSources.find(inputSource => inputSource.handedness === handedness);
         let pose, gamepad;
         if (inputSource && (pose = frame.getPose(inputSource.targetRaySpace, referenceSpace)) && (gamepad = inputSource.gamepad || gamepads[i])) {
           const {transform} = pose;
@@ -828,7 +829,7 @@ function animate(timestamp, frame, referenceSpace) {
         }
       };
 
-      const lg = _getGamepad(0);
+      const lg = _getGamepad(1);
       let li = -1;
       if (lg) {
         const {position, rotation, pressed, lastPressed, pointer, grip} = lg;
@@ -845,7 +846,7 @@ function animate(timestamp, frame, referenceSpace) {
 
         lastPresseds[0] = pressed;
       }
-      const rg = _getGamepad(1);
+      const rg = _getGamepad(0);
       let ri = -1;
       if (rg) {
         const {position, rotation, pressed, lastPressed, pointer, grip} = rg;
