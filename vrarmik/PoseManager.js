@@ -1,6 +1,6 @@
 import VRTrackingReferences from './VRTrackingReferences.js';
 import AvatarVRTrackingReferences from './AvatarVRTrackingReferences.js';
-import {Transform, XRSettings} from './Unity.js';
+import {Transform} from './Unity.js';
 
 class PoseManager
 	{
@@ -45,8 +45,7 @@ class PoseManager
       {
           this.loadPlayerSize();
       }
-      const device = XRSettings.loadedDeviceName;
-      this.vrSystemOffsetHeight = /*string.IsNullOrEmpty(device) || */device == "OpenVR" ? 0 : this.playerHeightHmd;
+      this.vrSystemOffsetHeight = 0;
     }
 
 		/* Start()

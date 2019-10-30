@@ -1,4 +1,4 @@
-import {Vector2, Vector3, Quaternion, Transform, GameObject, MonoBehavior, XRSettings} from './Unity.js';
+import {Vector2, Vector3, Quaternion, Transform} from './Unity.js';
 
 const _mod = (a, n) => (a % n + n) % n;
 const _angleDiff = (targetA, sourceA) => {
