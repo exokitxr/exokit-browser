@@ -744,6 +744,7 @@ const _setLocalModel = object => {
 
   model = object;
   rig = new Rig(model, {
+    fingers: true,
     hair: true,
     visemes: true,
     microphoneMediaStream,
@@ -1166,6 +1167,7 @@ connectButton.addEventListener('click', () => {
           scene.add(peerConnection.model);
 
           peerConnection.rig = new Rig(peerConnection.model, {
+            fingers: true,
             hair: true,
             visemes: true,
             microphoneMediaStream: peerConnection.mediaStream,
