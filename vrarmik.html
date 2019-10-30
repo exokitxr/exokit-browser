@@ -791,11 +791,15 @@ function animate(timestamp, frame, referenceSpace) {
             const q = new Quaternion().copy(orientation);
             const pressed = gamepad.buttons[0].pressed;
             const lastPressed = lastPresseds[i];
+            const pointer = gamepad.buttons[0].value;
+            const grip = gamepad.buttons[1].value;
             return {
               position: p,
               rotation: q,
               pressed,
               lastPressed,
+              pointer,
+              grip,
             };
           } else if (matrix) { // old WebXR api
             const p = new Vector3().multiplyScalar(heightFactor);
@@ -805,11 +809,15 @@ function animate(timestamp, frame, referenceSpace) {
               .decompose(p, q, s);
             const pressed = gamepad.buttons[0].pressed;
             const lastPressed = lastPresseds[i];
+            const pointer = gamepad.buttons[0].value;
+            const grip = gamepad.buttons[1].value;
             return {
               position: p,
               rotation: q,
               pressed,
               lastPressed,
+              pointer,
+              grip,
             };
           } else {
             return null;
@@ -822,9 +830,11 @@ function animate(timestamp, frame, referenceSpace) {
       const lg = _getGamepad(1);
       let li = -1;
       if (lg) {
-        const {position, rotation, pressed, lastPressed} = lg;
+        const {position, rotation, pressed, lastPressed, pointer, grip} = lg;
         rig.inputs.leftGamepad.rotation = rotation;
         rig.inputs.leftGamepad.position = position;
+        rig.inputs.leftGamepad.pointer = pointer;
+        rig.inputs.leftGamepad.grip = grip;
         li = mirrorMesh.getButtonIntersectionIndex(position);
         if (pressed && !lastPressed) {
           if (li !== -1) {
@@ -837,9 +847,11 @@ function animate(timestamp, frame, referenceSpace) {
       const rg = _getGamepad(0);
       let ri = -1;
       if (rg) {
-        const {position, rotation, pressed, lastPressed} = rg;
+        const {position, rotation, pressed, lastPressed, pointer, grip} = rg;
         rig.inputs.rightGamepad.rotation = rotation;
         rig.inputs.rightGamepad.position = position;
+        rig.inputs.rightGamepad.pointer = pointer;
+        rig.inputs.rightGamepad.grip = grip;
         ri = mirrorMesh.getButtonIntersectionIndex(position);
         if (pressed && !lastPressed) {
           if (ri !== -1) {
@@ -876,6 +888,12 @@ function animate(timestamp, frame, referenceSpace) {
       ).add(
         new Vector3(0.1, 0, -1).normalize().multiplyScalar(rig.leftArmLength*0.7).applyQuaternion(rig.inputs.leftGamepad.rotation)
       );
+
+      rig.inputs.leftGamepad.pointer = (Math.sin((Date.now()%10000)/10000*Math.PI*2) + 1) / 2;
+      rig.inputs.leftGamepad.grip = (Math.sin((Date.now()%10000)/10000*Math.PI*2) + 1) / 2;
+
+      rig.inputs.rightGamepad.pointer = (Math.sin((Date.now()%10000)/10000*Math.PI*2) + 1) / 2;
+      rig.inputs.rightGamepad.grip = (Math.sin((Date.now()%10000)/10000*Math.PI*2) + 1) / 2;
     }
 
     rig.update();
