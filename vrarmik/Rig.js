@@ -397,6 +397,41 @@ class Rig {
     }
     this.hairBones = hairBones;
 
+    const _findFinger = (r, left) => {
+      const fingerTipBone = tailBones
+        .filter(bone => r.test(bone.name) && _findClosestParentBone(bone, bone => bone === modelBones.Left_wrist || bone === modelBones.Right_wrist))
+        .sort((a, b) => {
+          const aName = a.name.replace(r, '');
+          const aLeftBalance = _countCharacters(aName, /l/i) - _countCharacters(aName, /r/i);
+          const bName = b.name.replace(r, '');
+          const bLeftBalance = _countCharacters(bName, /l/i) - _countCharacters(bName, /r/i);
+          if (!left) {
+            return aLeftBalance - bLeftBalance;
+          } else {
+            return bLeftBalance - aLeftBalance;
+          }
+        });
+      const fingerRootBone = fingerTipBone.length > 0 ? _findFurthestParentBone(fingerTipBone[0], bone => r.test(bone.name)) : null;
+      return fingerRootBone;
+    };
+    const fingerBones = {
+      left: {
+        thumb: _findFinger(/thumb/gi, true),
+        index: _findFinger(/index/gi, true),
+        middle: _findFinger(/middle/gi, true),
+        ring: _findFinger(/ring/gi, true),
+        little: _findFinger(/little/gi, true) || _findFinger(/pinky/gi, true),
+      },
+      right: {
+        thumb: _findFinger(/thumb/gi, false),
+        index: _findFinger(/index/gi, false),
+        middle: _findFinger(/middle/gi, false),
+        ring: _findFinger(/ring/gi, false),
+        little: _findFinger(/little/gi, false) || _findFinger(/pinky/gi, false),
+      },
+    };
+    this.fingerBones = fingerBones;
+
     const preRotations = {};
     const _ensurePrerotation = k => {
       const boneName = modelBones[k].name;
