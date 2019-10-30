@@ -41,53 +41,6 @@ class Leg {
   }
 
   Update() {
-  	// const hipsDirection = new Vector3(0, 0, 1).applyQuaternion(this.transform.rotation);
-  	// const hipsY = Math.atan2(hipsDirection.z, hipsDirection.x);
-  	/* if (hipsY > Math.PI) {
-  		hipsY -= Math.PI;
-  	}
-  	if (hipsY < Math.PI) {
-  		hipsY += Math.PI;
-  	} */
-
-  	/* const upperLegDirection = new Vector3(0, 0, 1).applyQuaternion(this.upperLeg.rotation);
-  	const upperLegY = Math.atan2(upperLegDirection.z, upperLegDirection.x);
-    const legDiff = this.foot.position.sub(this.transform.position);
-		const footEuler = new THREE.Euler(0, upperLegY - Math.PI/2, 0, 'YXZ'); */
-
-		/* const footEuler = new THREE.Euler().setFromQuaternion(this.foot.rotation.multiply(new Quaternion().setFromUnitVectors(new Vector3(0, -1, 0), new Vector3(0, 0, 1)).inverse()), 'YXZ');
-    footEuler.x = 0;
-    footEuler.z = 0; */
-
-		/* let angleDiff = (() => {
-			let a = hipsY;
-			let b = upperLegY;
-			let d = _angleDiff(a, b);
-			return d;
-		})();
-		if (this.left) {
-			angleDiff *= -1;
-		}
-		if (angleDiff < -Math.PI/3) {
-			if (this.left) {
-				// debugger;
-				// console.log('correct 1', hipsY, upperLegY, angleDiff);
-				// debugger;
-				footEuler.y += Math.PI/3;
-			} else {
-				footEuler.y -= Math.PI/3;
-			}
-		} else if (angleDiff > Math.PI/8) {
-			if (this.left) {
-				// debugger;
-				// console.log('correct 2', hipsY, upperLegY, angleDiff);
-				// debugger;
-				footEuler.y -= Math.PI/8;
-			} else {
-				footEuler.y += Math.PI/8;
-			}
-		} */
-
     const footPosition = this.foot.stickTransform.position;
     const {upperLegLength, lowerLegLength, legLength} = this;
     const g = this.upperLeg.position.add(footPosition.clone().sub(this.upperLeg.position).normalize().multiplyScalar(legLength));
