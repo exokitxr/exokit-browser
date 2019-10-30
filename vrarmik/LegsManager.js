@@ -33,6 +33,7 @@ class Leg {
     this.foot.stickTransform.position = this.foot.position;
     this.upperLegLength = this.lowerLeg.localPosition.length();
     this.lowerLegLength = this.foot.localPosition.length();
+    this.legLength = this.upperLegLength + this.lowerLegLength;
   }
 
   Update() {
@@ -84,19 +85,11 @@ class Leg {
 		} */
 
     const footPosition = this.foot.stickTransform.position;
-    const {upperLegLength, lowerLegLength} = this;
-    // const upperLegLength = this.lowerLeg.localPosition.length();
-    // const lowerLegLength = this.foot.localPosition.length();
-    const g = this.upperLeg.position.add(footPosition.clone().sub(this.upperLeg.position).normalize().multiplyScalar(upperLegLength + lowerLegLength));
-    /* if (this.left) {
-      console.log('check', g.y, footPosition.y, this.foot.position.y);
-    } */
+    const {upperLegLength, lowerLegLength, legLength} = this;
+    const g = this.upperLeg.position.add(footPosition.clone().sub(this.upperLeg.position).normalize().multiplyScalar(legLength));
     if (g.y <= 0) {
       footPosition.y = 0;
-      // const footRotation = this.upperLeg.rotation;
       const footRotation = this.foot.stickTransform.rotation;
-      // const footRotation = new Quaternion().setFromEuler(footEuler);
-      // const footRotation = this.foot.rotation;
 
 	    const hypotenuseDistance = upperLegLength;
 	    const verticalDistance = Math.abs(this.upperLeg.position.y) / 2;
