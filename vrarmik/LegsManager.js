@@ -31,7 +31,6 @@ class Leg {
     this.standing = true;
 
     this.poseManager = null;
-    // this.hmdTransformRef = null
   }
 
   Start() {
@@ -137,32 +136,8 @@ class Leg {
     	this.upperLeg.localRotation = this.upperLeg.localRotation.slerp(identityRotation, 0.1);
     	this.lowerLeg.localRotation = this.lowerLeg.localRotation.slerp(identityRotation, 0.1);
     	this.foot.localRotation = this.foot.localRotation.slerp(downQuarterRotation, 0.1);
-    	// this.foot.position = footPosition;
-      /* const direction = this.foot.position.sub(this.upperLeg.position).normalize().lerp(new Vector3(0, -1, 0), 0.1);
-      const lowerLegPosition = this.upperLeg.position.add(direction.clone().multiplyScalar(upperLegLength));
-      const footPosition = this.lowerLeg.position.add(direction.clone().multiplyScalar(lowerLegLength));
-
-      this.upperLeg.rotation = new Quaternion().setFromRotationMatrix(
-	      new THREE.Matrix4().lookAt(
-	        lowerLegPosition,
-	        this.upperLeg.position,
-	        new Vector3(0, 0, 1)
-	      )
-	    ).multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2));
-	    this.lowerLeg.rotation = new Quaternion().setFromRotationMatrix(
-	      new THREE.Matrix4().lookAt(
-	        footPosition,
-	        lowerLegPosition,
-	        new Vector3(0, 0, 1)
-	      )
-	    ).multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI/2));
-	    this.foot.rotation = this.foot.rotation.slerp(new Quaternion(), 0.1); */
-
-      //this.lowerLeg.position = lowerLegPosition;
-      //this.foot.position = footPosition; */
 
       this.standing = false;
-      // this.foot.stickTransform.position = this.foot.position;
     }
 	}
 }
@@ -181,7 +156,6 @@ class LegsManager {
     this.poseManager = rig.poseManager;
     this.leftLeg.poseManager = this.poseManager;
     this.rightLeg.poseManager = this.poseManager;
-    // this.hmdTransformRef = poseManager.vrTransforms.head;
   }
 
   Start() {
