@@ -1,6 +1,7 @@
 import {Vector3, Quaternion, Transform, Mathf} from './Unity.js';
 import VectorHelpers from './Utils/VectorHelpers.js';
 
+const upVector = new THREE.Vector3(0, 1, 0);
 const z180Quaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI);
 
 const localQuaternion = new Quaternion();
@@ -21,32 +22,32 @@ class ShoulderPoser
 
 			this.maxDeltaHeadRotation = 80;
 
-			this.distinctShoulderRotationLimitForward = 33;
+			// this.distinctShoulderRotationLimitForward = 33;
 
-			this.distinctShoulderRotationLimitBackward = 0;
+			// this.distinctShoulderRotationLimitBackward = 0;
 
-			this.distinctShoulderRotationLimitUpward = 33;
-			this.distinctShoulderRotationMultiplier = 30;
+			// this.distinctShoulderRotationLimitUpward = 33;
+			// this.distinctShoulderRotationMultiplier = 30;
 
-	  	this.rightRotationStartHeight = 0;
-			this.rightRotationHeightFactor = 142;
-			this.rightRotationHeadRotationFactor = 0.3;
-			this.rightRotationHeadRotationOffset = -20;
+	  	// this.rightRotationStartHeight = 0;
+			// this.rightRotationHeightFactor = 142;
+			// this.rightRotationHeadRotationFactor = 0.3;
+			// this.rightRotationHeadRotationOffset = -20;
 
-			this.startShoulderDislocationBefore = 0.005;
+			// this.startShoulderDislocationBefore = 0.005;
 
 			// this.ignoreYPos = true;
-		  this.autoDetectHandsBehindHead = true;
-			this.clampRotationToHead = true;
-		  this.enableDistinctShoulderRotation = true;
-			this.enableShoulderDislocation = true;
+		  // this.autoDetectHandsBehindHead = true;
+			// this.clampRotationToHead = true;
+		  // this.enableDistinctShoulderRotation = true;
+			// this.enableShoulderDislocation = true;
 
 
-			this.handsBehindHead = false;
+			// this.handsBehindHead = false;
 
-			this.clampingHeadRotation = false;
-			this.shoulderDislocated = false;
-			this.shoulderRightRotation;
+			// this.clampingHeadRotation = false;
+			// this.shoulderDislocated = false;
+			// this.shoulderRightRotation;
 
 			// this.lastAngle = Vector3.zero;
 
@@ -73,9 +74,7 @@ class ShoulderPoser
 
 			// this.shoulder.transform.rotation = Quaternion.identity;
 			// this.positionShoulder();
-			let rotation = this.rotateShoulderUpBase();
-			rotation = this.rotateShoulderRightBase(rotation);
-			this.shoulder.transform.rotation = rotation;
+			this.rotateShoulderBase();
 
 			/* if (this.enableDistinctShoulderRotation)
 			{
@@ -167,38 +166,37 @@ class ShoulderPoser
       targetAngle.multiplyScalar(angleSign);
 
       shoulderSide.localRotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(targetAngle.x * Mathf.Deg2Rad, targetAngle.y * Mathf.Deg2Rad, targetAngle.z * Mathf.Deg2Rad, Mathf.Order));
-		} */
-
+		}
 
 		positionShoulder()
 		{
-			/* const headNeckOffset = this.headNeckDirectionVector.clone().applyQuaternion(this.avatarTrackingReferences.head.rotation);
+			const headNeckOffset = this.headNeckDirectionVector.clone().applyQuaternion(this.avatarTrackingReferences.head.rotation);
 			const targetPosition = new Vector3().addVectors(this.avatarTrackingReferences.head.position, headNeckOffset.clone().multiplyScalar(this.headNeckDistance));
 			this.shoulder.transform.localPosition =
-				new Vector3().addVectors(targetPosition, this.neckShoulderDistance); */
-		}
+				new Vector3().addVectors(targetPosition, this.neckShoulderDistance);
+		} */
 
-		rotateShoulderUpBase()
+		rotateShoulderBase()
 		{
-			const angle = this.getCombinedDirectionAngleUp();
+			let angleY = this.getCombinedDirectionAngleUp();
 
-			const targetRotation = new Vector3(0, angle, 0);
+			// const targetRotation = new Vector3(0, angle, 0);
 
 			/* if (this.autoDetectHandsBehindHead)
 			{
 				this.detectHandsBehindHead(targetRotation);
 			} */
 
-			if (this.clampRotationToHead)
-			{
-				this.clampHeadRotationDeltaUp(targetRotation);
-			}
+			/* if (this.clampRotationToHead)
+			{ */
+				angleY = this.clampHeadRotationDeltaUp(angleY);
+			// }
 
 			// this.shoulder.transform.eulerAngles = targetRotation;
-			return new THREE.Quaternion().setFromEuler(new THREE.Euler(targetRotation.x * Mathf.Deg2Rad, targetRotation.y * Mathf.Deg2Rad, targetRotation.z * Mathf.Deg2Rad, Mathf.Order))
+			this.shoulder.transform.rotation = localQuaternion.setFromEuler(localEuler.set(0, angleY * Mathf.Deg2Rad, 0, Mathf.Order))
 		}
 
-		rotateShoulderRightBase(rotation)
+		/* rotateShoulderRightBase(rotation)
 		{
 
 			const heightDiff = this.vrTrackingReferences.head.position.y - this.poseManager.vrSystemOffsetHeight;
@@ -221,7 +219,7 @@ class ShoulderPoser
 			// this.shoulder.transform.rotation = new Quaternion().multiplyQuaternions(deltaRot,  this.shoulder.transform.rotation);
 			return new Quaternion().multiplyQuaternions(deltaRot, rotation);
 			// this.positionShoulderRelative();
-		}
+		} */
 
 		/* positionShoulderRelative()
 		{
@@ -305,29 +303,30 @@ class ShoulderPoser
 			}
 		} */
 
-		clampHeadRotationDeltaUp(targetRotation)
+		clampHeadRotationDeltaUp(angleY)
 		{
 			const hmdRotation = this.vrTrackingReferences.head.rotation;
 			hmdRotation.multiply(z180Quaternion);
 			const headUpRotation = (Transform.eulerAngles(hmdRotation).y + 360) % 360;
-			const targetUpRotation = (targetRotation.y + 360) % 360;
+			const targetUpRotation = (angleY + 360) % 360;
 
 			const delta = headUpRotation - targetUpRotation;
 
 			if (delta > this.maxDeltaHeadRotation && delta < 180 || delta < -180 && delta >= -360 + this.maxDeltaHeadRotation)
 			{
-				targetRotation.y = headUpRotation - this.maxDeltaHeadRotation;
-				this.clampingHeadRotation = true;
+				angleY = headUpRotation - this.maxDeltaHeadRotation;
+				// this.clampingHeadRotation = true;
 			}
 			else if (delta < -this.maxDeltaHeadRotation && delta > -180 || delta > 180 && delta < 360 - this.maxDeltaHeadRotation)
 			{
-				targetRotation.y = headUpRotation + this.maxDeltaHeadRotation;
-				this.clampingHeadRotation = true;
+				angleY = headUpRotation + this.maxDeltaHeadRotation;
+				// this.clampingHeadRotation = true;
 			}
-			else
+			/* else
 			{
 				this.clampingHeadRotation = false;
-			}
+			} */
+			return angleY;
 		}
 
 		/* clampShoulderHandDistance()
