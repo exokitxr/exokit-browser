@@ -8,6 +8,7 @@ const upHalfRotation = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), M
 const downQuarterRotation = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/4);
 
 const localVector = new Vector3();
+const localVector2 = new Vector3();
 const localQuaternion = new Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
@@ -52,7 +53,7 @@ class Leg {
 
   Update() {
     const footPosition = this.foot.stickTransform.position;
-    const g = this.upperLeg.position.add(footPosition.clone().sub(this.upperLeg.position).normalize().multiplyScalar(this.legLength));
+    const g = this.upperLeg.position.add(localVector.copy(footPosition).sub(this.upperLeg.position).normalize().multiplyScalar(this.legLength));
     if (g.y <= 0) {
       footPosition.y = 0;
       const footRotation = this.foot.stickTransform.quaternion;
@@ -60,29 +61,29 @@ class Leg {
 	    const hypotenuseDistance = this.upperLegLength;
 	    const verticalDistance = Math.abs(this.upperLeg.position.y) / 2;
       const offsetDistance = hypotenuseDistance > verticalDistance ? Math.sqrt(hypotenuseDistance*hypotenuseDistance - verticalDistance*verticalDistance) : 0;
-      const offsetDirection = footPosition.clone().sub(this.upperLeg.position)
-        .cross(localVector.set(1, 0, 0).applyQuaternion(footRotation))
+      const offsetDirection = localVector.copy(footPosition).sub(this.upperLeg.position)
+        .cross(localVector2.set(1, 0, 0).applyQuaternion(footRotation))
         .normalize();
 
       const lowerLegPosition = this.upperLeg.position.add(footPosition).divideScalar(2)
-        .add(offsetDirection.clone().multiplyScalar(offsetDistance));
+        .add(localVector2.copy(offsetDirection).multiplyScalar(offsetDistance));
 
       const upperLegDiff = this.upperLeg.position.sub(lowerLegPosition);
-      const upperLegRotation = new Quaternion().setFromRotationMatrix(
+      const upperLegRotation = localQuaternion.setFromRotationMatrix(
 	      localMatrix.lookAt(
 	        zeroVector,
 	        upperLegDiff,
-	        localVector.set(0, 0, 1).applyQuaternion(footRotation)
+	        localVector2.set(0, 0, 1).applyQuaternion(footRotation)
 	      )
 	    ).multiply(downHalfRotation);
       this.upperLeg.rotation = upperLegRotation;
 
 		  const lowerLegDiff = lowerLegPosition.clone().sub(footPosition);
-      const lowerLegRotation = new Quaternion().setFromRotationMatrix(
+      const lowerLegRotation = localQuaternion.setFromRotationMatrix(
 	      localMatrix.lookAt(
 	        zeroVector,
 	        lowerLegDiff,
-	        localVector.set(0, 0, 1).applyQuaternion(footRotation)
+	        localVector2.set(0, 0, 1).applyQuaternion(footRotation)
 	      )
 	    ).multiply(downHalfRotation);
 	    this.lowerLeg.rotation = lowerLegRotation;
@@ -90,7 +91,7 @@ class Leg {
       // this.lowerLeg.position = lowerLegPosition;
 
       // this.foot.position = footPosition;
-      this.foot.rotation = footRotation.multiply(downHalfRotation);
+      this.foot.rotation = localQuaternion.copy(footRotation).multiply(downHalfRotation);
       // this.foot.stickTransform.position = footPosition;
 
       this.standing = true;
