@@ -17,7 +17,7 @@ class ShoulderPoser
 		constructor(rig, shoulder) {
 			this.shoulder = shoulder;
 			this.poseManager = rig.poseManager;
-			this.vrTrackingReferences = this.poseManager.vrTransforms;
+			this.vrTransforms = this.poseManager.vrTransforms;
 
       // this.headNeckDirectionVector = new Vector3(1.0894440904962721e-10, -0.06860782711996793, -0.0006757629250115499).normalize();
 			// this.headNeckDistance = 0.06861115505261682;
@@ -101,14 +101,14 @@ class ShoulderPoser
 		}
 
 		updateHips() {
-		  const hmdRotation = this.vrTrackingReferences.head.rotation;
+		  const hmdRotation = this.vrTransforms.head.rotation;
       hmdRotation.multiply(z180Quaternion);
       const hmdEuler = localEuler.setFromQuaternion(hmdRotation, 'YXZ');
       hmdEuler.x = 0;
       hmdEuler.z = 0;
       const hmdFlatRotation = localQuaternion.setFromEuler(hmdEuler);
 
-      const headPosition = this.vrTrackingReferences.head.position.add(this.shoulder.eyes.localPosition.multiplyScalar(-1).applyQuaternion(hmdRotation));
+      const headPosition = this.vrTransforms.head.position.add(this.shoulder.eyes.localPosition.multiplyScalar(-1).applyQuaternion(hmdRotation));
 		  const neckPosition = headPosition.clone().add(this.shoulder.head.localPosition.multiplyScalar(-1).applyQuaternion(hmdRotation));
 		  const chestPosition = neckPosition.clone().add(this.shoulder.neck.localPosition.multiplyScalar(-1).applyQuaternion(hmdFlatRotation));
 		  const spinePosition = chestPosition.clone().add(this.shoulder.transform.localPosition.multiplyScalar(-1).applyQuaternion(hmdFlatRotation));
@@ -121,7 +121,7 @@ class ShoulderPoser
 		}
 
 		updateNeck() {
-			const hmdRotation = this.vrTrackingReferences.head.rotation;
+			const hmdRotation = this.vrTransforms.head.rotation;
 		  hmdRotation.multiply(z180Quaternion);
       const hmdFlatEuler = localEuler.setFromQuaternion(hmdRotation, 'YXZ');
       hmdFlatEuler.x = 0;
@@ -202,10 +202,10 @@ class ShoulderPoser
 		/* rotateShoulderRightBase(rotation)
 		{
 
-			const heightDiff = this.vrTrackingReferences.head.position.y - this.poseManager.vrSystemOffsetHeight;
+			const heightDiff = this.vrTransforms.head.position.y - this.poseManager.vrSystemOffsetHeight;
 			const relativeHeightDiff = -heightDiff / this.poseManager.playerHeightHmd;
 
-      const hmdRotation = this.vrTrackingReferences.head.rotation;
+      const hmdRotation = this.vrTransforms.head.rotation;
       hmdRotation.multiply(z180Quaternion);
 			const headRightRotation = VectorHelpers.getAngleBetween(this.shoulder.transform.forward,
 										  new Vector3(0, 0, 1).applyQuaternion(hmdRotation),
@@ -233,8 +233,8 @@ class ShoulderPoser
 
 		getCombinedDirectionAngleUp()
 		{
-			const leftHand = this.vrTrackingReferences.leftHand;
-      const rightHand = this.vrTrackingReferences.rightHand;
+			const leftHand = this.vrTransforms.leftHand;
+      const rightHand = this.vrTransforms.rightHand;
 
 			const distanceLeftHand = localVector.subVectors(leftHand.position, this.shoulder.transform.position);
 			const distanceRightHand = localVector2.subVectors(rightHand.position, this.shoulder.transform.position);
@@ -245,7 +245,7 @@ class ShoulderPoser
 				distanceRightHand.y = 0;
 			// }
 
-			const hmdRotation = this.vrTrackingReferences.head.rotation;
+			const hmdRotation = this.vrTransforms.head.rotation;
       const hmdEuler = localEuler.setFromQuaternion(hmdRotation, 'YXZ');
       hmdEuler.x = 0;
       hmdEuler.z = 0;
@@ -308,7 +308,7 @@ class ShoulderPoser
 
 		clampHeadRotationDeltaUp(angleY)
 		{
-			const hmdRotation = this.vrTrackingReferences.head.rotation;
+			const hmdRotation = this.vrTransforms.head.rotation;
 			hmdRotation.multiply(z180Quaternion);
 
 			const headUpRotation = (localEuler.setFromQuaternion(hmdRotation, 'YXZ').y * Mathf.Rad2Deg + 360) % 360;
