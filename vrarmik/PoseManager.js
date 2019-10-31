@@ -64,7 +64,7 @@ class PoseManager
 
 		/* calibrateIK()
 		{
-			this.playerWidthWrist = (this.vrTransforms.leftHand.position - this.vrTransforms.rightHand.position).magnitude;
+			this.playerWidthWrist = this.vrTransforms.leftHand.position.clone().sub(this.vrTransforms.rightHand.position).magnitude;
 			this.playerHeightHmd = this.vrTransforms.hmd.position.y;
 			this.savePlayerSize(this.playerHeightHmd, this.playerWidthWrist);
 		}
