@@ -707,7 +707,6 @@ class Rig {
 
     this.lastTimestamp = Date.now();
 
-	  this.poseManager.Start();
     this.shoulderTransforms.Start();
     this.legsManager.Start();
 	}

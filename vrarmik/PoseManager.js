@@ -15,8 +15,8 @@ class PoseManager
 			this.referencePlayerWidthWrist = 1.39;
 			this.playerHeightHmd = 1.70;
 			this.playerWidthWrist = 1.39;
-			this.playerWidthShoulders = 0.31;
-      this.loadPlayerSizeOnAwake = false;
+			// this.playerWidthShoulders = 0.31;
+      // this.loadPlayerSizeOnAwake = false;
 
       // PoseManager.Instance = this;
     }
@@ -33,24 +33,21 @@ class PoseManager
 			}
 		} */
 
-		Start()
+		/* Start()
 		{
       if (this.loadPlayerSizeOnAwake)
       {
           this.loadPlayerSize();
       }
       // this.vrSystemOffsetHeight = 0;
-    }
 
-		/* Start()
-		{
 			onCalibrate += OnCalibrate;
 		}
 
 		OnCalibrate()
 		{
 			this.playerHeightHmd = Camera.main.transform.position.y;
-		} */
+		}
 
 		loadPlayerWidthShoulders()
 		{
@@ -62,7 +59,7 @@ class PoseManager
 			PlayerPrefs.SetFloat("VRArmIK_PlayerWidthShoulders", width);
 		}
 
-		/* calibrateIK()
+		calibrateIK()
 		{
 			this.playerWidthWrist = this.vrTransforms.leftHand.position.clone().sub(this.vrTransforms.rightHand.position).magnitude;
 			this.playerHeightHmd = this.vrTransforms.hmd.position.y;
@@ -75,13 +72,13 @@ class PoseManager
 			PlayerPrefs.SetFloat("VRArmIK_PlayerWidthWrist", this.widthWrist);
 			this.loadPlayerSize();
 			this.onCalibrate && this.onCalibrate.Invoke();
-		} */
+		}
 
 		loadPlayerSize()
 		{
 			this.playerHeightHmd = PlayerPrefs.GetFloat("VRArmIK_PlayerHeightHmd", this.referencePlayerHeightHmd);
 			this.playerWidthWrist = PlayerPrefs.GetFloat("VRArmIK_PlayerWidthWrist", this.referencePlayerWidthWrist);
-		}
+		} */
 	}
 	// PoseManager.Instance = null;
 
