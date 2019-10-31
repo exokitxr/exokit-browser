@@ -248,7 +248,7 @@ class Rig {
 	  const _findFoot = left => {
 	  	const regexp = left ? /l/i : /r/i;
 	    const legBones = tailBones.map(tailBone => {
-        const legBone = _findFurthestParentBone(tailBone, bone => /leg/i.test(bone.name) && regexp.test(bone.name.replace(/leg/gi, '')));
+        const legBone = _findFurthestParentBone(tailBone, bone => (/leg/i.test(bone.name) || /thigh/i.test(bone.name)) && regexp.test(bone.name.replace(/leg|thigh/gi, '')));
         if (legBone) {
           const distance = _distanceToParentBone(tailBone, legBone);
           if (distance >= 2) {
@@ -267,9 +267,9 @@ class Rig {
         if (diff !== 0) {
           return diff;
         } else {
-        	const aName = a.bone.name.replace(/leg/gi, '');
+        	const aName = a.bone.name.replace(/leg|thigh/gi, '');
         	const aLeftBalance = _countCharacters(aName, /l/i) - _countCharacters(aName, /r/i);
-        	const bName = b.bone.name.replace(/leg/gi, '');
+        	const bName = b.bone.name.replace(/leg|thigh/gi, '');
         	const bLeftBalance = _countCharacters(bName, /l/i) - _countCharacters(bName, /r/i);
         	if (!left) {
         	  return aLeftBalance - bLeftBalance;
