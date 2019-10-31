@@ -932,9 +932,9 @@ function animate(timestamp, frame, referenceSpace) {
     for (const k in meshes) {
       const mesh = meshes[k];
       const output = rig.outputs[k];
-      if (!mesh || !output) {
+      /* if (!mesh || !output) {
         console.warn('bad k', k);
-      }
+      } */
       mesh.matrix.copy(output.matrixWorld).decompose(mesh.position, mesh.quaternion, mesh.scale);
     }
   }
