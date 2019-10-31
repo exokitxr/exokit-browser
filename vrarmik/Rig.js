@@ -363,7 +363,8 @@ class Rig {
       }
     };
     const eyeDirection = _getEyePosition().sub(Head.getWorldPosition(new Vector3()));
-	  let flipZ = eyeDirection.z < 0;
+    const leftArmDirection = Left_wrist.getWorldPosition(new Vector3()).sub(Head.getWorldPosition(new Vector3()));
+	  const flipZ = leftArmDirection.x < 0;//eyeDirection.z < 0;
     const armatureDirection = new THREE.Vector3(0, 1, 0).applyQuaternion(armature.quaternion);
     const flipY = armatureDirection.z < -0.5;
     const legDirection = new Vector3(0, 0, -1).applyQuaternion(Left_leg.getWorldQuaternion(new Quaternion()).premultiply(armature.quaternion.clone().inverse()));
