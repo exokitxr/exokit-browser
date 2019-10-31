@@ -1,4 +1,4 @@
-import {Vector3, Quaternion, Transform} from './Unity.js';
+import {Vector3, Quaternion, Transform, Helpers} from './Unity.js';
 
 const zeroVector = new Vector3();
 const forwardVector = new Vector3(0, 0, 1);
@@ -12,10 +12,10 @@ const localVector = new Vector3();
 const localVector2 = new Vector3();
 const localVector3 = new Vector3();
 const localVector4 = new Vector3();
+const localVector5 = new Vector3();
 const localQuaternion = new Quaternion();
 const localQuaternion2 = new Quaternion();
 const localQuaternion3 = new Quaternion();
-const localQuaternion4 = new Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
@@ -35,37 +35,43 @@ const localMatrix = new THREE.Matrix4();
 
 		Start()
 		{
-			this.upperArmLength = this.arm.lowerArm.position.distanceTo(this.arm.upperArm.position);
-			this.lowerArmLength = this.arm.hand.position.distanceTo(this.arm.lowerArm.position);
+			this.upperArmLength = Helpers.getWorldPosition(this.arm.lowerArm, localVector).distanceTo(Helpers.getWorldPosition(this.arm.upperArm, localVector2));
+			this.lowerArmLength = Helpers.getWorldPosition(this.arm.hand, localVector).distanceTo(Helpers.getWorldPosition(this.arm.lowerArm, localVector2));
 			this.armLength = this.upperArmLength + this.lowerArmLength;
 		}
 
 		Update()
 		{
-      const handPositionDistance = this.target.position.distanceTo(this.arm.upperArm.position);
-      let handPosition;
+      this.arm.transform.matrixWorld.multiplyMatrices(this.arm.transform.parent.matrixWorld, this.arm.transform.matrix);
+      this.arm.upperArm.matrixWorld.multiplyMatrices(this.arm.upperArm.parent.matrixWorld, this.arm.upperArm.matrix);
+
+			const upperArmPosition = Helpers.getWorldPosition(this.arm.upperArm, localVector);
+      const handPositionDistance = this.target.position.distanceTo(upperArmPosition);
+      // let handPosition;
       // if (handPositionDistance < this.armLength) {
-      	handPosition = localVector.copy(this.target.position);
+      	const handPosition = this.target.position;
       /* } else {
       	handPosition = this.arm.upperArm.position.add(
       		this.target.position.clone().sub(this.arm.upperArm.position).normalize().multiplyScalar(this.armLength)
       	);
       } */
+      const handRotation = this.target.quaternion;
 
-      const shoulderRotation = localQuaternion.copy(this.shoulder.transform.rotation);
+      const shoulderRotation = Helpers.getWorldQuaternion(this.shoulder.transform, localQuaternion);
       const shoulderRotationInverse = localQuaternion2.copy(shoulderRotation).inverse();
 
       const hypotenuseDistance = this.upperArmLength;
-	    const directDistance = this.arm.upperArm.position.distanceTo(handPosition) / 2;
+	    const directDistance = upperArmPosition.distanceTo(handPosition) / 2;
       const offsetDistance = hypotenuseDistance > directDistance ? Math.sqrt(hypotenuseDistance*hypotenuseDistance - directDistance*directDistance) : 0;
       // console.log('offset distance', this.upperArmLength, this.lowerArmLength, hypotenuseDistance, directDistance, offsetDistance);
       // const outFactor = targetEuler.x < 0 ? (1 - Math.min(Math.max(-targetEuler.x/(Math.PI/4), 0), 1)) : 1;
-      const offsetDirection = localVector2.copy(handPosition).sub(this.arm.upperArm.position).normalize()
+      const offsetDirection = localVector2.copy(handPosition).sub(upperArmPosition)
+        .normalize()
         .cross(localVector3.set(-1, 0, 0).applyQuaternion(shoulderRotation));
 
       const targetEuler = localEuler.setFromQuaternion(
       	localQuaternion3
-      	  .multiplyQuaternions(this.target.quaternion, shoulderRotationInverse)
+      	  .multiplyQuaternions(handRotation, shoulderRotationInverse)
       	  .premultiply(z180Quaternion),
       	'XYZ'
       );
@@ -96,33 +102,40 @@ const localMatrix = new THREE.Matrix4();
         .applyAxisAngle(forwardVector, targetEuler.z)
         .applyQuaternion(shoulderRotation);
 
-      const elbowPosition = this.arm.upperArm.position.add(handPosition).divideScalar(2)
-        .add(localVector3.copy(offsetDirection).multiplyScalar(offsetDistance));
-      const upVector = localVector3.set(this.left ? -1 : 1, 0, 0).applyQuaternion(shoulderRotation);
-      this.arm.upperArm.rotation = localQuaternion3.setFromRotationMatrix(
+      const elbowPosition = localVector3.copy(upperArmPosition).add(handPosition).divideScalar(2)
+        .add(localVector4.copy(offsetDirection).multiplyScalar(offsetDistance));
+      const upVector = localVector4.set(this.left ? -1 : 1, 0, 0).applyQuaternion(shoulderRotation);
+      this.arm.upperArm.quaternion.setFromRotationMatrix(
       	localMatrix.lookAt(
 	      	zeroVector,
-	      	localVector4.copy(elbowPosition).sub(this.arm.upperArm.position),
-	      	upVector
-	      )
-      )
-        .multiply(this.left ? rightRotation : leftRotation);
-
-      // this.arm.lowerArm.position = elbowPosition;
-      this.arm.lowerArm.localRotation = localQuaternion3.setFromRotationMatrix(
-        localMatrix.lookAt(
-	      	zeroVector,
-	      	localVector4.copy(handPosition).sub(elbowPosition),
+	      	localVector5.copy(elbowPosition).sub(upperArmPosition),
 	      	upVector
 	      )
       )
         .multiply(this.left ? rightRotation : leftRotation)
-        .premultiply(this.arm.upperArm.rotation.inverse());
+        .premultiply(Helpers.getWorldQuaternion(this.arm.upperArm.parent, localQuaternion3).inverse());
+      this.arm.upperArm.updateMatrix();
+      this.arm.upperArm.matrixWorld.multiplyMatrices(this.arm.upperArm.parent.matrixWorld, this.arm.upperArm.matrix);
+
+      // this.arm.lowerArm.position = elbowPosition;
+      this.arm.lowerArm.quaternion.setFromRotationMatrix(
+        localMatrix.lookAt(
+	      	zeroVector,
+	      	localVector5.copy(handPosition).sub(elbowPosition),
+	      	upVector
+	      )
+      )
+        .multiply(this.left ? rightRotation : leftRotation)
+        .premultiply(Helpers.getWorldQuaternion(this.arm.lowerArm.parent, localQuaternion3).inverse());
+      this.arm.lowerArm.updateMatrix();
+      this.arm.lowerArm.matrixWorld.multiplyMatrices(this.arm.lowerArm.parent.matrixWorld, this.arm.lowerArm.matrix);
 
       // this.arm.hand.position = handPosition;
-      this.arm.hand.localRotation = localQuaternion3.copy(this.target.quaternion)
+      this.arm.hand.quaternion.copy(this.target.quaternion)
         .multiply(this.left ? bankRightRotation : bankLeftRotation)
-        .premultiply(this.arm.lowerArm.rotation.inverse());
+        .premultiply(Helpers.getWorldQuaternion(this.arm.hand.parent, localQuaternion3).inverse());
+      this.arm.hand.updateMatrix();
+      this.arm.hand.matrixWorld.multiplyMatrices(this.arm.hand.parent.matrixWorld, this.arm.hand.matrix);
 		}
 	}
 

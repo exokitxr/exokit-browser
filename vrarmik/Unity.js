@@ -542,6 +542,20 @@ const PlayerPrefs = {
     }
   }
 } */
+const localVector = new Vector3();
+const localVector2 = new Vector3();
+const Helpers = {
+  getWorldPosition(o, v) {
+    return v.setFromMatrixPosition(o.matrixWorld);
+  },
+  getWorldQuaternion(o, q) {
+    o.matrixWorld.decompose(localVector, q, localVector2);
+    return q;
+  },
+  getWorldScale(o, v) {
+    return v.setFromMatrixScale(o.matrixWorld);
+  },
+};
 
 export {
   Vector2,
@@ -555,4 +569,5 @@ export {
   PlayerPrefs,
   // XRSettings,
   // Unity,
+  Helpers,
 };

@@ -619,29 +619,31 @@ class Rig {
 		this.shoulderTransforms = new ShoulderTransforms(this);
 		this.legsManager = new LegsManager(this);
 
-    this.shoulderTransforms.spine.localPosition = setups.spine;
-    this.shoulderTransforms.transform.localPosition = setups.chest;
-    this.shoulderTransforms.neck.localPosition = setups.neck;
-    this.shoulderTransforms.head.localPosition = setups.head;
-    this.shoulderTransforms.eyes.localPosition = setups.eyes;
+    this.shoulderTransforms.spine.position.copy(setups.spine);
+    this.shoulderTransforms.transform.position.copy(setups.chest);
+    this.shoulderTransforms.neck.position.copy(setups.neck);
+    this.shoulderTransforms.head.position.copy(setups.head);
+    this.shoulderTransforms.eyes.position.copy(setups.eyes);
 
-    this.shoulderTransforms.leftShoulderAnchor.localPosition = setups.leftShoulder;
-    this.shoulderTransforms.leftArm.upperArm.localPosition = setups.leftUpperArm;
-    this.shoulderTransforms.leftArm.lowerArm.localPosition = setups.leftLowerArm;
-    this.shoulderTransforms.leftArm.hand.localPosition = setups.leftHand;
+    this.shoulderTransforms.leftShoulderAnchor.position.copy(setups.leftShoulder);
+    this.shoulderTransforms.leftArm.upperArm.position.copy(setups.leftUpperArm);
+    this.shoulderTransforms.leftArm.lowerArm.position.copy(setups.leftLowerArm);
+    this.shoulderTransforms.leftArm.hand.position.copy(setups.leftHand);
 
-    this.shoulderTransforms.rightShoulderAnchor.localPosition = setups.rightShoulder;
-    this.shoulderTransforms.rightArm.upperArm.localPosition = setups.rightUpperArm;
-    this.shoulderTransforms.rightArm.lowerArm.localPosition = setups.rightLowerArm;
-    this.shoulderTransforms.rightArm.hand.localPosition = setups.rightHand;
+    this.shoulderTransforms.rightShoulderAnchor.position.copy(setups.rightShoulder);
+    this.shoulderTransforms.rightArm.upperArm.position.copy(setups.rightUpperArm);
+    this.shoulderTransforms.rightArm.lowerArm.position.copy(setups.rightLowerArm);
+    this.shoulderTransforms.rightArm.hand.position.copy(setups.rightHand);
 
-    this.legsManager.leftLeg.upperLeg.localPosition = setups.leftUpperLeg;
-    this.legsManager.leftLeg.lowerLeg.localPosition = setups.leftLowerLeg;
-    this.legsManager.leftLeg.foot.localPosition = setups.leftFoot;
+    this.legsManager.leftLeg.upperLeg.position.copy(setups.leftUpperLeg);
+    this.legsManager.leftLeg.lowerLeg.position.copy(setups.leftLowerLeg);
+    this.legsManager.leftLeg.foot.position.copy(setups.leftFoot);
 
-    this.legsManager.rightLeg.upperLeg.localPosition = setups.rightUpperLeg;
-    this.legsManager.rightLeg.lowerLeg.localPosition = setups.rightLowerLeg;
-    this.legsManager.rightLeg.foot.localPosition = setups.rightFoot;
+    this.legsManager.rightLeg.upperLeg.position.copy(setups.rightUpperLeg);
+    this.legsManager.rightLeg.lowerLeg.position.copy(setups.rightLowerLeg);
+    this.legsManager.rightLeg.foot.position.copy(setups.rightFoot);
+
+    this.shoulderTransforms.hips.updateMatrixWorld();
 
     this.height = eyePosition.sub(_averagePoint([modelBones.Left_ankle.getWorldPosition(new Vector3()), modelBones.Right_ankle.getWorldPosition(new Vector3())])).y;
     this.shoulderWidth = modelBones.Left_arm.getWorldPosition(new Vector3()).distanceTo(modelBones.Right_arm.getWorldPosition(new Vector3()));
@@ -723,7 +725,7 @@ class Rig {
       if (k === 'Hips') {
         modelBone.position.copy(modelBoneOutput.position).multiplyScalar(this.scaleFactor);
       }
-      modelBone.quaternion.multiplyQuaternions(modelBoneOutput.localRotation, modelBone.initialQuaternion)
+      modelBone.quaternion.multiplyQuaternions(modelBoneOutput.quaternion, modelBone.initialQuaternion)
 
       if (k === 'Left_ankle' || k === 'Right_ankle') {
         modelBone.quaternion.multiply(upRotation);

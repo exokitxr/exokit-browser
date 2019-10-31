@@ -1,4 +1,4 @@
-import {Vector2, Vector3, Quaternion, Transform} from './Unity.js';
+import {Vector2, Vector3, Quaternion, Transform, Helpers} from './Unity.js';
 
 const zeroVector = new Vector3();
 const oneVector = new Vector3(1, 1, 1);
@@ -30,15 +30,15 @@ const _angleDiff = (targetA, sourceA) => {
 
 class Leg {
   constructor(left) {
-  	this.transform = new Transform();
-    this.upperLeg = new Transform();
-    this.lowerLeg = new Transform();
-    this.foot = new Transform();
+  	this.transform = new THREE.Object3D();
+    this.upperLeg = new THREE.Object3D();
+    this.lowerLeg = new THREE.Object3D();
+    this.foot = new THREE.Object3D();
     this.foot.stickTransform = new THREE.Object3D();
 
-    this.transform.AddChild(this.upperLeg);
-    this.upperLeg.AddChild(this.lowerLeg);
-    this.lowerLeg.AddChild(this.foot);
+    this.transform.add(this.upperLeg);
+    this.upperLeg.add(this.lowerLeg);
+    this.lowerLeg.add(this.foot);
 
     this.upperLegLength = 0;
     this.lowerLegLength = 0;
@@ -52,59 +52,76 @@ class Leg {
 
   Start() {
   	// this.foot.stickTransform.position.copy(this.foot.position);
-    this.upperLegLength = this.lowerLeg.localPosition.length();
-    this.lowerLegLength = this.foot.localPosition.length();
+    this.upperLegLength = this.lowerLeg.position.length();
+    this.lowerLegLength = this.foot.position.length();
     this.legLength = this.upperLegLength + this.lowerLegLength;
   }
 
   Update() {
-    const footPosition = this.foot.stickTransform.position;
-    const g = this.upperLeg.position.add(localVector.copy(footPosition).sub(this.upperLeg.position).normalize().multiplyScalar(this.legLength));
-    if (g.y <= 0) {
+    const footPosition = localVector.copy(this.foot.stickTransform.position);
+    const upperLegPosition = Helpers.getWorldPosition(this.upperLeg, localVector2);
+    const extendedLegPosition = localVector3.copy(upperLegPosition)
+      .add(
+      	localVector4.copy(footPosition).sub(upperLegPosition).normalize().multiplyScalar(this.legLength)
+      );
+
+    if (extendedLegPosition.y <= 0) {
       footPosition.y = 0;
+
       const footRotation = this.foot.stickTransform.quaternion;
 
 	    const hypotenuseDistance = this.upperLegLength;
-	    const verticalDistance = Math.abs(this.upperLeg.position.y) / 2;
+	    const verticalDistance = Math.abs(upperLegPosition.y) / 2;
       const offsetDistance = hypotenuseDistance > verticalDistance ? Math.sqrt(hypotenuseDistance*hypotenuseDistance - verticalDistance*verticalDistance) : 0;
-      const offsetDirection = localVector.copy(footPosition).sub(this.upperLeg.position)
-        .cross(localVector2.set(1, 0, 0).applyQuaternion(footRotation))
-        .normalize();
 
-      const lowerLegPosition = this.upperLeg.position.add(footPosition).divideScalar(2)
-        .add(localVector2.copy(offsetDirection).multiplyScalar(offsetDistance));
+      const lowerLegPosition = localVector4.copy(upperLegPosition).add(footPosition).divideScalar(2)
+        .add(
+        	localVector5.copy(footPosition).sub(upperLegPosition)
+		        .cross(localVector6.set(1, 0, 0).applyQuaternion(footRotation))
+		        .normalize()
+        		.multiplyScalar(offsetDistance)
+        );
 
-      const upperLegDiff = this.upperLeg.position.sub(lowerLegPosition);
-      const upperLegRotation = localQuaternion.setFromRotationMatrix(
+      this.upperLeg.quaternion.setFromRotationMatrix(
 	      localMatrix.lookAt(
 	        zeroVector,
-	        upperLegDiff,
-	        localVector2.set(0, 0, 1).applyQuaternion(footRotation)
+	        localVector5.copy(upperLegPosition).sub(lowerLegPosition),
+	        localVector6.set(0, 0, 1).applyQuaternion(footRotation)
 	      )
-	    ).multiply(downHalfRotation);
-      this.upperLeg.rotation = upperLegRotation;
+	    )
+	      .multiply(downHalfRotation)
+	      .premultiply(Helpers.getWorldQuaternion(this.transform, localQuaternion).inverse());
+	    this.upperLeg.updateMatrix();
+	    this.upperLeg.matrixWorld.multiplyMatrices(this.upperLeg.parent.matrixWorld, this.upperLeg.matrix);
 
-		  const lowerLegDiff = lowerLegPosition.clone().sub(footPosition);
-      const lowerLegRotation = localQuaternion.setFromRotationMatrix(
+	    this.lowerLeg.quaternion.setFromRotationMatrix(
 	      localMatrix.lookAt(
 	        zeroVector,
-	        lowerLegDiff,
-	        localVector2.set(0, 0, 1).applyQuaternion(footRotation)
+	        localVector5.copy(lowerLegPosition).sub(footPosition),
+	        localVector6.set(0, 0, 1).applyQuaternion(footRotation)
 	      )
-	    ).multiply(downHalfRotation);
-	    this.lowerLeg.rotation = lowerLegRotation;
+	    )
+	      .multiply(downHalfRotation)
+	      .premultiply(Helpers.getWorldQuaternion(this.upperLeg, localQuaternion).inverse());
+	    this.lowerLeg.updateMatrix();
+	    this.lowerLeg.matrixWorld.multiplyMatrices(this.lowerLeg.parent.matrixWorld, this.lowerLeg.matrix);
 
       // this.lowerLeg.position = lowerLegPosition;
 
       // this.foot.position = footPosition;
-      this.foot.rotation = localQuaternion.copy(footRotation).multiply(downHalfRotation);
+      this.foot.quaternion.copy(footRotation)
+        .multiply(downHalfRotation)
+        .premultiply(Helpers.getWorldQuaternion(this.lowerLeg, localQuaternion).inverse());
+      this.foot.updateMatrix();
+      this.foot.matrixWorld.multiplyMatrices(this.foot.parent.matrixWorld, this.foot.matrix);
       // this.foot.stickTransform.position = footPosition;
 
       this.standing = true;
     } else {
-    	this.upperLeg.localRotation = this.upperLeg.localRotation.slerp(identityRotation, 0.1);
-    	this.lowerLeg.localRotation = this.lowerLeg.localRotation.slerp(identityRotation, 0.1);
-    	this.foot.localRotation = this.foot.localRotation.slerp(downQuarterRotation, 0.1);
+    	this.upperLeg.quaternion.slerp(identityRotation, 0.1);
+    	this.lowerLeg.quaternion.slerp(identityRotation, 0.1);
+    	this.foot.quaternion.slerp(downQuarterRotation, 0.1);
+    	this.transform.updateMatrixWorld(true);
 
       this.standing = false;
     }
@@ -115,9 +132,9 @@ class LegsManager {
 	constructor(rig) {
     this.hips = rig.shoulderTransforms.hips;
     this.leftLeg = new Leg(true);
-    this.hips.AddChild(this.leftLeg.transform);
+    this.hips.add(this.leftLeg.transform);
     this.rightLeg = new Leg(false);
-    this.hips.AddChild(this.rightLeg.transform);
+    this.hips.add(this.rightLeg.transform);
 
     this.poseManager = rig.poseManager;
     this.leftLeg.poseManager = this.poseManager;
@@ -125,15 +142,26 @@ class LegsManager {
   }
 
   Start() {
-  	this.legSeparation = this.leftLeg.upperLeg.position.distanceTo(this.rightLeg.upperLeg.position);
+  	this.legSeparation = Helpers.getWorldPosition(this.leftLeg.upperLeg, localVector)
+  	  .distanceTo(Helpers.getWorldPosition(this.rightLeg.upperLeg, localVector2));
   	this.leftLeg.Start();
   	this.rightLeg.Start();
   }
 
 	Update() {
+		this.leftLeg.transform.matrixWorld.multiplyMatrices(this.leftLeg.transform.parent.matrixWorld, this.leftLeg.transform.matrix);
+    this.leftLeg.upperLeg.matrixWorld.multiplyMatrices(this.leftLeg.upperLeg.parent.matrixWorld, this.leftLeg.upperLeg.matrix);
+    this.leftLeg.lowerLeg.matrixWorld.multiplyMatrices(this.leftLeg.lowerLeg.parent.matrixWorld, this.leftLeg.lowerLeg.matrix);
+    this.leftLeg.foot.matrixWorld.multiplyMatrices(this.leftLeg.foot.parent.matrixWorld, this.leftLeg.foot.matrix);
+
+    this.rightLeg.transform.matrixWorld.multiplyMatrices(this.rightLeg.transform.parent.matrixWorld, this.rightLeg.transform.matrix);
+    this.rightLeg.upperLeg.matrixWorld.multiplyMatrices(this.rightLeg.upperLeg.parent.matrixWorld, this.rightLeg.upperLeg.matrix);
+    this.rightLeg.lowerLeg.matrixWorld.multiplyMatrices(this.rightLeg.lowerLeg.parent.matrixWorld, this.rightLeg.lowerLeg.matrix);
+    this.rightLeg.foot.matrixWorld.multiplyMatrices(this.rightLeg.foot.parent.matrixWorld, this.rightLeg.foot.matrix);
+
     const hipsFloorPosition = localVector.copy(this.hips.position);
     hipsFloorPosition.y = 0;
-    const hipsFloorEuler = localEuler.setFromQuaternion(this.hips.rotation, 'YXZ');
+    const hipsFloorEuler = localEuler.setFromQuaternion(this.hips.quaternion, 'YXZ');
     hipsFloorEuler.x = 0;
     hipsFloorEuler.z = 0;
     const planeMatrix = localMatrix.compose(hipsFloorPosition, localQuaternion.setFromEuler(hipsFloorEuler), oneVector);
@@ -170,7 +198,8 @@ class LegsManager {
 	      .premultiply(planeMatrix)
 	      .decompose(fakePosition, this.leftLeg.foot.stickTransform.quaternion, fakeScale);
     } else {
-    	this.leftLeg.foot.stickTransform.quaternion.copy(this.leftLeg.foot.rotation).multiply(upHalfRotation);
+    	Helpers.getWorldQuaternion(this.leftLeg.foot, this.leftLeg.foot.stickTransform.quaternion)
+    	  .multiply(upHalfRotation);
     }
     if (this.rightLeg.standing) {
 	    const rightFootEuler = localEuler.setFromQuaternion(rightFootRotation, 'YXZ');
@@ -186,7 +215,8 @@ class LegsManager {
 	      .premultiply(planeMatrix)
 	      .decompose(fakePosition, this.rightLeg.foot.stickTransform.quaternion, fakeScale);
 	  } else {
-      this.rightLeg.foot.stickTransform.quaternion.copy(this.rightLeg.foot.rotation).multiply(upHalfRotation);
+      Helpers.getWorldQuaternion(this.rightLeg.foot, this.rightLeg.foot.stickTransform.quaternion)
+        .multiply(upHalfRotation);
 	  }
 
 	  // position
@@ -197,10 +227,11 @@ class LegsManager {
 			const leftAngleDiff = _angleDiff(Math.PI/2, leftFootAngle);
 			if (leftFootDistance < this.legSeparation*0.7 || leftFootDistance > this.legSeparation*3 || leftAngleDiff > -Math.PI*0.3 || leftAngleDiff < -Math.PI/2-Math.PI*0.3) {
 				leftFootDistance = Math.min(Math.max(leftFootDistance, this.legSeparation*0.7), this.legSeparation*1.4);
-				this.leftLeg.foot.stickTransform.position.copy(hipsFloorPosition).add(localVector6.set(-leftFootDistance, 0, 0).applyQuaternion(this.leftLeg.foot.stickTransform.quaternion));
+				this.leftLeg.foot.stickTransform.position.copy(hipsFloorPosition)
+				  .add(localVector6.set(-leftFootDistance, 0, 0).applyQuaternion(this.leftLeg.foot.stickTransform.quaternion));
 			}
 		} else {
-			this.leftLeg.foot.stickTransform.position.copy(this.leftLeg.foot.position);
+			Helpers.getWorldPosition(this.leftLeg.foot, this.leftLeg.foot.stickTransform.position);
 			this.leftLeg.foot.stickTransform.position.y = 0;
 		}
 		if (this.rightLeg.standing) {
@@ -209,10 +240,11 @@ class LegsManager {
 			const rightAngleDiff = _angleDiff(Math.PI/2, rightFootAngle);
 	    if (rightFootDistance < this.legSeparation*0.7 || rightFootDistance > this.legSeparation*3 || rightAngleDiff < Math.PI*0.3 || rightAngleDiff > Math.PI/2+Math.PI*0.3) {
 				rightFootDistance = Math.min(Math.max(rightFootDistance, this.legSeparation*0.7), this.legSeparation*1.4);
-			  this.rightLeg.foot.stickTransform.position.copy(hipsFloorPosition).add(localVector6.set(rightFootDistance, 0, 0).applyQuaternion(this.rightLeg.foot.stickTransform.quaternion));
+			  this.rightLeg.foot.stickTransform.position.copy(hipsFloorPosition)
+			    .add(localVector6.set(rightFootDistance, 0, 0).applyQuaternion(this.rightLeg.foot.stickTransform.quaternion));
 			}
 		} else {
-			this.rightLeg.foot.stickTransform.position.copy(this.rightLeg.foot.position);
+			Helpers.getWorldPosition(this.rightLeg.foot, this.rightLeg.foot.stickTransform.position);
 			this.rightLeg.foot.stickTransform.position.y = 0;
 		}
 

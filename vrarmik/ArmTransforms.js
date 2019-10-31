@@ -3,14 +3,14 @@ import {Vector3, Quaternion, Transform, Mathf} from './Unity.js';
 class ArmTransforms
 	{
 		constructor() {
-      this.transform = new Transform();
-			this.upperArm = new Transform();
-			this.lowerArm = new Transform();
-			this.hand = new Transform();
+      this.transform = new THREE.Object3D();
+			this.upperArm = new THREE.Object3D();
+			this.lowerArm = new THREE.Object3D();
+			this.hand = new THREE.Object3D();
 
-      this.transform.AddChild(this.upperArm);
-			this.upperArm.AddChild(this.lowerArm);
-			this.lowerArm.AddChild(this.hand);
+      this.transform.add(this.upperArm);
+			this.upperArm.add(this.lowerArm);
+			this.lowerArm.add(this.hand);
 		}
 	}
 
