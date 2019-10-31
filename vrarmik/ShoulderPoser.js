@@ -1,13 +1,13 @@
 import {Vector3, Quaternion, Transform, Mathf} from './Unity.js';
 import VectorHelpers from './Utils/VectorHelpers.js';
 
-const upVector = new THREE.Vector3(0, 1, 0);
+const upVector = new Vector3(0, 1, 0);
 const z180Quaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI);
 
-const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
-const localVector3 = new THREE.Vector3();
-const localVector4 = new THREE.Vector3();
+const localVector = new Vector3();
+const localVector2 = new Vector3();
+const localVector3 = new Vector3();
+const localVector4 = new Vector3();
 const localQuaternion = new Quaternion();
 const localQuaternion2 = new Quaternion();
 const localQuaternion3 = new Quaternion();
