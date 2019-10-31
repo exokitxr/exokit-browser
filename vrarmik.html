@@ -378,22 +378,22 @@ const meshes = {
   head: _makeCubeMesh(0xFF8080),
 
   chest: _makeCubeMesh(0xFFFF00),
-  shoulderLeft: _makeCubeMesh(0x00FF00),
-  shoulderRight: _makeCubeMesh(0x008000),
-  upperArmLeft: _makeCubeMesh(0x00FFFF),
-  upperArmRight: _makeCubeMesh(0x008080),
-  lowerArmLeft: _makeCubeMesh(0x0000FF),
-  lowerArmRight: _makeCubeMesh(0x000080),
-  handLeft: _makeCubeMesh(0xFFFFFF),
-  handRight: _makeCubeMesh(0x808080),
+  leftShoulder: _makeCubeMesh(0x00FF00),
+  rightShoulder: _makeCubeMesh(0x008000),
+  leftUpperArm: _makeCubeMesh(0x00FFFF),
+  rightUpperArm: _makeCubeMesh(0x008080),
+  leftLowerArm: _makeCubeMesh(0x0000FF),
+  rightLowerArm: _makeCubeMesh(0x000080),
+  leftHand: _makeCubeMesh(0xFFFFFF),
+  rightHand: _makeCubeMesh(0x808080),
 
   hips: _makeCubeMesh(0xFF0000),
-  upperLegLeft: _makeCubeMesh(0xFFFF00),
-  upperLegRight: _makeCubeMesh(0x808000),
-  lowerLegLeft: _makeCubeMesh(0x00FF00),
-  lowerLegRight: _makeCubeMesh(0x008000),
-  footLeft: _makeCubeMesh(0xFFFFFF),
-  footRight: _makeCubeMesh(0x808080),
+  leftUpperLeg: _makeCubeMesh(0xFFFF00),
+  rightUpperLeg: _makeCubeMesh(0x808000),
+  leftLowerLeg: _makeCubeMesh(0x00FF00),
+  rightLowerLeg: _makeCubeMesh(0x008000),
+  leftFoot: _makeCubeMesh(0xFFFFFF),
+  rightFoot: _makeCubeMesh(0x808080),
 };
 const meshDolly = new THREE.Object3D();
 for (const k in meshes) {
@@ -931,49 +931,14 @@ function animate(timestamp, frame, referenceSpace) {
 
     rig.update();
 
-    meshes.eyes.position.copy(rig.outputs.eyes.position);
-    meshes.eyes.quaternion.copy(rig.outputs.eyes.rotation);
-
-    meshes.head.position.copy(rig.outputs.head.position);
-    meshes.head.quaternion.copy(rig.outputs.head.rotation);
-
-    meshes.chest.position.copy(rig.outputs.chest.position);
-    meshes.chest.quaternion.copy(rig.outputs.chest.rotation);
-
-    meshes.shoulderLeft.position.copy(rig.outputs.leftShoulder.position);
-    meshes.shoulderLeft.quaternion.copy(rig.outputs.leftShoulder.rotation);
-    meshes.upperArmLeft.position.copy(rig.outputs.leftUpperArm.position);
-    meshes.upperArmLeft.quaternion.copy(rig.outputs.leftUpperArm.rotation);
-    meshes.lowerArmLeft.position.copy(rig.outputs.leftLowerArm.position);
-    meshes.lowerArmLeft.quaternion.copy(rig.outputs.leftLowerArm.rotation);
-    meshes.handLeft.position.copy(rig.outputs.leftHand.position);
-    meshes.handLeft.quaternion.copy(rig.outputs.leftHand.rotation);
-
-    meshes.shoulderRight.position.copy(rig.outputs.rightShoulder.position);
-    meshes.shoulderRight.quaternion.copy(rig.outputs.rightShoulder.rotation);
-    meshes.upperArmRight.position.copy(rig.outputs.rightUpperArm.position);
-    meshes.upperArmRight.quaternion.copy(rig.outputs.rightUpperArm.rotation);
-    meshes.lowerArmRight.position.copy(rig.outputs.rightLowerArm.position);
-    meshes.lowerArmRight.quaternion.copy(rig.outputs.rightLowerArm.rotation);
-    meshes.handRight.position.copy(rig.outputs.rightHand.position);
-    meshes.handRight.quaternion.copy(rig.outputs.rightHand.rotation);
-
-    meshes.hips.position.copy(rig.outputs.hips.position);
-    meshes.hips.quaternion.copy(rig.outputs.hips.rotation);
-
-    meshes.upperLegLeft.position.copy(rig.outputs.leftUpperLeg.position);
-    meshes.upperLegLeft.quaternion.copy(rig.outputs.leftUpperLeg.rotation);
-    meshes.lowerLegLeft.position.copy(rig.outputs.leftLowerLeg.position);
-    meshes.lowerLegLeft.quaternion.copy(rig.outputs.leftLowerLeg.rotation);
-    meshes.footLeft.position.copy(rig.outputs.leftFoot.position);
-    meshes.footLeft.quaternion.copy(rig.outputs.leftFoot.rotation);
-
-    meshes.upperLegRight.position.copy(rig.outputs.rightUpperLeg.position);
-    meshes.upperLegRight.quaternion.copy(rig.outputs.rightUpperLeg.rotation);
-    meshes.lowerLegRight.position.copy(rig.outputs.rightLowerLeg.position);
-    meshes.lowerLegRight.quaternion.copy(rig.outputs.rightLowerLeg.rotation);
-    meshes.footRight.position.copy(rig.outputs.rightFoot.position);
-    meshes.footRight.quaternion.copy(rig.outputs.rightFoot.rotation);
+    for (const k in meshes) {
+      const mesh = meshes[k];
+      const output = rig.outputs[k];
+      if (!mesh || !output) {
+        console.warn('bad k', k);
+      }
+      mesh.matrix.copy(output.matrixWorld).decompose(mesh.position, mesh.quaternion, mesh.scale);
+    }
   }
 
   for (let i = 0; i < peerConnections.length; i++) {
