@@ -4,8 +4,6 @@ import {Transform} from './Unity.js';
 class PoseManager
 	{
 		constructor(rig) {
-      this.transform = new Transform();
-
 			this.vrTransforms = new VRTrackingReferences();
 		  // this.OnCalibrateListener = null;
 
