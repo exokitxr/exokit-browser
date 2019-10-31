@@ -31,10 +31,10 @@ const bankRightRotation = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1)
       const handPositionDistance = this.target.position.distanceTo(this.arm.upperArm.position);
       let handPosition;
       // if (handPositionDistance < this.armLength) {
-      	handPosition = this.target.position;
+      	handPosition = this.target.position.clone();
       /* } else {
       	handPosition = this.arm.upperArm.position.add(
-      		this.target.position.sub(this.arm.upperArm.position).normalize().multiplyScalar(this.armLength)
+      		this.target.position.clone().sub(this.arm.upperArm.position).normalize().multiplyScalar(this.armLength)
       	);
       } */
 
@@ -53,7 +53,7 @@ const bankRightRotation = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1)
         );
 
       const localOffsetDirection = offsetDirection.clone().applyQuaternion(shoulderRotationInverse);
-      const targetLocalRotation = this.target.rotation.multiply(shoulderRotationInverse).premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI));
+      const targetLocalRotation = this.target.quaternion.clone().multiply(shoulderRotationInverse).premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI));
       const targetEuler = new THREE.Euler().setFromQuaternion(
       	targetLocalRotation,
         'XYZ'
@@ -104,7 +104,7 @@ const bankRightRotation = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1)
       ).multiply(this.left ? rightRotation : leftRotation);
 
       // this.arm.hand.position = handPosition;
-      this.arm.hand.rotation = this.target.rotation
+      this.arm.hand.rotation = this.target.quaternion.clone()
         .multiply(this.left ? bankRightRotation : bankLeftRotation);
 		}
 	}

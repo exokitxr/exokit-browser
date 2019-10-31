@@ -10,6 +10,7 @@ const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
 const localQuaternion = new Quaternion();
 const localQuaternion2 = new Quaternion();
+const localQuaternion3 = new Quaternion();
 const localEuler = new THREE.Euler();
 
 class ShoulderPoser
@@ -101,12 +102,12 @@ class ShoulderPoser
 		}
 
 		updateHips() {
-		  const hmdRotation = this.vrTransforms.head.rotation;
-      hmdRotation.multiply(z180Quaternion);
+		  const hmdRotation = localQuaternion.copy(this.vrTransforms.head.quaternion)
+        .multiply(z180Quaternion);
       const hmdEuler = localEuler.setFromQuaternion(hmdRotation, 'YXZ');
       hmdEuler.x = 0;
       hmdEuler.z = 0;
-      const hmdFlatRotation = localQuaternion.setFromEuler(hmdEuler);
+      const hmdFlatRotation = localQuaternion2.setFromEuler(hmdEuler);
 
       const headPosition = this.vrTransforms.head.position.add(this.shoulder.eyes.localPosition.multiplyScalar(-1).applyQuaternion(hmdRotation));
 		  const neckPosition = headPosition.clone().add(this.shoulder.head.localPosition.multiplyScalar(-1).applyQuaternion(hmdRotation));
@@ -121,15 +122,15 @@ class ShoulderPoser
 		}
 
 		updateNeck() {
-			const hmdRotation = this.vrTransforms.head.rotation;
-		  hmdRotation.multiply(z180Quaternion);
+			const hmdRotation = localQuaternion.copy(this.vrTransforms.head.quaternion)
+		    .multiply(z180Quaternion);
       const hmdFlatEuler = localEuler.setFromQuaternion(hmdRotation, 'YXZ');
       hmdFlatEuler.x = 0;
       hmdFlatEuler.z = 0;
-      const hmdFlatRotation = localQuaternion.setFromEuler(hmdFlatEuler);
+      const hmdFlatRotation = localQuaternion2.setFromEuler(hmdFlatEuler);
       const hmdUpEuler = localEuler.setFromQuaternion(hmdRotation, 'YXZ');
       hmdUpEuler.y = 0;
-      const hmdUpRotation = localQuaternion2.setFromEuler(hmdUpEuler);
+      const hmdUpRotation = localQuaternion3.setFromEuler(hmdUpEuler);
 
       this.shoulder.neck.localRotation = hmdFlatRotation.clone().premultiply(this.shoulder.transform.rotation.inverse());
       this.shoulder.head.localRotation = hmdUpRotation;
@@ -233,11 +234,8 @@ class ShoulderPoser
 
 		getCombinedDirectionAngleUp()
 		{
-			const leftHand = this.vrTransforms.leftHand;
-      const rightHand = this.vrTransforms.rightHand;
-
-			const distanceLeftHand = localVector.subVectors(leftHand.position, this.shoulder.transform.position);
-			const distanceRightHand = localVector2.subVectors(rightHand.position, this.shoulder.transform.position);
+			const distanceLeftHand = localVector.subVectors(this.vrTransforms.leftHand.position, this.shoulder.transform.position);
+			const distanceRightHand = localVector2.subVectors(this.vrTransforms.rightHand.position, this.shoulder.transform.position);
 
 			/* if (this.ignoreYPos)
 			{ */
@@ -245,8 +243,7 @@ class ShoulderPoser
 				distanceRightHand.y = 0;
 			// }
 
-			const hmdRotation = this.vrTransforms.head.rotation;
-      const hmdEuler = localEuler.setFromQuaternion(hmdRotation, 'YXZ');
+      const hmdEuler = localEuler.setFromQuaternion(this.vrTransforms.head.quaternion, 'YXZ');
       hmdEuler.x = 0;
       hmdEuler.z = 0;
       const hmdFlatRotation = localQuaternion.setFromEuler(hmdEuler);
@@ -308,8 +305,8 @@ class ShoulderPoser
 
 		clampHeadRotationDeltaUp(angleY)
 		{
-			const hmdRotation = this.vrTransforms.head.rotation;
-			hmdRotation.multiply(z180Quaternion);
+			const hmdRotation = localQuaternion.copy(this.vrTransforms.head.quaternion)
+			  .multiply(z180Quaternion);
 
 			const headUpRotation = (localEuler.setFromQuaternion(hmdRotation, 'YXZ').y * Mathf.Rad2Deg + 360) % 360;
 			const targetUpRotation = (angleY + 360) % 360;
