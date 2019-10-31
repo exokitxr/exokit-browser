@@ -1091,17 +1091,17 @@ connectButton.addEventListener('click', () => {
           if (rig) {
             const hmd = {
               position: rig.inputs.hmd.position.toArray(),
-              quaternion: rig.inputs.hmd.rotation.toArray(),
+              quaternion: rig.inputs.hmd.quaternion.toArray(),
             };
             const gamepads = [
               {
                 position: rig.inputs.leftGamepad.position.toArray(),
-                quaternion: rig.inputs.leftGamepad.rotation.toArray(),
+                quaternion: rig.inputs.leftGamepad.quaternion.toArray(),
                 visible: true,
               },
               {
                 position: rig.inputs.rightGamepad.position.toArray(),
-                quaternion: rig.inputs.rightGamepad.rotation.toArray(),
+                quaternion: rig.inputs.rightGamepad.quaternion.toArray(),
                 visible: true,
               },
             ];
