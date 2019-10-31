@@ -9,7 +9,13 @@ const downQuarterRotation = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 
 
 const localVector = new Vector3();
 const localVector2 = new Vector3();
+const localVector3 = new Vector3();
+const localVector4 = new Vector3();
+const localVector5 = new Vector3();
+const localVector6 = new Vector3();
 const localQuaternion = new Quaternion();
+const localQuaternion2 = new Quaternion();
+const localQuaternion3 = new Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
@@ -125,7 +131,7 @@ class LegsManager {
   }
 
 	Update() {
-    const hipsFloorPosition = this.hips.position;
+    const hipsFloorPosition = localVector.copy(this.hips.position);
     hipsFloorPosition.y = 0;
     const hipsFloorEuler = localEuler.setFromQuaternion(this.hips.rotation, 'YXZ');
     hipsFloorEuler.x = 0;
@@ -133,20 +139,20 @@ class LegsManager {
     const planeMatrix = localMatrix.compose(hipsFloorPosition, localQuaternion.setFromEuler(hipsFloorEuler), oneVector);
     const planeMatrixInverse = localMatrix2.getInverse(planeMatrix);
 
-    const position = new Vector3();
-    const quaternion = new Quaternion();
-    const scale = new Vector3();
+    const fakePosition = localVector2;
+    const fakeScale = localVector3;
+
+    const leftFootPosition = localVector4;
+    const leftFootRotation = localQuaternion;
     localMatrix3.compose(this.leftLeg.foot.stickTransform.position, this.leftLeg.foot.stickTransform.quaternion, oneVector)
       .premultiply(planeMatrixInverse)
-      .decompose(position, quaternion, scale);
-    const leftFootPosition = position.clone();
-    const leftFootRotation = quaternion.clone();
+      .decompose(leftFootPosition, leftFootRotation, fakeScale);
 
+    const rightFootPosition = localVector5;
+    const rightFootRotation = localQuaternion2;
     localMatrix3.compose(this.rightLeg.foot.stickTransform.position, this.rightLeg.foot.stickTransform.quaternion, oneVector)
       .premultiply(planeMatrixInverse)
-      .decompose(position, quaternion, scale);
-    const rightFootPosition = position.clone();
-    const rightFootRotation = quaternion.clone();
+      .decompose(rightFootPosition, rightFootRotation, fakeScale);
 
     // rotation
 
@@ -160,9 +166,9 @@ class LegsManager {
     	if (leftFootEuler.y > Math.PI*0.15) {
     		leftFootEuler.y = Math.PI*0.15;
     	}
-    	localMatrix3.compose(zeroVector, localQuaternion.setFromEuler(leftFootEuler), oneVector)
+    	localMatrix3.compose(zeroVector, localQuaternion3.setFromEuler(leftFootEuler), oneVector)
 	      .premultiply(planeMatrix)
-	      .decompose(position, this.leftLeg.foot.stickTransform.quaternion, scale);
+	      .decompose(fakePosition, this.leftLeg.foot.stickTransform.quaternion, fakeScale);
     } else {
     	this.leftLeg.foot.stickTransform.quaternion.copy(this.leftLeg.foot.rotation).multiply(upHalfRotation);
     }
@@ -176,9 +182,9 @@ class LegsManager {
     	if (rightFootEuler.y > Math.PI*0.15) {
     		rightFootEuler.y = Math.PI*0.15;
     	}
-    	localMatrix3.compose(zeroVector, localQuaternion.setFromEuler(rightFootEuler), oneVector)
+    	localMatrix3.compose(zeroVector, localQuaternion3.setFromEuler(rightFootEuler), oneVector)
 	      .premultiply(planeMatrix)
-	      .decompose(position, this.rightLeg.foot.stickTransform.quaternion, scale);
+	      .decompose(fakePosition, this.rightLeg.foot.stickTransform.quaternion, fakeScale);
 	  } else {
       this.rightLeg.foot.stickTransform.quaternion.copy(this.rightLeg.foot.rotation).multiply(upHalfRotation);
 	  }
@@ -187,11 +193,11 @@ class LegsManager {
 
     if (this.leftLeg.standing) {
     	let leftFootDistance = Math.sqrt(leftFootPosition.x*leftFootPosition.x + leftFootPosition.z*leftFootPosition.z);
-			const leftFootAngle = Math.atan2(leftFootPosition.clone().normalize().z, leftFootPosition.clone().normalize().x);
+			const leftFootAngle = Math.atan2(leftFootPosition.z, leftFootPosition.x);
 			const leftAngleDiff = _angleDiff(Math.PI/2, leftFootAngle);
 			if (leftFootDistance < this.legSeparation*0.7 || leftFootDistance > this.legSeparation*3 || leftAngleDiff > -Math.PI*0.3 || leftAngleDiff < -Math.PI/2-Math.PI*0.3) {
 				leftFootDistance = Math.min(Math.max(leftFootDistance, this.legSeparation*0.7), this.legSeparation*1.4);
-				this.leftLeg.foot.stickTransform.position.copy(hipsFloorPosition).add(new Vector3(-leftFootDistance, 0, 0).applyQuaternion(this.leftLeg.foot.stickTransform.quaternion));
+				this.leftLeg.foot.stickTransform.position.copy(hipsFloorPosition).add(localVector6.set(-leftFootDistance, 0, 0).applyQuaternion(this.leftLeg.foot.stickTransform.quaternion));
 			}
 		} else {
 			this.leftLeg.foot.stickTransform.position.copy(this.leftLeg.foot.position);
@@ -199,11 +205,11 @@ class LegsManager {
 		}
 		if (this.rightLeg.standing) {
 			let rightFootDistance = Math.sqrt(rightFootPosition.x*rightFootPosition.x + rightFootPosition.z*rightFootPosition.z);
-			const rightFootAngle = Math.atan2(rightFootPosition.clone().normalize().z, rightFootPosition.clone().normalize().x);
+			const rightFootAngle = Math.atan2(rightFootPosition.z, rightFootPosition.x);
 			const rightAngleDiff = _angleDiff(Math.PI/2, rightFootAngle);
 	    if (rightFootDistance < this.legSeparation*0.7 || rightFootDistance > this.legSeparation*3 || rightAngleDiff < Math.PI*0.3 || rightAngleDiff > Math.PI/2+Math.PI*0.3) {
 				rightFootDistance = Math.min(Math.max(rightFootDistance, this.legSeparation*0.7), this.legSeparation*1.4);
-			  this.rightLeg.foot.stickTransform.position.copy(hipsFloorPosition).add(new Vector3(rightFootDistance, 0, 0).applyQuaternion(this.rightLeg.foot.stickTransform.quaternion));
+			  this.rightLeg.foot.stickTransform.position.copy(hipsFloorPosition).add(localVector6.set(rightFootDistance, 0, 0).applyQuaternion(this.rightLeg.foot.stickTransform.quaternion));
 			}
 		} else {
 			this.rightLeg.foot.stickTransform.position.copy(this.rightLeg.foot.position);
