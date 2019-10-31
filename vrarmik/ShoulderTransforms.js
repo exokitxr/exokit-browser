@@ -38,8 +38,8 @@ class ShoulderTransforms
 
 			this.shoulderPoser = new ShoulderPoser(rig, this);
 
-			this.leftArmIk = new VRArmIK(this.leftArm, this, this.shoulderPoser, this.shoulderPoser.avatarTrackingReferences.leftHand, true);
-			this.rightArmIk = new VRArmIK(this.rightArm, this, this.shoulderPoser, this.shoulderPoser.avatarTrackingReferences.rightHand, false);
+			this.leftArmIk = new VRArmIK(this.leftArm, this, this.shoulderPoser, this.shoulderPoser.vrTrackingReferences.leftHand, true);
+			this.rightArmIk = new VRArmIK(this.rightArm, this, this.shoulderPoser, this.shoulderPoser.vrTrackingReferences.rightHand, false);
 		}
 
 		Start()

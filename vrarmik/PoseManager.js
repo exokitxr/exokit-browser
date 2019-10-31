@@ -8,7 +8,6 @@ class PoseManager
       this.transform = new Transform();
 
 			this.vrTransforms = new VRTrackingReferences();
-			this.avatarVrTransforms = new AvatarVRTrackingReferences(this);
 		  // this.OnCalibrateListener = null;
 
       // Oculus uses a different reference position -> 0 is the reference head position if the user is standing in the middle of the room. 

@@ -18,7 +18,6 @@ class ShoulderPoser
 			this.shoulder = shoulder;
 			this.poseManager = rig.poseManager;
 			this.vrTrackingReferences = this.poseManager.vrTransforms;
-			this.avatarTrackingReferences = this.poseManager.avatarVrTransforms;
 
       // this.headNeckDirectionVector = new Vector3(1.0894440904962721e-10, -0.06860782711996793, -0.0006757629250115499).normalize();
 			// this.headNeckDistance = 0.06861115505261682;
@@ -234,8 +233,8 @@ class ShoulderPoser
 
 		getCombinedDirectionAngleUp()
 		{
-			const leftHand = this.avatarTrackingReferences.leftHand;
-      const rightHand = this.avatarTrackingReferences.rightHand;
+			const leftHand = this.vrTrackingReferences.leftHand;
+      const rightHand = this.vrTrackingReferences.rightHand;
 
 			const distanceLeftHand = localVector.subVectors(leftHand.position, this.shoulder.transform.position);
 			const distanceRightHand = localVector2.subVectors(rightHand.position, this.shoulder.transform.position);
