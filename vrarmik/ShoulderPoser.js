@@ -12,6 +12,7 @@ const localQuaternion = new Quaternion();
 const localQuaternion2 = new Quaternion();
 const localQuaternion3 = new Quaternion();
 const localEuler = new THREE.Euler();
+const localEuler2 = new THREE.Euler();
 
 class ShoulderPoser
 	{
@@ -109,11 +110,12 @@ class ShoulderPoser
       hmdEuler.z = 0;
       const hmdFlatRotation = localQuaternion2.setFromEuler(hmdEuler);
 
-      const headPosition = this.vrTransforms.head.position.add(this.shoulder.eyes.localPosition.multiplyScalar(-1).applyQuaternion(hmdRotation));
-		  const neckPosition = headPosition.clone().add(this.shoulder.head.localPosition.multiplyScalar(-1).applyQuaternion(hmdRotation));
-		  const chestPosition = neckPosition.clone().add(this.shoulder.neck.localPosition.multiplyScalar(-1).applyQuaternion(hmdFlatRotation));
-		  const spinePosition = chestPosition.clone().add(this.shoulder.transform.localPosition.multiplyScalar(-1).applyQuaternion(hmdFlatRotation));
-		  const hipsPosition = spinePosition.clone().add(this.shoulder.spine.localPosition.multiplyScalar(-1).applyQuaternion(hmdFlatRotation));
+      const headPosition = localVector.copy(this.vrTransforms.head.position)
+        .add(this.shoulder.eyes.localPosition.multiplyScalar(-1).applyQuaternion(hmdRotation));
+		  const neckPosition = headPosition.add(this.shoulder.head.localPosition.multiplyScalar(-1).applyQuaternion(hmdRotation));
+		  const chestPosition = neckPosition.add(this.shoulder.neck.localPosition.multiplyScalar(-1).applyQuaternion(hmdFlatRotation));
+		  const spinePosition = chestPosition.add(this.shoulder.transform.localPosition.multiplyScalar(-1).applyQuaternion(hmdFlatRotation));
+		  const hipsPosition = spinePosition.add(this.shoulder.spine.localPosition.multiplyScalar(-1).applyQuaternion(hmdFlatRotation));
 
       this.shoulder.hips.localPosition = hipsPosition;
       this.shoulder.hips.localRotation = hmdFlatRotation;
@@ -127,13 +129,12 @@ class ShoulderPoser
       const hmdFlatEuler = localEuler.setFromQuaternion(hmdRotation, 'YXZ');
       hmdFlatEuler.x = 0;
       hmdFlatEuler.z = 0;
-      const hmdFlatRotation = localQuaternion2.setFromEuler(hmdFlatEuler);
-      const hmdUpEuler = localEuler.setFromQuaternion(hmdRotation, 'YXZ');
+      const hmdUpEuler = localEuler2.setFromQuaternion(hmdRotation, 'YXZ');
       hmdUpEuler.y = 0;
-      const hmdUpRotation = localQuaternion3.setFromEuler(hmdUpEuler);
 
-      this.shoulder.neck.localRotation = hmdFlatRotation.clone().premultiply(this.shoulder.transform.rotation.inverse());
-      this.shoulder.head.localRotation = hmdUpRotation;
+      this.shoulder.neck.localRotation = localQuaternion2.setFromEuler(hmdFlatEuler)
+        .premultiply(localQuaternion3.copy(this.shoulder.transform.rotation).inverse());
+      this.shoulder.head.localRotation = localQuaternion2.setFromEuler(hmdUpEuler);
 		}
 
 		/* rotateLeftShoulder(shoulderRotation)
