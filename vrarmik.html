@@ -1221,7 +1221,7 @@ connectButton.addEventListener('click', () => {
       await navigator.xr.supportsSession('immersive-vr');
       result = true;
     } catch (err) {
-      console.warn(err.stack);
+      console.warn(err);
       result = false;
     }
   } else {
