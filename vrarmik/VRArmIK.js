@@ -42,8 +42,8 @@ const localMatrix = new THREE.Matrix4();
 
 		Update()
 		{
-      this.arm.transform.matrixWorld.multiplyMatrices(this.arm.transform.parent.matrixWorld, this.arm.transform.matrix);
-      this.arm.upperArm.matrixWorld.multiplyMatrices(this.arm.upperArm.parent.matrixWorld, this.arm.upperArm.matrix);
+			Helpers.updateMatrixWorld(this.arm.transform);
+			Helpers.updateMatrixWorld(this.arm.upperArm);
 
 			const upperArmPosition = Helpers.getWorldPosition(this.arm.upperArm, localVector);
       const handPositionDistance = this.target.position.distanceTo(upperArmPosition);
@@ -114,8 +114,7 @@ const localMatrix = new THREE.Matrix4();
       )
         .multiply(this.left ? rightRotation : leftRotation)
         .premultiply(Helpers.getWorldQuaternion(this.arm.upperArm.parent, localQuaternion3).inverse());
-      this.arm.upperArm.updateMatrix();
-      this.arm.upperArm.matrixWorld.multiplyMatrices(this.arm.upperArm.parent.matrixWorld, this.arm.upperArm.matrix);
+      Helpers.updateMatrixMatrixWorld(this.arm.upperArm);
 
       // this.arm.lowerArm.position = elbowPosition;
       this.arm.lowerArm.quaternion.setFromRotationMatrix(
@@ -127,15 +126,13 @@ const localMatrix = new THREE.Matrix4();
       )
         .multiply(this.left ? rightRotation : leftRotation)
         .premultiply(Helpers.getWorldQuaternion(this.arm.lowerArm.parent, localQuaternion3).inverse());
-      this.arm.lowerArm.updateMatrix();
-      this.arm.lowerArm.matrixWorld.multiplyMatrices(this.arm.lowerArm.parent.matrixWorld, this.arm.lowerArm.matrix);
+      Helpers.updateMatrixMatrixWorld(this.arm.lowerArm);
 
       // this.arm.hand.position = handPosition;
       this.arm.hand.quaternion.copy(this.target.quaternion)
         .multiply(this.left ? bankRightRotation : bankLeftRotation)
         .premultiply(Helpers.getWorldQuaternion(this.arm.hand.parent, localQuaternion3).inverse());
-      this.arm.hand.updateMatrix();
-      this.arm.hand.matrixWorld.multiplyMatrices(this.arm.hand.parent.matrixWorld, this.arm.hand.matrix);
+      Helpers.updateMatrixMatrixWorld(this.arm.hand);
 		}
 	}
 

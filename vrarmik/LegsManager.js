@@ -91,8 +91,7 @@ class Leg {
 	    )
 	      .multiply(downHalfRotation)
 	      .premultiply(Helpers.getWorldQuaternion(this.transform, localQuaternion).inverse());
-	    this.upperLeg.updateMatrix();
-	    this.upperLeg.matrixWorld.multiplyMatrices(this.upperLeg.parent.matrixWorld, this.upperLeg.matrix);
+	    Helpers.updateMatrixMatrixWorld(this.upperLeg);
 
 	    this.lowerLeg.quaternion.setFromRotationMatrix(
 	      localMatrix.lookAt(
@@ -103,8 +102,7 @@ class Leg {
 	    )
 	      .multiply(downHalfRotation)
 	      .premultiply(Helpers.getWorldQuaternion(this.upperLeg, localQuaternion).inverse());
-	    this.lowerLeg.updateMatrix();
-	    this.lowerLeg.matrixWorld.multiplyMatrices(this.lowerLeg.parent.matrixWorld, this.lowerLeg.matrix);
+	    Helpers.updateMatrixMatrixWorld(this.lowerLeg);
 
       // this.lowerLeg.position = lowerLegPosition;
 
@@ -112,8 +110,7 @@ class Leg {
       this.foot.quaternion.copy(footRotation)
         .multiply(downHalfRotation)
         .premultiply(Helpers.getWorldQuaternion(this.lowerLeg, localQuaternion).inverse());
-      this.foot.updateMatrix();
-      this.foot.matrixWorld.multiplyMatrices(this.foot.parent.matrixWorld, this.foot.matrix);
+      Helpers.updateMatrixMatrixWorld(this.foot);
       // this.foot.stickTransform.position = footPosition;
 
       this.standing = true;
@@ -149,15 +146,15 @@ class LegsManager {
   }
 
 	Update() {
-		this.leftLeg.transform.matrixWorld.multiplyMatrices(this.leftLeg.transform.parent.matrixWorld, this.leftLeg.transform.matrix);
-    this.leftLeg.upperLeg.matrixWorld.multiplyMatrices(this.leftLeg.upperLeg.parent.matrixWorld, this.leftLeg.upperLeg.matrix);
-    this.leftLeg.lowerLeg.matrixWorld.multiplyMatrices(this.leftLeg.lowerLeg.parent.matrixWorld, this.leftLeg.lowerLeg.matrix);
-    this.leftLeg.foot.matrixWorld.multiplyMatrices(this.leftLeg.foot.parent.matrixWorld, this.leftLeg.foot.matrix);
+		Helpers.updateMatrixWorld(this.leftLeg.transform);
+		Helpers.updateMatrixWorld(this.leftLeg.upperLeg);
+		Helpers.updateMatrixWorld(this.leftLeg.lowerLeg);
+		Helpers.updateMatrixWorld(this.leftLeg.foot);
 
-    this.rightLeg.transform.matrixWorld.multiplyMatrices(this.rightLeg.transform.parent.matrixWorld, this.rightLeg.transform.matrix);
-    this.rightLeg.upperLeg.matrixWorld.multiplyMatrices(this.rightLeg.upperLeg.parent.matrixWorld, this.rightLeg.upperLeg.matrix);
-    this.rightLeg.lowerLeg.matrixWorld.multiplyMatrices(this.rightLeg.lowerLeg.parent.matrixWorld, this.rightLeg.lowerLeg.matrix);
-    this.rightLeg.foot.matrixWorld.multiplyMatrices(this.rightLeg.foot.parent.matrixWorld, this.rightLeg.foot.matrix);
+    Helpers.updateMatrixWorld(this.rightLeg.transform);
+		Helpers.updateMatrixWorld(this.rightLeg.upperLeg);
+		Helpers.updateMatrixWorld(this.rightLeg.lowerLeg);
+		Helpers.updateMatrixWorld(this.rightLeg.foot);
 
     const hipsFloorPosition = localVector.copy(this.hips.position);
     hipsFloorPosition.y = 0;

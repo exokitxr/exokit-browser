@@ -555,6 +555,16 @@ const Helpers = {
   getWorldScale(o, v) {
     return v.setFromMatrixScale(o.matrixWorld);
   },
+  updateMatrix(o) {
+    o.matrix.compose(o.position, o.quaternion, o.scale);
+  },
+  updateMatrixWorld(o) {
+    o.matrixWorld.multiplyMatrices(o.parent.matrixWorld, o.matrix);
+  },
+  updateMatrixMatrixWorld(o) {
+    o.matrix.compose(o.position, o.quaternion, o.scale);
+    o.matrixWorld.multiplyMatrices(o.parent.matrixWorld, o.matrix);
+  },
 };
 
 export {

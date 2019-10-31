@@ -117,12 +117,10 @@ class ShoulderPoser
 
       this.shoulder.hips.position.copy(hipsPosition);
       this.shoulder.hips.quaternion.copy(hmdFlatRotation);
-      this.shoulder.hips.updateMatrix();
+      Helpers.updateMatrix(this.shoulder.hips);
       this.shoulder.hips.matrixWorld.copy(this.shoulder.hips.matrix);
-
-      this.shoulder.spine.matrixWorld.multiplyMatrices(this.shoulder.spine.parent.matrixWorld, this.shoulder.spine.matrix);
-
-      this.shoulder.transform.matrixWorld.multiplyMatrices(this.shoulder.transform.parent.matrixWorld, this.shoulder.transform.matrix);
+      Helpers.updateMatrixWorld(this.shoulder.spine);
+      Helpers.updateMatrixWorld(this.shoulder.transform);
 		}
 
 		updateNeck() {
@@ -136,14 +134,12 @@ class ShoulderPoser
 
       this.shoulder.neck.quaternion.setFromEuler(hmdFlatEuler)
         .premultiply(Helpers.getWorldQuaternion(this.shoulder.neck.parent, localQuaternion).inverse());
-      this.shoulder.neck.updateMatrix();
-      this.shoulder.neck.matrixWorld.multiplyMatrices(this.shoulder.neck.parent.matrixWorld, this.shoulder.neck.matrix);
+      Helpers.updateMatrixMatrixWorld(this.shoulder.neck);
 
       this.shoulder.head.quaternion.setFromEuler(hmdUpEuler);
-      this.shoulder.head.updateMatrix();
-      this.shoulder.head.matrixWorld.multiplyMatrices(this.shoulder.head.parent.matrixWorld, this.shoulder.head.matrix);
+      Helpers.updateMatrixMatrixWorld(this.shoulder.head);
 
-      this.shoulder.eyes.matrixWorld.multiplyMatrices(this.shoulder.eyes.parent.matrixWorld, this.shoulder.eyes.matrix);
+      Helpers.updateMatrixWorld(this.shoulder.eyes);
 		}
 
 		/* rotateLeftShoulder(shoulderRotation)
@@ -209,11 +205,9 @@ class ShoulderPoser
 			// this.shoulder.transform.eulerAngles = targetRotation;
 			this.shoulder.transform.quaternion.setFromEuler(localEuler.set(0, angleY * Mathf.Deg2Rad, 0, Mathf.Order))
 			  .premultiply(Helpers.getWorldQuaternion(this.shoulder.transform.parent, localQuaternion).inverse());
-			this.shoulder.transform.updateMatrix();
-			this.shoulder.transform.matrixWorld.multiplyMatrices(this.shoulder.transform.parent.matrixWorld, this.shoulder.transform.matrix);
-
-			this.shoulder.leftShoulderAnchor.matrixWorld.multiplyMatrices(this.shoulder.leftShoulderAnchor.parent.matrixWorld, this.shoulder.leftShoulderAnchor.matrix);
-      this.shoulder.rightShoulderAnchor.matrixWorld.multiplyMatrices(this.shoulder.rightShoulderAnchor.parent.matrixWorld, this.shoulder.rightShoulderAnchor.matrix);
+			Helpers.updateMatrixMatrixWorld(this.shoulder.transform);
+      Helpers.updateMatrixWorld(this.shoulder.leftShoulderAnchor);
+      Helpers.updateMatrixWorld(this.shoulder.rightShoulderAnchor);
 		}
 
 		/* rotateShoulderRightBase(rotation)
