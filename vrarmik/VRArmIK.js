@@ -11,6 +11,7 @@ const z180Quaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), M
 const localVector = new Vector3();
 const localVector2 = new Vector3();
 const localVector3 = new Vector3();
+const localVector4 = new Vector3();
 const localQuaternion = new Quaternion();
 const localQuaternion2 = new Quaternion();
 const localQuaternion3 = new Quaternion();
@@ -97,27 +98,31 @@ const localMatrix = new THREE.Matrix4();
 
       const elbowPosition = this.arm.upperArm.position.add(handPosition).divideScalar(2)
         .add(localVector3.copy(offsetDirection).multiplyScalar(offsetDistance));
-
+      const upVector = localVector3.set(this.left ? -1 : 1, 0, 0).applyQuaternion(shoulderRotation);
       this.arm.upperArm.rotation = localQuaternion3.setFromRotationMatrix(
       	localMatrix.lookAt(
 	      	zeroVector,
-	      	elbowPosition.clone().sub(this.arm.upperArm.position),
-	      	localVector3.set(this.left ? -1 : 1, 0, 0).applyQuaternion(shoulderRotation)
+	      	localVector4.copy(elbowPosition).sub(this.arm.upperArm.position),
+	      	upVector
 	      )
-      ).multiply(this.left ? rightRotation : leftRotation);
+      )
+        .multiply(this.left ? rightRotation : leftRotation);
 
       // this.arm.lowerArm.position = elbowPosition;
-      this.arm.lowerArm.rotation = localQuaternion3.setFromRotationMatrix(
+      this.arm.lowerArm.localRotation = localQuaternion3.setFromRotationMatrix(
         localMatrix.lookAt(
 	      	zeroVector,
-	      	handPosition.clone().sub(elbowPosition),
-	      	localVector3.set(this.left ? -1 : 1, 0, 0).applyQuaternion(shoulderRotation)
+	      	localVector4.copy(handPosition).sub(elbowPosition),
+	      	upVector
 	      )
-      ).multiply(this.left ? rightRotation : leftRotation);
+      )
+        .multiply(this.left ? rightRotation : leftRotation)
+        .premultiply(this.arm.upperArm.rotation.inverse());
 
       // this.arm.hand.position = handPosition;
-      this.arm.hand.rotation = localQuaternion3.copy(this.target.quaternion)
-        .multiply(this.left ? bankRightRotation : bankLeftRotation);
+      this.arm.hand.localRotation = localQuaternion3.copy(this.target.quaternion)
+        .multiply(this.left ? bankRightRotation : bankLeftRotation)
+        .premultiply(this.arm.lowerArm.rotation.inverse());
 		}
 	}
 
