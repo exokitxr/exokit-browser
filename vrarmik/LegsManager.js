@@ -22,12 +22,12 @@ const _angleDiff = (targetA, sourceA) => {
 };
 
 class Leg {
-  constructor() {
+  constructor(left) {
   	this.transform = new Transform();
     this.upperLeg = new Transform();
     this.lowerLeg = new Transform();
     this.foot = new Transform();
-    this.foot.stickTransform = new Transform();
+    this.foot.stickTransform = new THREE.Object3D();
 
     this.transform.AddChild(this.upperLeg);
     this.upperLeg.AddChild(this.lowerLeg);
@@ -36,14 +36,14 @@ class Leg {
     this.upperLegLength = 0;
     this.lowerLegLength = 0;
 
-    this.left = true;
+    this.left = left;
     this.standing = true;
 
     this.poseManager = null;
   }
 
   Start() {
-    this.foot.stickTransform.position = this.foot.position;
+  	// this.foot.stickTransform.position.copy(this.foot.position);
     this.upperLegLength = this.lowerLeg.localPosition.length();
     this.lowerLegLength = this.foot.localPosition.length();
     this.legLength = this.upperLegLength + this.lowerLegLength;
@@ -54,7 +54,7 @@ class Leg {
     const g = this.upperLeg.position.add(footPosition.clone().sub(this.upperLeg.position).normalize().multiplyScalar(this.legLength));
     if (g.y <= 0) {
       footPosition.y = 0;
-      const footRotation = this.foot.stickTransform.rotation;
+      const footRotation = this.foot.stickTransform.quaternion;
 
 	    const hypotenuseDistance = this.upperLegLength;
 	    const verticalDistance = Math.abs(this.upperLeg.position.y) / 2;
@@ -90,9 +90,9 @@ class Leg {
 
       // this.foot.position = footPosition;
       this.foot.rotation = footRotation.multiply(downHalfRotation);
+      // this.foot.stickTransform.position = footPosition;
 
       this.standing = true;
-      // this.foot.stickTransform.position = footPosition;
     } else {
     	this.upperLeg.localRotation = this.upperLeg.localRotation.slerp(identityRotation, 0.1);
     	this.lowerLeg.localRotation = this.lowerLeg.localRotation.slerp(identityRotation, 0.1);
@@ -106,13 +106,10 @@ class Leg {
 class LegsManager {
 	constructor(rig) {
     this.hips = rig.shoulderTransforms.hips;
-    this.leftLeg = new Leg();
+    this.leftLeg = new Leg(true);
     this.hips.AddChild(this.leftLeg.transform);
-    this.rightLeg = new Leg();
+    this.rightLeg = new Leg(false);
     this.hips.AddChild(this.rightLeg.transform);
-
-    this.rightLeg.foot.stickTransform.position = this.rightLeg.foot.position;
-    this.rightLeg.left = false;
 
     this.poseManager = rig.poseManager;
     this.leftLeg.poseManager = this.poseManager;
@@ -137,13 +134,13 @@ class LegsManager {
     const position = new Vector3();
     const quaternion = new Quaternion();
     const scale = new Vector3();
-    localMatrix3.compose(this.leftLeg.foot.stickTransform.position, this.leftLeg.foot.stickTransform.rotation, oneVector)
+    localMatrix3.compose(this.leftLeg.foot.stickTransform.position, this.leftLeg.foot.stickTransform.quaternion, oneVector)
       .premultiply(planeMatrixInverse)
       .decompose(position, quaternion, scale);
     const leftFootPosition = position.clone();
     const leftFootRotation = quaternion.clone();
 
-    localMatrix3.compose(this.rightLeg.foot.stickTransform.position, this.rightLeg.foot.stickTransform.rotation, oneVector)
+    localMatrix3.compose(this.rightLeg.foot.stickTransform.position, this.rightLeg.foot.stickTransform.quaternion, oneVector)
       .premultiply(planeMatrixInverse)
       .decompose(position, quaternion, scale);
     const rightFootPosition = position.clone();
@@ -163,10 +160,9 @@ class LegsManager {
     	}
     	localMatrix3.compose(zeroVector, localQuaternion.setFromEuler(leftFootEuler), oneVector)
 	      .premultiply(planeMatrix)
-	      .decompose(position, quaternion, scale);
-  		this.leftLeg.foot.stickTransform.rotation = quaternion;
+	      .decompose(position, this.leftLeg.foot.stickTransform.quaternion, scale);
     } else {
-    	this.leftLeg.foot.stickTransform.rotation = this.leftLeg.foot.rotation.multiply(upHalfRotation);
+    	this.leftLeg.foot.stickTransform.quaternion.copy(this.leftLeg.foot.rotation).multiply(upHalfRotation);
     }
     if (this.rightLeg.standing) {
 	    const rightFootEuler = localEuler.setFromQuaternion(rightFootRotation, 'YXZ');
@@ -180,10 +176,9 @@ class LegsManager {
     	}
     	localMatrix3.compose(zeroVector, localQuaternion.setFromEuler(rightFootEuler), oneVector)
 	      .premultiply(planeMatrix)
-	      .decompose(position, quaternion, scale);
-  		this.rightLeg.foot.stickTransform.rotation = quaternion;
+	      .decompose(position, this.rightLeg.foot.stickTransform.quaternion, scale);
 	  } else {
-      this.rightLeg.foot.stickTransform.rotation = this.rightLeg.foot.rotation.multiply(upHalfRotation);
+      this.rightLeg.foot.stickTransform.quaternion.copy(this.rightLeg.foot.rotation).multiply(upHalfRotation);
 	  }
 
 	  // position
@@ -194,12 +189,11 @@ class LegsManager {
 			const leftAngleDiff = _angleDiff(Math.PI/2, leftFootAngle);
 			if (leftFootDistance < this.legSeparation*0.7 || leftFootDistance > this.legSeparation*3 || leftAngleDiff > -Math.PI*0.3 || leftAngleDiff < -Math.PI/2-Math.PI*0.3) {
 				leftFootDistance = Math.min(Math.max(leftFootDistance, this.legSeparation*0.7), this.legSeparation*1.4);
-				this.leftLeg.foot.stickTransform.position = hipsFloorPosition.clone().add(new Vector3(-leftFootDistance, 0, 0).applyQuaternion(this.leftLeg.foot.stickTransform.rotation));
+				this.leftLeg.foot.stickTransform.position.copy(hipsFloorPosition).add(new Vector3(-leftFootDistance, 0, 0).applyQuaternion(this.leftLeg.foot.stickTransform.quaternion));
 			}
 		} else {
-			const footPosition = this.leftLeg.foot.position;
-			footPosition.y = 0;
-			this.leftLeg.foot.stickTransform.position = footPosition;
+			this.leftLeg.foot.stickTransform.position.copy(this.leftLeg.foot.position);
+			this.leftLeg.foot.stickTransform.position.y = 0;
 		}
 		if (this.rightLeg.standing) {
 			let rightFootDistance = Math.sqrt(rightFootPosition.x*rightFootPosition.x + rightFootPosition.z*rightFootPosition.z);
@@ -207,12 +201,11 @@ class LegsManager {
 			const rightAngleDiff = _angleDiff(Math.PI/2, rightFootAngle);
 	    if (rightFootDistance < this.legSeparation*0.7 || rightFootDistance > this.legSeparation*3 || rightAngleDiff < Math.PI*0.3 || rightAngleDiff > Math.PI/2+Math.PI*0.3) {
 				rightFootDistance = Math.min(Math.max(rightFootDistance, this.legSeparation*0.7), this.legSeparation*1.4);
-			  this.rightLeg.foot.stickTransform.position = hipsFloorPosition.clone().add(new Vector3(rightFootDistance, 0, 0).applyQuaternion(this.rightLeg.foot.stickTransform.rotation));
+			  this.rightLeg.foot.stickTransform.position.copy(hipsFloorPosition).add(new Vector3(rightFootDistance, 0, 0).applyQuaternion(this.rightLeg.foot.stickTransform.quaternion));
 			}
 		} else {
-			const footPosition = this.rightLeg.foot.position;
-			footPosition.y = 0;
-			this.rightLeg.foot.stickTransform.position = footPosition;
+			this.rightLeg.foot.stickTransform.position.copy(this.rightLeg.foot.position);
+			this.rightLeg.foot.stickTransform.position.y = 0;
 		}
 
 		this.leftLeg.Update();
