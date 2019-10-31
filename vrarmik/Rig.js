@@ -473,42 +473,48 @@ class Rig {
       });
     }
 
-    const qr = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), (flipZ ? -1 : 1) * -Math.PI/2)
+    const qrArm = flipZ ? Left_arm : Right_arm;
+    const qrElbow = flipZ ? Left_elbow : Right_elbow;
+    const qrWrist = flipZ ? Left_wrist : Right_wrist;
+    const qr = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI/2)
       .premultiply(
         new Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(
           new Vector3(0, 0, 0),
-          Right_elbow.getWorldPosition(new Vector3()).applyMatrix4(armatureMatrixInverse)
-            .sub(Right_arm.getWorldPosition(new Vector3()).applyMatrix4(armatureMatrixInverse))
+          qrElbow.getWorldPosition(new Vector3()).applyMatrix4(armatureMatrixInverse)
+            .sub(qrArm.getWorldPosition(new Vector3()).applyMatrix4(armatureMatrixInverse))
             .applyQuaternion(armatureQuaternion),
           new Vector3(0, 1, 0),
         ))
       );
-    const qr2 = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), (flipZ ? -1 : 1) * -Math.PI/2)
+    const qr2 = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI/2)
       .premultiply(
         new Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(
           new Vector3(0, 0, 0),
-          Right_wrist.getWorldPosition(new Vector3()).applyMatrix4(armatureMatrixInverse)
-            .sub(Right_elbow.getWorldPosition(new Vector3()).applyMatrix4(armatureMatrixInverse))
+          qrWrist.getWorldPosition(new Vector3()).applyMatrix4(armatureMatrixInverse)
+            .sub(qrElbow.getWorldPosition(new Vector3()).applyMatrix4(armatureMatrixInverse))
             .applyQuaternion(armatureQuaternion),
           new Vector3(0, 1, 0),
         ))
       );
-    const ql = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), (flipZ ? -1 : 1) * Math.PI/2)
+    const qlArm = flipZ ? Right_arm : Left_arm;
+    const qlElbow = flipZ ? Right_elbow : Left_elbow;
+    const qlWrist = flipZ ? Right_wrist : Left_wrist;
+    const ql = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI/2)
       .premultiply(
         new Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(
           new Vector3(0, 0, 0),
-          Left_elbow.getWorldPosition(new Vector3()).applyMatrix4(armatureMatrixInverse)
-            .sub(Left_arm.getWorldPosition(new Vector3()).applyMatrix4(armatureMatrixInverse))
+          qlElbow.getWorldPosition(new Vector3()).applyMatrix4(armatureMatrixInverse)
+            .sub(qlArm.getWorldPosition(new Vector3()).applyMatrix4(armatureMatrixInverse))
             .applyQuaternion(armatureQuaternion),
           new Vector3(0, 1, 0),
         ))
       );
-    const ql2 = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), (flipZ ? -1 : 1) * Math.PI/2)
+    const ql2 = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI/2)
       .premultiply(
         new Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(
           new Vector3(0, 0, 0),
-          Left_wrist.getWorldPosition(new Vector3()).applyMatrix4(armatureMatrixInverse)
-            .sub(Left_elbow.getWorldPosition(new Vector3()).applyMatrix4(armatureMatrixInverse))
+          qlWrist.getWorldPosition(new Vector3()).applyMatrix4(armatureMatrixInverse)
+            .sub(qlElbow.getWorldPosition(new Vector3()).applyMatrix4(armatureMatrixInverse))
             .applyQuaternion(armatureQuaternion),
           new Vector3(0, 1, 0),
         ))
