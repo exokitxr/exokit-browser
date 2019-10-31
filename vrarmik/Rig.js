@@ -362,7 +362,7 @@ class Rig {
         return Head.getWorldPosition(new Vector3()).add(neckToHeadDiff);
       }
     };
-    const eyeDirection = _getEyePosition().sub(Head.getWorldPosition(new Vector3()));
+    // const eyeDirection = _getEyePosition().sub(Head.getWorldPosition(new Vector3()));
     const leftArmDirection = Left_wrist.getWorldPosition(new Vector3()).sub(Head.getWorldPosition(new Vector3()));
 	  const flipZ = leftArmDirection.x < 0;//eyeDirection.z < 0;
     const armatureDirection = new THREE.Vector3(0, 1, 0).applyQuaternion(armature.quaternion);
@@ -371,7 +371,7 @@ class Rig {
     const flipLeg = legDirection.y < 0.5;
     const scaleFactor = Head.getWorldPosition(new Vector3())
       .distanceTo(Left_ankle.getWorldPosition(new Vector3())) / Math.abs(armature.scale.y) > 100 ? 100 : 1;
-	  console.log('flip', flipZ, flipY, scaleFactor, eyeDirection.toArray().join(','), armatureDirection.toArray().join(','));
+	  console.log('flip', flipZ, flipY, scaleFactor);
 	  this.flipZ = flipZ;
 	  this.flipY = flipY;
     this.flipLeg = flipLeg;
