@@ -1,7 +1,6 @@
 import {Vector3, Quaternion, Transform, Mathf} from './Unity.js';
 import VectorHelpers from './Utils/VectorHelpers.js';
 
-const upVector = new Vector3(0, 1, 0);
 const z180Quaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI);
 
 const localVector = new Vector3();
