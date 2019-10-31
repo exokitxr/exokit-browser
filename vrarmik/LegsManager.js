@@ -35,6 +35,7 @@ class Leg {
 
     this.upperLegLength = 0;
     this.lowerLegLength = 0;
+    this.legLength = 0;
 
     this.left = left;
     this.standing = true;
