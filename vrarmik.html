@@ -1160,8 +1160,6 @@ connectButton.addEventListener('click', () => {
           console.log('got peer model', {url});
 
           peerConnection.model = await _loadModelUrl(url);
-          scene.add(peerConnection.model);
-
           peerConnection.rig = new Rig(peerConnection.model, {
             fingers: true,
             hair: true,
@@ -1169,6 +1167,7 @@ connectButton.addEventListener('click', () => {
             microphoneMediaStream: peerConnection.mediaStream,
             muted: false,
           });
+          scene.add(peerConnection.model);
 
           peerConnection.rig.targets = {
             hmd: {
