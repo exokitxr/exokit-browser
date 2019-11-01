@@ -1130,15 +1130,19 @@ connectButton.addEventListener('click', () => {
           const {detail: data} = e;
           const {hmd, gamepads} = data;
 
+          rig.starts.hmd.position.copy(peerConnection.rig.inputs.hmd.position);
+          rig.starts.hmd.rotation.copy(peerConnection.rig.inputs.hmd.quaternion);
+          rig.starts.gamepads[0].position.copy(peerConnection.rig.inputs.leftGamepad.position);
+          rig.starts.gamepads[0].rotation.copy(peerConnection.rig.inputs.leftGamepad.quaternion);
+          rig.starts.gamepads[1].position.copy(peerConnection.rig.inputs.rightGamepad.position);
+          rig.starts.gamepads[1].rotation.copy(peerConnection.rig.inputs.rightGamepad.quaternion);
+
           rig.targets.hmd.position.fromArray(hmd.position);
           rig.targets.hmd.rotation.fromArray(hmd.quaternion);
-
           rig.targets.gamepads[0].position.fromArray(gamepads[0].position);
           rig.targets.gamepads[0].rotation.fromArray(gamepads[0].quaternion);
-
           rig.targets.gamepads[1].position.fromArray(gamepads[1].position);
           rig.targets.gamepads[1].rotation.fromArray(gamepads[1].quaternion);
-
           rig.targets.timestamp = Date.now();
         }
       });
@@ -1169,6 +1173,22 @@ connectButton.addEventListener('click', () => {
           });
           scene.add(peerConnection.model);
 
+          peerConnection.rig.starts = {
+            hmd: {
+              position: peerConnection.rig.inputs.hmd.position.clone(),
+              rotation: peerConnection.rig.inputs.hmd.quaternion.clone(),
+            },
+            gamepads: [
+              {
+                position: peerConnection.rig.inputs.leftGamepad.position.clone(),
+                rotation:  peerConnection.rig.inputs.leftGamepad.quaternion.clone(),
+              },
+              {
+                position: peerConnection.rig.inputs.rightGamepad.position.clone(),
+                rotation: peerConnection.rig.inputs.rightGamepad.quaternion.clone(),
+              },
+            ],
+          };
           peerConnection.rig.targets = {
             hmd: {
               position: new THREE.Vector3(),
@@ -1190,22 +1210,22 @@ connectButton.addEventListener('click', () => {
           peerConnection.rig.update = (_update => function update() {
             const now = Date.now();
             const {timestamp} = peerConnection.rig.targets;
-            const lerpFactor = Math.min(Math.max((now - timestamp) / peerPoseUpdateRate, 0), 1);
+            const lerpFactor = Math.min(Math.max((now - timestamp) / (peerPoseUpdateRate*2), 0), 1);  
 
-            peerConnection.rig.inputs.hmd.quaternion.copy(peerConnection.rig.inputs.hmd.quaternion).slerp(peerConnection.rig.targets.hmd.rotation, lerpFactor);
-            peerConnection.rig.inputs.hmd.position.copy(peerConnection.rig.inputs.hmd.position).lerp(
+            peerConnection.rig.inputs.hmd.quaternion.copy(peerConnection.rig.starts.hmd.rotation).slerp(peerConnection.rig.targets.hmd.rotation, lerpFactor);
+            peerConnection.rig.inputs.hmd.position.copy(peerConnection.rig.starts.hmd.position).lerp(
               localVector.copy(peerConnection.rig.targets.hmd.position).multiplyScalar(heightFactor),
               lerpFactor
             );
 
-            peerConnection.rig.inputs.leftGamepad.quaternion.copy(peerConnection.rig.inputs.leftGamepad.quaternion).slerp(peerConnection.rig.targets.gamepads[0].rotation, lerpFactor);
-            peerConnection.rig.inputs.leftGamepad.position.copy(peerConnection.rig.inputs.leftGamepad.position).lerp(
+            peerConnection.rig.inputs.leftGamepad.quaternion.copy(peerConnection.rig.starts.gamepads[0].rotation).slerp(peerConnection.rig.targets.gamepads[0].rotation, lerpFactor);
+            peerConnection.rig.inputs.leftGamepad.position.copy(peerConnection.rig.starts.gamepads[0].position).lerp(
               localVector.copy(peerConnection.rig.targets.gamepads[0].position).multiplyScalar(heightFactor),
               lerpFactor
             );
 
-            peerConnection.rig.inputs.rightGamepad.quaternion.copy(peerConnection.rig.inputs.rightGamepad.quaternion).slerp(peerConnection.rig.targets.gamepads[1].rotation, lerpFactor);
-            peerConnection.rig.inputs.rightGamepad.position.copy(peerConnection.rig.inputs.rightGamepad.position).lerp(
+            peerConnection.rig.inputs.rightGamepad.quaternion.copy(peerConnection.rig.starts.gamepads[1].rotation).slerp(peerConnection.rig.targets.gamepads[1].rotation, lerpFactor);
+            peerConnection.rig.inputs.rightGamepad.position.copy(peerConnection.rig.starts.gamepads[1].position).lerp(
               localVector.copy(peerConnection.rig.targets.gamepads[1].position).multiplyScalar(heightFactor),
               lerpFactor
             );
