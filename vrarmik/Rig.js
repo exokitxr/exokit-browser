@@ -14,6 +14,7 @@ const localVector = new Vector3();
 const localVector2 = new Vector3();
 const localVector3 = new Vector3();
 const localVector4 = new Vector3();
+const localVector5 = new Vector3();
 const localQuaternion = new Quaternion();
 const localQuaternion2 = new Quaternion();
 const localMatrix = new THREE.Matrix4();
@@ -793,12 +794,12 @@ class Rig {
           childHairBone.velocity.add(localVector4.copy(childHairBone.worldParentOffset).applyQuaternion(hipsRotation).multiplyScalar(0.03 * timeDiff/32));
           childHairBone.velocity.lerp(zeroVector, 0.2 * timeDiff/32);
 
-          const p2 = px.clone().add(childHairBone.velocity);
+          const p2 = localVector4.copy(px).add(childHairBone.velocity);
           const q2 = localQuaternion.multiplyQuaternions(
             localQuaternion2.setFromRotationMatrix(localMatrix.lookAt(
               zeroVector,
               hairDirection,
-              localVector4.set(0, 0, -1).applyQuaternion(hipsRotation),
+              localVector5.set(0, 0, -1).applyQuaternion(hipsRotation),
             )),
             childHairBone.initialWorldQuaternion
           );
