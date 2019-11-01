@@ -755,6 +755,7 @@ const mirrorMesh = (() => {
 scene.add(mirrorMesh);
 
 const userHeight = 1.7;
+const _getHeightFactor = rigHeight => rigHeight / userHeight;
 
 let rig = null;
 let model = null;
@@ -779,7 +780,7 @@ const _setLocalModel = object => {
   window.model = model;
 
   // heightOffset = userHeight - rig.height;
-  heightFactor = rig.height / userHeight;
+  heightFactor = _getHeightFactor(rig.height);
   // console.log('height factor', heightFactor);
 
   // scene.position.y = heightOffset;
@@ -1090,17 +1091,17 @@ connectButton.addEventListener('click', () => {
         updateInterval = setInterval(() => {
           if (rig) {
             const hmd = {
-              position: rig.inputs.hmd.position.toArray(),
+              position: localVector.copy(rig.inputs.hmd.position).divideScalar(heightFactor).toArray(),
               quaternion: rig.inputs.hmd.quaternion.toArray(),
             };
             const gamepads = [
               {
-                position: rig.inputs.leftGamepad.position.toArray(),
+                position: localVector.copy(rig.inputs.leftGamepad.position).divideScalar(heightFactor).toArray(),
                 quaternion: rig.inputs.leftGamepad.quaternion.toArray(),
                 visible: true,
               },
               {
-                position: rig.inputs.rightGamepad.position.toArray(),
+                position: localVector.copy(rig.inputs.rightGamepad.position).divideScalar(heightFactor).toArray(),
                 quaternion: rig.inputs.rightGamepad.quaternion.toArray(),
                 visible: true,
               },
@@ -1186,19 +1187,29 @@ connectButton.addEventListener('click', () => {
             ],
             timestamp: Date.now(),
           };
+          const heightFactor = _getHeightFactor(peerConnection.rig.height);
           peerConnection.rig.update = (_update => function update() {
             const now = Date.now();
             const {timestamp} = peerConnection.rig.targets;
             const lerpFactor = Math.min(Math.max((now - timestamp) / peerPoseUpdateRate, 0), 1);
 
             peerConnection.rig.inputs.hmd.quaternion.copy(peerConnection.rig.inputs.hmd.quaternion).slerp(peerConnection.rig.targets.hmd.rotation, lerpFactor);
-            peerConnection.rig.inputs.hmd.position.copy(peerConnection.rig.inputs.hmd.position).lerp(peerConnection.rig.targets.hmd.position, lerpFactor);
+            peerConnection.rig.inputs.hmd.position.copy(peerConnection.rig.inputs.hmd.position).lerp(
+              localVector.copy(peerConnection.rig.targets.hmd.position).multiplyScalar(heightFactor),
+              lerpFactor
+            );
 
             peerConnection.rig.inputs.leftGamepad.quaternion.copy(peerConnection.rig.inputs.leftGamepad.quaternion).slerp(peerConnection.rig.targets.gamepads[0].rotation, lerpFactor);
-            peerConnection.rig.inputs.leftGamepad.position.copy(peerConnection.rig.inputs.leftGamepad.position).lerp(peerConnection.rig.targets.gamepads[0].position, lerpFactor);
+            peerConnection.rig.inputs.leftGamepad.position.copy(peerConnection.rig.inputs.leftGamepad.position).lerp(
+              localVector.copy(peerConnection.rig.targets.gamepads[0].position).multiplyScalar(heightFactor),
+              lerpFactor
+            );
 
             peerConnection.rig.inputs.rightGamepad.quaternion.copy(peerConnection.rig.inputs.rightGamepad.quaternion).slerp(peerConnection.rig.targets.gamepads[1].rotation, lerpFactor);
-            peerConnection.rig.inputs.rightGamepad.position.copy(peerConnection.rig.inputs.rightGamepad.position).lerp(peerConnection.rig.targets.gamepads[1].position, lerpFactor);
+            peerConnection.rig.inputs.rightGamepad.position.copy(peerConnection.rig.inputs.rightGamepad.position).lerp(
+              localVector.copy(peerConnection.rig.targets.gamepads[1].position).multiplyScalar(heightFactor),
+              lerpFactor
+            );
 
             _update.apply(this, arguments);
           })(peerConnection.rig.update);
