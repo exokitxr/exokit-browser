@@ -784,13 +784,13 @@ const mirrorMesh = (() => {
   };
 
   mesh.onBeforeRender2 = () => {
-    if (model) {
+    if (rig) {
       _loadSavedHead();
       // meshDolly.visible = true;
     }
   };
   mesh.onAfterRender2 = () => {
-    if (model) {
+    if (rig) {
       _unloadSavedHead();
       // meshDolly.visible = false;
     }
