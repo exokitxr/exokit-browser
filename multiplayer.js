@@ -172,7 +172,7 @@ class XRChannelConnection extends EventTarget {
     };
     this.rtcWs.onclose = () => {
       clearInterval(pingInterval);
-      console.log('rtc closed');
+      console.log('rtc ws got close');
 
       this.dispatchEvent(new CustomEvent('close'));
     };
