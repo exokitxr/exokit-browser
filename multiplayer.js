@@ -252,9 +252,6 @@ class XRPeerConnection extends EventTarget {
     });
     this.open = false;
 
-    /* this.peerConnection.onnegotiationneeded = e => {
-      console.log('negotiation needed');
-    }; */
     /* this.peerConnection.onaddstream = e => {
       this.dispatchEvent(new CustomEvent('mediastream', {
         detail: e.stream,
