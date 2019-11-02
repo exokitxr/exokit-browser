@@ -284,7 +284,7 @@ class XRPeerConnection extends EventTarget {
       }, 1000);
     };
     sendChannel.onclose = () => {
-      // console.log('data channel local close');
+      console.log('send channel got close');
 
       _cleanup();
     };
