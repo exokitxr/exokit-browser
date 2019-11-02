@@ -406,20 +406,6 @@ const Mathf = {
   },
 };
 
-const PlayerPrefs = {
-  data: {},
-  GetFloat(k, d) {
-    let v = this.data[k];
-    if (v === undefined) {
-      v = d;
-    }
-    return v;
-  },
-  SetFloat(k, v) {
-    this.data[k] = v;
-  },
-};
-
 /* const XRSettings = {
   loadedDeviceName: 'OpenVR',
 }; */
@@ -499,7 +485,6 @@ export {
   Transform,
   // Time,
   Mathf,
-  PlayerPrefs,
   // XRSettings,
   // Unity,
   Helpers,
