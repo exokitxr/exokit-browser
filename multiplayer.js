@@ -80,7 +80,10 @@ class XRChannelConnection extends EventTarget {
     };
     const _startOffer = peerConnection => {
       peerConnection.peerConnection
-        .createOffer()
+        .createOffer({
+          offerToReceiveAudio: true,
+          offerToReceiveVideo: true,
+        })
         .then(offer => {
           // console.log('create offer');
           return peerConnection.peerConnection.setLocalDescription(offer).then(() => offer);
