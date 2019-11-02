@@ -335,68 +335,6 @@ class Transform {
   }
 }
 
-const gameObjects = [];
-class GameObject {
-  constructor(name, unity) {
-    if (!unity) {
-      throw new Error('bad game object initialization');
-    }
-
-    this.name = name;
-    this.unity = unity;
-
-    this.transform = new Transform();
-    this.components = new Map();
-
-    gameObjects.push(this);
-  }
-  AddComponent(Constructor) {
-    let component = this.components.get(Constructor);
-    if (component === undefined) {
-      component = new Constructor(this.transform, this.components, this.unity);
-      this.components.set(Constructor, component);
-    }
-    return component;
-  }
-  AddChild(child) {
-    this.transform.AddChild(child.transform);
-  }
-}
-
-class MonoBehavior {
-  constructor(transform, components, unity) {
-    if (!transform || !components || !unity) {
-      throw new Error('bad component initialization');
-    }
-
-    this.transform = transform;
-    this.components = components;
-    this.unity = unity;
-  }
-
-  GetComponent(Constructor) {
-    let component = this.components.get(Constructor);
-    if (component === undefined) {
-      component = new Constructor(this.transform, this.components, this.unity);
-      this.components.set(Constructor, component);
-    }
-    return component;
-  }
-  GetOrAddComponent(Constructor) {
-    return this.GetComponent(Constructor);
-  }
-  GetComponentInChildren(Constructor) {
-    return this.GetComponent(Constructor);
-  }
-
-  Awake() {}
-  OnEnable() {}
-  Start() {}
-
-  Update() {}
-  LateUpdate() {}
-}
-
 /* const Time = {
   deltaTime: 1/90,
 }; */
@@ -559,8 +497,6 @@ export {
   Vector3,
   Quaternion,
   Transform,
-  GameObject,
-  MonoBehavior,
   // Time,
   Mathf,
   PlayerPrefs,
