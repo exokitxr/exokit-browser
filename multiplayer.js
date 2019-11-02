@@ -28,10 +28,10 @@ class XRChannelConnection extends EventTarget {
     };
     const _addPeerConnection = peerConnectionId => {
       let peerConnection = this.peerConnections.find(peerConnection => peerConnection.connectionId === peerConnectionId);
-      if (peerConnection && !peerConnection.open) {
+      /* if (peerConnection && !peerConnection.open) {
         peerConnection.close();
         peerConnection = null;
-      }
+      } */
       if (!peerConnection) {
         peerConnection = new XRPeerConnection(peerConnectionId);
         peerConnection.addEventListener('close', () => {
