@@ -1,4 +1,4 @@
-import {Vector3, Quaternion, Transform, Helpers} from './Unity.js';
+import {Vector3, Quaternion, Helpers} from './Unity.js';
 
 const z180Quaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI);
 

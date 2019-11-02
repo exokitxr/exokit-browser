@@ -1,4 +1,4 @@
-import {Vector3, Quaternion, Transform, Mathf} from './Unity.js';
+import {Vector3, Quaternion, Mathf} from './Unity.js';
 
 class ArmTransforms
 	{

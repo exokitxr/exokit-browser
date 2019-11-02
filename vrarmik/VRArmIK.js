@@ -1,4 +1,4 @@
-import {Vector3, Quaternion, Transform, Helpers} from './Unity.js';
+import {Vector3, Quaternion, Helpers} from './Unity.js';
 
 const zeroVector = new Vector3();
 const forwardVector = new Vector3(0, 0, 1);
