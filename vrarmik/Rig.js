@@ -770,18 +770,18 @@ class Rig {
 
     if (this.options.hair) {
       const hipsRotation = this.modelBones.Hips.quaternion;
+      const scale = localVector.setFromMatrixScale(this.modelBones.Head.matrixWorld);;
       const _processHairBone = (hairBone, children) => {
-        const p = localVector.setFromMatrixPosition(hairBone.matrixWorld);
+        const p = localVector2.setFromMatrixPosition(hairBone.matrixWorld);
 
         for (let i = 0; i < children.length; i++) {
           const childHairBone = children[i];
 
-          const px = localVector2.setFromMatrixPosition(childHairBone.matrixWorld);
+          const px = localVector3.setFromMatrixPosition(childHairBone.matrixWorld);
           const hairDistance = px.distanceTo(p);
-          const hairDirection = localVector3.copy(px).sub(p).normalize();
+          const hairDirection = localVector4.copy(px).sub(p).normalize();
 
-          const s2 = localVector4.setFromMatrixScale(this.modelBones.Head.matrixWorld);
-          const hairLength = childHairBone.length * s2.y;
+          const hairLength = childHairBone.length * scale.y;
 
           if (hairDistance > hairLength * 2) {
             px.copy(p).add(localVector5.copy(hairDirection).multiplyScalar(hairLength * 2));
@@ -793,8 +793,8 @@ class Rig {
           }
 
           childHairBone.velocity.add(localVector5.copy(hairDirection).multiplyScalar(-(hairDistance - hairLength) * 0.1 * timeDiff/32));
-          childHairBone.velocity.add(localVector5.set(0, -9.8, 0).multiply(s2).multiplyScalar(0.0002 * timeDiff/32));
-          childHairBone.velocity.add(localVector5.copy(childHairBone.worldParentOffset).multiply(s2).applyQuaternion(hipsRotation).multiplyScalar(0.03 * timeDiff/32));
+          childHairBone.velocity.add(localVector5.set(0, -9.8, 0).multiply(scale).multiplyScalar(0.0002 * timeDiff/32));
+          childHairBone.velocity.add(localVector5.copy(childHairBone.worldParentOffset).multiply(scale).applyQuaternion(hipsRotation).multiplyScalar(0.03 * timeDiff/32));
           childHairBone.velocity.lerp(zeroVector, 0.2 * timeDiff/32);
 
           const p2 = localVector5.copy(px).add(childHairBone.velocity);
@@ -806,7 +806,7 @@ class Rig {
             )),
             childHairBone.initialWorldQuaternion
           );
-          childHairBone.matrixWorld.compose(p2, q2, s2);
+          childHairBone.matrixWorld.compose(p2, q2, scale);
         }
         for (let i = 0; i < children.length; i++) {
           const childHairBone = children[i];
