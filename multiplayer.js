@@ -277,11 +277,11 @@ class XRPeerConnection extends EventTarget {
       this.open = true;
       this.dispatchEvent(new CustomEvent('open'));
 
-      pingInterval = setInterval(() => {
+      /* pingInterval = setInterval(() => {
         sendChannel.send(JSON.stringify({
           method: 'ping',
         }));
-      }, 1000);
+      }, 1000); */
     };
     sendChannel.onclose = () => {
       console.log('send channel got close');
@@ -291,7 +291,7 @@ class XRPeerConnection extends EventTarget {
     sendChannel.onerror = err => {
       // console.log('data channel local error', err);
     };
-    let watchdogTimeout = 0;
+    /* let watchdogTimeout = 0;
     const _kick = () => {
       if (watchdogTimeout) {
         clearTimeout(watchdogTimeout);
@@ -301,7 +301,7 @@ class XRPeerConnection extends EventTarget {
         this.peerConnection.close();
       }, 5000);
     };
-    _kick();
+    _kick(); */
     this.peerConnection.ondatachannel = e => {
       const {channel} = e;
       // console.log('data channel remote open', channel);
@@ -321,15 +321,15 @@ class XRPeerConnection extends EventTarget {
           this.dispatchEvent(new CustomEvent('pose', {
             detail: data,
           }))
-        } else if (method === 'ping') {
-          // nothing
+        /* } else if (method === 'ping') {
+          // nothing */
         } else {
           this.dispatchEvent(new MessageEvent('message', {
             data: e.data,
           }));
         }
 
-        _kick();
+        // _kick();
       };
       this.peerConnection.recvChannel = channel;
     };
