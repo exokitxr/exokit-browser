@@ -2,15 +2,6 @@ const DEG2RAD = Math.PI/180;
 const RAD2DEG = 180/Math.PI;
 const ORDER = 'ZXY';
 
-class Vector2 extends THREE.Vector2 {
-  get magnitude() {
-    return this.length();
-  }
-  get normalized() {
-    return this.clone().normalize();
-  }
-}
-
 class Vector3 extends THREE.Vector3 {
   bindOnchange(onchange) {
     let x = this.x, y = this.y, z = this.z;
@@ -80,9 +71,6 @@ class Vector3 extends THREE.Vector3 {
   }
   get normalized() {
     return this.clone().normalize();
-  }
-  xz() {
-    return new Vector2(this.x, this.z);
   }
   static Scale(a, b) {
     return new Vector3(a.x + b.x, a.y + b.y, a.z + b.z);
@@ -568,7 +556,6 @@ const Helpers = {
 };
 
 export {
-  Vector2,
   Vector3,
   Quaternion,
   Transform,
