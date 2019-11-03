@@ -56,7 +56,7 @@ const _copySkeleton = (src, dst) => {
   dst.calculateInverses();
 };
 
-class Rig {
+class Avatar {
 	constructor(model, options = {}) {
     this.model = model;
     this.options = options;
@@ -903,4 +903,4 @@ class Rig {
     }
   }
 }
-export default Rig;
+export default Avatar;
