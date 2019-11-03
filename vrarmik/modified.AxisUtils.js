@@ -1,22 +1,4 @@
 /**
-* @author snayss -- https://codercat.tk
-* @author humbletim -- https://github.com/humbletim
- *
- * Helper utility to iterate through a THREE.Bone heirarchy from a model
- * created in an external software and set each bone +Z Forward vector to
- * face the child bone.
- *
- **/
-// const VERSION = '0.0.0a';
-
-export {
-  fixSkeletonZForward, setQuaternionFromDirection
-};
-/* try {
-  Object.assign(self, { fixSkeletonZForward, _setQuaternionFromDirection: setQuaternionFromDirection });
-} catch(e) {} */
-
-/**
 * Takes in a rootBone and recursively traverses the bone heirarchy,
 * setting each bone's +Z axis to face it's child bones. The IK system follows this
 * convention, so this step is necessary to update the bindings of a skinned mesh.
@@ -186,3 +168,7 @@ function _localToWorldDirection(direction, parent) {
   direction.transformDirection(parentMat);
   return direction;
 }
+
+export {
+  fixSkeletonZForward, setQuaternionFromDirection
+};
