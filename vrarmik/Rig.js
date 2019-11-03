@@ -1,4 +1,4 @@
-import {fixSkeletonZForward} from '../proto/three-ik/modified.AxisUtils.js';
+import {fixSkeletonZForward} from './modified.AxisUtils.js';
 import PoseManager from './PoseManager.js';
 import ShoulderTransforms from './ShoulderTransforms.js';
 import LegsManager from './LegsManager.js';
