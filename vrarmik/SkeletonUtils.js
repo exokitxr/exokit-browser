@@ -26,11 +26,6 @@ function fixSkeletonZForward(rootBone, context) {
   return setZForward(rootBone, context);
 }
 
-export default fixSkeletonZForward;
-fixSkeletonZForward.version = VERSION;
-setQuaternionFromDirection.version = VERSION;
-setZForward.version = VERSION;
-
 const RESETQUAT = new THREE.Quaternion();
 const Y_AXIS = new THREE.Vector3(0,1,0);
 
