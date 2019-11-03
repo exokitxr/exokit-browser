@@ -7,14 +7,14 @@
  * face the child bone.
  *
  **/
-const VERSION = '0.0.0a';
+// const VERSION = '0.0.0a';
 
 export {
   fixSkeletonZForward, setQuaternionFromDirection
 };
-try {
+/* try {
   Object.assign(self, { fixSkeletonZForward, _setQuaternionFromDirection: setQuaternionFromDirection });
-} catch(e) {}
+} catch(e) {} */
 
 /**
 * Takes in a rootBone and recursively traverses the bone heirarchy,
