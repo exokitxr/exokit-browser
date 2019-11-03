@@ -1,4 +1,4 @@
-import {fixSkeletonZForward} from './modified.AxisUtils.js';
+import {fixSkeletonZForward} from './SkeletonUtils.js';
 import PoseManager from './PoseManager.js';
 import ShoulderTransforms from './ShoulderTransforms.js';
 import LegsManager from './LegsManager.js';
