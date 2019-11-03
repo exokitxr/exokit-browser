@@ -127,7 +127,7 @@ class Leg {
 	}
 
 	isStanding() {
-		return this.stepping || Helpers.getWorldPosition(this.upperLeg, localVector).y <= this.legLength;
+		return Helpers.getWorldPosition(this.upperLeg, localVector).y <= this.legLength;
 	}
 }
 
@@ -173,7 +173,13 @@ class LegsManager {
 		// console.log('v', this.hmdVelocity.toArray().join(','));
 
 	  this.leftLeg.standing = this.leftLeg.isStanding();
+	  if (this.leftLeg.stepping && !this.leftLeg.standing) {
+      this.leftLeg.stepping = false;
+	  }
 	  this.rightLeg.standing = this.rightLeg.isStanding();
+	  if (this.rightLeg.stepping && !this.rightLeg.standing) {
+      this.rightLeg.stepping = false;
+	  }
 
     const hipsFloorPosition = localVector.copy(this.hips.position);
     hipsFloorPosition.y = 0;
