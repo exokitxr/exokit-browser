@@ -405,6 +405,14 @@ class Avatar {
     armature.scale.set(1, 1, 1).divideScalar(this.armatureScaleFactor);
     armature.updateMatrix();
 
+    Head.traverse(o => {
+      o.savedPosition = new THREE.Vector3();
+      o.savedMatrixWorld = new THREE.Matrix4();
+    });
+    if (options.decapitate) {
+      this.decapitate();
+    }
+
     const hairBones = tailBones.filter(bone => /hair/i.test(bone.name)).map(bone => {
       for (; bone; bone = bone.parent) {
         if (bone.parent === Head) {
@@ -901,6 +909,21 @@ class Avatar {
       };
       mediaStreamSource.connect(audioWorkletNode).connect(this.audioContext.destination);
     }
+  }
+
+  decapitate() {
+    rig.modelBones.Head.traverse(o => {
+      o.savedPosition.copy(o.position);
+      o.savedMatrixWorld.copy(o.matrixWorld);
+      o.position.set(NaN, NaN, NaN);
+      o.matrixWorld.set(NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN);
+    });
+  }
+  undecapitate() {
+    rig.modelBones.Head.traverse(o => {
+      o.position.copy(o.savedPosition);
+      o.matrixWorld.copy(o.savedMatrixWorld);
+    });
   }
 }
 export default Avatar;

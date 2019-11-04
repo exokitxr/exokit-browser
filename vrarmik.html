@@ -613,13 +613,13 @@ const mirrorMesh = (() => {
 
   mesh.onBeforeRender2 = () => {
     if (rig) {
-      _loadSavedHead();
+      rig.undecapitate();
       // meshDolly.visible = true;
     }
   };
   mesh.onAfterRender2 = () => {
     if (rig) {
-      _unloadSavedHead();
+      rig.decapitate();
       // meshDolly.visible = false;
     }
   };
@@ -648,11 +648,8 @@ const _setLocalModel = object => {
     fingers: true,
     hair: true,
     visemes: true,
+    decapitate: true,
     microphoneMediaStream,
-  });
-  rig.modelBones.Head.traverse(o => {
-    o.savedPosition = new THREE.Vector3();
-    o.savedMatrixWorld = new THREE.Matrix4();
   });
   meshDolly.add(model);
   window.model = model;
@@ -887,15 +884,7 @@ function animate(timestamp, frame, referenceSpace) {
     }
   }
 
-  if (rig) {
-    _unloadSavedHead();
-  }
-
   renderer.render(scene, camera);
-
-  if (rig) {
-    _loadSavedHead();
-  }
 }
 renderer.setAnimationLoop(animate);
 
