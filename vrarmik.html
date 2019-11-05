@@ -32,7 +32,7 @@ header {
   user-select: none;
   z-index: 1;
 }
-header img {
+header .icon {
   width: 50px;
   height: 50px;
   margin: 0 20px;
@@ -152,6 +152,7 @@ a:active {
   border-radius: 100px;
   color: #5c6bc0;
   cursor: pointer;
+  outline: none
 }
 /* .button:not(:last-child) {
   margin-right: 20px;
@@ -218,6 +219,82 @@ input[type=text] {
   font-size: inherit;
   outline: none;
 }
+
+/* account.css */
+
+input[type=email],
+input[type=text]
+{
+  margin-right: 10px;
+  padding: 7px 15px;
+  background-color: #f2f3f5;
+  border: 0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: inherit;
+  outline: none;
+}
+
+header > .login-form {
+  display: flex;
+  margin-left: auto;
+}
+
+body.logging-in .login-form,
+header > .login-form:not(.phase-1) > .phase-1-content,
+header > .login-form:not(.phase-2) > .phase-2-content,
+header > .login-form:not(.phase-3) > .phase-3-content,
+header > .login-form.phase-1 > .phaseless-content,
+header > .login-form.phase-2 > .phaseless-content,
+header > .login-form.phase-3 > .phaseless-content
+{
+  display: none;
+}
+
+.login-form .phase-content {
+  display: flex;
+  align-items: center;
+}
+.login-form .phase-content .login-error
+{
+  margin-right: 15px;
+  font-weight: 600;
+}
+.login-form .phase-content .user-button {
+  display: flex;
+  height: 30px;
+  margin-right: 10px;
+  padding: 3px 10px;
+  background-color: #f2f3f5;
+  border: 0;
+  border-radius: 8px;
+  align-items: center;
+  cursor: pointer;
+}
+.login-form .phase-content .user-button:hover,
+.login-form .phase-content .user-button.open {
+  background-color: #CCC;
+}
+.login-form .phase-content .user-button > img {
+  width: 20px;
+  height: 20px;
+  margin-right: 5px;
+}
+.login-form .phase-content .user-button > .name {
+  display: flex;
+  height: 100%;
+  font-weight: 600;
+  align-items: center;
+}
+.login-form .phase-content .login-notice {
+  color: #4caf50;
+}
+.login-form .phase-content .login-error {
+  color: #e53935;
+}
+.login-form .phaseless-content {
+  padding: 0 30px;
+}
     </style>
     <script src="three.js"></script>
     <script src="OrbitControls.js"></script>
@@ -227,7 +304,7 @@ input[type=text] {
   <body>
     <div class=body>
       <header>
-        <img src="logo.svg">
+        <img src="logo.svg" class="icon">
         <nav class=selected><span>Avatars</span></nav>
         <!-- <a href="https://docs.exokit.org/"><nav><span class="header-link">Documentation</span></nav></a>
         <a href="https://browser.exokit.org"><nav><span class="header-link">Browser
@@ -235,6 +312,31 @@ input[type=text] {
         <a href="https://discord.gg/UgZDFZW"><nav><span class="coming-soon">Exoland
           <p class="coming-soon-sub">Coming soon!</p>
         </span></nav></a> -->
+
+        <form class="login-form phase-1" id=login-form>
+          <div class=phase-content>
+            <div class=login-notice id=login-notice></div>
+            <div class=login-error id=login-error></div>
+          </div>
+          <div class="phase-content phase-1-content">
+            <input type=email placeholder="your@email.com" id=login-email>
+            <input type=submit value="Log in" class="button highlight">
+          </div>
+          <div class="phase-content phase-2-content">
+            <input type=text placeholder="Verification code" id=login-verification-code>
+            <input type=submit value="Verify" class="button highlight">
+          </div>
+          <div class="phase-content phase-3-content">
+            <button class=user-button id=user-button>
+              <img src="exobot.png">
+              <span class=name id=login-email-static>a@modules.io</span>
+            </button>
+            <input type=submit value="Log out" class="button highlight">
+          </div>
+          <div class="phase-content phaseless-content">
+            <div>Working...</div>
+          </div>
+        </form>
       </header>
 
       <div class=examples>
@@ -1260,6 +1362,136 @@ connectButton.addEventListener('click', () => {
     method: 'model',
     url: modelUrl,
   }));
+})();
+
+let loginToken = null;
+const loginUrl = 'https://login.exokit.org/';
+async function doLogin(email, code) {
+  const res = await fetch(`${loginUrl}?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, {
+    method: 'POST',
+  });
+  if (res.status >= 200 && res.status < 300) {
+    const newLoginToken = await res.json();
+
+    await storage.set('loginToken', newLoginToken);
+
+    loginToken = newLoginToken;
+
+    // loginNameStatic.innerText = loginToken.name;
+    // loginEmailStatic.innerText = loginToken.email;
+
+    document.body.classList.add('logged-in');
+    loginForm.classList.remove('phase-1');
+    loginForm.classList.remove('phase-2');
+    loginForm.classList.add('phase-3');
+
+    return true;
+  } else {
+    return false;
+  }
+}
+const storage = {
+  async get(k) {
+    const s = localStorage.getItem(k);
+    if (typeof s === 'string') {
+      return JSON.parse(s);
+    } else {
+      return undefined;
+    }
+  },
+  async set(k, v) {
+    localStorage.setItem(k, JSON.stringify(v));
+  },
+  async remove(k) {
+    localStorage.removeItem(k);
+  },
+};
+
+// const loginButton = document.getElementById('login-button');
+// const loginButton2 = document.getElementById('login-button-2');
+// const loginPopdown = document.getElementById('login-popdown');
+const loginForm = document.getElementById('login-form');
+const loginEmail = document.getElementById('login-email');
+const loginNameStatic = document.getElementById('login-name-static');
+const loginEmailStatic = document.getElementById('login-email-static');
+const statusNotConnected = document.getElementById('status-not-connected');
+const statusConnected = document.getElementById('status-connected');
+const loginVerificationCode = document.getElementById('login-verification-code');
+const loginNotice = document.getElementById('login-notice');
+const loginError = document.getElementById('login-error');
+const logoutButton = document.getElementById('logout-button');
+loginForm.onsubmit = async e => {
+  e.preventDefault();
+
+  if (loginForm.classList.contains('phase-1') && loginEmail.value) {
+    loginNotice.innerHTML = '';
+    loginError.innerHTML = '';
+    loginForm.classList.remove('phase-1');
+
+    const res = await fetch(`${loginUrl}?email=${encodeURIComponent(loginEmail.value)}`, {
+      method: 'POST',
+    })
+    if (res.status >= 200 && res.status < 300) {
+      loginNotice.innerText = `Code sent to ${loginEmail.value}!`;
+      loginForm.classList.add('phase-2');
+
+      return res.blob();
+    } else if (res.status === 403) {
+      loginError.innerText = `${loginEmail.value} is not in the beta yet :(`;
+
+      loginForm.classList.add('phase-1');
+    } else {
+      throw new Error(`invalid status code: ${res.status}`);
+    }
+  } else if (loginForm.classList.contains('phase-2') && loginEmail.value && loginVerificationCode.value) {
+    loginNotice.innerHTML = '';
+    loginError.innerHTML = '';
+    loginForm.classList.remove('phase-2');
+
+    await doLogin(loginEmail.value, loginVerificationCode.value);
+  } else if (loginForm.classList.contains('phase-3')) {
+    await storage.remove('loginToken');
+
+    window.location.reload();
+
+    /* loginToken = null;
+    xrEngine.postMessage({
+      method: 'login',
+      loginToken,
+    });
+
+    loginNotice.innerHTML = '';
+    loginError.innerHTML = '';
+    document.body.classList.remove('logged-in');
+    loginForm.classList.remove('phase-3');
+    loginForm.classList.add('phase-1'); */
+  }
+};
+
+(async () => {
+  const localLoginToken = await storage.get('loginToken');
+  if (localLoginToken) {
+    const res = await fetch(`${loginUrl}?email=${encodeURIComponent(localLoginToken.email)}&token=${encodeURIComponent(localLoginToken.token)}`, {
+      method: 'POST',
+    })
+    if (res.status >= 200 && res.status < 300) {
+      loginToken = await res.json();
+
+      await storage.set('loginToken', loginToken);
+
+      // loginNameStatic.innerText = loginToken.name;
+      // loginEmailStatic.innerText = loginToken.email;
+
+      document.body.classList.add('logged-in');
+      loginForm.classList.remove('phase-1');
+      loginForm.classList.remove('phase-2');
+      loginForm.classList.add('phase-3');
+    } else {
+      await storage.remove('loginToken');
+
+      console.warn(`invalid status code: ${res.status}`);
+    }
+  }
 })();
 
 window.addEventListener('resize', e => {
