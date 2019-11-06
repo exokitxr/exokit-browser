@@ -486,7 +486,6 @@ class Avatar {
         new THREE.VRMSpringBoneImporter().import(object)
           .then(springBoneManager => {
             this.springBoneManager = springBoneManager;
-            window.springBoneManager = springBoneManager;
           });
       });
     }
