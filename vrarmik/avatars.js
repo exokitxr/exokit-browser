@@ -456,7 +456,6 @@ class Avatar {
                   }
                 };
                 _recurse(hairBone);
-                // boneIndices.reverse();
                 return {
                   comment: hairBone.name,
                   stiffiness: 0.5,
@@ -466,7 +465,7 @@ class Avatar {
                     y: -1,
                     z: 0
                   },
-                  dragForce: 0.2,
+                  dragForce: 0.3,
                   center: -1,
                   hitRadius: 0.02,
                   bones: boneIndices,
