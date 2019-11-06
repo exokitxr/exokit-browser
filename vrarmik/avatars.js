@@ -849,7 +849,14 @@ class Avatar {
     }
 
     if (this.springBoneManager) {
+      const wasDecapitated = this.decapitated;
+      if (wasDecapitated) {
+        this.undecapitate();
+      }
       this.springBoneManager.lateUpdate(timeDiff / 1000);
+      if (wasDecapitated) {
+        this.decapitate();
+      }
     }
 
     if (this.options.visemes) {
