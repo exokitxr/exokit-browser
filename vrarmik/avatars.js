@@ -707,6 +707,7 @@ class Avatar {
 			rightGamepad: this.poseManager.vrTransforms.rightHand,
 		};
     this.inputs.hmd.scaleFactor = 1;
+    this.lastModelScaleFactor = 1;
 		this.outputs = {
 			eyes: this.shoulderTransforms.eyes,
       head: this.shoulderTransforms.head,
@@ -805,7 +806,19 @@ class Avatar {
    }
 
     const modelScaleFactor = this.inputs.hmd.scaleFactor;
-    this.model.scale.set(modelScaleFactor, modelScaleFactor, modelScaleFactor);
+    if (modelScaleFactor !== this.lastModelScaleFactor) {
+      this.model.scale.set(modelScaleFactor, modelScaleFactor, modelScaleFactor);
+      this.lastModelScaleFactor = modelScaleFactor;
+
+      this.springBoneManager && this.springBoneManager.springBoneGroupList.forEach(springBoneGroup => {
+        springBoneGroup.forEach(springBone => {
+          springBone._worldBoneLength = springBone.bone
+            .localToWorld(localVector.copy(springBone._initialLocalChildPosition))
+            .sub(springBone._worldPosition)
+            .length();
+        });
+      });
+    }
 
     this.shoulderTransforms.Update();
     this.legsManager.Update();
