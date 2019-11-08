@@ -799,6 +799,11 @@ class Avatar {
 	update() {
 // return;
 
+   const wasDecapitated = this.decapitated;
+   if (this.springBoneManager && wasDecapitated) {
+    this.undecapitate();
+   }
+
     const modelScaleFactor = this.inputs.hmd.scaleFactor;
     this.model.scale.set(modelScaleFactor, modelScaleFactor, modelScaleFactor);
 
@@ -855,14 +860,10 @@ class Avatar {
     }
 
     if (this.springBoneManager) {
-      const wasDecapitated = this.decapitated;
-      if (wasDecapitated) {
-        this.undecapitate();
-      }
       this.springBoneManager.lateUpdate(timeDiff / 1000);
-      if (wasDecapitated) {
-        this.decapitate();
-      }
+    }
+    if (this.springBoneManager && wasDecapitated) {
+      this.decapitate();
     }
 
     if (this.options.visemes) {
