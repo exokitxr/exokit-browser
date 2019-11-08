@@ -802,6 +802,7 @@ const lastPads = [false, false];
 const lastPositions = [new THREE.Vector3(), new THREE.Vector3()];
 const startGripPositions = [new THREE.Vector3(), new THREE.Vector3()];
 const startSceneMatrix = new THREE.Matrix4();
+let startModelScale = 1;
 const dateOffset = Math.floor(Math.random() * 60 * 1000);
 const realDateNow = (now => () => dateOffset + now())(Date.now);
 function animate(timestamp, frame, referenceSpace) {
@@ -812,7 +813,7 @@ function animate(timestamp, frame, referenceSpace) {
       const {inputSources} = session;
       const gamepads = navigator.getGamepads();
 
-      rig.inputs.hmd.position.copy(vrCamera.position).applyMatrix4(new THREE.Matrix4().getInverse(scene.matrixWorld));
+      rig.inputs.hmd.position.copy(vrCamera.position).sub(scene.position).multiplyScalar(heightFactor);
       rig.inputs.hmd.quaternion.copy(vrCamera.quaternion);
 
       const _getGamepad = i => {
@@ -824,7 +825,7 @@ function animate(timestamp, frame, referenceSpace) {
           const {position, orientation, matrix} = transform;
           if (position) { // new WebXR api
             const rawP = localVector.copy(position);
-            const p = localVector2.copy(rawP).applyMatrix4(new THREE.Matrix4().getInverse(scene.matrixWorld));
+            const p = localVector2.copy(rawP).sub(scene.position).multiplyScalar(heightFactor);
             const q = localQuaternion.copy(orientation);
             const pressed = gamepad.buttons[0].pressed;
             const lastPressed = lastPresseds[i];
@@ -855,7 +856,7 @@ function animate(timestamp, frame, referenceSpace) {
             localMatrix
               .fromArray(transform.matrix)
               .decompose(rawP, q, s);
-            p.copy(rawP).applyMatrix4(new THREE.Matrix4().getInverse(scene.matrixWorld));
+            p.copy(rawP).sub(scene.position).multiplyScalar(heightFactor);
             const pressed = gamepad.buttons[0].pressed;
             const lastPressed = lastPresseds[i];
             const pointer = gamepad.buttons[0].value;
@@ -973,6 +974,7 @@ function animate(timestamp, frame, referenceSpace) {
           startGripPositions[i].copy(lastPositions[i]);
         }
         startSceneMatrix.copy(scene.matrix);
+        startModelScale = rig ? rig.getScale() : 1;
       };
       const _processScale = () => {
         const startDistance = startGripPositions[0].distanceTo(startGripPositions[1]);
@@ -980,9 +982,11 @@ function animate(timestamp, frame, referenceSpace) {
         const scaleFactor = currentDistance / startDistance;
 
         let startGripPosition = localVector3.copy(startGripPositions[0]).add(startGripPositions[1]).divideScalar(2)
-          .divideScalar(heightFactor);
+          /* .divideScalar(heightFactor)
+          .add(scene.position); */
         let currentGripPosition = localVector4.copy(lastPositions[0]).add(lastPositions[1]).divideScalar(2)
-          .divideScalar(heightFactor);
+          /* .divideScalar(heightFactor)
+          .add(scene.position); */
         startGripPosition.applyMatrix4(localMatrix.getInverse(startSceneMatrix));
         currentGripPosition.applyMatrix4(localMatrix/*.getInverse(startSceneMatrix)*/);
 
@@ -994,6 +998,8 @@ function animate(timestamp, frame, referenceSpace) {
           .multiply(localMatrix.makeTranslation(-currentGripPosition.x, -currentGripPosition.y, -currentGripPosition.z))
           .multiply(localMatrix.makeTranslation(positionDiff.x, positionDiff.y, positionDiff.z))
           .decompose(scene.position, scene.quaternion, scene.scale);
+
+        rig && rig.setScale(startModelScale / scaleFactor);
 
         // _startScale();
       };
@@ -1218,6 +1224,7 @@ connectButton.addEventListener('click', () => {
             const hmd = {
               position: localVector.copy(rig.inputs.hmd.position).divideScalar(heightFactor).toArray(),
               quaternion: rig.inputs.hmd.quaternion.toArray(),
+              scale: rig.getScale(),
             };
             const gamepads = [
               {
