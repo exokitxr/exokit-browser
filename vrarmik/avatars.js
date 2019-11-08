@@ -706,6 +706,7 @@ class Avatar {
 			leftGamepad: this.poseManager.vrTransforms.leftHand,
 			rightGamepad: this.poseManager.vrTransforms.rightHand,
 		};
+    this.inputs.hmd.scaleFactor = 1;
 		this.outputs = {
 			eyes: this.shoulderTransforms.eyes,
       head: this.shoulderTransforms.head,
@@ -797,6 +798,9 @@ class Avatar {
   }
 	update() {
 // return;
+
+    const modelScaleFactor = this.inputs.hmd.scaleFactor;
+    this.model.scale.set(modelScaleFactor, modelScaleFactor, modelScaleFactor);
 
     this.shoulderTransforms.Update();
     this.legsManager.Update();
