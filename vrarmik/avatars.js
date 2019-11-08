@@ -76,9 +76,9 @@ class Avatar {
 
     const skeletonSkinnedMesh = skinnedMeshes.find(o => o.skeleton.bones[0].parent) || null;
     const skeleton = skeletonSkinnedMesh && skeletonSkinnedMesh.skeleton;
-    if (skeleton) {
+    /* if (skeleton) {
       skeletonSkinnedMesh.bind(skeleton);
-    }
+    } */
     const poseSkeletonSkinnedMesh = skeleton ? skinnedMeshes.find(o => o.skeleton !== skeleton && o.skeleton.bones.length >= skeleton.bones.length) : null;
     const poseSkeleton = poseSkeletonSkinnedMesh && poseSkeletonSkinnedMesh.skeleton;
     if (poseSkeleton) {
