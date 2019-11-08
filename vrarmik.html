@@ -772,6 +772,7 @@ let heightFactor = 0;
 const _setLocalModel = newModel => {
   if (rig) {
     meshDolly.remove(model.scene);
+    rig.destroy();
     rig = null;
     model = null;
   }
@@ -1317,6 +1318,7 @@ connectButton.addEventListener('click', () => {
 
           if (peerConnection.model) {
             scene.remove(peerConnection.model.scene);
+            peerConnection.rig.destroy();
           }
 
           peerConnection.model = await _loadModelUrl(url);
