@@ -383,6 +383,10 @@ header > .login-form.phase-3 > .phaseless-content
         <div class=multibutton>
           <nav class="button first last" id=export-model-button>Export model</nav>
         </div>
+        <div class=multibutton>
+          <nav class="button first" id=scale-down-button>Scale -</nav>
+          <nav class="button last" id=scale-up-button>Scale +</nav>
+        </div>
         <h3>Multiplayer</h3>
         <input type=text value="avaer/yatis" placeholder="user/channel" id=channel-input>
         <div class=multibutton>
@@ -1570,6 +1574,19 @@ exportModelButton.addEventListener('click', async () => {
 
   document.body.removeChild(a);
   URL.revokeObjectURL(u);
+});
+
+const scaleDownButton = document.getElementById('scale-down-button');
+scaleDownButton.addEventListener('click', () => {
+  if (rig) {
+    rig.model.scale.divideScalar(1.25);
+  }
+});
+const scaleUpButton = document.getElementById('scale-up-button');
+scaleUpButton.addEventListener('click', () => {
+  if (rig) {
+    rig.model.scale.multiplyScalar(1.25);
+  }
 });
 
 (async () => {
