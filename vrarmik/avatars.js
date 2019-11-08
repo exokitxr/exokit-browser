@@ -618,7 +618,7 @@ class Avatar {
 	  });
 	  model.traverse(o => {
 	    if (o.isSkinnedMesh) {
-	      o.bind(o.skeleton);
+	      o.bind((o.skeleton.bones.length === skeleton.bones.length && o.skeleton.bones.every((bone, i) => bone === skeleton.bones[i])) ? skeleton : o.skeleton);
 	    }
 	  });
     if (flipY) {
