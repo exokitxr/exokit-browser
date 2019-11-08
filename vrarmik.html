@@ -1224,7 +1224,7 @@ connectButton.addEventListener('click', () => {
             const hmd = {
               position: localVector.copy(rig.inputs.hmd.position).divideScalar(heightFactor).toArray(),
               quaternion: rig.inputs.hmd.quaternion.toArray(),
-              scale: rig.getScale(),
+              scale: rig.model.scale.y,
             };
             const gamepads = [
               {
@@ -1325,6 +1325,7 @@ connectButton.addEventListener('click', () => {
             hmd: {
               position: peerConnection.rig.inputs.hmd.position.clone(),
               rotation: peerConnection.rig.inputs.hmd.quaternion.clone(),
+              scale: peerConnection.rig.inputs.hmd.y,
             },
             gamepads: [
               {
@@ -1345,6 +1346,7 @@ connectButton.addEventListener('click', () => {
             hmd: {
               position: new THREE.Vector3(),
               rotation: new THREE.Quaternion(),
+              scale: 1,
             },
             gamepads: [
               {
@@ -1373,6 +1375,7 @@ connectButton.addEventListener('click', () => {
               localVector.copy(peerConnection.rig.targets.hmd.position).multiplyScalar(heightFactor),
               lerpFactor
             );
+            peerConnection.rig.inputs.hmd.set(1, 1, 1).multiplyScalar(peerConnection.rig.starts.hmd.scale * (1-lerpFactor) + peerConnection.rig.targets.hmd.scale * lerpFactor);
 
             peerConnection.rig.inputs.leftGamepad.position.copy(peerConnection.rig.starts.gamepads[0].position).lerp(
               localVector.copy(peerConnection.rig.targets.gamepads[0].position).multiplyScalar(heightFactor),
