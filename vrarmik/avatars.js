@@ -793,70 +793,7 @@ class Avatar {
     this.legsManager.rightLeg.lowerLeg.position.copy(setups.rightLowerLeg);
     this.legsManager.rightLeg.foot.position.copy(setups.rightFoot);
 
-    /* [
-      this.shoulderTransforms.spine,
-      this.shoulderTransforms.transform,
-      this.shoulderTransforms.neck,
-      this.shoulderTransforms.head,
-      this.shoulderTransforms.eyes,
-
-      this.shoulderTransforms.leftShoulderAnchor,
-      this.shoulderTransforms.leftArm.upperArm,
-      this.shoulderTransforms.leftArm.lowerArm,
-      this.shoulderTransforms.leftArm.hand,
-
-      this.shoulderTransforms.rightShoulderAnchor,
-      this.shoulderTransforms.rightArm.upperArm,
-      this.shoulderTransforms.rightArm.lowerArm,
-      this.shoulderTransforms.rightArm.hand,
-
-      this.legsManager.leftLeg.upperLeg,
-      this.legsManager.leftLeg.lowerLeg,
-      this.legsManager.leftLeg.foot,
-
-      this.legsManager.rightLeg.upperLeg,
-      this.legsManager.rightLeg.lowerLeg,
-      this.legsManager.rightLeg.foot,
-    ].forEach(bone => {
-      bone.initialPosition = bone.position.clone();
-    }); */
-
     this.shoulderTransforms.hips.updateMatrixWorld();
-  }
-  getScale() {
-    return this.model.scale.y;
-  }
-  setScale(newScale) {
-    this.model.scale.set(newScale, newScale, newScale);
-
-    /* [
-      this.shoulderTransforms.spine,
-      this.shoulderTransforms.transform,
-      this.shoulderTransforms.neck,
-      this.shoulderTransforms.head,
-      this.shoulderTransforms.eyes,
-
-      this.shoulderTransforms.leftShoulderAnchor,
-      this.shoulderTransforms.leftArm.upperArm,
-      this.shoulderTransforms.leftArm.lowerArm,
-      this.shoulderTransforms.leftArm.hand,
-
-      this.shoulderTransforms.rightShoulderAnchor,
-      this.shoulderTransforms.rightArm.upperArm,
-      this.shoulderTransforms.rightArm.lowerArm,
-      this.shoulderTransforms.rightArm.hand,
-
-      this.legsManager.leftLeg.upperLeg,
-      this.legsManager.leftLeg.lowerLeg,
-      this.legsManager.leftLeg.foot,
-
-      this.legsManager.rightLeg.upperLeg,
-      this.legsManager.rightLeg.lowerLeg,
-      this.legsManager.rightLeg.foot,
-    ].forEach(bone => {
-      bone.position.copy(bone.initialPosition).divideScalar(newScale);
-    }); */
-    // this.shoulderTransforms.hips.updateMatrixWorld();
   }
 	update() {
 // return;

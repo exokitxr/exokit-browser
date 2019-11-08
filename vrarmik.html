@@ -974,7 +974,7 @@ function animate(timestamp, frame, referenceSpace) {
           startGripPositions[i].copy(lastPositions[i]);
         }
         startSceneMatrix.copy(scene.matrix);
-        startModelScale = rig ? rig.getScale() : 1;
+        startModelScale = rig ? rig.model.scale.y : 1;
       };
       const _processScale = () => {
         const startDistance = startGripPositions[0].distanceTo(startGripPositions[1]);
@@ -999,7 +999,7 @@ function animate(timestamp, frame, referenceSpace) {
           .multiply(localMatrix.makeTranslation(positionDiff.x, positionDiff.y, positionDiff.z))
           .decompose(scene.position, scene.quaternion, scene.scale);
 
-        rig && rig.setScale(startModelScale / scaleFactor);
+        rig && rig.model.scale.set(1, 1, 1).multiplyScalar(startModelScale / scaleFactor);
 
         // _startScale();
       };
