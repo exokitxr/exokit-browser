@@ -411,6 +411,7 @@ import Avatar from './vrarmik/avatars.js';
 import {XRChannelConnection} from 'https://multiplayer.exokit.org/multiplayer.js';
 
 const peerPoseUpdateRate = 50;
+const walkSpeed = 0.03;
 const floorPlane = new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 0));
 
 const localVector = new THREE.Vector3();
@@ -921,7 +922,7 @@ function animate(timestamp, frame, referenceSpace) {
           const hmdEuler = localEuler.setFromQuaternion(rig.inputs.hmd.quaternion, 'YXZ');
           localEuler.x = 0;
           localEuler.z = 0;
-          scene.position.sub(localVector.set(padX, 0, padY).applyEuler(hmdEuler).multiplyScalar(0.03));
+          scene.position.sub(localVector.set(padX, 0, padY).applyEuler(hmdEuler).multiplyScalar(walkSpeed));
         }
       };
 
