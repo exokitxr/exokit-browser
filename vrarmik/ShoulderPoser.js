@@ -24,7 +24,7 @@ class ShoulderPoser
 			// this.headNeckDistance = 0.06861115505261682;
 			// this.neckShoulderDistance = new Vector3(3.122724301363178e-10, -0.1953215129534993, 0.02834002902116923);
 
-			this.maxDeltaHeadRotation = 80;
+			// this.maxDeltaHeadRotation = 80;
 
 			// this.distinctShoulderRotationLimitForward = 33;
 
@@ -200,7 +200,7 @@ class ShoulderPoser
 
 			/* if (this.clampRotationToHead)
 			{ */
-				angleY = this.clampHeadRotationDeltaUp(angleY);
+				// angleY = this.clampHeadRotationDeltaUp(angleY);
 			// }
 
 			// this.shoulder.transform.eulerAngles = targetRotation;
@@ -234,9 +234,9 @@ class ShoulderPoser
 			// this.shoulder.transform.rotation = new Quaternion().multiplyQuaternions(deltaRot,  this.shoulder.transform.rotation);
 			return new Quaternion().multiplyQuaternions(deltaRot, rotation);
 			// this.positionShoulderRelative();
-		} */
+		}
 
-		/* positionShoulderRelative()
+		positionShoulderRelative()
 		{
 			const deltaRot = Quaternion.AngleAxis(this.shoulderRightRotation, this.shoulder.transform.right);
 			const shoulderHeadDiff = new Vector3().subVectors(this.shoulder.transform.position, this.avatarTrackingReferences.head.position);
@@ -245,61 +245,35 @@ class ShoulderPoser
 
 		getCombinedDirectionAngleUp()
 		{
+			const hmdRotation = localQuaternion.copy(this.vrTransforms.head.quaternion);
+			const hmdRotationInverse = localQuaternion2.copy(this.vrTransforms.head.quaternion)
+			  .inverse();
+
 			const distanceLeftHand = localVector.copy(this.vrTransforms.leftHand.position)
 			  .add(localVector2.set(0, 0, wristToHandDistance).applyQuaternion(this.vrTransforms.leftHand.quaternion))
-			  .sub(Helpers.getWorldPosition(this.shoulder.transform, localVector2));
+			  .sub(Helpers.getWorldPosition(this.shoulder.transform, localVector2))
+			  .applyQuaternion(hmdRotationInverse);
 			const distanceRightHand = localVector2.copy(this.vrTransforms.rightHand.position)
 		  	.add(localVector3.set(0, 0, wristToHandDistance).applyQuaternion(this.vrTransforms.rightHand.quaternion))
-			  .sub(Helpers.getWorldPosition(this.shoulder.transform, localVector3));
+			  .sub(Helpers.getWorldPosition(this.shoulder.transform, localVector3))
+			  .applyQuaternion(hmdRotationInverse);
 
-			/* if (this.ignoreYPos)
-			{ */
-				distanceLeftHand.y = 0;
-				distanceRightHand.y = 0;
-			// }
+			distanceLeftHand.y = 0;
+			distanceRightHand.y = 0;
 
-      const hmdEuler = localEuler.setFromQuaternion(this.vrTransforms.head.quaternion, 'YXZ');
-      hmdEuler.x = 0;
-      hmdEuler.z = 0;
-      const hmdFlatRotation = localQuaternion.setFromEuler(hmdEuler);
-      const hmdFlatRotationInverse = hmdFlatRotation.clone().inverse();
-
-			const leftHandBehind = localVector3.copy(distanceLeftHand).applyQuaternion(hmdFlatRotationInverse);
-			const leftBehind = leftHandBehind.z > 0;
-			const rightHandBehind = localVector4.copy(distanceRightHand).applyQuaternion(hmdFlatRotationInverse);
-			const rightBehind = rightHandBehind.z > 0;
-
+			const leftBehind = distanceLeftHand.z > 0;
+			const rightBehind = distanceRightHand.z > 0;
 			if (leftBehind) {
-				/* if (leftHandBehind.x < 0) {
-					leftHandBehind.x *= -1;
-				} else { */
-				  leftHandBehind.x = 0;
-				// }
-				leftHandBehind.y = 0;
-				leftHandBehind.z *= rightBehind ? -2 : -1;
-				leftHandBehind.applyQuaternion(hmdFlatRotation);
-				distanceLeftHand.add(leftHandBehind);
+				distanceLeftHand.z *= rightBehind ? -2 : -1;
 			}
 			if (rightBehind) {
-				/* if (rightHandBehind.x > 0) {
-					rightHandBehind.x *= -1;
-				} else { */
-				  rightHandBehind.x = 0;
-				// }
-				rightHandBehind.y = 0;
-				rightHandBehind.z *= leftBehind ? -2 : -1;
-				rightHandBehind.applyQuaternion(hmdFlatRotation);
-				distanceRightHand.add(rightHandBehind);
+				distanceRightHand.z *= leftBehind ? -2 : -1;
 			}
 
-			const directionLeftHand = distanceLeftHand.normalize();
-			const directionRightHand = distanceRightHand.normalize();
+			const combinedDirection = localVector.addVectors(distanceLeftHand.normalize(), distanceRightHand.normalize());
 
-			const combinedDirection = localVector.addVectors(directionLeftHand, directionRightHand);
-
-			// console.log('combined', Mathf.Atan2(combinedDirection.x, combinedDirection.z) * 180 / Mathf.PI, combinedDirection.x, combinedDirection.z);
-
-			return Math.atan2(combinedDirection.x, combinedDirection.z);
+			const headUpRotation = (localEuler.setFromQuaternion(hmdRotation, 'YXZ').y + Math.PI*2) % (Math.PI*2);
+			return Math.atan2(combinedDirection.x, combinedDirection.z) + headUpRotation;
 		}
 
 		/* detectHandsBehindHead(targetRotation)
@@ -316,7 +290,7 @@ class ShoulderPoser
 			{
 				targetRotation.y += 180;
 			}
-		} */
+		}
 
 		clampHeadRotationDeltaUp(angleY)
 		{
@@ -338,14 +312,14 @@ class ShoulderPoser
 				angleY = headUpRotation + this.maxDeltaHeadRotation;
 				// this.clampingHeadRotation = true;
 			}
-			/* else
-			{
-				this.clampingHeadRotation = false;
-			} */
+			// else
+			// {
+				// this.clampingHeadRotation = false;
+			// }
 			return angleY;
 		}
 
-		/* clampShoulderHandDistance()
+		clampShoulderHandDistance()
 		{
 			const leftHandVector = new Vector3().subVectors(this.avatarTrackingReferences.leftHand.position, this.shoulder.leftShoulderAnchor.position);
 			const rightHandVector = new Vector3().subVectors(this.avatarTrackingReferences.rightHand.position, this.shoulder.rightShoulderAnchor.position);
