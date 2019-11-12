@@ -1164,6 +1164,7 @@ const keys = {
   left: false,
   right: false,
   z: false,
+  c: false,
   space: false,
 };
 let controlsBound = null;
@@ -1198,6 +1199,10 @@ const _bindControls = type => {
         keys.z = true;
         break;
       }
+      case 67: {
+        keys.c = true;
+        break;
+      }
       case 32: {
         keys.space = true;
         break;
@@ -1225,6 +1230,10 @@ const _bindControls = type => {
       }
       case 90: {
         keys.z = false;
+        break;
+      }
+      case 67: {
+        keys.c = false;
         break;
       }
       case 32: {
