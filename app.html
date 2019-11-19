@@ -21,6 +21,7 @@
     <script src="html-beautify.js"></script>
     <script src="file-type.js"></script>
     <script src="namegen.js"></script>
+    <script src="multiplayer.js"></script>
   </head>
   <body>
     <xr-site></xr-site>
@@ -352,118 +353,79 @@ new MutationObserver(mutations => {
   subtree: true,
 });
 
-const _makePeerConnection = peerConnectionId => {
-  const peerConnectionConfig = {
-    iceServers: [
-      {'urls': 'stun:stun.stunprotocol.org:3478'},
-      {'urls': 'stun:stun.l.google.com:19302'},
-    ],
-  };
+let rtcWs = null;
+const peerConnections = [];
+const _rtcConnect = (type, userName, channelName, onInitState) => {
+  rtcWs = new XRChannelConnection(`${LAMBDA_URLS.presenceWs}?u=${encodeURIComponent(userName)}&c=${encodeURIComponent(channelName)}`);
 
-  const peerConnection = new RTCPeerConnection(peerConnectionConfig);
-  peerConnection.ontrack = e => {
-    console.log('got track', e);
-  };
+  rtcWs.addEventListener('peerconnection', e => {
+    const peerConnection = e.detail;
 
-  let skinMesh = null;
-  const sendChannel = peerConnection.createDataChannel('sendChannel');
-  peerConnection.sendChannel = sendChannel;
-  let pingInterval = 0;
-  let updateInterval = 0;
-  sendChannel.onopen = () => {
-    // console.log('data channel local open');
+    let skinMesh = null;
+    peerConnection.addEventListener('open', () => {
+      // console.log('data channel local open');
 
-    skinMesh = _makeSkinMesh();
-    skinMesh.setSkinUrl(DEFAULT_SKIN_URL);
-    skinMeshes.push(skinMesh);
+      peerConnections.push(peerConnection);
 
-    peerConnection.open = true;
+      skinMesh = _makeSkinMesh();
+      skinMesh.setSkinUrl(DEFAULT_SKIN_URL);
+      skinMeshes.push(skinMesh);
 
-    if (landState) {
-      // emit owned xr-iframes
+      if (landState) {
+        // emit owned xr-iframes
 
-      const landXrIframe = root.childNodes[0];
-      const ownedXrIframes = _getOwnedXrIframes(landXrIframe);
-      let state = parse5.parseFragment(`<xr-site>${ownedXrIframes.map(xrIframe => xrIframe.outerHTML).join('')}</xr-site>`);
-      state = _normalizeEl(state);
-      sendChannel.send(JSON.stringify({
-        method: 'initState',
-        state,
-      }));
-    }
+        const landXrIframe = root.childNodes[0];
+        const ownedXrIframes = _getOwnedXrIframes(landXrIframe);
+        let state = parse5.parseFragment(`<xr-site>${ownedXrIframes.map(xrIframe => xrIframe.outerHTML).join('')}</xr-site>`);
+        state = _normalizeEl(state);
+        sendChannel.send(JSON.stringify({
+          method: 'initState',
+          state,
+        }));
+      }
+    });
+    peerConnection.addEventListener('close', () => {
+      const index = peerConnections.indexOf(peerConnection);
+      if (index !== -1) {
+        peerConnections.splice(index, 1);
+      }
 
-    pingInterval = setInterval(() => {
-      sendChannel.send(JSON.stringify({
-        method: 'ping',
-      }));
-    }, 1000);
+      if (skinMesh) {
+        skinMesh.destroy();
+        skinMeshes.splice(skinMeshes.indexOf(skinMesh), 1);
+        skinMesh = null;
+      }
 
-    updateInterval = setInterval(() => {
-      const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
-      const gamepads = navigator.getGamepads().slice(0, 2);
+      if (landState) {
+        // remove owned xr-iframes
 
-      sendChannel.send(JSON.stringify({
-        method: 'pose',
-        hmd: {
-          position: c.position.toArray(),
-          quaternion: c.quaternion.toArray(),
-        },
-        gamepads: gamepads.map(gamepad => {
-          if (gamepad) {
-            return {
-              position: Array.from(gamepad.pose.position),
-              quaternion: Array.from(gamepad.pose.orientation),
-              visible: true,
-            };
-          } else {
-            return {
-              visible: false,
-            };
+        const ownedXrIframes = Array.from(root.querySelectorAll('xr-iframe')).filter(xrIframe => /^owned:/.test(xrIframe.id));
+        for (let i = 0; i < ownedXrIframes.length; i++) {
+          const ownedXrIframe = ownedXrIframes[i];
+          const match = ownedXrIframe.id.match(/^owned:(.*?)-/);
+          if (match) {
+            const ownerId = match[1];
+            if (ownerId === peerConnectionId) {
+              ownedXrIframe.parentNode.removeChild(ownedXrIframe);
+            }
           }
-        }),
-      }));
-    }, 20);
-  };
-  sendChannel.onclose = () => {
-    // console.log('data channel local close');
+        }
+      }
+    });
 
-    _cleanup();
-  };
-  sendChannel.onerror = err => {
-    // console.log('data channel local error', err);
-  };
-  let watchdogTimeout = 0;
-  const _kick = () => {
-    if (watchdogTimeout) {
-      clearTimeout(watchdogTimeout);
-      watchdogTimeout = 0;
-    }
-    watchdogTimeout = setTimeout(() => {
-      peerConnection.close();
-    }, 5000);
-  };
-  _kick();
-  peerConnection.ondatachannel = e => {
-    const {channel} = e;
-    // console.log('data channel remote open', channel);
-    channel.onclose = () => {
-      // console.log('data channel remote close');
-      peerConnection.close();
-    };
-    channel.onerror = err => {
-      // console.log('data channel remote error', err);
-    };
-    channel.onmessage = e => {
+    peerConnection.addEventListener('pose', e => {
+      if (skinMesh) {
+        const {detail: data} = e;
+        const {hmd, gamepads} = data;
+        skinMesh.setState(hmd, gamepads);
+      }
+    });
+    peerConnection.addEventListener('message', e => {
       // console.log('data channel message', e.data);
 
       const data = JSON.parse(e.data);
       const {method} = data;
-      if (method === 'pose') {
-        if (skinMesh) {
-          const {hmd, gamepads} = data;
-          skinMesh.setState(hmd, gamepads);
-        }
-      } else if (landState && method === 'initState') {
+      if (landState && method === 'initState') {
         const {state} = data;
         const stateXrSite = state.childNodes.find(node => node.tagName === 'xr-site');
         const stateXrIframes = stateXrSite ? stateXrSite.childNodes.filter(node => node.tagName === 'xr-iframe') : [];
@@ -476,63 +438,80 @@ const _makePeerConnection = peerConnectionId => {
         }
       } else if (landState && method === 'editState') {
         _applyEditState(data.spec);
-      } else if (method === 'ping') {
-        // nothing
       } else {
-        console.warn('unknown method', {method});
+        console.warn('unknown peer connection method', {method});
       }
+    });
+  });
+  rtcWs.addEventListener('message', e => {
+    const data = JSON.parse(e.data);
+    const {method} = data;
+    if (method === 'initState') {
+      onInitState(data.state);
+    } else if (method === 'editState') {
+      _applyEditState(data.spec);
+    } else {
+      console.warn('unknown presence connection method', {method});
+    }
+  });
 
-      _kick();
-    };
-    peerConnection.recvChannel = channel;
+  rtcWs.type = type;
+  rtcWs.userName = userName;
+  rtcWs.channelName = channelName;
+  rtcWs.pushScene = () => {
+    const html = root.getHTML();
+    rtcWs.send(JSON.stringify({
+      method: 'setHtml',
+      html,
+    }));
   };
-  peerConnection.close = (close => function() {
-    _cleanup();
+  rtcWs.pushAssets = () => {
+    const landXrIframe = root.childNodes[0];
+    const extentXrIframes = _getUnownedXrIframes(landXrIframe);
+    const assetXrIframes = extentXrIframes.map(extentXrIframe => _getUnownedXrIframes(extentXrIframe)).flat();
+    const html = `<xr-site>\n${assetXrIframes.filter(xrIframe => !!xrIframe.id).map(xrIframe => '  ' + xrIframe.outerHTML).join('\n')}\n</xr-site>\n`;
+    rtcWs.send(JSON.stringify({
+      method: 'setInitialHtml',
+      html,
+    }));
+  };
 
-    return close.apply(this, arguments);
-  })(peerConnection.close);
-  const _cleanup = () => {
-    if (peerConnection.open) {
-      peerConnection.open = false;
-    }
-    if (pingInterval) {
-      clearInterval(pingInterval);
-      pingInterval = 0;
-    }
+  let updateInterval = setInterval(() => {
+    const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
+    const hmd = {
+      position: c.position.toArray(),
+      quaternion: c.quaternion.toArray(),
+    };
+    const navigatorGamepads = navigator.getGamepads().slice(0, 2);
+    const gamepads = navigatorGamepads.map(navigatorGamepad => {
+      if (navigatorGamepad) {
+        return {
+          position: Array.from(navigatorGamepad.pose.position),
+          quaternion: Array.from(navigatorGamepad.pose.orientation),
+          visible: true,
+        };
+      } else {
+        return {
+          visible: false,
+        };
+      }
+    });
+    rtcWs.update(hmd, gamepads);
+  }, 20);
+  rtcWs.addEventListener('close', () => {
     if (updateInterval) {
       clearInterval(updateInterval);
       updateInterval = 0;
     }
-    const index = peerConnections.indexOf(peerConnection);
-    if (index !== -1) {
-      peerConnections.splice(index, 1);
-    }
-    if (skinMesh) {
-      skinMesh.destroy();
-      skinMeshes.splice(skinMeshes.indexOf(skinMesh), 1);
-      skinMesh = null;
-    }
-    if (landState) {
-      // remove owned xr-iframes
-
-      const ownedXrIframes = Array.from(root.querySelectorAll('xr-iframe')).filter(xrIframe => /^owned:/.test(xrIframe.id));
-      for (let i = 0; i < ownedXrIframes.length; i++) {
-        const ownedXrIframe = ownedXrIframes[i];
-        const match = ownedXrIframe.id.match(/^owned:(.*?)-/);
-        if (match) {
-          const ownerId = match[1];
-          if (ownerId === peerConnectionId) {
-            ownedXrIframe.parentNode.removeChild(ownedXrIframe);
-          }
-        }
-      }
-    }
-  };
-  peerConnection.connectionId = peerConnectionId;
-  peerConnection.open = false;
-
-  return peerConnection;
+  });
 };
+const _rtcDisconnect = () => {
+  if (rtcWs) {
+    rtcWs.disconnectt();
+    rtcWs = null;
+  }
+};
+
 const _applyEditState = spec => {
   const {method, keyPath, key, value, values} = spec;
   const el = _findElByKeyPath(root, keyPath.slice(1));
@@ -579,167 +558,6 @@ const _applyEditState = spec => {
   } else {
     console.warn('could not find element for key path', keyPath);
   }
-};
-
-let rtcWs = null;
-const connectionId = _randomString();
-const peerConnections = [];
-const _rtcConnect = (type, userName, channelName, onInitState) => {
-  rtcWs = new WebSocket(`${LAMBDA_URLS.presenceWs}?u=${encodeURIComponent(userName)}&c=${encodeURIComponent(channelName)}`);
-  rtcWs.onopen = () => {
-    // console.log('presence socket open');
-
-    rtcWs.send(JSON.stringify({
-      method: 'init',
-      connectionId,
-    }));
-  };
-  const _addPeerConnection = peerConnectionId => {
-    let peerConnection = peerConnections.find(peerConnection => peerConnection.connectionId === peerConnectionId);
-    if (peerConnection && !peerConnection.open) {
-      peerConnection.close();
-      peerConnection = null;
-    }
-    if (!peerConnection) {
-      peerConnection = _makePeerConnection(peerConnectionId);
-      peerConnection.onicecandidate = e => {
-        // console.log('ice candidate', e.candidate);
-
-        rtcWs.send(JSON.stringify({
-          dst: peerConnectionId,
-          src: connectionId,
-          method: 'iceCandidate',
-          candidate: e.candidate,
-        }));
-      };
-      peerConnections.push(peerConnection);
-
-      if (connectionId < peerConnectionId) {
-        peerConnection
-          .createOffer()
-          .then(offer => {
-            peerConnection.setLocalDescription(offer);
-
-            rtcWs.send(JSON.stringify({
-              dst: peerConnectionId,
-              src: connectionId,
-              method: 'offer',
-              offer,
-            }));
-          });
-      }
-    }
-  };
-  const _removePeerConnection = peerConnectionId => {
-    const index = peerConnections.findIndex(peerConnection => peerConnection.connectionId === peerConnectionId);
-    if (index !== -1) {
-      peerConnections.splice(index, 1)[0].close();
-    } else {
-      console.warn('no such peer connection', peerConnectionId, peerConnections.map(peerConnection => peerConnection.connectionId));
-    }
-  };
-  rtcWs.onmessage = e => {
-    // console.log('got message', e.data);
-
-    const data = JSON.parse(e.data);
-    const {method} = data;
-    if (method === 'join') {
-      const {connectionId: peerConnectionId} = data;
-      _addPeerConnection(peerConnectionId);
-    } else if (method === 'offer') {
-      const {src: peerConnectionId, offer} = data;
-
-      const peerConnection = peerConnections.find(peerConnection => peerConnection.connectionId === peerConnectionId);
-      if (peerConnection) {
-        peerConnection.setRemoteDescription(offer)
-          .then(() => peerConnection.createAnswer())
-          .then(answer => {
-            peerConnection.setLocalDescription(answer);
-
-            rtcWs.send(JSON.stringify({
-              dst: peerConnectionId,
-              src: connectionId,
-              method: 'answer',
-              answer,
-            }));
-          });
-      } else {
-        console.warn('no such peer connection', peerConnectionId, peerConnections.map(peerConnection => peerConnection.connectionId));
-      }
-    } else if (method === 'answer') {
-      const {src: peerConnectionId, answer} = data;
-
-      const peerConnection = peerConnections.find(peerConnection => peerConnection.connectionId === peerConnectionId);
-      if (peerConnection) {
-        peerConnection.setRemoteDescription(answer);
-      } else {
-        console.warn('no such peer connection', peerConnectionId, peerConnections.map(peerConnection => peerConnection.connectionId));
-      }
-    } else if (method === 'iceCandidate') {
-      const {src: peerConnectionId, candidate} = data;
-
-      const peerConnection = peerConnections.find(peerConnection => peerConnection.connectionId === peerConnectionId);
-      if (peerConnection) {
-        peerConnection.addIceCandidate(candidate)
-          .catch(err => {
-            // console.warn(err);
-          });
-      } else {
-        console.warn('no such peer connection', peerConnectionId, peerConnections.map(peerConnection => peerConnection.connectionId));
-      }
-    } else if (method === 'leave') {
-      const {connectionId: peerConnectionId} = data;
-      _removePeerConnection(peerConnectionId);
-    } else if (method === 'initState') {
-      const {state} = data;
-      onInitState(state);
-    } else if (method === 'editState') {
-      _applyEditState(data.spec);
-    }
-  };
-  rtcWs.onclose = () => {
-    clearInterval(pingInterval);
-    console.log('rtc closed');
-  };
-  rtcWs.onerror = err => {
-    console.warn('rtc error', err);
-    clearInterval(pingInterval);
-  };
-  rtcWs.type = type;
-  rtcWs.userName = userName;
-  rtcWs.channelName = channelName;
-  rtcWs.pushScene = () => {
-    const html = root.getHTML();
-    rtcWs.send(JSON.stringify({
-      method: 'setHtml',
-      html,
-    }));
-  };
-  rtcWs.pushAssets = () => {
-    const landXrIframe = root.childNodes[0];
-    const extentXrIframes = _getUnownedXrIframes(landXrIframe);
-    const assetXrIframes = extentXrIframes.map(extentXrIframe => _getUnownedXrIframes(extentXrIframe)).flat();
-    const html = `<xr-site>\n${assetXrIframes.filter(xrIframe => !!xrIframe.id).map(xrIframe => '  ' + xrIframe.outerHTML).join('\n')}\n</xr-site>\n`;
-    rtcWs.send(JSON.stringify({
-      method: 'setInitialHtml',
-      html,
-    }));
-  };
-  const pingInterval = setInterval(() => {
-    rtcWs.send(JSON.stringify({
-      method: 'ping',
-    }));
-  }, 30*1000);
-};
-const _rtcDisconnect = () => {
-  if (rtcWs) {
-    rtcWs.close();
-    rtcWs = null;
-  }
-  for (let i = 0; i < peerConnections[i]; i++) {
-    peerConnections[i].close();
-  }
-  peerConnections.length = 0;
 };
 
 let defaultGltf = new THREE.Object3D();
@@ -4435,7 +4253,7 @@ const _makeScreenMesh = () => {
       xrIframe.src = href;
       xrIframe.name = name;
       if (landState) {
-        xrIframe.id = `owned:${connectionId}-${_randomString()}`;
+        xrIframe.id = `owned:${rtcWs.connectionId}-${_randomString()}`;
       }
       root.appendChild(xrIframe);
       root.update(); // force mutation observer to run
