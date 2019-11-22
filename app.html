@@ -584,8 +584,8 @@ const _applyEditState = spec => {
 let rtcWs = null;
 const connectionId = _randomString();
 const peerConnections = [];
-const _rtcConnect = (type, userName, channelName, onInitState) => {
-  rtcWs = new WebSocket(`${LAMBDA_URLS.presenceWs}?u=${encodeURIComponent(userName)}&c=${encodeURIComponent(channelName)}`);
+const _rtcConnect = (type, channelName, onInitState) => {
+  rtcWs = new WebSocket(`${LAMBDA_URLS.presenceWs}?c=${encodeURIComponent(channelName)}`);
   rtcWs.onopen = () => {
     // console.log('presence socket open');
 
@@ -706,7 +706,6 @@ const _rtcConnect = (type, userName, channelName, onInitState) => {
     clearInterval(pingInterval);
   };
   rtcWs.type = type;
-  rtcWs.userName = userName;
   rtcWs.channelName = channelName;
   rtcWs.pushScene = () => {
     const html = root.getHTML();
@@ -780,7 +779,7 @@ window.addEventListener('message', e => {
     }
     case 'joinChannel': {
       const {userName, channelName} = data;
-      _rtcConnect('channel', loginToken.name, `${userName}/${channelName}`, state => {
+      _rtcConnect('channel', channelName, state => {
         const htmlString = parse5.serialize(state);
         root.setHTML(htmlString);
       });
@@ -4107,23 +4106,16 @@ const _makeScreenMesh = () => {
   const _updateTextureDynamic = async () => {
     for (let i = 0; i < channels.length; i++) {
       const channel = channels[i];
-      channel.selected = !!rtcWs && rtcWs.userName === channel.user && rtcWs.channelName.replace(/^.+?\//, '') === channel.channel;
+      channel.selected = !!rtcWs && rtcWs.channelName.replace(/^.+?\//, '') === channel.channel;
     }
     const t = text.toLowerCase();
     const localChannels = t ?
       channels.filter(channel =>
-        channel.selected || channel.user.includes(t) || channel.channel.includes(t) || `${channel.user}/${channel.channel}` === t
+        channel.selected || channel.channel.includes(t) || channel.channel === t
       )
     :
       channels.slice();
-    localChannels.sort((a, b) => {
-      let diff = a.user.localeCompare(b.user);
-      if (diff === 0) {
-        return a.channel.localeCompare(b.channel);
-      } else {
-        return diff;
-      }
-    });
+    localChannels.sort((a, b) => a.channel.localeCompare(b.channel));
     const result = await _renderUi(searchResults, inventory, localChannels, selectedTab, !!rtcWs, !!landState);
     if (result.data) {
       ctx.putImageData(new ImageData(new Uint8ClampedArray(result.data.buffer, result.data.byteOffset, result.data.byteLength), uiSize, uiSize), 0, 0);
@@ -4333,7 +4325,11 @@ const _makeScreenMesh = () => {
 
       const res = await fetch(`${LAMBDA_URLS.presence}channels`)
       if (res.status >= 200 && res.status < 300) {
-        channels = await res.json();
+        const channelNames = await res.json();
+        channels = channelNames.map(channel => ({
+          channel,
+          selected: false,
+        }));
         _updateTextureDynamic();
       } else {
         console.warn(`invalid status code: ${res.status}`);
@@ -4376,25 +4372,23 @@ const _makeScreenMesh = () => {
       root.innerHTML = '';
       _rtcDisconnect();
       _disconnectLand();
-      const userName = loginToken.name || namegen(2).join('-'); // XXX
       const channelName = namegen(1)[0];
-      _rtcConnect('channel', loginToken.name, `${userName}/${channelName}`, state => {
+      _rtcConnect('channel', channelName, state => {
         const htmlString = parse5.serialize(state);
         root.setHTML(htmlString);
       });
-      if (!channels.some(channel => channel.user === userName && channel.channel === channelName)) {
+      if (!channels.some(channel => channel.channel === channelName)) {
         channels.push({
-          user: userName,
           channel: channelName,
         });
       }
-      mesh.setText(`${userName}/${channelName}`);
+      mesh.setText(channelName);
     } else if (id === 'channel-global') {
       _disconnectLand();
       _rtcDisconnect();
       root.innerHTML = '';
 
-      _rtcConnect('land', loginToken.name, 'land', async state => {
+      _rtcConnect('land', 'land', async state => {
         await p;
 
         // emit extent's id'd xr-iframes
@@ -4467,7 +4461,7 @@ const _makeScreenMesh = () => {
       const channelName = match[3];
       if (!match[1]) {
         _rtcDisconnect();
-        _rtcConnect('channel', loginToken.name, `${userName}/${channelName}`, state => {
+        _rtcConnect('channel', channelName, state => {
           const htmlString = parse5.serialize(state);
           root.setHTML(htmlString);
         });

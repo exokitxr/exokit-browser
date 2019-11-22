@@ -812,15 +812,11 @@ import(`https://web.exokit.org/ew.js${key ? `?key=${encodeURIComponent(key)}` : 
         });
       }
       if (j) {
-        const split = j.split('/');
-        if (split.length === 2) {
-          const [userName, channelName] = split;
-          xrEngine.postMessage({
-            method: 'joinChannel',
-            userName,
-            channelName,
-          });
-        }
+        const channelName = j;
+        xrEngine.postMessage({
+          method: 'joinChannel',
+          channelName,
+        });
       }
 
       let result;
