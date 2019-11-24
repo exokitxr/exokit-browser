@@ -192,3 +192,18 @@ THREE.Land.parseExtents = s => {
   }
   return result;
 };
+THREE.Land.serializeExtents = extents => {
+  let result = '';
+  for (let i = 0; i < extents.length; i++) {
+    if (result) {
+      result += ' ';
+    }
+    const [x1, y1, x2, y2] = extents[i];
+    if (x1 !== x2 || y1 !== y2) {
+      result += `[${x1} ${y1} ${x2} ${y2}]`;
+    } else {
+      result += `${x1} ${y1}`;
+    }
+  }
+  return result;
+};
