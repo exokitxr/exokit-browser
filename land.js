@@ -174,7 +174,7 @@ THREE.Land = function Land(extents, color) {
   return mesh;
 };
 THREE.Land.parseExtents = s => {
-  const regex = /(?:\[([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\]|([0-9]+)\s+([0-9]+))\s*/g;
+  const regex = /(?:\[(-?[0-9]+)\s+(-?[0-9]+)\s+(-?[0-9]+)\s+(-?[0-9]+)\]|(-?[0-9]+)\s+(-?[0-9]+))\s*/g;
   const result = [];
   let match;
   while (match = regex.exec(s)) {
