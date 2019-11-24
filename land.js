@@ -179,14 +179,14 @@ THREE.Land.parseExtents = s => {
   let match;
   while (match = regex.exec(s)) {
     if (match[1]) {
-      const x1 = parseInt(match[1], 10);
-      const y1 = parseInt(match[2], 10);
-      const x2 = parseInt(match[3], 10);
-      const y2 = parseInt(match[4], 10);
+      const x1 = parseFloat(match[1]);
+      const y1 = parseFloat(match[2]);
+      const x2 = parseFloat(match[3]);
+      const y2 = parseFloat(match[4]);
       result.push([x1, y1, x2, y2]);
     } else if (match[5]) {
-      const x = parseInt(match[5], 10);
-      const y = parseInt(match[6], 10);
+      const x = parseFloat(match[5]);
+      const y = parseFloat(match[6]);
       result.push([x, y, x, y]);
     }
   }
