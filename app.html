@@ -9,6 +9,7 @@
     <script src="BufferGeometryUtils.js"></script>
     <script src="GLTFLoader.js"></script>
     <script src="LegacyGLTFLoader.js"></script>
+    <script src="Reflector.js"></script>
     <!-- <script src="localforage.js"></script> -->
     <script src="bmfont.js"></script>
     <script src="keycode.js"></script>
@@ -16,7 +17,7 @@
     <script src="cubicBezier.js"></script>
     <!-- <script src="sprite3d.js"></script> -->
     <script src="land.js"></script>
-    <script src="skin.js"></script>
+    <!-- <script src="skin.js"></script> -->
     <script src="parse5.js"></script>
     <script src="html-beautify.js"></script>
     <script src="file-type.js"></script>
@@ -25,6 +26,8 @@
   <body>
     <xr-site></xr-site>
     <script type=module>
+import Rig from './vrarmik/Rig.js';
+
 (async () => {
 
 let session, display, fakeXrDisplay, lastPresseds = [false, false], lastGripped = [false, false], lastPads = [false, false], lastAxes = [[0.5, 0.5], [0.5, 0.5]], lastPadToucheds = [false, false], scrollFactors = [0, 0], scaleFactors = [1, 1], menuOpen = false, orbitControls = null, transformControls, currentMoveMeshes = [null, null], moveMeshes = [], assetMeshes = [], moveLabelMeshes = [], assetLabelMeshes = [], nativeLabelMeshes = [], guardianMeshes = [], baseMeshes = [], menuAnimation = null, menuFactor = 1, keyboardFocus = null, user = null;
@@ -36,6 +39,7 @@ const colors = {
   default: 0x42a5f5,
   highlight: 0x9ccc65,
 };
+const clock = new THREE.Clock();
 const _rewriteUrlToRaw = u => {
   const o = new URL(u);
   const match = o.host.match(/^(.+)\.proxy\.exokit\.org$/);
@@ -352,6 +356,22 @@ new MutationObserver(mutations => {
   subtree: true,
 });
 
+/* class RiggedModel {
+  constructor(avatarMesh) {
+    this.avatarMesh = avatarMesh;
+  }
+  setState(hmd, gamepads) {
+    this.avatarMesh.position.fromArray(hmd.position).sub(localVector.set(0, 1.5, 0));
+    localQuaternion.fromArray(hmd.quaternion);
+    localEuler.setFromQuaternion(localQuaternion, localEuler.order);
+    localEuler.y += Math.PI;
+    localEuler.x *= -1;
+    this.avatarMesh.quaternion.setFromEuler(localEuler);
+  }
+  update() {
+    // console.log('per-frame update called');
+  }
+} */
 const _makePeerConnection = peerConnectionId => {
   const peerConnectionConfig = {
     iceServers: [
@@ -365,7 +385,7 @@ const _makePeerConnection = peerConnectionId => {
     console.log('got track', e);
   };
 
-  let skinMesh = null;
+  let avatarMesh = null;
   const sendChannel = peerConnection.createDataChannel('sendChannel');
   peerConnection.sendChannel = sendChannel;
   let pingInterval = 0;
@@ -373,9 +393,42 @@ const _makePeerConnection = peerConnectionId => {
   sendChannel.onopen = () => {
     // console.log('data channel local open');
 
-    skinMesh = _makeSkinMesh();
-    skinMesh.setSkinUrl(DEFAULT_SKIN_URL);
-    skinMeshes.push(skinMesh);
+    avatarMesh = new THREE.Object3D();
+    avatarMesh.riggedModel = null;
+    const loader = new THREE.GLTFLoader();
+    // const u = 'https://modulesio.github.io/models/miku.glb';
+    // const resource = model_patches.model4;
+    const resource = model_patches.anne;
+    loader.load(resource.url, object => {
+      if (avatarMesh) {
+        const model = object.scene;
+
+        model.traverse(o => {
+          if (o.isMesh) {
+            o.frustumCulled = false;
+          }
+        });
+
+        const group = new THREE.Group();
+        const o = {
+          url: resource.url,
+          model,
+          resource,
+          zForward: true,
+          group,
+        };
+        Object.assign(o, resource);
+        avatarMesh.riggedModel = new RiggedModel(model, o);
+        // avatarMesh.riggedModel.rebind(o.group);
+
+        console.log('got mesh', model);
+        avatarMesh.add(group);
+      }
+    }, xhr => {}, err => {
+      console.warn(err);
+    });
+    scene.add(avatarMesh);
+    avatarMeshes.push(avatarMesh);
 
     peerConnection.open = true;
 
@@ -459,9 +512,17 @@ const _makePeerConnection = peerConnectionId => {
       const data = JSON.parse(e.data);
       const {method} = data;
       if (method === 'pose') {
-        if (skinMesh) {
+        if (avatarMesh && avatarMesh.riggedModel) {
           const {hmd, gamepads} = data;
-          skinMesh.setState(hmd, gamepads);
+
+          avatarMesh.riggedModel.targets.Head.position.fromArray(hmd.position);
+          avatarMesh.riggedModel.targets.Head.quaternion.fromArray(hmd.quaternion);
+
+          const [leftGamepad, rightGamepad] = gamepads;
+          avatarMesh.riggedModel.targets.LeftHand.position.fromArray(leftGamepad.position);
+          avatarMesh.riggedModel.targets.LeftHand.quaternion.fromArray(leftGamepad.quaternion);
+          avatarMesh.riggedModel.targets.RightHand.position.fromArray(rightGamepad.position);
+          avatarMesh.riggedModel.targets.RightHand.quaternion.fromArray(rightGamepad.quaternion);
         }
       } else if (landState && method === 'initState') {
         const {state} = data;
@@ -507,10 +568,10 @@ const _makePeerConnection = peerConnectionId => {
     if (index !== -1) {
       peerConnections.splice(index, 1);
     }
-    if (skinMesh) {
-      skinMesh.destroy();
-      skinMeshes.splice(skinMeshes.indexOf(skinMesh), 1);
-      skinMesh = null;
+    if (avatarMesh) {
+      scene.remove(avatarMesh);
+      avatarMeshes.splice(avatarMeshes.indexOf(avatarMesh), 1);
+      avatarMesh = null;
     }
     if (landState) {
       // remove owned xr-iframes
@@ -5811,6 +5872,29 @@ const _handleKey = (code, shiftKey, ctrlKey) => {
   }
 };
 
+let avatarModel, rig;
+new THREE.GLTFLoader().load('https://exokitxr.github.io/avatar-models/model2.vrm', object => {
+  avatarModel = object.scene;
+
+  // debugger;
+
+  /* model.traverse(o => {
+    if (o.isSkinnedMesh) {
+      if (!window.skeleton) {
+        window.skeleton = o.skeleton;
+      }
+
+      // o.bind(skeleton);
+    }
+  }); */
+
+  rig = new Rig(avatarModel);
+
+  avatarModel.visible = false;
+
+  scene.add(avatarModel);
+});
+
 // let renderTarget = null;
 const startTime = Date.now();
 let lastTime = 0;
@@ -6089,12 +6173,15 @@ function animate(time, frame) {
   };
   _updateSceneMeshes(); */
 
-  const _updateSkinMeshes = () => {
-    for (let i = 0; i < skinMeshes.length; i++) {
-      skinMeshes[i].update();
+  const _updateAvatarMeshes = () => {
+    for (let i = 0; i < avatarMeshes.length; i++) {
+      const avatarMesh = avatarMeshes[i];
+      const timeDelta = clock.getDelta() * 1000;
+      const time = clock.elapsedTime * 1000;
+      avatarMesh.riggedModel && avatarMesh.riggedModel.tick(time, timeDelta);
     }
   };
-  _updateSkinMeshes();
+  _updateAvatarMeshes();
 
   const _handleTrigger = (gamepad, i, pressed, lastPressed) => {
     const start = pressed && !lastPressed;
@@ -6592,6 +6679,24 @@ function animate(time, frame) {
     _updateTeleportMeshes();
   }
 
+  const _updateAvatarModel = () => {
+    if (rig) {
+      const gamepads = navigator.getGamepads();
+
+      rig.inputs.hmd.position = vrCamera.position;
+      rig.inputs.hmd.rotation = vrCamera.quaternion;
+
+      rig.inputs.leftGamepad.rotation = new THREE.Quaternion().fromArray(gamepads[1].pose.orientation);
+      rig.inputs.leftGamepad.position = new THREE.Vector3().fromArray(gamepads[1].pose.position);
+
+      rig.inputs.rightGamepad.rotation = new THREE.Quaternion().fromArray(gamepads[0].pose.orientation);
+      rig.inputs.rightGamepad.position = new THREE.Vector3().fromArray(gamepads[0].pose.position);
+
+      rig.update();
+    }
+  };
+  _updateAvatarModel();
+
   const _render = () => {
     const c = renderer.vr.enabled ? renderer.vr.getCamera(camera) : camera;
 
@@ -6864,139 +6969,12 @@ _startFakeVrDisplay()
     console.warn(err.stack);
   });
 
-const skinMeshes = [];
+const avatarMeshes = [];
 const _mod = (v, d) => {
   const n = v % d;
   return n < 0 ? (d + n) : n;
 };
 const _angleDiff = (a, b) => _mod((b - a) + Math.PI, Math.PI * 2) - Math.PI;
-const _makeSkinMesh = () => {
-  const object = {};
-  let onsetstate = null;
-  const uniforms = THREE.UniformsUtils.clone(skin.SKIN_SHADER.uniforms);
-  object.setSkinUrl = skinUrl => {
-    if (skinUrl) {
-      const mesh = skin({
-        limbs: true,
-      });
-      mesh.frustumCulled = false;
-
-      mesh.onBeforeRender = (onBeforeRender => function() {
-        mesh.material.uniforms.headRotation.value.copy(uniforms.headRotation.value);
-        mesh.material.uniforms.leftArmRotation.value.copy(uniforms.leftArmRotation.value);
-        mesh.material.uniforms.rightArmRotation.value.copy(uniforms.rightArmRotation.value);
-        mesh.material.uniforms.theta.value = uniforms.theta.value;
-        mesh.material.uniforms.headVisible.value = uniforms.headVisible.value;
-        mesh.material.uniforms.hit.value = uniforms.hit.value;
-
-        onBeforeRender.apply(this, arguments);
-      })(mesh.onBeforeRender);
-
-      return new Promise((accept, reject) => {
-        const skinImg = new Image();
-        skinImg.crossOrigin = 'Anonymous';
-        skinImg.src = skinUrl;
-        skinImg.onload = () => {
-          accept(skinImg);
-        };
-        skinImg.onerror = err => {
-          reject(err);
-        };
-      })
-        .then(skinImg => {
-          mesh.setImage(skinImg);
-
-          onsetstate = (hmd, gamepads) => {
-            const hmdPosition = localVector.fromArray(hmd.position);
-            const hmdQuaternion = localQuaternion.fromArray(hmd.quaternion);
-
-            const hmdEuler = localEuler.setFromQuaternion(hmdQuaternion, localEuler.order);
-            const playerEuler = localEuler2.setFromQuaternion(mesh.quaternion, localEuler2.order);
-            const angleDiff = _angleDiff(hmdEuler.y, playerEuler.y);
-            const angleDiffAbs = Math.abs(angleDiff);
-            if (angleDiffAbs > Math.PI / 2) {
-              playerEuler.y += (angleDiffAbs - (Math.PI / 2)) * (angleDiff < 0 ? 1 : -1);
-              mesh.quaternion.setFromEuler(playerEuler);
-            }
-
-            const oldWorldPosition = mesh.getWorldPosition(localVector2);
-            mesh.position.copy(hmdPosition)
-              .sub(mesh.eye.getWorldPosition(localVector3))
-              .add(oldWorldPosition);
-
-            const playerQuaternionInverse = localQuaternion2.copy(mesh.quaternion).inverse();
-            mesh.head.quaternion.copy(playerQuaternionInverse).multiply(hmdQuaternion);
-            mesh.updateMatrixWorld();
-
-            const headQuaternionInverse = localQuaternion3.copy(mesh.head.quaternion).inverse();
-            uniforms.headRotation.value.set(headQuaternionInverse.x, headQuaternionInverse.y, headQuaternionInverse.z, headQuaternionInverse.w);
-
-            for (let i = 0; i < 2; i++) {
-              const armRotation = uniforms[i === 0 ? 'leftArmRotation' : 'rightArmRotation'];
-
-              const gamepad = gamepads[i];
-              if (gamepad.visible) {
-                const gamepadPosition = localVector.fromArray(gamepad.position);
-                const gamepadQuaternion = localQuaternion.fromArray(gamepad.quaternion);
-
-                const armQuaternionInverse = localQuaternion3.setFromRotationMatrix(
-                  localMatrix.lookAt(
-                    mesh.arms[i === 0 ? 'left' : 'right']
-                      .getWorldPosition(localVector2),
-                    gamepadPosition,
-                    localVector3
-                      .set(0, 1, 0)
-                      .applyQuaternion(gamepadQuaternion)
-                  )
-                )
-                  .multiply(armQuaternionOffset)
-                  .premultiply(playerQuaternionInverse)
-                  .inverse();
-                armRotation.value.set(armQuaternionInverse.x, armQuaternionInverse.y, armQuaternionInverse.z, armQuaternionInverse.w);
-                // console.log('arm rotation', i, armRotation.value.toArray().join(','));
-              } else {
-                armRotation.value.set(0, 0, 0, 1);
-              }
-            }
-          };
-
-          if (object.skinMesh) {
-            object.skinMesh.parent.remove(object.skinMesh);
-            object.skinMesh = null;
-          }
-
-          scene.add(mesh);
-          object.skinMesh = mesh;
-        });
-    } else {
-      onsetstate = null;
-
-      if (object.skinMesh) {
-        object.skinMesh.parent.remove(object.skinMesh);
-        object.skinMesh = null;
-      }
-    }
-  };
-  object.setState = (hmd, gamepads) => {
-    onsetstate && onsetstate(hmd, gamepads);
-  };
-  object.animate = thetaValue => {
-    uniforms.theta.value = thetaValue;
-  };
-  object.update = () => {
-    // XXX
-  };
-  object.destroy = () => {
-    onsetstate = null;
-
-    if (object.skinMesh) {
-      object.skinMesh.parent.remove(object.skinMesh);
-      object.skinMesh = null;
-    }
-  };
-  object.skinMesh = null;
-  return object;
-};
 
 scene.add(defaultGltf);
 const _loadDefaultGltf = () => {
@@ -7013,6 +6991,38 @@ const _loadDefaultGltf = () => {
   });
 };
 _loadDefaultGltf();
+
+const mirrorMesh = (() => {
+  const geometry = new THREE.PlaneBufferGeometry(1, 2);
+  const mesh = new THREE.Reflector(geometry, {
+    clipBias: 0.003,
+    textureWidth: 1024 * window.devicePixelRatio,
+    textureHeight: 2048 * window.devicePixelRatio,
+    color: 0x889999,
+    addColor: 0x300000,
+    recursion: 1
+  });
+  // mesh.position.set(-1, 1.5, -2.1);
+  mesh.position.set(0, 1, 1);
+  /* mesh.rotation.order = 'YXZ';
+  mesh.rotation.y = Math.PI; */
+  /* const material = new THREE.MeshBasicMaterial({
+    color: 0xFF0000,
+  });
+  const mesh = new THREE.Mesh(geometry, material); */
+  mesh.onBeforeRender2 = () => {
+    if (avatarModel) {
+      avatarModel.visible = true;
+    }
+  };
+  mesh.onAfterRender2 = () => {
+    if (avatarModel) {
+      avatarModel.visible = false;
+    }
+  };
+  return mesh;
+})();
+scene.add(mirrorMesh);
 
 function _updateCoord() {
   const {c} = parseQuery(window.location.search);
